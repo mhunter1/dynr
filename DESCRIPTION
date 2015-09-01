@@ -1,0 +1,16 @@
+Package: dynr
+Date: 2015-08-04
+Type: Package
+Title: Dynamic modeling in R
+Authors@R: c(person("Lu", "Ou", role="aut"),
+    person("Sy-Miin", "Chow", role="aut"),
+    person(c("Sukruth", "Nagarimadugu"), "Reddy", role="aut"),
+    person(c("Michael", "D."), "Hunter", role="aut"))
+Author: Lu Ou [aut, cre],
+	Sy-Miin Chow [aut],
+	Skukruth Reddy [aut],
+	Michael Hunter [aut]
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+Version: 0.1-1

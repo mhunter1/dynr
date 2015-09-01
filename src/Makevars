@@ -1,0 +1,7 @@
+# set by configure
+GSL_CFLAGS = -I"C:/Users/mhunter/Desktop/include"
+GSL_LIBS = -L"C:/cygwin/usr/lib" -lgsl
+
+# combine with standard arguments for R
+PKG_CPPFLAGS = $(GSL_CFLAGS)
+PKG_LIBS = $(GSL_LIBS)

@@ -1,0 +1,16 @@
+{
+    "contents" : "dyn.load(file.path(\"~/Dropbox/Brekfis/dynr/src\",paste(\"wrappernegloglike\",.Platform$dynlib.ext,sep=\"\")))\nopt<- function(x0,ub,lb) {\n  tmp=.Call(\"optimize\",x0,ub,lb)\n  return(tmp)\n}\n# initial values and bounds\nx0 <- c(log(1),log(2),0,0,-10,-10)\nub<-c(4, 4, 4, 4, 4, 4)\nlb<-c(-4,-4,-4,-4,-12, -12)\n\nx<-opt(x0,ub,lb)\n\n",
+    "created" : 1438974844120.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3148082499",
+    "id" : "F42A451A",
+    "lastKnownWriteTime" : 1438975605,
+    "path" : "~/Dropbox/Brekfis/dynr/R/rscdekf.R",
+    "project_path" : "R/rscdekf.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

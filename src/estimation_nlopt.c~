@@ -1,0 +1,154 @@
+/*
+Author: Lu Ou
+Date: 2015-07-30
+Filename: estimation_nlopt.c
+Purpose: Obtain parameters estimates by minimizing the negative log likelihood function
+Run with
+   ./runnlopt_onair.sh
+Note
+  You must have NLOpt installed on your machine to run this.
+  Installing NLOpt basically entailed
+    1.  Download the tar.gz
+    2.  Extract the tar bar
+    3.  cd into trunk of folder
+    4.  ./configure
+    5.  make
+    6.  sudo make install
+  You may also need to change -I/dir and -L/dir to the locations
+    where NLOpt was installed.
+*/
+
+#include <math.h>/*sqrt(double)*/
+#include <stdio.h>
+#include <string.h>
+#include <nlopt.h>
+#include "headers/math_function.h"
+#include "headers/cdaekf.h"
+#include "headers/data_structure.h"
+#include "headers/brekfis.h"
+#include "headers/adaodesolver.h"
+#include "headers/model.h"
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include "wrappernegloglike.h"
+
+void forward_diff_grad(double *grad_approx, double ref_fit, const double *x, void * data, double (*func_obj)(const double *, void *))
+{
+    double eps = 1e-4;
+    double new_point[6];
+    memcpy(new_point, x, sizeof(new_point));
+    int i;
+    for(i=0; i < 6; i++){
+        new_point[i] += eps;
+        grad_approx[i] = (func_obj(new_point, data) - ref_fit)/eps;  /*use exp(log(numerator) - log(denominator)) */
+        new_point[i] = x[i];
+    }
+}
+void hessian(const double *x,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian){
+    double eps = 1e-4;
+    size_t row_index,col_index;
+    double xadd[6];
+    double xsub[6];
+    double xaa[6];
+    double xas[6];
+    double xsa[6];
+    double xss[6];
+    
+    double fxaa,fxas,fxsa,fxss,hvalue;
+
+    
+    for(col_index=0; col_index<Hessian->size1; col_index++){
+        memcpy(xadd, x, sizeof(xadd));
+        memcpy(xsub, x, sizeof(xsub));
+        xadd[col_index]=x[col_index] + eps;
+        xsub[col_index]=x[col_index] - eps;
+        
+        gsl_matrix_set(Hessian,col_index,col_index,(func_obj(xadd,NULL) - 2*fx + func_obj(xsub, NULL))/pow(eps,2.0));
+        
+        for(row_index=0;row_index<col_index;row_index++){
+            memcpy(xaa, xadd, sizeof(xaa));
+            memcpy(xas, xsub, sizeof(xas));
+            memcpy(xsa, xadd, sizeof(xsa));
+            memcpy(xss, xsub, sizeof(xss));
+            
+            xaa[row_index] = x[row_index] + eps;
+            xas[row_index] = x[row_index] + eps;
+            xsa[row_index] = x[row_index] - eps;
+            xss[row_index] = x[row_index] - eps;
+            
+            fxaa=func_obj(xaa,NULL);
+            fxas=func_obj(xas,NULL);
+            fxsa=func_obj(xsa,NULL);
+            fxss=func_obj(xss,NULL);
+            
+            hvalue=(fxaa - fxas -fxsa + fxss)/(4 * pow(eps,2.0));
+            
+            gsl_matrix_set(Hessian, row_index, col_index, hvalue);
+            gsl_matrix_set(Hessian, col_index, row_index, hvalue);
+            
+            }
+        }
+    
+     }
+
+double myfunc_wrapper(unsigned n, const double *x, double *grad, void *my_func_data)
+{
+    double fitval = function_neg_log_like(x, my_func_data);
+    if (grad) {
+        forward_diff_grad(grad, fitval, x, my_func_data, function_neg_log_like);
+    }
+    return fitval;
+}
+
+
+
+int main()
+{
+    size_t num_func_param=6;
+    double ub[6] = {5,5,5,5,5, 5};
+	double lb[6] = {-5,-5,-5,-5,-15, -15}; /* lower bounds */
+	nlopt_opt opt;
+    size_t index;
+	
+	/*opt = nlopt_create(NLOPT_LD_MMA, 2); */
+	opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
+    nlopt_set_upper_bounds(opt, ub);
+	nlopt_set_lower_bounds(opt, lb);
+	nlopt_set_min_objective(opt, myfunc_wrapper, NULL);
+	
+	nlopt_set_xtol_rel(opt, 1e-5);
+	
+	double params[]={log(1),log(2),0,0,-10,-10};/* some initial guess*/
+    /*log(1.2)=0.1823216,log(1.8)=0.5877867,-0.5,-0.5,log(0.0001)=-9.21034,log(0.0001)=-9.21034*/
+	double minf; /* the minimum objective value, upon return */
+    
+    gsl_matrix *Hessian_mat=gsl_matrix_calloc(num_func_param,num_func_param);
+    gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(num_func_param,num_func_param);
+	
+	if (nlopt_optimize(opt, params, &minf) < 0) {
+		printf("nlopt failed!\n");
+	}
+	else {
+		printf("found minimum at \n");
+        print_array(params,num_func_param);
+        printf("\n f = %0.10g\n", minf);
+        hessian(params,function_neg_log_like, minf, Hessian_mat);/*information matrix*/
+        mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat);/*variance*/
+        printf("The hessian matrix is \n");
+        print_matrix(Hessian_mat);
+        printf("\n");
+        printf("The inverse hessian matrix is \n");
+        print_matrix(inv_Hessian_mat);
+        printf("\n");
+	}
+	
+	nlopt_destroy(opt);
+    gsl_matrix_free(Hessian_mat);
+    gsl_matrix_free(inv_Hessian_mat);
+	
+	return 0;
+}
+
+

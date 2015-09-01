@@ -1,0 +1,251 @@
+/*=================================================================
+ * Author: Lu Ou
+ * Date: 7/30/2015
+ * wrappernegloglike.C
+ * This function is a wrapper function to get the negative log-likelihood, which is to be optimized by the optimizer.
+ *
+ *=================================================================*/
+
+
+#include "headers/brekfis.h"
+#include "headers/cdaekf.h"
+#include "headers/data_structure.h"
+#include "headers/math_function.h"
+#include "headers/model.h"
+#include <stdlib.h>
+#include <string.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
+#include <time.h>
+
+
+
+double function_neg_log_like(const double *params, void *data){
+    double neg_log_like;
+    size_t index;
+    size_t time_persbj;
+    /** =======================Interface Part 1========================= **/
+    /** model configuration **/
+    ParamConfig pc;
+    pc.num_sbj=217;/*number of subjects*/
+
+    /*function specifications*/
+    pc.func_measure=function_measurement;
+    pc.func_dF_dx=function_dF_dx;
+    pc.func_jacobdynamic=function_jacobdynamic;
+    pc.func_dx_dt=function_dx_dt;
+    pc.func_dP_dt=function_dP_dt;
+    pc.func_initial_condition=function_initial_condition;
+    pc.func_regime_switch=function_regime_switch;
+    pc.func_noise_cov=function_noise_cov;
+    pc.isnegloglikeweightedbyT=false;
+    pc.second_order=false;/*true;*/
+    pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
+    if (pc.adaodesolver){
+        pc.func_dynam=function_dynam_ada;
+    }else{
+        pc.func_dynam=rk4_odesolver;
+    }
+
+
+    pc.dim_latent_var=4;/*number of latent variables*/
+    pc.dim_obs_var=2;/*number of observed variables*/
+    pc.dim_co_variate=1; /*number of covariates*/
+    pc.num_func_param=6; /*number of function parameters*/
+    pc.num_regime=1;/*number of regimes*/
+
+
+    pc.index_sbj=(size_t *)malloc((pc.num_sbj+1)*sizeof(size_t *));
+    size_t i;
+
+    /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
+    /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
+    /*n subjects -> n+1 indices*/   
+    FILE *file_tstart=fopen("../data/tStartPANAsim.txt","r");
+    if (file_tstart == NULL) {
+        perror("fopen");
+        printf("-1");
+    }
+
+    int errorcheck_data;
+    for(i=0;i<=pc.num_sbj;i++){
+           errorcheck_data=fscanf(file_tstart,"%lu",pc.index_sbj+i);
+            if (errorcheck_data == EOF) {
+                if (ferror(file_tstart)) {
+                    perror("fscanf");
+                }
+                else {
+                    fprintf(stderr, "Error: fscanf reached end of file, no matching characters, no matching failure\n");
+                }
+                printf("-1");
+            }
+            else if (errorcheck_data != 1) {
+                fprintf(stderr, "Error: fscanf successfully matched and assigned %i input items\n", errorcheck_data);
+                printf("-1");
+            }
+        }
+    if (fclose(file_tstart) == EOF) {
+        perror("fclose");
+        printf("-1");
+    }
+    
+    pc.total_obs=*(pc.index_sbj+pc.num_sbj);/*total observations for all subjects*/
+
+
+    /** read in the data**/
+    time_persbj=pc.total_obs/pc.num_sbj;
+    gsl_vector **y=(gsl_vector **)malloc(pc.total_obs*sizeof(gsl_vector *));
+    for(index=0; index<pc.total_obs; index++)
+        y[index]=gsl_vector_calloc(pc.dim_obs_var);
+
+    gsl_vector **co_variate=(gsl_vector **)malloc(pc.total_obs*sizeof(gsl_vector *));
+    for(index=0; index<pc.total_obs; index++)
+        co_variate[index]=gsl_vector_calloc(pc.dim_co_variate);
+
+    double *y_time=(double *)malloc(pc.total_obs*sizeof(double));
+
+    size_t total_time=pc.total_obs;;
+
+    size_t t;
+
+    FILE *file_data=fopen("../data/dataPANAsim.txt","r");
+    if (file_data == NULL) {
+        perror("fopen");
+    }
+
+    int errorcheck_tstart;
+    
+    for(t=0;t<pc.total_obs;t++){
+        errorcheck_tstart=0;
+        errorcheck_tstart+=fscanf(file_data,"%*lu %lf",y_time+t);
+        for(index=0;index<pc.dim_obs_var;index++){errorcheck_tstart+=fscanf(file_data," %lf",y[t]->data+index);}
+        for(index=0;index<pc.dim_co_variate;index++){errorcheck_tstart+=fscanf(file_data," %lf",co_variate[t]->data+index);}
+        
+        if (errorcheck_tstart == EOF) {
+            if (ferror(file_data)) {
+                perror("fscanf");
+            }
+            else {
+                fprintf(stderr, "Error: fscanf reached end of file, no matching characters, no matching failure\n");
+            }
+        }
+        else if (errorcheck_tstart != (pc.dim_obs_var+pc.dim_co_variate+1)) {
+            fprintf(stderr, "Error: fscanf successfully matched and assigned %i input items\n", errorcheck_tstart);
+        }
+        
+    }
+    if (fclose(file_data) == EOF) {
+        perror("fclose");
+    }
+
+
+    /*print_vector(y[0]);
+    print_vector(co_variate[0]);
+    exit(0);*/
+    /** =======================Interface Part 1========================= **/
+    /** initialize regime parameter**/
+    ParamInit pi;/*, fin_pi;*/
+    pi.eta_0=(gsl_vector **)malloc(pc.num_regime*sizeof(gsl_vector *));
+    /*fin_pi.eta_0=(gsl_vector **)malloc(pc.num_regime*sizeof(gsl_vector *));*/
+    for(index=0;index<pc.num_regime;index++){
+        (pi.eta_0)[index]=gsl_vector_calloc(pc.num_sbj*pc.dim_latent_var);
+        /*(fin_pi.eta_0)[index]=gsl_vector_calloc(pc.num_sbj*pc.dim_latent_var);*/
+    }
+
+    pi.error_cov_0=(gsl_matrix **)malloc(pc.num_regime*sizeof(gsl_matrix *));
+    /*fin_pi.error_cov_0=(gsl_matrix **)malloc(pc.num_regime*sizeof(gsl_matrix *));*/
+    for(index=0;index<pc.num_regime;index++){
+        (pi.error_cov_0)[index]=gsl_matrix_calloc(pc.dim_latent_var, pc.dim_latent_var);
+        /*(fin_pi.error_cov_0)[index]=gsl_matrix_calloc(pc.dim_latent_var, pc.dim_latent_var);*/
+    }
+
+    pi.pr_0=gsl_vector_calloc(pc.num_regime);
+    /*fin_pi.pr_0=gsl_vector_calloc(pc.num_regime);*/
+
+    /** set parameter **/
+    Param par;/*, fin_par;*/
+
+    /*function parameters*/
+    par.func_param=(double *)malloc(pc.num_func_param*sizeof(double));
+
+    for(i=0;i<pc.num_func_param;i++){
+     par.func_param[i]=params[i];
+    }
+    /*print_array(par.func_param,pc.num_func_param);
+    printf("\n");*/
+
+
+    function_initial_condition(par.func_param, co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
+
+
+    par.eta_noise_cov=gsl_matrix_calloc(pc.dim_latent_var, pc.dim_latent_var);
+    par.y_noise_cov=gsl_matrix_calloc(pc.dim_obs_var, pc.dim_obs_var);
+    par.regime_switch_mat=gsl_matrix_alloc(pc.num_regime, pc.num_regime);
+
+    /*fin_par.func_param=(double *)malloc(pc.num_func_param*sizeof(double));
+    fin_par.eta_noise_cov=gsl_matrix_calloc(pc.dim_latent_var, pc.dim_latent_var);
+    fin_par.y_noise_cov=gsl_matrix_calloc(pc.dim_obs_var, pc.dim_obs_var);
+    fin_par.regime_switch_mat=gsl_matrix_alloc(pc.num_regime, pc.num_regime);*/
+
+    /** calculate the log_like **/
+
+    function_transform(&pc, &pi, &par);
+    model_constraint_init(&pc, &pi);
+    
+    
+    neg_log_like=brekfis(y, co_variate, total_time,y_time, &pc, &pi, &par);
+    /*printf("%lf",neg_log_like);
+    printf("\n");*/
+
+
+    /** free allocated space **/
+    free(pc.index_sbj);
+
+
+    gsl_vector_free(pi.pr_0);
+    /*pi.pr_0=NULL;*/
+
+    for(index=0;index<pc.num_regime;index++){
+        gsl_vector_free((pi.eta_0)[index]);
+    }
+    free(pi.eta_0);
+    /*pi.eta_0=NULL;*/
+    for(index=0;index<pc.num_regime;index++){
+        gsl_matrix_free((pi.error_cov_0)[index]);
+    }
+    free(pi.error_cov_0);
+    /*pi.error_cov_0=NULL;*/
+
+
+    gsl_matrix_free(par.regime_switch_mat);
+    /*par.regime_switch_mat=NULL;*/
+    gsl_matrix_free(par.eta_noise_cov);
+    /*par.eta_noise_cov=NULL;*/
+    gsl_matrix_free(par.y_noise_cov);
+    /*par.y_noise_cov=NULL;*/
+    free(par.func_param);
+    /*par.func_param=NULL;*/
+
+
+
+    for(index=0; index<pc.total_obs; index++){
+    gsl_vector_free(y[index]);}
+    free(y);
+    /*y=NULL;*/
+    for(index=0; index<pc.total_obs; index++){
+        gsl_vector_free(co_variate[index]);
+    }
+    free(co_variate);
+    /*co_variate=NULL;*/
+
+    free(y_time);
+    y_time=NULL;
+
+    return neg_log_like;
+}
+
+
+

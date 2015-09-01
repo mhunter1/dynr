@@ -1,0 +1,506 @@
+plot(x,y);abline(h=0,lty=2); abline(v=0,lty=2)
+data <- matrix(scan("/Users/luou/Dropbox/PSU/HDFSfMRI/TOFinal/InputandSummary/Exam2.doc", n = 7*200), 200, 7, byrow = TRUE)
+dim(data)
+file1=paste("/Users/luou/Dropbox/PSU/HDFSfMRI/TOFinal/InputandSummary/E1.doc",sep="")#
+file2=paste("/Users/luou/Dropbox/PSU/HDFSfMRI//TOFinal/InputandSummary/E2.doc",sep="")
+write.table(data[1:100,],file=file1,append=FALSE,na="NA",row.names=FALSE,col.names=FALSE)#
+write.table(data[101:200,],file=file2,append=FALSE,na="NA",row.names=FALSE,col.names=FALSE)
+data[100,]
+data[101]
+data[200,]
+?tapply
+?cor.test
+data=read.csv("/Users/luou/Dropbox/SyMiin_Lu/518/518_9AddHealth&Graph/Updated2013/518_9Add Health/final.csv")#
+data$se = factor(data$H1FS4,levels=0:3,labels=c("never/rarely","sometimes","a lot","most of/all the time"))#
+data$dep=rowMeans(cbind(data$H1FS1,data$H1FS2,data$H1FS3,data$H1FS5,data$H1FS6,data$H1FS7,data$H1FS9,#
+data$H1FS10,data$H1FS12,data$H1FS13),na.rm=T) #Should include reverse-coded items too; but have to first reverse-code so I am not including them in this illustration#
+#composite continuous scores#
+#Autonomy in making one's own decisions#
+data$od=rowMeans(cbind(data$H1WP1,data$H1WP2, data$H1WP3,data$H1WP4,data$H1WP5,data$H1WP6,data$H1WP7),na.rm=T)#
+#
+library(gplots)#
+  par(las=1,                        # use horizontal axis labels#
+      mar=c(7.1,4.1,4.1,2.1),      # set page margins: bottom, left, top, right#
+      cex.lab=1.5,                     # magnifying factor for axis labels#
+      cex.axis=1.2				#magnifying factor for axis numbering#
+      )#
+#a [5]#
+with(data,plotmeans(od~se,xlab="Self-efficacy",ylab="Autonomy",lwd=1.5,#
+legends=c("Rarely","Sometimes","A lot","Most of/all the time")))#
+#b [10; ran ANOVA to obtain g [+5], correct contrast weights [+2],correct conclusion with t, p-value + 3]#
+g = lm(od~se,data)#
+anova(g)#
+library(gmodels)#
+fit.contrast(g, "se", c(.5,.5,-.5,-.5),conf.int=.95)
+od=rowMeans(cbind(H1WP1,H1WP2, H1WP3,H1WP4,H1WP5,H1WP6,H1WP7),na.rm=T)
+attach(data)
+od=rowMeans(cbind(H1WP1,H1WP2, H1WP3,H1WP4,H1WP5,H1WP6,H1WP7),na.rm=T)
+self = H1FS4#
+#
+self[self>=4] = NA
+self = factor(self,labels=c("never","sometimes","alot","most"))
+seld
+self
+a=anova(lm(self~od,data))
+data$se = factor(data$H1FS4,levels=0:3,labels=c("never/rarely","sometimes","a lot","most of/all the time"))
+a=anova(lm(data$se~od,data))
+a=anova(lm(data$se~data$od,data))
+a=anova(lm(od~self,data))
+a
+qt(.1,24)
+qt(.1,24,ncp=2.5)
+pt(1.18,24)
+(1050-1000)/(200/sqrt(25))
+1-pt(1.25,24)
+rt(1000, 24, ncp=2.5)
+mean(rt(1000, 24, ncp=2.5))
+mean(rt(10000, 24, ncp=2.5))
+mean(rt(1000000, 24, ncp=2.5))
+mean(rt(1000, 24, ncp=2.5))
+2.5*sqrt(24/2)*(gamma(23/2)/gamma(24/2))
+tcv_a=qt(.1,24,ncp=2.5)
+n=25
+s=200
+se=s/sqrt(n)
+se*tcv_a+1100
+x_a=se*tcv_a+1100
+(x_a-1000)/se
+power.t.test(n=10, delta=115,sd=124.83,alternative="one.sided",type="paired")
+power.t.test(n=10, delta=115,sd=124.83,alternative="one.sided",type="paired",sig.level=.01)
+power.t.test(power=.85, delta=115,sd=124.83,alternative="one.sided",type="paired",sig.level=.01)
+power.t.test(power=.85, delta=115,sd=124.83,alternative="one.sided",type="paired",sig.level=.05)
+power.t.test(n=10, delta=115,sd=124.83,alternative="one.sided",type="paired")
+data=read.csv("/Users/luou/Dropbox/SyMiin_Lu/518/518_9AddHealth&Graph/Updated2013/518_9Add Health/final.csv")
+data[1,]
+data$se = factor(data$H1FS4,levels=0:3,labels=c("never/rarely","sometimes","a lot","most of/all the time"))#composite continuous scores#Autonomy in making one's own decisionsdata$od=rowMeans(cbind(data$H1WP1,data$H1WP2, data$H1WP3,data$H1WP4,data$H1WP5,data$H1WP6,data$H1WP7),na.rm=T)
+with(data,plotmeans(od~se,xlab="Self-efficacy",ylab="Autonomy",lwd=1.5,legends=c("Rarely","Sometimes","A lot","Most of/all the time")))
+library(gplots)  par(las=1,                        # use horizontal axis labels      mar=c(7.1,4.1,4.1,2.1),      # set page margins: bottom, left, top, right      cex.lab=1.5,                     # magnifying factor for axis labels      cex.axis=1.2				#magnifying factor for axis numbering      )#a [5]with(data,plotmeans(od~se,xlab="Self-efficacy",ylab="Autonomy",lwd=1.5,legends=c("Rarely","Sometimes","A lot","Most of/all the time")))
+g = lm(od~se,data)anova(g)library(gmodels)fit.contrast(g, "se", c(.5,.5,-.5,-.5),conf.int=.95)#There was a significant difference in autonomy level between those with low (0 or 1) and high (2 or 3) level of self-efficacy, t(1) = -3.17, p < .002.
+install.packages("gmodel")
+install.packages("gmodels")
+g = lm(od~se,data)anova(g)library(gmodels)fit.contrast(g, "se", c(.5,.5,-.5,-.5),conf.int=.95)#There was a significant difference in autonomy level between those with low (0 or 1) and high (2 or 3) level of self-efficacy, t(1) = -3.17, p < .002.
+data$se2 = rep(NA,dim(data)[1])data$se2[data$H1FS4<= 1] = 1data$se2[data$H1FS4 >= 2 & data$H1FS4 <= 3] = 2data$se2 = factor(data$se2,levels=1:2,labels=c("Low","High"))
+g2 = lm(od~se2,data)anova(g2)
+library(car)with(data,leveneTest(od,se,center="mean"))  with(data,leveneTest(od,se2,center="mean"))
+install.packages("car")
+library(car)with(data,leveneTest(od,se,center="mean"))  with(data,leveneTest(od,se2,center="mean"))
+qt(.1,24)
+source("/Users/luou/Desktop/R/main.R")
+sourcedir = "/Users/luou/Desktop/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+chol()
+sourcedir = "Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+sourcedir = "Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox
+sourcedir = "Users/luou/Desktop/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results
+sourcedir = "Users/luou/Desktop/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+source("/Users/luou/Desktop/R/functions.R")
+sourcedir = "Users/luou/Desktop/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+source("/Users/luou/Desktop/R/functions.R")
+paste(c(sourcedir,"/functions.R"),collapse="")
+source("Users/luou/Desktop/R/functions.R")
+sourcedir = "/Users/luou/Desktop/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+sourcing control variables and actual data simulation#
+    source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/lab/ALTLu/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=2#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/ALTdata.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=1#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+sourcing control variables and actual data simulation#
+    source(paste(sourcedir,"/Simulate.R",sep=""))#
+    #writing out data#
+    filedata=paste(wd,"/dmalt.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+sourcedir = "/Users/luou/Dropbox/SyMiin_Lu/MASTER/R"#
+#sourcing functions#
+source(paste(c(sourcedir,"/functions.R"),collapse=""))#???Directory structure different on dropbox#
+wd=sourcedir #where the batch files are located, outputting data#
+outputDiri=sourcedir #where SAS outputs results and I keep results#
+#
+noMC = 500#
+model=2#
+trueI=1#
+#
+sampleSizes = 200  #c(200, 20)#sample sizes#
+theTs =5 #c(5,50)  	#number of time points
+run=1
+source(paste(sourcedir,"/Simulatep.R",sep=""))#
+#
+    #writing out data#
+    filedata=paste(wd,"/dbcaltp.dat",sep="")#
+    write(t(Wide1),file=filedata,ncolumn=(nt*ny),append=FALSE)
+5-3*(.8)^4
+.24+.125+.45*.35
+.24/.5225
+x = rnorm(100,0,1)#
+y = .2 + .5*x + rnorm(length(x),0,.3)#
+w = 1:length(x)#
+dum =  data.frame(x, y, w)#
+rm(x, y, w)#
+attach(dum,pos=2)#
+plot(x, y)#
+abline(lm(y ~ x,data=dum))#
+if(interactive()) identify(x, y, w)#
+detach(2)
+5-.2*(.8)^4*45+11*(.8)^4
+0.95*.15+.05+(7+9+10*8+8+9.5)/12*.2+0.8667*.1
+95*.15+5+(7+9+10*8+8+9.5)/12*20+86.67*.1
+95*.15+5+(7+9+10*8+8+9.5)/12*10+86.67*.1
+95*.15+5+(7+9+10*8+8+9.5)/12*2+86.67*.1
+95*.15+5+(7+9+10*8+8+9.5)/12*2+86.67*.1+22
+95*.15
+(7+9+10*8+8+9.5)/12*2
+86.67*.1
+85*0.2
+17+68
+library(sp)
+library(ggplot2)
+install.packages("gtable")
+library(ggplot2)
+match(alabama,alabama)
+match("alabama","alabama")
+data("state")
+usamap<-data("state")
+dim(usamap)
+length(usamap)
+usamap
+state=read.csv("/Users/luou/Downloads/state.csv",header=TRUE,sep=';  ')
+state=read.csv("/Users/luou/Downloads/state.csv",header=TRUE,sep='; ')
+state=read.csv("/Users/luou/Downloads/state.csv",header=TRUE,sep=";  ")
+state=read.csv("/Users/luou/Downloads/state.csv",header=TRUE,sep=" ")
+state
+state=read.table("/Users/luou/Downloads/state.csv",header=TRUE,sep=';')
+state=read.table("/Users/luou/Downloads/state.csv",header=TRUE,sep=';  ')
+state=read.table("/Users/luou/Downloads/state.csv",header=TRUE,sep=';')
+state[1,]
+state[1,][3]
+state$state.name[3]
+state$state.name[1]
+library(ggmap)#
+> map <- get_map(location = 'Europe', zoom = 4)
+library(ggmap)#
+map <- get_map(location = 'Europe', zoom = 4)
+install.packages("ggmap")
+library(ggmap)#
+map <- get_map(location = 'Europe', zoom = 4)
+map <- get_map(location = 'Europe', zoom = 4
+)
+0.8*0.2+0.5*0.4+0.1*0.4
+(20.89+25.45+16.76+28.54+112)/2
+(20.65+11.37)/3
+10.67+101.82+300
+pi=c(4,2,2,1,1)/10
+E=580*pi
+E
+O=c(224, 119, 130, 48, 59)
+(O-E)^2/E
+sum((O-E)^2/E)
+qchisq(0.9,4)
+qchisq(0.99,4)
+O=c(19,26,29,13,13)
+sum(O)
+exp(-20)
+20*exp(-20)
+p=c(exp(-20),20*exp(-20),400*exp(-20)/2,20^3*exp(-20)/6,1-exp(-20)-20*exp(-20)-400*exp(-20)/2-20^3*exp(-20)/6)
+p
+p*100
+round(p*100)
+26+58+39+52
+1.75^2
+p=c(exp(-1.75),1.75*exp(-1.75),1.75^2*exp(-1.75)/2,1.75^3*exp(-1.75)/6,1-exp(-1.75)-1.75*exp(-1.75)-1.75^2*exp(-1.75)/2-1.75^3*exp(-1.75)/6)
+p*100
+round(p*100)
+E=p*100
+O=(19,26,29,13,13)
+O=c(19,26,29,13,13)
+sum((O-E)^2/E)
+qchisq(0.95,4)
+qchisq(0.95,3)
+(92+97)/429
+(108+81)/429
+(19+32)/429
+(92+108+19)/429
+(97+81+32)/429
+m1=(92+97)/429
+m2=(108+81)/429
+m3=(19+32)/429
+s1=(92+108+19)/429
+s2=(97+81+32)/429
+p=(m1*s1,m2*s1,m3*s1,m1*s2,m2*s2,m3*s2)
+p=c(m1*s1,m2*s1,m3*s1,m1*s2,m2*s2,m3*s2)
+E=429*p
+E
+O=c(92,108,19,97,81,32)
+sum((O-E)^2/E)
+qchisq(0.95,3)
+qchisq(0.95,2)
+13/20-5/15
+13/20/(5/15)
+13*10/(5*7)
+sqrt((13*7)/(20)+(50)/(15))
+qnorm(1.96)
+pnorm(1.96)
+qnorm(0.975)
+hatd=13/20-5/15
+hatd+c(-1,1)*qnorm(0.975)
+hatd+c(-1,1)*qnorm(0.975)*sqrt((13*7)/(20)+(50)/(15))
+sqrt((13*7)/(20^3)+(50)/(15^3))
+hatd+c(-1,1)*qnorm(0.975)*sqrt((13*7)/(20^3)+(50)/(15^3))
+log(13/20/(5/15))+c(-1,1)*qnorm(0.975)*sqrt(1/13-1/20+1/10-1/15)
+exp(log(13/20/(5/15))+c(-1,1)*qnorm(0.975)*sqrt(1/13-1/20+1/10-1/15))
+sqrt(1/13-1/20+1/10-1/15))
+sqrt(1/13-1/20+1/10-1/15)
+sqrt(1/13+1/7+1/10+1/5)
+exp(log(13*10/(5*7))+c(-1,1)*qnorm(0.975)*sqrt(1/13+1/7+1/10+1/5))
+log(13*10/(5*7))+c(-1,1)*qnorm(0.975)*sqrt(1/13+1/7+1/10+1/5)
+s11=20/35
+s12=15/35
+s21=18/35
+s22=17/35
+p=c(s11*s21,s11*s22,s12*s21,s12*s22)
+p
+p*35
+O=c(13,5,7,10)
+sum((O-E)^2/E)
+E=p*35
+E
+sum((O-E)^2/E)
+qchisq(0.95,1)
+p12=7/35
+p21=5/35
+(p12*(1-p12)+p21*(1-p21)+2*p12*p21)/35
+var=(p12*(1-p12)+p21*(1-p21)+2*p12*p21)/35
+sd=sqrt(var)
+d=2/35
+z=d/sd
+z
+qnorm(0.95)
+sd
+exp(0.7)
+exp(-0.7)
+exp(-1)
+cd("~/Dropbox/Brekfis/dynr")
+source("rscdekf.R")
+x

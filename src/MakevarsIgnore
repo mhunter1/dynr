@@ -1,0 +1,7 @@
+#PKG_CFLAGS=-I"C:/cygwin/usr/local/include" -I"C:/cygwin/usr/include"
+#PKG_LIBS=-L"C:/cygwin/usr/lib" -lgsl -lgslcblas -L"C:/cygwin/usr/local/lib" -lnlopt -lm
+
+#PKG_CFLAGS=-I"C:/Users/mhunter/cygwin/usr/local/include" -I"C:/Users/mhunter/cygwin/usr/include"
+#PKG_LIBS=-L"C:/Users/mhunter/cygwin/usr/lib" -lgsl -lgslcblas -L"C:Users/mhunter/cygwin/usr/local/lib" -lnlopt -lm
+
+

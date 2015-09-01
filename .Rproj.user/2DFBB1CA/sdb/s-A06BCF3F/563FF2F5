@@ -1,0 +1,16 @@
+{
+    "contents" : "options(digits = 12)\nlibrary(ipoptr)\n#------use .C()-------\ndyn.load(file.path(\"~/Dropbox/Projects/SUSP15_IPOPT/CDAEKFR\",paste(\"ipoptR\",.Platform$dynlib.ext,sep=\"\")))\ndynamic<-function(n=10000,thin=500,seed=trunc(runif(1)*1e6))\n{\n  tmp=.C(\"gibbs\",as.integer(n),as.integer(thin),\n         as.integer(seed),x=as.double(1:n),\n         y=as.double(1:n))\n  mat=cbind(1:n,tmp$x,tmp$y) \n  colnames(mat)=c(\"Iter\",\"x\",\"y\")\n  mat\n}\n\neval_f <- function(x) {\n  tmp=.C(\"brekfis_obj_R\",negloglike=as.double(0),params=as.double(x))\n  return(tmp$negloglike)\n}\n## Gradient of Rosenbrock Banana function\neval_grad_f <- function(x) {\n  return( c( -400 * x[1] * (x[2] - x[1] * x[1]) - 2 * (1 - x[1]),\n             200 * (x[2] - x[1] * x[1]) ) )\n}\n# initial values\nx0 <- c(-0.1,.1,.1,1,1,2.9,-1,-1,-1,-.7)\n#library(pryr)\n#sexp_type(x0)\neval_f(x0)\n\nres <- ipoptr( x0=x0,p\n               eval_f=eval_f,\n               eval_grad_f=eval_grad_f )\nprint( res )\n\n\n\n#------use .Call()-------\ndyn.load(file.path(\"~/Dropbox/Projects/SUSP15_IPOPT/CDAEKFR\",paste(\"ipoptRcall\",.Platform$dynlib.ext,sep=\"\")))\neval_f <- function(x) {\n  tmp=.Call(\"brekfis_obj_RcallC\",x)\n  return(tmp)\n}\neval_f(x0)\n",
+    "created" : 1438974847389.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1660850548",
+    "id" : "563FF2F5",
+    "lastKnownWriteTime" : 1433371626,
+    "path" : "~/Dropbox/Brekfis/dynr/R/CDAEKFIPOPTR.R",
+    "project_path" : "R/CDAEKFIPOPTR.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

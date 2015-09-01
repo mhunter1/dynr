@@ -1,0 +1,16 @@
+dyn.load(file.path("~/Dropbox/Brekfis/dynr/src",paste("wrappernegloglike",.Platform$dynlib.ext,sep="")))
+opt<- function(model,x0,ub,lb) {
+  tmp=.Call("main_R",model,x0,ub,lb)
+  return(tmp)
+}
+# the model
+model<-list(num_sbj=217)
+# initial values and bounds
+x0 <- c(log(1),log(2),0,0,-10,-10)
+ub<-c(5, 5, 5, 5, 5, 5)
+lb<-c(-5,-5,-5,-5,-15, -15)
+
+starttime=proc.time()
+x<-opt(model,x0,ub,lb)
+(time=proc.time()-starttime)
+x

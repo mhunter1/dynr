@@ -1,0 +1,67 @@
+     /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
+    /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
+    /*n subjects -> n+1 indices*/   
+
+ FILE *file_tstart=fopen("../data/tStartPANAsim.txt","r");
+    if (file_tstart == NULL) {
+        perror("fopen");
+        printf("-1");
+    }
+
+    int errorcheck_data;
+    for(i=0;i<=data_model.pc.num_sbj;i++){
+           errorcheck_data=fscanf(file_tstart,"%lu",data_model.pc.index_sbj+i);
+            if (errorcheck_data == EOF) {
+                if (ferror(file_tstart)) {
+                    perror("fscanf");
+                }
+                else {
+                    fprintf(stderr, "Error: fscanf reached end of file, no matching characters, no matching failure\n");
+                }
+                printf("-1");
+            }
+            else if (errorcheck_data != 1) {
+                fprintf(stderr, "Error: fscanf successfully matched and assigned %i input items\n", errorcheck_data);
+                printf("-1");
+            }
+        }
+    if (fclose(file_tstart) == EOF) {
+        perror("fclose");
+        printf("-1");
+    }
+    
+    data_model.pc.total_obs=*(data_model.pc.index_sbj+data_model.pc.num_sbj);/*total observations for all subjects*/
+    printf("total_obs: %lu\n",data_model.pc.total_obs);
+ 
+    
+        size_t t;
+
+    FILE *file_data=fopen("../data/dataPANAsim.txt","r");
+    if (file_data == NULL) {
+        perror("fopen");
+    }
+
+    int errorcheck_tstart;
+    
+    for(t=0;t<data_model.pc.total_obs;t++){
+        errorcheck_tstart=0;
+        errorcheck_tstart+=fscanf(file_data,"%*lu %lf",data_model.y_time+t);
+        for(index=0;index<data_model.pc.dim_obs_var;index++){errorcheck_tstart+=fscanf(file_data," %lf",data_model.y[t]->data+index);}
+        for(index=0;index<data_model.pc.dim_co_variate;index++){errorcheck_tstart+=fscanf(file_data," %lf",data_model.co_variate[t]->data+index);}
+        
+        if (errorcheck_tstart == EOF) {
+            if (ferror(file_data)) {
+                perror("fscanf");
+            }
+            else {
+                fprintf(stderr, "Error: fscanf reached end of file, no matching characters, no matching failure\n");
+            }
+        }
+        else if (errorcheck_tstart != (data_model.pc.dim_obs_var+data_model.pc.dim_co_variate+1)) {
+            fprintf(stderr, "Error: fscanf successfully matched and assigned %i input items\n", errorcheck_tstart);
+        }
+        
+    }
+    if (fclose(file_data) == EOF) {
+        perror("fclose");
+    }

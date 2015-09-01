@@ -1,0 +1,5 @@
+rm *.o
+gcc -c -g wrappernegloglike.c estimation_nlopt.c PANAmodel.c functions/*.c -I/usr/local/include -I/usr/include
+gcc -g wrappernegloglike.o estimation_nlopt.o PANAmodel.o adaodesolver.o brekfis.o cdaekf.o math_function.o -L/usr/lib -lgsl -lgslcblas -L/usr/local/lib -lnlopt -lm -o estimate
+./estimate
+
