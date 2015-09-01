@@ -13,8 +13,7 @@ dynr.data<-function(dataframe,id,time,observed,covariates){
   names(data.object$covariates)<-paste0("covar",1:length(covariates))
   return(data.object)
 }
-dynr.filter
-dynr.smooth
+
 
 #-------------------------------------------------------------------------
 
@@ -39,9 +38,3 @@ starttime=proc.time()
 x<-dynr.run(model,data)
 (time=proc.time()-starttime)
 x
-fitted 
-standard error
-hessian matrix
-inverse hessian 
-filtered estimate
-flag
