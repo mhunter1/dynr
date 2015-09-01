@@ -16,7 +16,7 @@ dynr.data<-function(dataframe,id,time,observed,covariates){
 
 #-------------------------------------------------------------------------
 
-mydata<-read.table("~/Dropbox/Brekfis/dynr/data/dataPANAsim.txt")
+mydata<-read.table("~/Dropbox/Brekfis/dynr/data/dataPANAsim.txt")#Missing data NA
 data<-dynr.data(mydata, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))
 #model.defaults <- list(blah)#starting values, ub,lb
 
