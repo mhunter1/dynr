@@ -12,5 +12,6 @@ Author: Lu Ou [aut, cre],
 	Michael Hunter [aut]
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
+LinkingTo: RcppGSL
 License: What license is it under?
 Version: 0.1-1
