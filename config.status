@@ -583,7 +583,7 @@ echo 'BEGIN {' >"$ac_tmp/subs1.awk" &&
 cat >>"$ac_tmp/subs1.awk" <<\_ACAWK &&
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["GSL_LIBS"]="-L\"C:/cygwin/usr/lib\" -lgsl"
+S["GSL_LIBS"]="-L\"C:/cygwin/lib\" -lgsl"
 S["GSL_CFLAGS"]="-I\"C:/Users/mhunter/Desktop/include\""
 S["GSL_CONFIG"]="/usr/bin/gsl-config"
 S["target_alias"]=""
