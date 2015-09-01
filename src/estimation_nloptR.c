@@ -288,7 +288,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	print_array(REAL(fittedout),data_model.pc.num_func_param);
 	printf("\n");*/
   
-    SET_STRING_ELT(res_names, 0, mkChar("fitted")); 
+    SET_STRING_ELT(res_names, 0, mkChar("fitted.parameters")); 
     SET_VECTOR_ELT(res_list, 0, fittedout);
     
     setAttrib(res_list, R_NamesSymbol, res_names);
