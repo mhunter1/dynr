@@ -62,7 +62,7 @@ PATH: /cygdrive/c/Program Files (x86)/Calibre2
 configure.win:1685: checking for gsl-config
 configure.win:1703: found /usr/bin/gsl-config
 configure.win:1715: result: /usr/bin/gsl-config
-configure.win:1890: creating ./config.status
+configure.win:1891: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -103,7 +103,7 @@ ECHO_N='-n'
 ECHO_T=''
 GSL_CFLAGS='-I"C:/Users/mhunter/Desktop/include"'
 GSL_CONFIG='/usr/bin/gsl-config'
-GSL_LIBS='-L"C:/cygwin/lib" -lgsl'
+GSL_LIBS='-L"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib" -lgsl -lcblas'
 LIBOBJS=''
 LIBS=''
 LTLIBOBJS=''

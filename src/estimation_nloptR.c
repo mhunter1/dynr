@@ -36,6 +36,7 @@ Note
 #include <gsl/gsl_matrix.h>
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
+#include "PANAmodel.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>

@@ -2,15 +2,8 @@
  * This file implements the Model
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <math.h>
-#include "headers/data_structure.h"
-#include "headers/math_function.h"
-#include "headers/brekfis.h"
-#include "headers/adaodesolver.h"
-#include <gsl/gsl_matrix.h>
+
+#include "PANAmodel.h"
 
 /**
  * The measurement function
@@ -47,6 +40,7 @@ void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, 
     gsl_vector_set(F_dx_dt,2,gsl_vector_get(x,3));
     gsl_vector_set(F_dx_dt,3,-param[1]*gsl_vector_get(x,2)+param[3]*(gsl_vector_get(x,0)-gsl_vector_get(x,2))*gsl_vector_get(x,3));
 }
+
 void function_dynam_ada(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
         double *gparameters,const gsl_vector *co_variate,
         void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
