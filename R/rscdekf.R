@@ -28,7 +28,7 @@ model<-list(num_sbj=217,
             dim_co_variate=1, 
             num_regime=1,
             xstart=c(log(1),log(2),0,0,-10,-10),
-            num_func_param=length(xstart),
+            num_func_param=6,
             ub=c(5, 5, 5, 5, 5, 5),
             lb=c(-5,-5,-5,-5,-15, -15)
 )

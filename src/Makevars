@@ -1,6 +1,7 @@
 # set by configure
-GSL_CFLAGS = -I"C:/Users/mhunter/Desktop/include"
-GSL_LIBS = -L"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib" -lgsl -lcblas
+#GSL_CFLAGS = -I"C:/Users/mhunter/Desktop/include"
+GSL_CFLAGS = -IC:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/include
+GSL_LIBS = -LC:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib -lgsl -lcblas
 
 # combine with standard arguments for R
 PKG_CPPFLAGS = $(GSL_CFLAGS)
