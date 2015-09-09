@@ -1,7 +1,9 @@
-dyn.load(file.path("~/Dropbox/Brekfis/dynr/src",paste("wrappernegloglike",.Platform$dynlib.ext,sep="")))
+#dyn.load(file.path("~/Dropbox/Brekfis/dynr/src",paste("wrappernegloglike",.Platform$dynlib.ext,sep="")))
+
+#require(dynr)
 
 dynr.run<- function(model,data) {
-  tmp=.Call("main_R",model,data)
+  tmp=.Call('main_R',model,data, PACKAGE='dynr')
   return(tmp)
 }
 
@@ -17,8 +19,8 @@ dynr.data<-function(dataframe,id,time,observed,covariates){
 
 #-------------------------------------------------------------------------
 
-mydata<-read.table("~/Dropbox/Brekfis/dynr/data/dataPANAsim.txt")#Missing data NA
-data<-dynr.data(mydata, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))
+#mydata<-read.table("~/Dropbox/Brekfis/dynr/data/dataPANAsim.txt")#Missing data NA
+#data<-dynr.data(mydata, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))
 #model.defaults <- list(blah)#starting values, ub,lb
 
 # the model
