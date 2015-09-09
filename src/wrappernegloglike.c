@@ -7,11 +7,11 @@
  *=================================================================*/
 
 
-#include "headers/brekfis.h"
-#include "headers/cdaekf.h"
-#include "headers/data_structure.h"
-#include "headers/math_function.h"
-#include "headers/model.h"
+#include "brekfis.h"
+#include "cdaekf.h"
+#include "data_structure.h"
+#include "math_function.h"
+#include "model.h"
 #include <stdlib.h>
 #include <string.h>
 #include <gsl/gsl_vector.h>
