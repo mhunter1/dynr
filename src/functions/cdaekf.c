@@ -14,10 +14,10 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
-#include "../headers/math_function.h"
-#include "../headers/cdaekf.h"
-#include "../headers/adaodesolver.h"
-#include "../headers/model.h"
+#include "math_function.h"
+#include "cdaekf.h"
+#include "adaodesolver.h"
+#include "model.h"
 /******************************************************************************
 * continuous-discrete adaptive extended kalman filter (CDA-EKF)
 * *

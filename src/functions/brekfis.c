@@ -15,10 +15,10 @@
  * This file implements the brekfis: b* regime-switch extended kim filter.
  */
 
-#include "../headers/brekfis.h"
-#include "../headers/cdaekf.h"
-#include "../headers/data_structure.h"
-#include "../headers/math_function.h"
+#include "brekfis.h"
+#include "cdaekf.h"
+#include "data_structure.h"
+#include "math_function.h"
 #include <stdlib.h>
 #include <string.h>
 #include <gsl/gsl_vector.h>
@@ -281,7 +281,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                 log_like+=log(mathfunction_matrix_normalize(like_jk));
             }
             /*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
-            /*individual –LL is now divided by each individual’s number of occasions. This helps speed convergence and ensure that each individual’s data get weighted equally regardless of T_i.*/
+            /*individual √êLL is now divided by each individual√ïs number of occasions. This helps speed convergence and ensure that each individual√ïs data get weighted equally regardless of T_i.*/
 
 
             /*printf("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");

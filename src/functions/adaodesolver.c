@@ -14,7 +14,7 @@
 #include <stdio.h>/* standard i/o, printf */
 #include <string.h> /*srting functions*/
 #include <stdlib.h>
-#include "../headers/math_function.h"
+#include "math_function.h"
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <math.h>/*sqrt(double)*/

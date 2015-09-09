@@ -8,7 +8,7 @@
 #include <math.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
-#include "../headers/math_function.h"
+#include "math_function.h"
 /**
  * This method computes the log-likelihood of a multivariate normal distribution.
  * @param x the variable (column) vector

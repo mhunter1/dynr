@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include "headers/data_structure.h"
-#include "headers/math_function.h"
-#include "headers/brekfis.h"
-#include "headers/adaodesolver.h"
+#include "data_structure.h"
+#include "math_function.h"
+#include "brekfis.h"
+#include "adaodesolver.h"
 #include <gsl/gsl_matrix.h>
 
 void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht,gsl_vector *y);

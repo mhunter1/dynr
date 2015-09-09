@@ -1,5 +1,6 @@
 #ifndef MATH_FUNCTION_H_INCLUDED
 #define MATH_FUNCTION_H_INCLUDED
+
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <stdbool.h>
