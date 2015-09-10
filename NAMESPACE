@@ -1,3 +1,5 @@
 exportPattern("^[[:alpha:]]+")
-useDynLib(dynr, .registration=TRUE)
+exportPattern("^[^\\.]")
+useDynLib(dynr)
+
 

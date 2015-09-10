@@ -40,6 +40,7 @@ Note
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
+#include "estimation_nloptR.h"
 
 
 
@@ -321,7 +322,6 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     
     return res_list;
 }
-
 
 
 

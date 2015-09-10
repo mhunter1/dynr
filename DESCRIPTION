@@ -1,6 +1,5 @@
 Package: dynr
 Date: 2015-08-04
-Type: Package
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person("Sy-Miin", "Chow", role="aut"),
@@ -10,8 +9,9 @@ Author: Lu Ou [aut, cre],
 	Sy-Miin Chow [aut],
 	Skukruth Reddy [aut],
 	Michael Hunter [aut]
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Lu Ou <lzo114@psu.edu>
+Depends: R (>= 3.0.0)
 Description: More about what it does (maybe more than one line)
-SystemRequirements: Gnu Scientific Library version >= 1.0
-License: What license is it under?
+License: Apache License (== 2.0)
 Version: 0.1-1
+LazyLoad: yes

@@ -1,24 +1,24 @@
-\name{rscdekf-package}
-\alias{rscdekf-package}
-\alias{rscdekf}
+\name{dynr-package}
+\alias{dynr-package}
+\alias{dynr}
 \docType{package}
 \title{
-\packageTitle{rscdekf}
+\packageTitle{dynr}
 }
 \description{
-\packageDescription{rscdekf}
+\packageDescription{dynr}
 }
 \details{
 
 The DESCRIPTION file:
-\packageDESCRIPTION{rscdekf}
-\packageIndices{rscdekf}
+\packageDESCRIPTION{dynr}
+\packageIndices{dynr}
 ~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
-\packageAuthor{rscdekf}
+\packageAuthor{dynr}
 
-Maintainer: \packageMaintainer{rscdekf}
+Maintainer: \packageMaintainer{dynr}
 }
 \references{
 ~~ Literature or other references for background information ~~

@@ -1,9 +1,10 @@
-#dyn.load(file.path("~/Dropbox/Brekfis/dynr/src",paste("wrappernegloglike",.Platform$dynlib.ext,sep="")))
+#dyn.load(file.path("~/Dropbox/Brekfis/dynr/src",paste("PANAmodel",.Platform$dynlib.ext,sep="")))
 
 #require(dynr)
 
 dynr.run<- function(model,data) {
-  tmp=.Call('main_R',model,data, PACKAGE='dynr')
+  tmp <- .Call("main_R", model, data, PACKAGE = "dynr")
+  #tmp=.Call('main_R',model,data)
   return(tmp)
 }
 
@@ -36,7 +37,7 @@ model<-list(num_sbj=217,
 )
 # initial values and bounds
 
-starttime=proc.time()
-x<-dynr.run(model,data)
-(time=proc.time()-starttime)
-x
+#starttime=proc.time()
+#x<-dynr.run(model,data)
+#(time=proc.time()-starttime)
+#x

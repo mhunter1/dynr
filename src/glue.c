@@ -1,4 +1,5 @@
 
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -8,23 +9,31 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-static R_CallMethodDef callMethods[] = {
-	{"main_R", (DL_FUNC) main_R, 2}
+#include "estimation_nloptR.h"
+
+
+static R_NativePrimitiveArgType main_R_t[] = {
+    VECSXP, VECSXP
 };
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
+static R_CMethodDef cMethods[] = {
+   {"dynrBackend", (DL_FUNC) &main_R, 2, main_R_t},
+   {NULL, NULL, 0}
+};
+
+
+static R_CallMethodDef callMethods[] = {
+	{"dynrBackend", (DL_FUNC) main_R, 2},
+	{NULL, NULL, 0}
+};
+
 
 void R_init_dynr(DllInfo *info) {
-	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+	R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
 }
 
-void R_unload_dynr(DllInfo *) {
-	/* keep this stub in case we need it */
-}
 
-#ifdef  __cplusplus
-}
-#endif
+
+
+
 
