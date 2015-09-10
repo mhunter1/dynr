@@ -1,9 +1,24 @@
 /**
  * This file implements the Model
  */
+#include <math.h>/*sqrt(double)*/
+#include <stdio.h>
+#include <string.h>
+#include "math_function.h"
+#include "cdaekf.h"
+#include "data_structure.h"
+#include "brekfis.h"
+#include "adaodesolver.h"
+#include "model.h"
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
 
 
-#include "PANAmodel.h"
+
+
+
 
 /**
  * The measurement function
@@ -271,82 +286,5 @@ void function_transform(const ParamConfig *pc, ParamInit *pi, Param *par){
     for (i=0;i<2;i++){
       par->func_param[i]=exp(par->func_param[i]);
     }
-}
-
-/******************************************************************************************************************/
-/******************************************************************************************************************/
-/******************************************************************************************************************/
-
-
-
-ParamConfig model_configure(){
-    ParamConfig pc;
-    pc.num_sbj=217;/*number of subjects*/
-
-    /*function specifications*/
-    pc.func_measure=function_measurement;
-    pc.func_dF_dx=function_dF_dx;
-    pc.func_jacobdynamic=function_jacobdynamic;
-    pc.func_dx_dt=function_dx_dt;
-    pc.func_dP_dt=function_dP_dt;
-    pc.func_initial_condition=function_initial_condition;
-    pc.func_regime_switch=function_regime_switch;
-    pc.func_noise_cov=function_noise_cov;
-    pc.isnegloglikeweightedbyT=false;
-    pc.second_order=false;/*true;*/
-    pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
-    if (pc.adaodesolver){
-        pc.func_dynam=function_dynam_ada;
-    }else{
-        pc.func_dynam=rk4_odesolver;
-    }
-
-
-    pc.dim_latent_var=4;/*number of latent variables*/
-    pc.dim_obs_var=2;/*number of observed variables*/
-    pc.dim_co_variate=1; /*number of covariates*/
-    pc.num_func_param=6; /*number of function parameters*/
-    pc.num_regime=1;/*number of regimes*/
-
-
-    pc.index_sbj=(size_t *)malloc((pc.num_sbj+1)*sizeof(size_t *));
-    size_t i;
-
-    /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
-    /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
-    /*n subjects -> n+1 indices*/   
-    FILE *file_data=fopen("../data/tStartPANAsim.txt","r");
-    if (file_data == NULL) {
-        perror("fopen");
-        printf("-1");
-    }
-
-    int errorcheck;
-    for(i=0;i<=pc.num_sbj;i++){
-           errorcheck=fscanf(file_data,"%lu",pc.index_sbj+i);
-            if (errorcheck == EOF) {
-                if (ferror(file_data)) {
-                    perror("fscanf");
-                }
-                else {
-                    fprintf(stderr, "Error: fscanf reached end of file, no matching characters, no matching failure\n");
-                }
-                printf("-1");
-            }
-            else if (errorcheck != 1) {
-                fprintf(stderr, "Error: fscanf successfully matched and assigned %i input items\n", errorcheck);
-                printf("-1");
-            }
-        }
-    if (fclose(file_data) == EOF) {
-        perror("fclose");
-        printf("-1");
-    }
-    
-    pc.total_obs=*(pc.index_sbj+pc.num_sbj);/*total observations for all subjects*/
-
-    
-
-    return pc;
 }
 

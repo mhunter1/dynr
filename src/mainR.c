@@ -24,63 +24,23 @@ Note
 #include <stdio.h>
 #include <string.h>
 #include <nlopt.h>
-#include "headers/math_function.h"
-#include "headers/cdaekf.h"
-#include "headers/data_structure.h"
-#include "headers/brekfis.h"
-#include "headers/adaodesolver.h"
-#include "headers/model.h"
+#include "math_function.h"
+#include "cdaekf.h"
+#include "data_structure.h"
+#include "brekfis.h"
+#include "adaodesolver.h"
+#include "model.h"
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
+#include "estimation.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
 
-
-
-int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double x_tol)
-{
-    printf("Optimize function called.\n");
-    nlopt_opt opt;
-
-    
-	
-    /*opt = nlopt_create(NLOPT_LD_MMA, 2); */
-    opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
-    nlopt_set_upper_bounds(opt, ub);
-    nlopt_set_lower_bounds(opt, lb);
-    nlopt_set_min_objective(opt, myfunc_wrapper,my_func_data);	
-    nlopt_set_xtol_rel(opt, x_tol);
-	
-    int status=nlopt_optimize(opt, fittedpar, minf);
-    if ( status< 0) {
-		/*printf("nlopt failed!\n");*/
-    }else{
-		/*printf("found minimum at \n");
-		print_array(fittedpar,num_func_param);
-		printf("\n f = %0.10g\n", *minf);*/
-		hessianR(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat);/*information matrix*/
-		mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat);/*variance*/
-		/*printf("The hessian matrix is \n");
-		print_matrix(Hessian_mat);
-		printf("\n");
-		printf("The inverse hessian matrix is \n");
-		print_matrix(inv_Hessian_mat);
-		printf("\n");*/
-	}
-
-	
-	nlopt_destroy(opt);
-
-	
-
-	/*printf("Done.\n");*/
-	return status;
-}
 
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
@@ -103,7 +63,7 @@ SEXP getListElement(SEXP list, const char *str)
  */
 SEXP main_R(SEXP model_list,SEXP data_list)
 {
-    size_t index;
+    size_t index,index_col;
 
     /** =======================Interface : Start to Set up the data and the model========================= **/    
      
@@ -278,8 +238,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** =================Optimization: done======================**/
 	
     /** =================Interface: SEXP Output====================== **/
-    SEXP res_list=PROTECT(allocVector(VECSXP,1));
-    SEXP res_names=PROTECT(allocVector(STRSXP, 1));
+    SEXP res_list=PROTECT(allocVector(VECSXP,2));
+    SEXP res_names=PROTECT(allocVector(STRSXP, 2));
     
     SEXP fittedout=PROTECT(allocVector(REALSXP,data_model.pc.num_func_param));
 	/*printf("fittedout created.\n");*/
@@ -287,9 +247,22 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	/*printf("fittedout copied.\n");
 	print_array(REAL(fittedout),data_model.pc.num_func_param);
 	printf("\n");*/
-  
-    SET_STRING_ELT(res_names, 0, mkChar("fitted")); 
+    
+    SEXP hessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
+         ptr_index=REAL(hessian);
+         double tmp;
+         for (index=0;index<data_model.pc.num_func_param;index++){
+             ptr_index[index+data_model.pc.num_func_param*index]=gsl_matrix_get(Hessian_mat,index,index);
+             for (index_col=index+1;index_col<data_model.pc.num_func_param;index_col++){
+                 tmp=gsl_matrix_get(Hessian_mat,index,index_col);
+                 ptr_index[index+data_model.pc.num_func_param*index_col]=tmp;
+                 ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
+             }
+         }
+    SET_STRING_ELT(res_names, 0, mkChar("fitted.parameters")); 
     SET_VECTOR_ELT(res_list, 0, fittedout);
+    SET_STRING_ELT(res_names, 1, mkChar("hessian.matrix")); 
+    SET_VECTOR_ELT(res_list, 1, hessian);
     
     setAttrib(res_list, R_NamesSymbol, res_names);
 
@@ -298,7 +271,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** =================Interface: Output done====================== **/
     
     /** =================Free Allocated space====================== **/
-    UNPROTECT(3);/*unprotect 3 objects*/
+    UNPROTECT(4);/*unprotect 3 objects*/
     
     free(str_number);
     free(data_model.pc.index_sbj);

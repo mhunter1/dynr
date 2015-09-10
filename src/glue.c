@@ -9,7 +9,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-#include "estimation_nloptR.h"
+#include "mainR.h"
 
 
 static R_NativePrimitiveArgType main_R_t[] = {
