@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <stdio.h>
-#include <nlopt.h>
+#include "nlopt.h"
 #include "math_function.h"
 #include "numeric_derivatives.h"
 #include <gsl/gsl_matrix.h>
