@@ -217,8 +217,9 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-	
-	if (opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7) < 0) {
+    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7);
+    
+	if (status < 0) {
 		/*printf("nlopt failed!\n");*/
 	}
 	else {

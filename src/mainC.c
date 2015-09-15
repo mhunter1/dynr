@@ -173,8 +173,10 @@ int main()
 	
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-	
-	if (opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7) < 0) {
+    /*int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7);*/
+    int status=-1;
+    
+	if ( status< 0) {
 		printf("nlopt failed!\n");
 	}
 	else {
@@ -196,21 +198,29 @@ int main()
     /** =================Free Allocated space====================== **/
 
     free(data_model.pc.index_sbj);
+    data_model.pc.index_sbj=NULL;
     
     for(index=0; index<data_model.pc.total_obs; index++){
-    gsl_vector_free(data_model.y[index]);}
+        gsl_vector_free(data_model.y[index]);
+        data_model.y[index]=NULL;
+    }
     free(data_model.y);
+    data_model.y=NULL;
 
     for(index=0; index<data_model.pc.total_obs; index++){
         gsl_vector_free(data_model.co_variate[index]);
+        data_model.co_variate[index]=NULL;
     }
     free(data_model.co_variate);
-
+    data_model.co_variate=NULL;
 
     free(data_model.y_time);
+    data_model.y_time=NULL;
     
     gsl_matrix_free(Hessian_mat);
+    Hessian_mat=NULL;
     gsl_matrix_free(inv_Hessian_mat);
+    inv_Hessian_mat=NULL;
     
 	
 	return 0;
