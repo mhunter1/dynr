@@ -1723,12 +1723,10 @@ fi
 ## If gsl-config was found, let’s use it
 if test "${GSL_CONFIG}" != ""; then
 # Use gsl-config for header and linker arguments (without BLAS which we get from R)
-GSL_CFLAGS='${GSL_CONFIG} --cflags'
-GSL_LIBS='${GSL_CONFIG} --libs-without-cblas'
-sed -e "s|GSL_CFLAGS_TEST|${GSL_CONFIG} --cflags|"
-echo $GSL_CFLAGS_TEST
-#sed -e "s|@GSL_LIBS@|${GSL_LIBS}|" \
-#-e "s|@GSL_CFLAGS@|${GSL_CFLAGS}|" \
+GSL_CFLAGS=$(${GSL_CONFIG} --cflags)
+GSL_LIBS=$(${GSL_CONFIG} --libs-without-cblas)
+echo C flags for GSL are $GSL_CFLAGS
+echo Libs for GSL are $GSL_LIBS
 else
 as_fn_error $? "gsl-config not found, is GSL installed?" "$LINENO" 5
 fi
