@@ -18,6 +18,6 @@ model <- list(num_sbj=217,
 # initial values and bounds
 
 starttime <- proc.time()
-x <- dynr.run(model,data)
+x <- dynr.run(model, data)
 (time <- proc.time()-starttime)
 x
