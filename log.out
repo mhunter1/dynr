@@ -1,9 +1,0 @@
-MAKEFLAGS="" R CMD INSTALL  .
-checking for gsl-config... /usr/bin/gsl-config
--I"C:/Users/mhunter/Desktop/include"
--L"C:/cygwin/usr/lib" -lgsl
-configure.win: creating ./config.status
-config.status: creating src/Makevars
-make[1]: Entering directory `/cygdrive/c/Users/mhunter/Dropbox/Brekfis/dynr/src'
-gcc -m64 -shared -s -static-libgcc -o dynr.dll tmp.def PANAmodel.o estimation_nlopt.o estimation_nloptR.o wrappernegloglike.o -LC:/cygwin/usr/lib -lgsl -Ld:/RCompile/r-compiling/local/local320/lib/x64 -Ld:/RCompile/r-compiling/local/local320/lib -LC:/PROGRA~1/R/R-32~1.0/bin/x64 -lR
-make[1]: Leaving directory `/cygdrive/c/Users/mhunter/Dropbox/Brekfis/dynr/src'
