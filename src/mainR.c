@@ -237,7 +237,11 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	
 	/*printf("Optimization done.\n");*/
     /** =================Optimization: done======================**/
-	
+    
+    /** =================Extended Kim Filter and Smoother: start======================**/
+    
+    /** =================Extended Kim Filter and Smoother: done======================**/
+    
     /** =================Interface: SEXP Output====================== **/
     SEXP res_list=PROTECT(allocVector(VECSXP,2));
     SEXP res_names=PROTECT(allocVector(STRSXP, 2));
