@@ -30,10 +30,8 @@ model <- list(num_sbj=217,
 # initial values and bounds
 
 tfun <- function(x){c(exp(x[1]), exp(x[2]), x[3:6])}
-starttime <- proc.time()
 x <- dynr.run(model, data, tfun)
-(time <- proc.time()-starttime)
-x
-data.frame(x$transformed.parameters, x$standard.errors, x$CI)
+str(x)
+data.frame(x@transformed.parameters, x@standard.errors, x@conf.intervals)
 
 ```
