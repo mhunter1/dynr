@@ -1723,14 +1723,10 @@ fi
 ## If gsl-config was found, let’s use it
 if test "${GSL_CONFIG}" != ""; then
 # Use gsl-config for header and linker arguments (without BLAS which we get from R)
-##GSL_CFLAGS="-I\"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/include\""
-##GSL_CFLAGS="-I\"C:/Users/mhunter/Desktop/include\""
-GSL_CFLAGS="-I\"C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/include\" -I\"C:/cygwin/usr/local/include\""
-#"${GSL_CONFIG} --cflags"
-#GSL_LIBS="-L\"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib\" -lgsl -lcblas"
-#GSL_LIBS="-L\"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib/gsl.lib\" -L\"C:/Users/mhunter/Desktop/gsl_1.16_vs2013/x64/lib/cblas.lib\""
-GSL_LIBS="C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/lib/libgslcblas.a C:/cygwin/usr/local/lib/libnlopt.a"
-#"${GSL_CONFIG} --libs-without-cblas"
+#GSL_CFLAGS="-I\"C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/include\""
+#GSL_LIBS="C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/lib/libgslcblas.a C:/cygwin/usr/local/lib/libnlopt.a"
+GSL_CFLAGS="-I\"../inst/gsl_1.16_mingw64/gsl-1.16/include\""
+GSL_LIBS="../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a ../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgslcblas.a"
 echo $GSL_CFLAGS
 echo $GSL_LIBS
 else

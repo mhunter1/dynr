@@ -583,9 +583,8 @@ echo 'BEGIN {' >"$ac_tmp/subs1.awk" &&
 cat >>"$ac_tmp/subs1.awk" <<\_ACAWK &&
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["GSL_LIBS"]="C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1."\
-"16/lib/libgslcblas.a C:/cygwin/usr/local/lib/libnlopt.a"
-S["GSL_CFLAGS"]="-I\"C:/Users/mhunter/Documents/Desktop20150903/gsl_1.16_mingw64/gsl-1.16/include\" -I\"C:/cygwin/usr/local/include\""
+S["GSL_LIBS"]="../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a ../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgslcblas.a"
+S["GSL_CFLAGS"]="-I\"../inst/gsl_1.16_mingw64/gsl-1.16/include\""
 S["GSL_CONFIG"]="/usr/bin/gsl-config"
 S["target_alias"]=""
 S["host_alias"]=""
