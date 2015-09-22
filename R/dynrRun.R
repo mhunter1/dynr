@@ -29,11 +29,16 @@ setMethod("initialize", "dynrRun",
 	}
 )
 
-#setMethod("summary", "dynrRun",
-#	function(.Object){
-#		#something nice
-#	}
-#)
+# Set the summary method of an object of class dynrRun
+#  All this amounts to is writing a function that takes a
+#  dynrRun object (and possibly other arguments)
+#  and returns/does whatever we want.
+setMethod("summary", "dynrRun",
+	function(object){
+		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, object@conf.intervals)
+		return(ret)
+	}
+)
 
 #setMethod("print", "dynrRun", function(x,...) { 
 #	displayDynrRun(x) 

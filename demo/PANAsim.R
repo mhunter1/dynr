@@ -32,6 +32,6 @@ model <- list(num_sbj=217,
 tfun <- function(x){c(exp(x[1]), exp(x[2]), x[3:6])}
 x <- dynr.run(model, data, tfun)
 str(x)
-data.frame(x@transformed.parameters, x@standard.errors, x@conf.intervals)
+summary(x)
 
 ```
