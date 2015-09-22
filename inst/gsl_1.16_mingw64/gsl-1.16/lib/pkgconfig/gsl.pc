@@ -1,0 +1,11 @@
+prefix=/d/softwares/gsl_1.16_mingw64/gsl-1.16
+exec_prefix=/d/softwares/gsl_1.16_mingw64/gsl-1.16
+libdir=/d/softwares/gsl_1.16_mingw64/gsl-1.16/lib
+includedir=/d/softwares/gsl_1.16_mingw64/gsl-1.16/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 1.16
+Libs: -L/d/softwares/gsl_1.16_mingw64/gsl-1.16/lib -lgsl ${GSL_CBLAS_LIB} -lm -lm 
+Cflags: -I/d/softwares/gsl_1.16_mingw64/gsl-1.16/include
