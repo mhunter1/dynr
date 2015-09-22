@@ -1,16 +1,3 @@
-Tutorial: Using *dynr* to fit a regime-switching linear ODE model
---------------------------------------------------------------------
-  This example illustrates how to use functions in the dynr package
-to fit a regime-switching linear ODE model of the form:
-  
-  $\frac{dx_1(t)}{dt} = -r_1*x_1(t) + a_{12}*[x_2(t)-x_1(t)]$
-  
-  $\frac{dx_2(t)}{dt} = -r_2*(x_2(t)-x_{20}) + a_{21}*[x_2(t)-x_1(t)]$ 
-  
-  - if $S_t=1$: $r_1$ and $r_2$ are freely estimated; $a_{12}$ $=$ $a_{21}$ $=$ 0;
-- if $S_t=2$: $r_1$ $=$ $r_2$ $=$ 0; $a_{12}$ and $a_{21}$ $=$ are freely estimated.
-
-```{r test-child}
 require(dynr)
 
 data(dataPANAsim)
@@ -34,4 +21,3 @@ x <- dynr.run(model, data, tfun)
 str(x)
 summary(x)
 
-```
