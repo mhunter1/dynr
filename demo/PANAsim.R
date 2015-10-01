@@ -1,4 +1,9 @@
+if(!require(numDeriv)){
+	install.packages('numDeriv')
+}
+
 require(dynr)
+require(numDeriv)
 
 data(dataPANAsim)
 data <- dynr.data(dataPANAsim, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))
@@ -17,7 +22,7 @@ model <- list(num_sbj=217,
 # initial values and bounds
 
 tfun <- function(x){c(exp(x[1]), exp(x[2]), x[3:6])}
-x <- dynr.run(model, data, tfun)
+x <- dynr.run(model, data)
 str(x)
 summary(x)
-
+plot(x,data=data,graphingPar=list(cex.main=1,cex.axis=1,cex.lab=1.2),numSubjDemo=2)
