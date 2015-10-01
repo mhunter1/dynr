@@ -98,6 +98,7 @@ setMethod("summary", "dynrRun",
 
 displayDynrRun <- function(x){
 	str(x)
+	invisible(x)
 }
 
 setMethod("print", "dynrRun", function(x, ...) { 
@@ -127,7 +128,8 @@ setMethod("plot", "dynrRun",
 		colnames(thesmooth) = paste0("state",1:model$dim_latent_var)
 		ID = data[["id"]]
 		rowIndex = 1:length(ID)
-		thes = sort(sample(1:model$"num_sbj",numSubjDemo))
+		uniID <- sort(unique(ID))
+		thes = sort(sample(1:model$"num_sbj", numSubjDemo))
 		par(mfrow=c(ifelse(numSubjDemo%%2 > 0,
 			numSubjDemo,numSubjDemo/2),
 			ifelse(numSubjDemo%%2 > 0,
@@ -138,9 +140,13 @@ setMethod("plot", "dynrRun",
 			theR = Mode(mostLikelyRegime)
 		}
 		for (s in 1:numSubjDemo){
-			T = length(ID[ID==thes[s]])
-			therow = rowIndex[ID==thes[s]] 
-	 		plot(c(1,T),c(min(thesmooth)-1,max(thesmooth)+quantile(unlist(thesmooth),.1)),
+			T <- length(ID[ID %in% uniID[thes[s]]])
+			#T = length(ID[ID==thes[s]])
+			#therow = rowIndex[ID==thes[s]]
+			therow = rowIndex[ID %in% uniID[thes[s]]]
+	 		plot(
+				c(1,T),
+				c(min(thesmooth)-1, max(thesmooth)+quantile(unlist(thesmooth),.1)),
 				ylab=ifelse(exists("ylab"),ylab,"State values"), 
 				xlab=ifelse(exists("xlab"),xlab,"Time"),
 				main=ifelse(exists("main"),main,""),
