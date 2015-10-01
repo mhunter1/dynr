@@ -1,6 +1,6 @@
 # set by configure
-GSL_CFLAGS = -I/opt/local/include
-GSL_LIBS = -L/opt/local/lib -lgsl -lgslcblas
+GSL_CFLAGS = -I"../inst/gsl_1.16_mingw64/gsl-1.16/include"
+GSL_LIBS = ../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgsl.a ../inst/gsl_1.16_mingw64/gsl-1.16/lib/libgslcblas.a
 
 # combine with standard arguments for R
 PKG_CPPFLAGS = $(GSL_CFLAGS)
