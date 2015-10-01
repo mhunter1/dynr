@@ -1,17 +1,38 @@
+# TODO Add elements to the class representation for other things passed
+#  back from backend.
+# Currently everything not named here is stored in 'misc'
+
+# L = number of latent variables
+# R = number of regimes
+# T = number of time points
 setClass(Class =  "dynrRun",
-         representation = representation(
-           fitted.parameters =  "numeric",
-           transformed.parameters =  "numeric",
-           standard.errors =  "numeric",
-           hessian =  "matrix",
-           transformed.hessian =  "matrix",
-           conf.intervals = "matrix",
-           exitflag = "numeric",
-           neg.log.likelihood = "numeric",
-           hessian.matrix = "matrix",
-           inverse.hessian.matrix = "matrix",
-           misc = "list"
-         )
+		representation = representation(
+			fitted.parameters =  "numeric",
+			transformed.parameters =  "numeric",
+			standard.errors =  "numeric",
+			hessian =  "matrix",
+			transformed.hessian =  "matrix",
+			conf.intervals = "matrix",
+			exit.flag = "numeric",
+			neg.log.likelihood = "numeric",
+			inverse.hessian = "matrix",
+			eta_regime_t = "array", # LxRxT
+			error_cov_regime_t  = "array", # LxLxRxT
+			eta_regime_regime_t_pred= "array", # LxRxRxT
+			error_cov_regime_regime_t_pred = "array", # LxLxRxRxT
+			eta_regime_regime_t_plus_1 = "array", # LxRxRxT
+			error_cov_regime_regime_t_plus_1 = "array", # LxLxRxRxT
+			innov_vec  = "array", # LxRxRxT
+			inverse_residual_cov = "array", # LxLxRxRxT
+			pr_t_given_t   = "matrix", # RxT
+			pr_t_given_t_less_1 = "matrix", # RxT
+			pr_t_given_T  = "matrix", # RxT
+			transprob_given_T  = "array", # RxRxT
+			eta_regime_smooth = "array", # LxRxT
+			error_cov_regime_smooth  = "array", # LxLxRxT
+			eta_smooth_final = "matrix", # LxT
+			error_cov_smooth_final  = "array" # LxLxT
+		)
 )
 
 #[1] "exitflag"                         "neg.log.likelihood"              
@@ -32,22 +53,36 @@ setClass(Class =  "dynrRun",
 
 # TODO Add population of class slots for other things added to representation
 setMethod("initialize", "dynrRun",
-           function(.Object, x){
-             .Object@fitted.parameters <- x$fitted.parameters
-             .Object@transformed.parameters <- x$transformed.parameters
-             .Object@standard.errors <- x$standard.errors
-             .Object@hessian <- x$hessian.matrix
-             .Object@transformed.hessian <- x$transformed.hessian
-             .Object@conf.intervals <- x$CI
-             .Object@exitflag <- x$exitflag                   
-             .Object@neg.log.likelihood <- x$neg.log.likelihood                 
-             .Object@inverse.hessian.matrix <- x$inverse.hessian.matrix     
-              x[c('fitted.parameters', 'transformed.parameters', 
-                  'standard.errors', 'hessian.matrix', 'transformed.hessian', 
-                  'CI','exitflag','neg.log.likelihood','inverse.hessian.matrix')] <- NULL
-             	.Object@misc <- x
-             return(.Object)
-           }
+	function(.Object, x){
+		.Object@fitted.parameters <- x$fitted.parameters
+		.Object@transformed.parameters <- x$transformed.parameters
+		.Object@standard.errors <- x$standard.errors
+		.Object@hessian <- x$hessian.matrix
+		.Object@transformed.hessian <- x$transformed.hessian
+		.Object@conf.intervals <- x$CI
+		.Object@exit.flag <- x$exitflag                   
+		.Object@neg.log.likelihood <- x$neg.log.likelihood                 
+		.Object@inverse.hessian <- x$inverse.hessian.matrix     
+		.Object@eta_regime_t <- x$eta_regime_t 
+		.Object@error_cov_regime_t <- x$error_cov_regime_t 
+		.Object@eta_regime_regime_t_pred <- x$eta_regime_regime_t_pred 
+		.Object@error_cov_regime_regime_t_pred <- x$error_cov_regime_regime_t_pred 
+		.Object@eta_regime_regime_t_plus_1 <- x$eta_regime_regime_t_plus_1 
+		.Object@error_cov_regime_regime_t_plus_1  <- x$error_cov_regime_regime_t_plus_1
+		.Object@innov_vec <- x$innov_vec 
+		.Object@inverse_residual_cov <- x$inverse_residual_cov 
+		.Object@pr_t_given_t <- x$pr_t_given_t 
+		.Object@pr_t_given_t_less_1 <- x$pr_t_given_t_less_1  
+		.Object@pr_t_given_T <- x$pr_t_given_T 
+		.Object@transprob_given_T <- x$transprob_given_T     
+		.Object@eta_regime_smooth <- x$eta_regime_smooth
+		.Object@error_cov_regime_smooth <- x$error_cov_regime_smooth 
+		.Object@eta_smooth_final <- x$eta_smooth_final
+		.Object@error_cov_smooth_final <- x$error_cov_smooth_final
+		#x[c('fitted.parameters', 'transformed.parameters', 'standard.errors', 'hessian.matrix', 'transformed.hessian', 'CI')] <- NULL
+		#.Object@misc <- x
+		return(.Object)
+	}
 )
 
 # Set the summary method of an object of class dynrRun
@@ -55,19 +90,23 @@ setMethod("initialize", "dynrRun",
 #  dynrRun object (and possibly other arguments)
 #  and returns/does whatever we want.
 setMethod("summary", "dynrRun",
-           function(object){
-             ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, CI = object@conf.intervals)
-             return(ret)
-           }
+	function(object){
+		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, CI = object@conf.intervals)
+		return(ret)
+	}
 )
 
-#setMethod("print", "dynrRun", function(x,...) { 
-#	displayDynrRun(x) 
-#}
+displayDynrRun <- function(x){
+	str(x)
+}
 
-#setMethod("show", "dynrRun", function(x,...) { 
-#	displayDynrRun(x) 
-#})
+setMethod("print", "dynrRun", function(x, ...) { 
+	displayDynrRun(object) 
+})
+
+setMethod("show", "dynrRun", function(object) { 
+	displayDynrRun(object) 
+})
 
 findR = function(y){
   Rindex2 = 1:model$num_regime
@@ -81,63 +120,59 @@ Mode <- function(y) {
 }
 
 setMethod("plot", "dynrRun",
-function(x,y=NULL,data,graphingPar=par(no.readonly = TRUE),
-              ylab = "Smoothed state values",
-              xlab = "Time",
-              numSubjDemo=2,
-              legend.cex=1.2){
-    opar = par(no.readonly = TRUE)
+	function(x, y=NULL, data, graphingPar=par(no.readonly = TRUE), ylab = "Smoothed state values", xlab = "Time", numSubjDemo=2, legend.cex=1.2){
+		opar = par(no.readonly = TRUE)
 		par(graphingPar)
-    thesmooth = data.frame(t(x@misc$eta_smooth_final))  
-    colnames(thesmooth) = paste0("state",1:model$dim_latent_var)
-    ID = data[["id"]]
+		thesmooth = data.frame(t(x@eta_smooth_final))  
+		colnames(thesmooth) = paste0("state",1:model$dim_latent_var)
+		ID = data[["id"]]
 		rowIndex = 1:length(ID)
-    thes = sort(sample(1:model$"num_sbj",numSubjDemo))
-    par(mfrow=c(ifelse(numSubjDemo%%2 > 0,
-                       numSubjDemo,numSubjDemo/2),
-                ifelse(numSubjDemo%%2 > 0,
-                       1,2)))
+		thes = sort(sample(1:model$"num_sbj",numSubjDemo))
+		par(mfrow=c(ifelse(numSubjDemo%%2 > 0,
+			numSubjDemo,numSubjDemo/2),
+			ifelse(numSubjDemo%%2 > 0,
+			1,2)))
 		if (model$num_regime > 1){
-		thePr = t(x@misc$pr_t_given_T)
-		mostLikelyRegime = apply(thePr,1,findR)  
-    theR = Mode(mostLikelyRegime)
+			thePr = t(x@pr_t_given_T)
+			mostLikelyRegime = apply(thePr,1,findR)  
+			theR = Mode(mostLikelyRegime)
 		}
-    for (s in 1:numSubjDemo){
-    T = length(ID[ID==thes[s]])
-    therow = rowIndex[ID==thes[s]] 
- 		plot(c(1,T),c(min(thesmooth)-1,max(thesmooth)+quantile(unlist(thesmooth),.1)),
-         ylab=ifelse(exists("ylab"),ylab,"State values"), 
-         xlab=ifelse(exists("xlab"),xlab,"Time"),
-         main=ifelse(exists("main"),main,""),
-         type='n')
-		if (model$num_regime > 1){
-      times=1:T
-      thepri = mostLikelyRegime[therow]
-   	  rect(times[thepri==theR]-.5,quantile(unlist(thesmooth),.01),times[thepri==theR]+.5,quantile(unlist(thesmooth),.99),col="yellow",density=30)
-		  #legend('topleft',paste0("Regime",theR), 	
-		  #       bty="n",cex=1.4,col=c(NA),fill=c("yellow"),
-		  #       density=c(100))
+		for (s in 1:numSubjDemo){
+			T = length(ID[ID==thes[s]])
+			therow = rowIndex[ID==thes[s]] 
+	 		plot(c(1,T),c(min(thesmooth)-1,max(thesmooth)+quantile(unlist(thesmooth),.1)),
+				ylab=ifelse(exists("ylab"),ylab,"State values"), 
+				xlab=ifelse(exists("xlab"),xlab,"Time"),
+				main=ifelse(exists("main"),main,""),
+				type='n')
+			if (model$num_regime > 1){
+				times=1:T
+				thepri = mostLikelyRegime[therow]
+				rect(times[thepri==theR]-.5,quantile(unlist(thesmooth),.01),times[thepri==theR]+.5,quantile(unlist(thesmooth),.99),col="yellow",density=30)
+				#legend('topleft',paste0("Regime",theR), 	
+				#bty="n",cex=1.4,col=c(NA),fill=c("yellow"),
+				#density=c(100))
+			}
+			time2 = if(T>500){
+				seq(1,T,9)
+			}else {1:T}
+			
+			for (j in 1:model$dim_latent_var){
+				lines(1:T,thesmooth[therow,j],lty=1,lwd=1,col=j)
+				points(time2,thesmooth[therow,j][time2],pch=as.character(j),col=j)
+			}
+			stateNames = NULL
+			for(j in 1:model$dim_latent_var){
+				stateNames = c(stateNames, paste0('State ',j))
+			}
+			legend('topright',
+			paste0("State",as.character(1:model$dim_latent_var)),
+				lty=1:model$dim_latent_var,
+				lwd=2,col=1:model$dim_latent_var,bty="n",
+				pch=as.character(1:model$dim_latent_var),cex=legend.cex)
 		}
-    time2 = if(T>500){
-            seq(1,T,9)
-    }else {1:T}
-            
-		for (j in 1:model$dim_latent_var){
-    lines(1:T,thesmooth[therow,j],lty=1,lwd=1,col=j)
-    points(time2,thesmooth[therow,j][time2],pch=as.character(j),col=j)		 
-    }
-    stateNames = NULL
-		for(j in 1:model$dim_latent_var){
-		  stateNames = c(stateNames, paste0('State ',j))
-		}
-		  legend('topright',
-		         paste0("State",as.character(1:model$dim_latent_var)),
-             lty=1:model$dim_latent_var,
-		       lwd=2,col=1:model$dim_latent_var,bty="n",
-		       pch=as.character(1:model$dim_latent_var),cex=legend.cex)
-    }
-    on.exit(par(opar))
-}
+		on.exit(par(opar))
+	}
 )
 
 
