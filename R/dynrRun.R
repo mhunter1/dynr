@@ -141,8 +141,6 @@ setMethod("plot", "dynrRun",
 		}
 		for (s in 1:numSubjDemo){
 			T <- length(ID[ID %in% uniID[thes[s]]])
-			#T = length(ID[ID==thes[s]])
-			#therow = rowIndex[ID==thes[s]]
 			therow = rowIndex[ID %in% uniID[thes[s]]]
 	 		plot(
 				c(1,T),
