@@ -2,15 +2,15 @@
 # Plotting methods
 
 findRegime = function(prop){
-  RegimeIndices = 1:length(prop)
-  MostLikelyRegime = RegimeIndices[prop==max(prop)]
-  return(MostLikelyRegime[1])
-  #If the probabilities are equal, return the first regime
+	RegimeIndices = 1:length(prop)
+	MostLikelyRegime = RegimeIndices[prop==max(prop)]
+	return(MostLikelyRegime[1])
+	#If the probabilities are equal, return the first regime
 }
 
 Mode <- function(y) {
-  uy <- unique(y)
-  uy[which.max(tabulate(match(y, uy)))]
+	uy <- unique(y)
+	uy[which.max(tabulate(match(y, uy)))]
 }
 
 setMethod("plot", "dynrRun",
@@ -55,8 +55,8 @@ setMethod("plot", "dynrRun",
 			}else {1:T}
 			
 			for (j in 1:model$dim_latent_var){
-				lines(1:T,thesmooth[therow,j],lty=1,lwd=1,col=j)
-				points(time2,thesmooth[therow,j][time2],pch=as.character(j),col=j)
+				lines(1:T,thesmooth[therow,j], lty=1, lwd=1, col=j)
+				points(time2, thesmooth[therow,j][time2], pch=as.character(j), col=j)
 			}
 			stateNames = NULL
 			for(j in 1:model$dim_latent_var){
@@ -65,65 +65,68 @@ setMethod("plot", "dynrRun",
 			legend('topright',
 			paste0("State",as.character(1:model$dim_latent_var)),
 				lty=1:model$dim_latent_var,
-				lwd=2,col=1:model$dim_latent_var,bty="n",
-				pch=as.character(1:model$dim_latent_var),cex=legend.cex)
+				lwd=2, col=1:model$dim_latent_var, bty="n",
+				pch=as.character(1:model$dim_latent_var), cex=legend.cex)
 		}
 		on.exit(par(opar))
 	}
 )
 
-dynr.ggplot <- function(x,data.dynr,states,names.state=paste0("state",states),title="Smoothed State Values",numSubjDemo=2){
-  dims=dim(x@eta_regime_regime_t_pred)
-  dim_latent_var=dims[1]
-  num_regime=dims[2]
-  num_sbj=length(unique(data.dynr$id))
-  randid=sample(unique(data.dynr$id),numSubjDemo)
-  
-  data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
-  #data.plot<-cbind(data.plot,data.dynr$observed)
 
-  addendtime<-function(data.frame){data.frame$endtime<-c(data.frame$time[2:nrow(data.frame)], data.frame$time[nrow(data.frame)]+min(diff(data.frame$time)))
-                       return(data.frame)}
-  if (num_regime==1){
-    names.id.vars<-c("id","time")
-    names.measure.vars<-names.state
-    data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
-    names(data.plot)<-c(names.id.vars,names.measure.vars)
-    
-    data_long<- melt(data.plot[data.plot$id%in%randid,],
-                     id.vars=names.id.vars,
-                     measure.vars=names.measure.vars,
-                     value.name="value")
-    ggplot(data_long,aes(x=time,y=value,colour = variable))+geom_line(size=1,alpha=0.8)+facet_wrap(~id)+
-      ggtitle(title) + 
-      theme(plot.title = element_text(lineheight=.8, face="bold"))
-  }else{
-    
-    data.plot <- ddply(data.plot,"id",addendtime)
-    data.plot$regime<-as.factor(apply(x@pr_t_given_T,2,findRegime))
-    names.id.vars<-c("id","time","endtime","regime")
-    names.measure.vars<-paste0("states",states)
-    data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
-    names(data.plot)<-c(names.id.vars,names.measure.vars)
-    
-    data_long<- melt(data.plot[data.plot$id%in%randid,],
-                     id.vars=names.id.vars,
-                     measure.vars=names.measure.vars,
-                     value.name="value")    
-    
-    ggplot(data_long,aes(x=time,y=value,group = variable))+
-      geom_point(size=2,aes(color=variable))+
-      geom_line(size=1,aes(color=variable))+
-      geom_rect(aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15)+
-      facet_wrap(~id)+
-      ggtitle(title) + 
-      theme(plot.title = element_text(lineheight=.8, face="bold"),legend.position="bottom",legend.text=element_text(lineheight=0.8, face="bold"))
-    
-   }
-  }
-  
+dynr.ggplot <- function(x, data.dynr, states, names.state=paste0("state", states), title="Smoothed State Values", numSubjDemo=2){
+	dims=dim(x@eta_regime_regime_t_pred)
+	dim_latent_var=dims[1]
+	num_regime=dims[2]
+	num_sbj=length(unique(data.dynr$id))
+	randid=sample(unique(data.dynr$id),numSubjDemo)
 	
+	data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
+	#data.plot<-cbind(data.plot,data.dynr$observed)
 	
+	addendtime <- function(data.frame){
+		data.frame$endtime <- c(data.frame$time[2:nrow(data.frame)], data.frame$time[nrow(data.frame)]+min(diff(data.frame$time)))
+		return(data.frame)
+	}
+	if(num_regime==1){
+		names.id.vars <- c("id","time")
+		names.measure.vars <- names.state
+		data.plot <- cbind(data.plot, t(x@eta_smooth_final[states,]))
+		names(data.plot) <- c(names.id.vars, names.measure.vars)
+		
+		data_long<- melt(data.plot[data.plot$id%in%randid,],
+			id.vars=names.id.vars,
+			measure.vars=names.measure.vars,
+			value.name="value")
+		ggplot(data_long, aes(x=time, y=value, colour = variable)) + geom_line(size=1, alpha=0.8) + facet_wrap(~id) + 
+			ggtitle(title) + 
+			theme(plot.title = element_text(lineheight=.8, face="bold"))
+	}else{
+		
+		data.plot <- ddply(data.plot,"id",addendtime)
+		data.plot$regime<-as.factor(apply(x@pr_t_given_T,2,findRegime))
+		names.id.vars<-c("id","time","endtime","regime")
+		names.measure.vars<-paste0("states",states)
+		data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
+		names(data.plot)<-c(names.id.vars,names.measure.vars)
+		
+		data_long<- melt(data.plot[data.plot$id%in%randid,],
+			id.vars=names.id.vars,
+			measure.vars=names.measure.vars,
+			value.name="value")
+		
+		ggplot(data_long,aes(x=time, y=value, group=variable)) +
+			geom_point(size=2, aes(color=variable)) +
+			geom_line(size=1, aes(color=variable)) +
+			geom_rect(aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
+			facet_wrap(~id)+
+			ggtitle(title) +
+			theme(plot.title=element_text(lineheight=.8, face="bold"), legend.position="bottom", legend.text=element_text(lineheight=0.8, face="bold"))
+		
+	}
+}
+
+
+
 
 
 
