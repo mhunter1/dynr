@@ -1,10 +1,11 @@
 #------------------------------------------------------------------------------
 # Plotting methods
 
-findR = function(y){
-  Rindex2 = 1:model$num_regime
-  Rtoret = Rindex2[y==max(y)]
-  return(Rtoret)
+findRegime = function(prop){
+  RegimeIndices = 1:length(prop)
+  MostLikelyRegime = RegimeIndices[prop==max(prop)]
+  return(MostLikelyRegime[1])
+  #If the probabilities are equal, return the first regime
 }
 
 Mode <- function(y) {
@@ -28,7 +29,7 @@ setMethod("plot", "dynrRun",
 			1,2)))
 		if (model$num_regime > 1){
 			thePr = t(x@pr_t_given_T)
-			mostLikelyRegime = apply(thePr,1,findR)  
+			mostLikelyRegime = apply(thePr,1,findRegime)  
 			theR = Mode(mostLikelyRegime)
 		}
 		for (s in 1:numSubjDemo){
@@ -71,36 +72,58 @@ setMethod("plot", "dynrRun",
 	}
 )
 
-dynr.ggplot <- function(){
-	#library(ggplot2)
-	#library(reshape2)
+dynr.ggplot <- function(x,data.dynr,states,names.state=paste0("state",states),title="Smoothed State Values",numSubjDemo=2){
+  dims=dim(x@eta_regime_regime_t_pred)
+  dim_latent_var=dims[1]
+  num_regime=dims[2]
+  num_sbj=length(unique(data.dynr$id))
+  randid=sample(unique(data.dynr$id),numSubjDemo)
+  
+  data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
+  #data.plot<-cbind(data.plot,data.dynr$observed)
+
+  addendtime<-function(data.frame){data.frame$endtime<-c(data.frame$time[2:nrow(data.frame)], data.frame$time[nrow(data.frame)]+min(diff(data.frame$time)))
+                       return(data.frame)}
+  if (num_regime==1){
+    names.id.vars<-c("id","time")
+    names.measure.vars<-names.state
+    data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
+    names(data.plot)<-c(names.id.vars,names.measure.vars)
+    
+    data_long<- melt(data.plot[data.plot$id%in%randid,],
+                     id.vars=names.id.vars,
+                     measure.vars=names.measure.vars,
+                     value.name="value")
+    ggplot(data_long,aes(x=time,y=value,colour = variable))+geom_line(size=1,alpha=0.8)+facet_wrap(~id)+
+      ggtitle(title) + 
+      theme(plot.title = element_text(lineheight=.8, face="bold"))
+  }else{
+    
+    data.plot <- ddply(data.plot,"id",addendtime)
+    data.plot$regime<-as.factor(apply(x@pr_t_given_T,2,findRegime))
+    names.id.vars<-c("id","time","endtime","regime")
+    names.measure.vars<-paste0("states",states)
+    data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
+    names(data.plot)<-c(names.id.vars,names.measure.vars)
+    
+    data_long<- melt(data.plot[data.plot$id%in%randid,],
+                     id.vars=names.id.vars,
+                     measure.vars=names.measure.vars,
+                     value.name="value")    
+    
+    ggplot(data_long,aes(x=time,y=value,group = variable))+
+      geom_point(size=2,aes(color=variable))+
+      geom_line(size=1,aes(color=variable))+
+      geom_rect(aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15)+
+      facet_wrap(~id)+
+      ggtitle(title) + 
+      theme(plot.title = element_text(lineheight=.8, face="bold"),legend.position="bottom",legend.text=element_text(lineheight=0.8, face="bold"))
+    
+   }
+  }
+  
 	
-	## ----plotting the 6-state solution---------------------------------------
-	economics6FitProbs <- posterior(economics6Fit)
-	pDats <- economics
 	
-	
-	pDats$EndDate <- c(economics$date[2:nrow(economics)], max(economics$date)+31)
-	#---------Add this End time variable 
-	pDats$pHigh <- economics6FitProbs$S6
-	
-	pDats$State <- as.factor(economics6FitProbs$state)
-	#---------State is factor
-	
-	#-----Melt the data: Define id and measure variables-----------
-	pMelted <- melt(pDats, id=c("date", "EndDate", "State"), measure=c("median.unemployment.duration.in.week", "pHigh"))
-	
-	#——Facet plots :Probabilities vs. values
-	ggplot(pMelted, aes(date, value), 
-		main = "median unemployment duration and probability of High state") + 
-		geom_line() + 
-		facet_grid(variable~., scales="free_y")
-	
-	#-----rectangular state background, Likely State By Color
-	ggplot(pMelted, aes(date, value), 
-		main = "median unemployment duration and probability of High state") + 
-		geom_line() + 
-		geom_rect(aes(xmin=date, xmax=EndDate, ymin=-Inf, ymax=Inf, fill=State), alpha=.25)
-}
+
 
 

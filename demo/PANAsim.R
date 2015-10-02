@@ -1,9 +1,19 @@
 if(!require(numDeriv)){
 	install.packages('numDeriv')
 }
-
+if(!require(ggplot2)){
+    install.packages('ggplot2')
+}
+if(!require(reshape2)){
+    install.packages('reshape2')
+}
+if(!require(plyr)){
+    install.packages('plyr')
+}
 require(dynr)
 require(numDeriv)
+
+
 
 data(dataPANAsim)
 data <- dynr.data(dataPANAsim, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))
@@ -23,6 +33,10 @@ model <- list(num_sbj=217,
 
 tfun <- function(x){c(exp(x[1]), exp(x[2]), x[3:6])}
 x <- dynr.run(model, data, tfun)
-x
 summary(x)
 plot(x, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
+
+require(ggplot2)
+require(reshape2)
+require(plyr)
+dynr.ggplot(x,data.dynr=data,states=c(1,3),names.state=paste0("state",states),title="Smoothed State Values",numSubjDemo=2)
