@@ -22,7 +22,7 @@ model <- list(num_sbj=217,
 # initial values and bounds
 
 tfun <- function(x){c(exp(x[1]), exp(x[2]), x[3:6])}
-x <- dynr.run(model, data)
+x <- dynr.run(model, data, tfun)
 x
 summary(x)
 plot(x, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)

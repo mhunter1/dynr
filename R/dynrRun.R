@@ -1,6 +1,8 @@
-# TODO Add elements to the class representation for other things passed
-#  back from backend.
-# Currently everything not named here is stored in 'misc'
+
+
+# Class definition for the dynrRun object that
+#  stores all the output for a model that has 
+#  been run.
 
 # L = number of latent variables
 # R = number of regimes
@@ -35,23 +37,10 @@ setClass(Class =  "dynrRun",
 		)
 )
 
-#[1] "exitflag"                         "neg.log.likelihood"              
-#[3] "fitted.parameters"                "hessian.matrix"                  
-#[5] "inverse.hessian.matrix"           "eta_regime_t"                    
-#[7] "error_cov_regime_t"               "eta_regime_regime_t_pred"        
-#[9] "error_cov_regime_regime_t_pred"   "eta_regime_regime_t_plus_1"      
-#[11] "error_cov_regime_regime_t_plus_1" "innov_vec"                       
-#[13] "inverse_residual_cov"             "pr_t_given_t"                    
-#[15] "pr_t_given_t_less_1"              "pr_t_given_T"                    
-#[17] "transprob_given_T"                "eta_regime_smooth"               
-#[19] "error_cov_regime_smooth"          "eta_smooth_final"                
-#[21] "error_cov_smooth_final" 
-
-#tval = d$transformed.parameters/d$standard.errors to be added
-#cbind(d$transformed.parameters,d$standard.errors,) to be added
 
 
-# TODO Add population of class slots for other things added to representation
+
+# Initialize method for the new() function
 setMethod("initialize", "dynrRun",
 	function(.Object, x){
 		.Object@fitted.parameters <- x$fitted.parameters
@@ -60,27 +49,25 @@ setMethod("initialize", "dynrRun",
 		.Object@hessian <- x$hessian.matrix
 		.Object@transformed.hessian <- x$transformed.hessian
 		.Object@conf.intervals <- x$CI
-		.Object@exit.flag <- x$exitflag                   
-		.Object@neg.log.likelihood <- x$neg.log.likelihood                 
-		.Object@inverse.hessian <- x$inverse.hessian.matrix     
-		.Object@eta_regime_t <- x$eta_regime_t 
-		.Object@error_cov_regime_t <- x$error_cov_regime_t 
-		.Object@eta_regime_regime_t_pred <- x$eta_regime_regime_t_pred 
-		.Object@error_cov_regime_regime_t_pred <- x$error_cov_regime_regime_t_pred 
-		.Object@eta_regime_regime_t_plus_1 <- x$eta_regime_regime_t_plus_1 
-		.Object@error_cov_regime_regime_t_plus_1  <- x$error_cov_regime_regime_t_plus_1
-		.Object@innov_vec <- x$innov_vec 
-		.Object@inverse_residual_cov <- x$inverse_residual_cov 
-		.Object@pr_t_given_t <- x$pr_t_given_t 
-		.Object@pr_t_given_t_less_1 <- x$pr_t_given_t_less_1  
-		.Object@pr_t_given_T <- x$pr_t_given_T 
-		.Object@transprob_given_T <- x$transprob_given_T     
+		.Object@exit.flag <- x$exitflag
+		.Object@neg.log.likelihood <- x$neg.log.likelihood
+		.Object@inverse.hessian <- x$inverse.hessian.matrix
+		.Object@eta_regime_t <- x$eta_regime_t
+		.Object@error_cov_regime_t <- x$error_cov_regime_t
+		.Object@eta_regime_regime_t_pred <- x$eta_regime_regime_t_pred
+		.Object@error_cov_regime_regime_t_pred <- x$error_cov_regime_regime_t_pred
+		.Object@eta_regime_regime_t_plus_1 <- x$eta_regime_regime_t_plus_1
+		.Object@error_cov_regime_regime_t_plus_1 <- x$error_cov_regime_regime_t_plus_1
+		.Object@innov_vec <- x$innov_vec
+		.Object@inverse_residual_cov <- x$inverse_residual_cov
+		.Object@pr_t_given_t <- x$pr_t_given_t
+		.Object@pr_t_given_t_less_1 <- x$pr_t_given_t_less_1
+		.Object@pr_t_given_T <- x$pr_t_given_T
+		.Object@transprob_given_T <- x$transprob_given_T
 		.Object@eta_regime_smooth <- x$eta_regime_smooth
-		.Object@error_cov_regime_smooth <- x$error_cov_regime_smooth 
+		.Object@error_cov_regime_smooth <- x$error_cov_regime_smooth
 		.Object@eta_smooth_final <- x$eta_smooth_final
 		.Object@error_cov_smooth_final <- x$error_cov_smooth_final
-		#x[c('fitted.parameters', 'transformed.parameters', 'standard.errors', 'hessian.matrix', 'transformed.hessian', 'CI')] <- NULL
-		#.Object@misc <- x
 		return(.Object)
 	}
 )
@@ -91,10 +78,14 @@ setMethod("initialize", "dynrRun",
 #  and returns/does whatever we want.
 setMethod("summary", "dynrRun",
 	function(object){
-		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, CI = object@conf.intervals)
+		tval <- object@transformed.parameters/object@standard.errors
+		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, object@conf.intervals, t.value=tval, p.value=2*pt(abs(tval), df=1, lower.tail=FALSE))
 		return(ret)
 	}
 )
+# See Also the print method of summary.lm
+#  getAnywhere(print.summary.lm)
+
 
 displayDynrRun <- function(x){
 	str(x)
@@ -108,6 +99,34 @@ setMethod("print", "dynrRun", function(x, ...) {
 setMethod("show", "dynrRun", function(object) { 
 	displayDynrRun(object) 
 })
+
+
+#------------------------------------------------------------------------------
+# Some S3 methods
+# coef
+# logLike
+# AIC
+# BIC
+
+coef.dynrRun <- function(object, ...){
+	object@transformed.parameters
+}
+
+
+logLik.dynrRun <- function(object, ...){
+	ans <- -object@neg.log.likelihood
+	attr(ans, "df") <- length(object@fitted.parameters)
+	attr(ans, "nobs") <- dim(object@eta_regime_t)[3]
+	class(ans) <- "logLik"
+	return(ans)
+}
+
+# N.B. AIC() and BIC() are implicitly defined in terms
+#  of logLik().
+
+
+#------------------------------------------------------------------------------
+# Plotting methods
 
 findR = function(y){
   Rindex2 = 1:model$num_regime
@@ -178,6 +197,38 @@ setMethod("plot", "dynrRun",
 		on.exit(par(opar))
 	}
 )
+
+dynr.ggplot <- function(){
+	#library(ggplot2)
+	#library(reshape2)
+	
+	## ----plotting the 6-state solution---------------------------------------
+	economics6FitProbs <- posterior(economics6Fit)
+	pDats <- economics
+	
+	
+	pDats$EndDate <- c(economics$date[2:nrow(economics)], max(economics$date)+31)
+	#---------Add this End time variable 
+	pDats$pHigh <- economics6FitProbs$S6
+	
+	pDats$State <- as.factor(economics6FitProbs$state)
+	#---------State is factor
+	
+	#-----Melt the data: Define id and measure variables-----------
+	pMelted <- melt(pDats, id=c("date", "EndDate", "State"), measure=c("median.unemployment.duration.in.week", "pHigh"))
+	
+	#——Facet plots :Probabilities vs. values
+	ggplot(pMelted, aes(date, value), 
+		main = "median unemployment duration and probability of High state") + 
+		geom_line() + 
+		facet_grid(variable~., scales="free_y")
+	
+	#-----rectangular state background, Likely State By Color
+	ggplot(pMelted, aes(date, value), 
+		main = "median unemployment duration and probability of High state") + 
+		geom_line() + 
+		geom_rect(aes(xmin=date, xmax=EndDate, ymin=-Inf, ymax=Inf, fill=State), alpha=.25)
+}
 
 
 dynr.run <- function(model, data, transformation, conf.level=.95) {
