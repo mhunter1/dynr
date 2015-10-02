@@ -36,7 +36,6 @@ x <- dynr.run(model, data, tfun)
 summary(x)
 plot(x, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
-require(ggplot2)
-require(reshape2)
-require(plyr)
-dynr.ggplot(x,data.dynr=data,states=c(1,3),names.state=paste0("state",states),title="Smoothed State Values",numSubjDemo=2)
+
+dynr.ggplot(x, data.dynr=data, states=c(1,3), numSubjDemo=2)
+
