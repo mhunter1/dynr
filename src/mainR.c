@@ -186,10 +186,15 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     
     
     /** Optimization options **/
+    SEXP option_list = getListElement(model_list, "options");
+    double parameterTolerance[1];
+    	memcpy(parameterTolerance, REAL(getListElement(option_list, "xtol")), sizeof(parameterTolerance));
+
+    /** Optimization bounds and starting values **/
     
     double params[data_model.pc.num_func_param];
     /*printf("xstart 0: %lu\n",(size_t) *REAL(getListElement(model_list, "xstart")));*/
-    	memcpy(params,REAL(getListElement(model_list, "xstart")),sizeof(params));  
+    	memcpy(params,REAL(getListElement(model_list, "xstart")),sizeof(params));
     /*printf("Array paramvec allocated.\n");*/
     /*print_array(params,data_model.pc.num_func_param);*/
     /*printf("\n");*/
@@ -217,7 +222,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7);
+    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,&parameterTolerance[0]);
 	if (status < 0) {
 		/*printf("nlopt failed!\n");*/
 	}

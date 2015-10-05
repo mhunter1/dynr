@@ -37,7 +37,7 @@ Note
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
 
-int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double x_tol)
+int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double *x_tol)
 {
     printf("Optimize function called.\n");
     nlopt_opt opt;
@@ -49,7 +49,7 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     nlopt_set_upper_bounds(opt, ub);
     nlopt_set_lower_bounds(opt, lb);
     nlopt_set_min_objective(opt, myfunc_wrapper,my_func_data);	
-    nlopt_set_xtol_rel(opt, x_tol);
+    nlopt_set_xtol_rel(opt, * x_tol);
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
     if ( status< 0) {
