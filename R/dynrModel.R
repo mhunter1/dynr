@@ -24,6 +24,7 @@ dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=def
 	if(!is.list(options)){
 		stop("'options' argument to dynr.model function must be a list.")
 	}
+	options <- processModelOptionsArgument(options)
 	xlen <- length(xstart)
 	ulen <- length(ub)
 	llen <- length(lb)
@@ -39,5 +40,23 @@ dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=def
 	# TODO remove these as.double calls
 	# by changing how the arguments are processed in the backend.
 	return(list(num_regime=num_regime, dim_latent_var=dim_latent_var, xstart=xstart, ub=ub, lb=lb, num_func_param=as.double(length(xstart)), options=options))
+}
+
+processModelOptionsArgument <- function(opt){
+	if(!identical(opt, default.model.options)){
+		nameMatch <- names(opt) %in% names(default.model.options)
+		if( any(!nameMatch) ){
+			msg <- paste("Tried to set invalid option(s): ", paste(names(opt)[!nameMatch], collapse=', '))
+			stop(msg)
+		}
+		newopt <- default.model.options
+		for(i in 1:length(opt)){
+			newopt[[names(opt)[i]]] <- opt[[i]]
+		}
+		newopt$maxeval <- as.integer(newopt$maxeval)
+		return(newopt)
+	}else{
+		return(opt)
+	}
 }
 

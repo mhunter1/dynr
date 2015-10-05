@@ -55,10 +55,12 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     } else{
 		nlopt_set_stopval(opt, * stopval);
 	}
-    nlopt_set_ftol_rel(opt, *ftol_rel);
-    nlopt_set_ftol_abs(opt, *ftol_abs);
-    nlopt_set_maxeval(opt, *maxeval);
-    nlopt_set_maxtime(opt, *maxtime);
+    nlopt_set_ftol_rel(opt, * ftol_rel);
+    nlopt_set_ftol_abs(opt, * ftol_abs);
+    nlopt_set_maxeval(opt, * maxeval);
+    nlopt_set_maxtime(opt, * maxtime);
+    /*printf("Set maxeval option to %d\n", * maxeval);
+    printf("Set maxtime option to %f\n", * maxtime);*/
 
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
