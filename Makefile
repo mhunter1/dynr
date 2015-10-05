@@ -38,3 +38,5 @@ clean:
 	-rm src/*.o
 	-rm src/*.so
 	-rm src/*.dll
+	-rm src/Makevars
+	-rm config.log config.status
