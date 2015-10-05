@@ -15,3 +15,8 @@ Description: More about what it does (maybe more than one line)
 License: Apache License (== 2.0)
 Version: 0.1-1
 LazyLoad: yes
+Collate:
+    'dynrData.R'
+    'dynrModel.R'
+    'dynrRun.R'
+    'dynrPlot.R'

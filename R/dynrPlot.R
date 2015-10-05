@@ -22,7 +22,7 @@ setMethod("plot", "dynrRun",
 		ID = data[["id"]]
 		rowIndex = 1:length(ID)
 		uniID <- sort(unique(ID))
-		thes = sort(sample(1:model$"num_sbj", numSubjDemo))
+		thes = sort(sample(1:length(uniID), numSubjDemo))
 		par(mfrow=c(ifelse(numSubjDemo%%2 > 0,
 			numSubjDemo,numSubjDemo/2),
 			ifelse(numSubjDemo%%2 > 0,

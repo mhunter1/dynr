@@ -129,10 +129,11 @@ logLik.dynrRun <- function(object, ...){
 
 
 dynr.run <- function(model, data, transformation, conf.level=.95) {
+	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
-	frontendStart <- Sys.time()
+	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	backendStart <- Sys.time()
 	output <- .Call("main_R", model, data, PACKAGE = "dynr")
@@ -170,5 +171,15 @@ preProcessModel <- function(x){
 	x$lb <- as.double(x$lb)
 	return(x)
 }
+
+combineModelDataInformation <- function(model, data){
+	# TODO remove these as.double calls
+	# by changing how the arguments are processed in the backend.
+	model$num_sbj <- as.double(length(unique(data[['id']])))
+	model$dim_obs_var <- as.double(ncol(data$observed))
+	model$dim_co_variate <- as.double(ncol(data$covariates))
+	return(model)
+}
+
 
 
