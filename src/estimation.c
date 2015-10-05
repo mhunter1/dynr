@@ -37,7 +37,7 @@ Note
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
 
-int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double *x_tol)
+int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double *xtol_rel, double *stopval, double *ftol_rel, double *ftol_abs, int *maxeval, double *maxtime)
 {
     printf("Optimize function called.\n");
     nlopt_opt opt;
@@ -49,7 +49,17 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     nlopt_set_upper_bounds(opt, ub);
     nlopt_set_lower_bounds(opt, lb);
     nlopt_set_min_objective(opt, myfunc_wrapper,my_func_data);	
-    nlopt_set_xtol_rel(opt, * x_tol);
+    nlopt_set_xtol_rel(opt, * xtol_rel);
+    if(*stopval==-9999){
+    	nlopt_set_stopval(opt, -HUGE_VAL);
+    } else{
+		nlopt_set_stopval(opt, * stopval);
+	}
+    nlopt_set_ftol_rel(opt, *ftol_rel);
+    nlopt_set_ftol_abs(opt, *ftol_abs);
+    nlopt_set_maxeval(opt, *maxeval);
+    nlopt_set_maxtime(opt, *maxtime);
+
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
     if ( status< 0) {

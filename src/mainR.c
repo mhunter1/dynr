@@ -187,8 +187,12 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     
     /** Optimization options **/
     SEXP option_list = getListElement(model_list, "options");
-    double parameterTolerance[1];
-    	memcpy(parameterTolerance, REAL(getListElement(option_list, "xtol")), sizeof(parameterTolerance));
+    double *xtol_rel = REAL(getListElement(option_list, "xtol_rel"));
+    double *stopval = REAL(getListElement(option_list, "stopval"));
+    double *ftol_rel = REAL(getListElement(option_list, "ftol_rel"));
+    double *ftol_abs = REAL(getListElement(option_list, "ftol_abs"));
+    int *maxeval = INTEGER(getListElement(option_list, "maxeval"));
+    double *maxtime = REAL(getListElement(option_list, "maxtime"));
 
     /** Optimization bounds and starting values **/
     
@@ -222,7 +226,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,&parameterTolerance[0]);
+    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
 	if (status < 0) {
 		/*printf("nlopt failed!\n");*/
 	}

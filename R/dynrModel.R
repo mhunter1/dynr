@@ -18,7 +18,7 @@
 # Importantly, the thing handed to the backend must
 # remain a list exactly like the above.
 
-default.model.options <- list(xtol=1e-7)
+default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), maxtime=-1)
 
 dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=default.model.options){
 	if(!is.list(options)){
