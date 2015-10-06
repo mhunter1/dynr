@@ -1,6 +1,7 @@
 require(dynr)
 
-thedata = read.table('~/Dropbox/Brekfis/dynr/data/New2CovModel1T1000n20batch1ODEsimData.txt')
+data(New2CovModel1T1000n20batch1ODEsimData)
+thedata = New2CovModel1T1000n20batch1ODEsimData
 thedata$V6 <- as.numeric(thedata$V6)
 data <- dynr.data(thedata, id="V1", time="V2",observed=paste0('V', 3:4), 
                   covariates=paste0('V', 5:6))
@@ -20,7 +21,7 @@ save.image(file="RSLinearODE.RData")
 plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
 
-dynr.ggplot(res, data.dynr=data, states=c(1,2), names.state=paste0("state",states),
+dynr.ggplot(res, data.dynr=data, states=c(1,2),
             #mancolorPalette=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
             #manfillPalette=c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
             title="Smoothed State Values", numSubjDemo=2)

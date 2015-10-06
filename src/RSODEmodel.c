@@ -70,7 +70,7 @@ void function_measurement(size_t t, size_t regime, double *param, const gsl_vect
  */
 void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){
 
-    double r1, r2, a12, a21;
+    double r1=0, r2=0, a12=0, a21=0;
 
     /* Specify the ODEs for the RS ODE model */
     /*gparameters[]={-.8,-1,-0.6931,2.3026,2.3026,-4.0000,7.0000,-0.5000,-0.5000,90.0000};*/
@@ -117,7 +117,7 @@ void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co
 
     /*Supply the Jacobian matrix for the ODEs
       ODE functions go down the rows; latent states go across columns*/
-    double r1, r2, a12, a21;
+    double r1=0, r2=0, a12=0, a21=0;
     switch (regime) {
         case 0:
             r1 = param[0];

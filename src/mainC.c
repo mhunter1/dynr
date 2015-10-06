@@ -78,7 +78,8 @@ int main()
 
     int errorcheck;
     for(i=0;i<=data_model.pc.num_sbj;i++){
-           errorcheck=fscanf(file_tstart,"%lu",data_model.pc.index_sbj+i);
+           /*errorcheck=fscanf(file_tstart,"%lu", (long unsigned int *) (data_model.pc.index_sbj+i));*/
+            errorcheck=fscanf(file_tstart,"%lu", data_model.pc.index_sbj+i);
             if (errorcheck == EOF) {
                 if (ferror(file_tstart)) {
                     perror("fscanf");
@@ -154,8 +155,7 @@ int main()
     
     
     /** Optimization options **/
-    double ub[] = {5, 5, 5, 5, 5, 5};
-    double lb[] = {-5,-5,-5,-5,-15, -15}; /* lower bounds */
+
     double params[]={log(1),log(2),0,0,-10,-10};/* some initial guess*/
     /*log(1.2)=0.1823216,log(1.8)=0.5877867,-0.5,-0.5,log(0.0001)=-9.21034,log(0.0001)=-9.21034*/
     double fittedpar[data_model.pc.num_func_param];
@@ -169,10 +169,12 @@ int main()
      
     /** =================Optimization: start======================**/	
     
-    double minf; /* the minimum objective value, upon return */
+    double minf=0; /* the minimum objective value, upon return */
 	
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
+    /*double ub[] = {5, 5, 5, 5, 5, 5};
+    double lb[] = {-5,-5,-5,-5,-15, -15};*/ /* lower bounds */
     /*int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,1e-7);*/
     int status=-1;
     

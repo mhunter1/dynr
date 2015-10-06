@@ -84,9 +84,9 @@ setMethod("plot", "dynrRun",
 #' @param data.dynr The dynr data returned by dynr.data().
 #' @param numSubjDemo The number of subjects to be randomly selected for plotting.
 #' @param states The indices of the states to be plotted.
-#' @param names.state The names of the states to be plotted.
-#' @param names.regime The names of the regimes to be plotted.
-#' @param shape.values A vector of values that correspond to the shapes of the points.
+#' @param names.state The names of the states to be plotted, which can be missing.
+#' @param names.regime The names of the regimes to be plotted, which can be missing.
+#' @param shape.values A vector of values that correspond to the shapes of the points, which can be missing.
 #' @param title A title of the plot.
 #' @param ylab The label of the y axis.
 #' @param is.bw Is plot in black and white?
@@ -96,7 +96,7 @@ setMethod("plot", "dynrRun",
 #' @param manfillPalette A color palette for manually scaling the colors of filled blocks.
 #' @param ... A list of element name, element pairings that modify the existing ggplot theme. Consult the theme() function in the R package ggplot.
 dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, states, 
-                        names.state=paste0("state", states), names.regime,shape.values=48+states,
+                        names.state, names.regime,shape.values,
                         title="Smoothed State Values", ylab="Smoothed State Values",  	
                         is.bw=FALSE,colorPalette="Set2",fillPalette="Set2",mancolorPalette,manfillPalette,
                         ...){
@@ -104,6 +104,8 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, states,
 	dim_latent_var=dims[1]
 	num_regime=dims[2]
 	if(missing(names.regime)){names.regime = 1:num_regime}
+	if(missing(names.state)){names.state=paste0("state", states)}
+  if(missing(shape.values)){shape.values=48+states}
 	num_sbj=length(unique(data.dynr$id))
 	randid=sample(unique(data.dynr$id),numSubjDemo)
 	findRegime = function(prop){

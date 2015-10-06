@@ -71,22 +71,22 @@ SEXP main_R(SEXP model_list,SEXP data_list)
      
     /* From the SEXP called model_list, get the list element named "num_sbj" */
     data_model.pc.num_sbj=(size_t) *REAL(getListElement(model_list, "num_sbj"));/*number of subjects*/
-    printf("num_sbj: %lu\n",data_model.pc.num_sbj);
+    printf("num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
     
     data_model.pc.num_func_param=(size_t) *REAL(getListElement(model_list, "num_func_param")); /*number of function parameters*/
-    printf("num_func_param: %lu\n",data_model.pc.num_func_param);
+    printf("num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
     
     data_model.pc.dim_latent_var=(size_t) *REAL(getListElement(model_list, "dim_latent_var"));/*number of latent variables*/
-    printf("dim_latent_var: %lu\n",data_model.pc.dim_latent_var);
+    printf("dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
     
     data_model.pc.dim_obs_var=(size_t) *REAL(getListElement(model_list, "dim_obs_var")); /*number of observed variables*/
-    printf("dim_obs_var: %lu\n",data_model.pc.dim_obs_var);
+    printf("dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
 
     data_model.pc.dim_co_variate=(size_t) *REAL(getListElement(model_list, "dim_co_variate"));/*number of covariates*/   
-    printf("dim_co_variate: %lu\n",data_model.pc.dim_co_variate);
+    printf("dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
     
     data_model.pc.num_regime=(size_t) *REAL(getListElement(model_list, "num_regime")); /*number of regimes*/
-    printf("num_regime: %lu\n",data_model.pc.num_regime);
+    printf("num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
 
     
 
@@ -115,9 +115,9 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /*n subjects -> n+1 indices*/   
     data_model.pc.index_sbj=(size_t *)malloc((data_model.pc.num_sbj+1)*sizeof(size_t *));  
     
-    /*printf("tstart 0: %lu\n",(size_t) *REAL(getListElement(data_list, "tstart")));
-    printf("tstart 1: %lu\n",(size_t) REAL(getListElement(data_list, "tstart"))[1]);
-    printf("tstart 2: %lu\n",(size_t) REAL(getListElement(data_list, "tstart"))[2]);*/
+    /*printf("tstart 0: %zu\n",(size_t) *REAL(getListElement(data_list, "tstart")));
+    printf("tstart 1: %zu\n",(size_t) REAL(getListElement(data_list, "tstart"))[1]);
+    printf("tstart 2: %zu\n",(size_t) REAL(getListElement(data_list, "tstart"))[2]);*/
     
     double *ptr_index;/*used for multiple times*/
     
@@ -125,10 +125,10 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     for(index=0;index<=data_model.pc.num_sbj;index++){    
         data_model.pc.index_sbj[index]=(size_t) ptr_index[index];
     }
-    printf("index_sbj 2: %lu\n",data_model.pc.index_sbj[1]);
+    printf("index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);
     
     data_model.pc.total_obs=*(data_model.pc.index_sbj+data_model.pc.num_sbj);/*total observations for all subjects*/
-    printf("total_obs: %lu\n",data_model.pc.total_obs);
+    printf("total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
     
     /** read in the data**/
     
@@ -144,7 +144,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     char str_name[enough_length+7];
      
     for(index=0;index<data_model.pc.dim_obs_var;index++){
-        sprintf(str_number, "%lu", index+1);
+        sprintf(str_number, "%lu", (long unsigned int) index+1);
         sprintf(str_name, "%s", "obs");
         /*printf("The str_number is %s\n",str_number);
         printf("The str_name length is %lu\n",strlen(str_name));*/      
@@ -161,7 +161,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     }
     
     for(index=0;index<data_model.pc.dim_co_variate;index++){
-        sprintf(str_number, "%lu", index+1);
+        sprintf(str_number, "%lu", (long unsigned int) index+1);
         sprintf(str_name, "%s", "covar");
         /*printf("The str_number is %s\n",str_number);
         printf("The str_name length is %lu\n",strlen(str_name));*/
