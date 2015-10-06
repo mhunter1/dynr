@@ -76,15 +76,33 @@ setMethod("initialize", "dynrRun",
 #  All this amounts to is writing a function that takes a
 #  dynrRun object (and possibly other arguments)
 #  and returns/does whatever we want.
-setMethod("summary", "dynrRun",
-	function(object){
-		tval <- object@transformed.parameters/object@standard.errors
-		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, object@conf.intervals, t.value=tval, p.value=2*pt(abs(tval), df=1, lower.tail=FALSE))
-		return(ret)
-	}
-)
+#setMethod("summary", "dynrRun",
+#	function(object){
+#		tval <- object@transformed.parameters/object@standard.errors
+#		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, object@conf.intervals, t.value=tval, p.value=2*pt(abs(tval), df=1, lower.tail=FALSE))
+#		return(ret)
+#	}
+#)
 # See Also the print method of summary.lm
 #  getAnywhere(print.summary.lm)
+
+setMethod( f = "summary" ,  signature = "dynrRun" ,
+           definition = function(object){
+             d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
+             d$T_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
+             d <-cbind(d,object@conf.intervals)
+             Likfin = -1*object@neg.log.likelihood
+             npar = length(object@fitted.parameters)
+             AIC = 2*Likfin +2*npar
+             InfDs.allT_1 = (dim(object@pr_t_given_T)[2])
+             BIC = 2*Likfin +npar*log(InfDs.allT_1)
+             cat("********************************SUMMARY*****************************************\n")
+             print(d)
+             cat("\nAIC=");print(AIC)
+             cat("\nBIC=");print(BIC)
+             cat("**********END OF SUMMARY************\n")
+           }
+)
 
 
 displayDynrRun <- function(x){

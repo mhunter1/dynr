@@ -10,7 +10,7 @@ model <- dynr.model(
               xstart=c(rep(log(.1), 4), log(10.0), log(10.0), -3.0, 9.0, -1.5, -0.5, 95.0,-.3,-.3),
               ub=c(rep(10, 6), rep(20, 4), 1000, 20, 20),
               lb=c(rep(-10, 6), rep(-20, 4), 0, -20, -20),
-              options=list(maxtime=30*60, maxeval=10000)
+              options=list(maxtime=30*60, maxeval=1)
 )
 
 
@@ -20,5 +20,8 @@ save.image(file="RSLinearODE.RData")
 plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
 
-dynr.ggplot(res, data.dynr=data, states=c(1,2), names.state=paste0("state",states), title="Smoothed State Values", numSubjDemo=2)
+dynr.ggplot(res, data.dynr=data, states=c(1,2), names.state=paste0("state",states),
+            #mancolorPalette=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+            #manfillPalette=c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+            title="Smoothed State Values", numSubjDemo=2)
 

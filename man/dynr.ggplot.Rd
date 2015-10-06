@@ -4,11 +4,11 @@
 \alias{dynr.ggplot}
 \title{The ggplot of the smoothed state estimates and the most likely regimes}
 \usage{
-dynr.ggplot(x, data.dynr, states, names.state = paste0("state", states),
+dynr.ggplot(res, data.dynr, states, names.state = paste0("state", states),
   title = "Smoothed State Values", numSubjDemo = 2)
 }
 \arguments{
-\item{x}{The dynr object returned by dynr.run().}
+\item{res}{The dynr object returned by dynr.run().}
 
 \item{data.dynr}{The dynr data returned by dynr.data().}
 

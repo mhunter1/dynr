@@ -16,17 +16,19 @@ setMethod("plot", "dynrRun",
 	function(x, y=NULL, data.dynr, graphingPar=par(no.readonly = TRUE), ylab = "Smoothed state values", xlab = "Time", numSubjDemo=2, legend.cex=1.2){
 		opar = par(no.readonly = TRUE)
 		par(graphingPar)
-		thesmooth = data.frame(t(x@eta_smooth_final))  
+		thesmooth = data.frame(t(res@eta_smooth_final))  
 		
     dims=dim(x@eta_regime_regime_t_pred)
 		dim_latent_var=dims[1]
 		num_regime=dims[2]
 		
 		colnames(thesmooth) = paste0("state",1:dim_latent_var)
+    
 		ID = data.dynr[["id"]]
 		rowIndex = 1:length(ID)
 		uniID <- sort(unique(ID))
 		thes = sort(sample(1:length(uniID), numSubjDemo))
+    
 		par(mfrow=c(ifelse(numSubjDemo%%2 > 0,
 			numSubjDemo,numSubjDemo/2),
 			ifelse(numSubjDemo%%2 > 0,
@@ -78,19 +80,37 @@ setMethod("plot", "dynrRun",
 
 #' The ggplot of the smoothed state estimates and the most likely regimes
 #' 
-#' @param x The dynr object returned by dynr.run().
+#' @param res The dynr object returned by dynr.run().
 #' @param data.dynr The dynr data returned by dynr.data().
+#' @param numSubjDemo The number of subjects to be randomly selected for plotting.
 #' @param states The indices of the states to be plotted.
 #' @param names.state The names of the states to be plotted.
+#' @param names.regime The names of the regimes to be plotted.
+#' @param shape.values A vector of values that correspond to the shapes of the points.
 #' @param title A title of the plot.
-#' @param numSubjDemo The number of subjects to be randomly selected for plotting.
-dynr.ggplot <- function(x, data.dynr, states, names.state=paste0("state", states), title="Smoothed State Values", numSubjDemo=2){
-	dims=dim(x@eta_regime_regime_t_pred)
+#' @param ylab The label of the y axis.
+#' @param is.bw Is plot in black and white?
+#' @param colorPalette A palette function for lines and dots that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
+#' @param fillPalette A palette function for blocks that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
+#' @param mancolorPalette A color palette for manually scaling the colors of lines and plots.
+#' @param manfillPalette A color palette for manually scaling the colors of filled blocks.
+#' @param ... A list of element name, element pairings that modify the existing ggplot theme. Consult the theme() function in the R package ggplot.
+dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, states, 
+                        names.state=paste0("state", states), names.regime,shape.values=48+states,
+                        title="Smoothed State Values", ylab="Smoothed State Values",  	
+                        is.bw=FALSE,colorPalette="Set2",fillPalette="Set2",mancolorPalette,manfillPalette,
+                        ...){
+	dims=dim(res@eta_regime_regime_t_pred)
 	dim_latent_var=dims[1]
 	num_regime=dims[2]
+	if(missing(names.regime)){names.regime = 1:num_regime}
 	num_sbj=length(unique(data.dynr$id))
 	randid=sample(unique(data.dynr$id),numSubjDemo)
-	
+	findRegime = function(prop){
+	  MostLikelyRegime = names.regime[prop==max(prop)]
+	  return(MostLikelyRegime[1])
+	  #If the probabilities are equal, return the first regime
+	}
 	data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
 	#data.plot<-cbind(data.plot,data.dynr$observed)
 	
@@ -101,38 +121,67 @@ dynr.ggplot <- function(x, data.dynr, states, names.state=paste0("state", states
 	if(num_regime==1){
 		names.id.vars <- c("id","time")
 		names.measure.vars <- names.state
-		data.plot <- cbind(data.plot, t(x@eta_smooth_final[states,]))
+		data.plot <- cbind(data.plot, t(res@eta_smooth_final[states,]))
 		names(data.plot) <- c(names.id.vars, names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],
 			id.vars=names.id.vars,
 			measure.vars=names.measure.vars,
 			value.name="value")
-		ggplot(data_long, aes(x=time, y=value, colour = variable)) + geom_line(size=1, alpha=0.8) + facet_wrap(~id) + 
-			ggtitle(title) + 
-			theme(plot.title = element_text(lineheight=.8, face="bold"))
+    
+		partial.plot<-ggplot(data_long, aes(x=time, y=value, colour = variable)) + 
+		  geom_line(size=1) +
+		  geom_point(size=4, aes(shape=variable)) +
+		  scale_shape_manual(values=shape.values)+
+		  facet_wrap(~id)+
+		  labs(title = title,y=ylab)+
+		  theme(plot.title=element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=element_text(lineheight=0.8, face="bold"),...)
+
 	}else{
 		
 		data.plot <- ddply(data.plot,"id",addendtime)
-		data.plot$regime<-as.factor(apply(x@pr_t_given_T,2,findRegime))
+		data.plot$regime<-as.factor(apply(res@pr_t_given_T,2,findRegime))
 		names.id.vars<-c("id","time","endtime","regime")
-		names.measure.vars<-paste0("states",states)
-		data.plot<-cbind(data.plot,t(x@eta_smooth_final[states,]))
+		names.measure.vars<-names.state
+		data.plot<-cbind(data.plot,t(res@eta_smooth_final[states,]))
 		names(data.plot)<-c(names.id.vars,names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],
 			id.vars=names.id.vars,
 			measure.vars=names.measure.vars,
 			value.name="value")
-		
-		ggplot(data_long,aes(x=time, y=value, group=variable)) +
-			geom_point(size=2, aes(color=variable)) +
-			geom_line(size=1, aes(color=variable)) +
-			geom_rect(aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
-			facet_wrap(~id)+
-			ggtitle(title) +
-			theme(plot.title=element_text(lineheight=.8, face="bold"), legend.position="bottom", legend.text=element_text(lineheight=0.8, face="bold"))
-		
+    #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
+    partial.plot<-ggplot(data_long,aes(x=time, y=value, group=variable)) +
+		  geom_rect(aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
+		  geom_line(size=1, aes(color=variable)) +
+      geom_point(size=4, aes(color=variable,shape=variable)) +
+      scale_shape_manual(values=shape.values)+
+		  #geom_text(size=1, aes(label=statenumber,color=variable))+
+		  facet_wrap(~id)+
+		  labs(title = title,y=ylab)+
+		  theme(plot.title=element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=element_text(lineheight=0.8, face="bold"),...)
+	
+		}
+  
+	if(is.bw){
+	  bw.plot<-partial.plot+
+	    scale_fill_grey(start = 0.1, end = 0.9)+
+	    scale_color_grey(start = 0.2, end = 0.7)
+	  print(bw.plot)
+	}else{
+	  default.plot<-partial.plot+
+	    scale_colour_brewer(palette=colorPalette)+
+	    scale_fill_brewer(palette=fillPalette)		  
+	  if(!missing(mancolorPalette)){
+	    manual.plot<-partial.plot+scale_colour_manual(values=mancolorPalette)
+	  }
+	  if(!missing(manfillPalette)){
+	    if(!exists("manual.plot")){manual.plot<-partial.plot}
+	    manual.plot<-manual.plot+scale_fill_manual(values=manfillPalette)
+	  }
+	  if (exists("manual.plot")){
+	    print(manual.plot)
+	  }else{print(default.plot)}
 	}
 }
 
