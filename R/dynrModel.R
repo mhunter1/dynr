@@ -18,8 +18,17 @@
 # Importantly, the thing handed to the backend must
 # remain a list exactly like the above.
 
-default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), maxtime=-1)
 
+default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), maxtime=-1)
+#' Create the model for dynr
+#' 
+#' @param num_regime An integer number of the regimes.
+#' @param dim_latent_var An integer number of the latent variables.
+#' @param xstart The starting values for parameter estimation.
+#' @param ub The upper bounds of the estimated parameters.
+#' @param lb The lower bounds of the estimated parameters.
+#' @param options A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.
+#' @return A list of model statements to be passed to dynr.run().
 dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=default.model.options){
 	if(!is.list(options)){
 		stop("'options' argument to dynr.model function must be a list.")

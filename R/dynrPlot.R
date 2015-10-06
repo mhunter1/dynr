@@ -12,14 +12,18 @@ Mode <- function(y) {
 	uy <- unique(y)
 	uy[which.max(tabulate(match(y, uy)))]
 }
-
 setMethod("plot", "dynrRun",
-	function(x, y=NULL, data, graphingPar=par(no.readonly = TRUE), ylab = "Smoothed state values", xlab = "Time", numSubjDemo=2, legend.cex=1.2){
+	function(x, y=NULL, data.dynr, graphingPar=par(no.readonly = TRUE), ylab = "Smoothed state values", xlab = "Time", numSubjDemo=2, legend.cex=1.2){
 		opar = par(no.readonly = TRUE)
 		par(graphingPar)
 		thesmooth = data.frame(t(x@eta_smooth_final))  
-		colnames(thesmooth) = paste0("state",1:model$dim_latent_var)
-		ID = data[["id"]]
+		
+    dims=dim(x@eta_regime_regime_t_pred)
+		dim_latent_var=dims[1]
+		num_regime=dims[2]
+		
+		colnames(thesmooth) = paste0("state",1:dim_latent_var)
+		ID = data.dynr[["id"]]
 		rowIndex = 1:length(ID)
 		uniID <- sort(unique(ID))
 		thes = sort(sample(1:length(uniID), numSubjDemo))
@@ -27,7 +31,7 @@ setMethod("plot", "dynrRun",
 			numSubjDemo,numSubjDemo/2),
 			ifelse(numSubjDemo%%2 > 0,
 			1,2)))
-		if (model$num_regime > 1){
+		if (num_regime > 1){
 			thePr = t(x@pr_t_given_T)
 			mostLikelyRegime = apply(thePr,1,findRegime)  
 			theR = Mode(mostLikelyRegime)
@@ -42,7 +46,7 @@ setMethod("plot", "dynrRun",
 				xlab=ifelse(exists("xlab"),xlab,"Time"),
 				main=ifelse(exists("main"),main,""),
 				type='n')
-			if (model$num_regime > 1){
+			if (num_regime > 1){
 				times=1:T
 				thepri = mostLikelyRegime[therow]
 				rect(times[thepri==theR]-.5,quantile(unlist(thesmooth),.01),times[thepri==theR]+.5,quantile(unlist(thesmooth),.99),col="yellow",density=30)
@@ -54,25 +58,32 @@ setMethod("plot", "dynrRun",
 				seq(1,T,9)
 			}else {1:T}
 			
-			for (j in 1:model$dim_latent_var){
+			for (j in 1:dim_latent_var){
 				lines(1:T,thesmooth[therow,j], lty=1, lwd=1, col=j)
 				points(time2, thesmooth[therow,j][time2], pch=as.character(j), col=j)
 			}
 			stateNames = NULL
-			for(j in 1:model$dim_latent_var){
+			for(j in 1:dim_latent_var){
 				stateNames = c(stateNames, paste0('State ',j))
 			}
 			legend('topright',
-			paste0("State",as.character(1:model$dim_latent_var)),
-				lty=1:model$dim_latent_var,
-				lwd=2, col=1:model$dim_latent_var, bty="n",
-				pch=as.character(1:model$dim_latent_var), cex=legend.cex)
+			paste0("State",as.character(1:dim_latent_var)),
+				lty=1:dim_latent_var,
+				lwd=2, col=1:dim_latent_var, bty="n",
+				pch=as.character(1:dim_latent_var), cex=legend.cex)
 		}
 		on.exit(par(opar))
 	}
 )
 
-
+#' The ggplot of the smoothed state estimates and the most likely regimes
+#' 
+#' @param x The dynr object returned by dynr.run().
+#' @param data.dynr The dynr data returned by dynr.data().
+#' @param states The indices of the states to be plotted.
+#' @param names.state The names of the states to be plotted.
+#' @param title A title of the plot.
+#' @param numSubjDemo The number of subjects to be randomly selected for plotting.
 dynr.ggplot <- function(x, data.dynr, states, names.state=paste0("state", states), title="Smoothed State Values", numSubjDemo=2){
 	dims=dim(x@eta_regime_regime_t_pred)
 	dim_latent_var=dims[1]
@@ -83,9 +94,9 @@ dynr.ggplot <- function(x, data.dynr, states, names.state=paste0("state", states
 	data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
 	#data.plot<-cbind(data.plot,data.dynr$observed)
 	
-	addendtime <- function(data.frame){
-		data.frame$endtime <- c(data.frame$time[2:nrow(data.frame)], data.frame$time[nrow(data.frame)]+min(diff(data.frame$time)))
-		return(data.frame)
+	addendtime <- function(data_frame){
+		data_frame$endtime <- c(data_frame$time[2:nrow(data_frame)], data_frame$time[nrow(data_frame)]+min(diff(data_frame$time)))
+		return(data_frame)
 	}
 	if(num_regime==1){
 		names.id.vars <- c("id","time")

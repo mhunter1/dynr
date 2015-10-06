@@ -1,3 +1,11 @@
+#Got error:
+#gsl: ../gsl/gsl_vector_double.h:180: ERROR: index out of range
+
+
+.libPaths(c("~/R/x86_64-unknown-linux-gnu-library/3.1",.libPaths()))
+
+
+
 if(!require(numDeriv)){
 	install.packages('numDeriv')
 }
@@ -12,8 +20,6 @@ if(!require(plyr)){
 }
 require(dynr)
 require(numDeriv)
-
-
 
 data(dataPANAsim)
 data <- dynr.data(dataPANAsim, id="V1", time="V2",observed=paste0('V', 3:4), covariates=paste0('V', 5))

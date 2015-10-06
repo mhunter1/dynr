@@ -186,7 +186,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     
     
     /** Optimization options **/
-    SEXP option_list = getListElement(model_list, "options");
+    SEXP option_list = getListElement(model_list, "options");   
     double *xtol_rel = REAL(getListElement(option_list, "xtol_rel"));
     double *stopval = REAL(getListElement(option_list, "stopval"));
     double *ftol_rel = REAL(getListElement(option_list, "ftol_rel"));
@@ -197,7 +197,6 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** Optimization bounds and starting values **/
     
     double params[data_model.pc.num_func_param];
-    /*printf("xstart 0: %lu\n",(size_t) *REAL(getListElement(model_list, "xstart")));*/
     	memcpy(params,REAL(getListElement(model_list, "xstart")),sizeof(params));
     /*printf("Array paramvec allocated.\n");*/
     /*print_array(params,data_model.pc.num_func_param);*/

@@ -1,38 +1,64 @@
 /**
- * This file implements the Model
+ * This file implements the Van der pol Oscillator Model
+ * ny=3, nf=3;
+ There is no process noise in this ODE model
+ search for eta_noise_cov
+ they should be commmented out
+
+ dx(t)=F(t,x(t))dt+G(t)dw(t)
+
+ dx_t/dt=d[x_i1_t x_i2_t b_izeta]'/dt
+ =F(t,x)=[x_i2_t | -rho*x_i1_t+zeta_i*(1-x_i1_t^2)*x_i2_t | 0 ], rho=(2*Pi/tau)^2
+ =[x_i2_t | -rho*x_i1_t+zeta_i*(1-x_i1_t^2)*x_i2_t | 0 ], zeta_i=Z_0+gamma_1*Z_1+gamma_2*Z_2+b_izeta
+ =[x_i2_t | -rho*x_i1_t+(Z_0+gamma_1*Z_1+gamma_2*Z_2)*x_i2_t+b_izeta*x_i2_t-(Z_0+gamma_1*Z_1+gamma_2*Z_2)*x_i2_t*x_i1_t^2-b_izeta*x_i2_t*x_i1_t^2|0]
+
+ dF/dx=[
+ 0 1 0;
+ -rho-2*(Z_0+gamma_1*Z_1+gamma_2*Z_2+b_izeta)*x_i2_t*x_i1_t |(Z_0+gamma_1*Z_1+gamma_2*Z_2+b_izeta)*(1-x_i1_t^2) |(1-x_i1_t^2)*x_i2_t;
+ 0 0 0]
+
+ z_k=mu+H_kx_k+v_k,v_k \sim N(0,R_k)
+
+ z_k=[y_i1_tij | y_i2_tij | y_i3_tij]'
+ =[mu_1 mu_2 mu_3]'+ [1 lambda_21 lambda_31; 0 0 0; 0 0 0]'[x_i1_t x_i2_t b_izeta]'+[e_i1_tij | e_i2_tij | e_i3_tij]'
+ =mu+H_kx_k+v_k
+
  */
-#include <math.h>/*sqrt(double)*/
+
+#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include "math_function.h"
-#include "cdaekf.h"
+#include <time.h>
+#include <math.h>
 #include "data_structure.h"
+#include "math_function.h"
 #include "brekfis.h"
 #include "adaodesolver.h"
-#include "model.h"
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
-
-
-
-
-
 
 /**
  * The measurement function
  * @param param mu1 mu2 mu3 lambda21 lambda31
  */
 void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht,gsl_vector *y){
+    /*printf("t=%d\nparam: ", t);
+    print_array(param, 6);
+    printf("\n");
+    printf("eta: ");
+    print_vector(eta);
+    printf("\n");*/
+
 
     gsl_matrix_set(Ht,0,0,1.0);
-    gsl_matrix_set(Ht,1,2,1.0);
+    gsl_matrix_set(Ht,1,1,1.0);
 
 
     gsl_vector_set(y, 0, gsl_vector_get(eta, 0));
-    gsl_vector_set(y, 1, gsl_vector_get(eta, 2));
+    gsl_vector_set(y, 1, gsl_vector_get(eta, 1));
 
+
+    /*printf("y: ");
+    print_vector(y);
+    printf("\n\n");*/
 }
 
 /**
@@ -44,18 +70,32 @@ void function_measurement(size_t t, size_t regime, double *param, const gsl_vect
  */
 void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){
 
-    /*  
-     d1pa<-dpa
-     d2pa <--parms[1]*pa+parms[3]*(na-pa)*dpa
-     d1na<-dna
-     d2na <--parms[2]*na+parms[4]*(pa-na)*dpa     
-     */
-    gsl_vector_set(F_dx_dt,0,gsl_vector_get(x,1));
-    gsl_vector_set(F_dx_dt,1,-param[0]*gsl_vector_get(x,0)+param[2]*(gsl_vector_get(x,2)-gsl_vector_get(x,0))*gsl_vector_get(x,1));
-    gsl_vector_set(F_dx_dt,2,gsl_vector_get(x,3));
-    gsl_vector_set(F_dx_dt,3,-param[1]*gsl_vector_get(x,2)+param[3]*(gsl_vector_get(x,0)-gsl_vector_get(x,2))*gsl_vector_get(x,3));
-}
+    double r1, r2, a12, a21;
 
+    /* Specify the ODEs for the RS ODE model */
+    /*gparameters[]={-.8,-1,-0.6931,2.3026,2.3026,-4.0000,7.0000,-0.5000,-0.5000,90.0000};*/
+
+    switch (regime) {
+        case 0:
+            r1 = param[0];
+            r2 = param[1];
+            a12 = 0.0;
+            a21 = 0.0;
+            break;
+        case 1:
+            r1 = 0.0;
+            r2 = 0.0;
+            a12 = param[2];
+            a21 = param[3];
+            break;
+    }
+
+    /*dx[0] = -r1 * x[0] + a12 * (x[1] - x[0]);
+     dx[1] = -r2 * (x[1] - par[9]) - a21 * (x[1] - x[0]);
+     printf("\nTesting testing in functionF!");*/
+    gsl_vector_set(F_dx_dt,0,-r1 * gsl_vector_get(x,0) + a12 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
+    gsl_vector_set(F_dx_dt,1,-r2 * (gsl_vector_get(x,1) - param[10]) - a21 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
+}
 void function_dynam_ada(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
         double *gparameters,const gsl_vector *co_variate,
         void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
@@ -77,23 +117,27 @@ void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co
 
     /*Supply the Jacobian matrix for the ODEs
       ODE functions go down the rows; latent states go across columns*/
-    gsl_matrix_set_zero(F_dx_dt_dx);
-    
-    gsl_matrix_set(F_dx_dt_dx,0,1,1);
-    
-    gsl_matrix_set(F_dx_dt_dx,1,0,-param[0]-param[2]*param[7]);
-    gsl_matrix_set(F_dx_dt_dx,1,1,param[2]*(param[8]-param[6]));
-    gsl_matrix_set(F_dx_dt_dx,1,2,param[2]*param[7]);
-    
-    gsl_matrix_set(F_dx_dt_dx,2,3,1);
-    
-    gsl_matrix_set(F_dx_dt_dx,3,0,param[3]*param[9]);
-    gsl_matrix_set(F_dx_dt_dx,3,2,-param[1]-param[3]*param[9]);
-    gsl_matrix_set(F_dx_dt_dx,3,3,param[3]*(param[6]-param[8]));
+    double r1, r2, a12, a21;
+    switch (regime) {
+        case 0:
+            r1 = param[0];
+            r2 = param[1];
+            a12 = 0.0;
+            a21 = 0.0;
+            break;
+        case 1:
+            r1 = 0.0;
+            r2 = 0.0;
+            a12 = param[2];
+            a21 = param[3];
+            break;
+    }
+    gsl_matrix_set(F_dx_dt_dx,0,0,-r1-a12);
+    gsl_matrix_set(F_dx_dt_dx,0,1,a12);
+    gsl_matrix_set(F_dx_dt_dx,1,0,a21);
+    gsl_matrix_set(F_dx_dt_dx,1,1,-r2-a21);
 
 }
-
-
 
 void function_jacobdynamic(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
         double *param, size_t num_func_param, const gsl_vector *co_variate,
@@ -226,26 +270,12 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
     for(j=0;j<num_regime;j++){
         for(i=0;i<num_sbj;i++){
             /*printf("%lu %lu\n",i,j);*/
-            gsl_vector_set((eta_0)[j],i*dim_latent_var,-0.06391744);
-            gsl_vector_set((eta_0)[j],i*dim_latent_var+1,0.29310816);
-            gsl_vector_set((eta_0)[j],i*dim_latent_var+2,0.14081910);
-            gsl_vector_set((eta_0)[j],i*dim_latent_var+3,-0.14157076);
+            gsl_vector_set((eta_0)[j],i*dim_latent_var,70.0);
+            gsl_vector_set((eta_0)[j],i*dim_latent_var+1,40.0);
         }/*statevar_1_p1 statevar_2_p1 statevar_1_p2 statevar_2_p2 ..., eta_0[] with a length of num_sbj*dim_latent_var*/
-        
-        gsl_matrix_set((error_cov_0)[j],0,0,log(1));
-        gsl_matrix_set((error_cov_0)[j],1,1,log(1));
-        gsl_matrix_set((error_cov_0)[j],2,2,log(1));
-        gsl_matrix_set((error_cov_0)[j],3,3,log(1));
-        
-        /*gsl_matrix_set((error_cov_0)[j],0,0,log(1.56881678));
-        gsl_matrix_set((error_cov_0)[j],1,1,log(7.3848398));
-        gsl_matrix_set((error_cov_0)[j],2,2,log(1.83974438));
-        gsl_matrix_set((error_cov_0)[j],2,3,log(11.3952947));*/
-        /*gsl_matrix_set((error_cov_0)[j],2,1,log(-2.57505534));
-        gsl_matrix_set((error_cov_0)[j],1,2,log(-2.57505534));
-        gsl_matrix_set((error_cov_0)[j],2,3,log(-2.57505534));
-        gsl_matrix_set((error_cov_0)[j],2,3,log(-2.57505534));*/
-        
+
+        gsl_matrix_set((error_cov_0)[j],0,0,log(225.0));
+        gsl_matrix_set((error_cov_0)[j],1,1,log(100.0));
     }
 }
 
@@ -255,7 +285,28 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
 
 void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){
 
-    gsl_matrix_set_identity(regime_switch_mat);
+    double p11, p12, p21, p22;
+    switch (type) {
+        case 0:
+            p21 = 0;
+            p11 = 1;
+            break;
+        case 1:
+            /**p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1))));
+            p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1))));**//*co_variate[t](2) is time-varying*/
+            
+            p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0))));
+            p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0))));/*co_variate[t](2) is time-varying*/
+
+            break;
+    }
+    p12 = 1-p11;
+    p22 = 1-p21;
+
+    gsl_matrix_set(regime_switch_mat,0,0,p11);
+    gsl_matrix_set(regime_switch_mat,0,1,p12);
+    gsl_matrix_set(regime_switch_mat,1,0,p21);
+    gsl_matrix_set(regime_switch_mat,1,1,p22);
 
 }
 
@@ -270,7 +321,7 @@ void function_regime_switch(size_t t, size_t type, double *param, const gsl_vect
 void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){
     size_t i;
     for (i=0;i<eta_noise_cov->size1;i++){
-        gsl_matrix_set(eta_noise_cov,i,i,-10);
+        gsl_matrix_set(eta_noise_cov,i,i,-20);
     }
     /*gsl_matrix_set_zero(par.y_noise_cov);*/
     gsl_matrix_set(y_noise_cov,0,0, param[4]);
@@ -283,8 +334,10 @@ void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_no
  */
 void function_transform(const ParamConfig *pc, ParamInit *pi, Param *par){
     size_t i;
-    for (i=0;i<2;i++){
+    for (i=0;i<4;i++){
       par->func_param[i]=exp(par->func_param[i]);
     }
 }
+
+
 
