@@ -96,6 +96,7 @@ void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, 
     gsl_vector_set(F_dx_dt,0,-r1 * gsl_vector_get(x,0) + a12 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
     gsl_vector_set(F_dx_dt,1,-r2 * (gsl_vector_get(x,1) - param[10]) - a21 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
 }
+
 void function_dynam_ada(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
         double *gparameters,const gsl_vector *co_variate,
         void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
@@ -294,7 +295,7 @@ void function_regime_switch(size_t t, size_t type, double *param, const gsl_vect
         case 1:
             /**p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1))));
             p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1))));**//*co_variate[t](2) is time-varying*/
-            
+
             p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0))));
             p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0))));/*co_variate[t](2) is time-varying*/
 

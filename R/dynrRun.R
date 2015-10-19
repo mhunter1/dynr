@@ -80,6 +80,12 @@ setMethod("initialize", "dynrRun",
 #	function(object){
 #		tval <- object@transformed.parameters/object@standard.errors
 #		ret <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors, object@conf.intervals, t.value=tval, p.value=2*pt(abs(tval), df=1, lower.tail=FALSE))
+#		cat('\nSummary of dynrRun\n\n')
+#		cat(paste('Log Likelihood: ', logLik(object), '\n', sep=''))
+#		cat(paste('AIC: ', AIC(object), '\n', sep=''))
+#		cat(paste('BIC: ', BIC(object), '\n', sep=''))
+#		cat('Parameters:\n')
+#		#print(ret)
 #		return(ret)
 #	}
 #)
