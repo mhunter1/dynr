@@ -40,8 +40,7 @@ Note
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
-#include <Rcpp.h>
-using namespace Rcpp;
+
 
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
@@ -100,8 +99,6 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     data_model.pc.func_dP_dt=function_dP_dt;
     data_model.pc.func_initial_condition=function_initial_condition;
     data_model.pc.func_regime_switch=function_regime_switch;
-    Rcpp::XPtr<funcPtr> ptr_fn_noise_cov(getListElement(model_list, "functn_noise_cov"));
-    function_noise_cov = *(ptr_fn_noise_cov);
     data_model.pc.func_noise_cov=function_noise_cov;
     data_model.pc.isnegloglikeweightedbyT=false;
     data_model.pc.second_order=false;/*true;*/
