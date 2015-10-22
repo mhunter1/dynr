@@ -1,3 +1,4 @@
+
 require(dynr)
 
 thedata = read.table('~/Dropbox/Brekfis/dynr/data/New2CovModel1T1000n20batch1ODEsimData.txt')
