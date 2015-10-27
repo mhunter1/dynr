@@ -14,5 +14,5 @@ void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_no
 }
 "
 bdtxt=""
-funct_noise_cov<- cxxfunction(signature(),inc=inctxt,plugin="RcppGSL")
-#funct_noise_cov<-cfunction(sig=character(), body=bdtxt, inc=inctxt,language="C",plugin="RcppGSL")
+#funct_noise_cov<- cxxfunction(signature(),inc=inctxt,plugin="RcppGSL")
+funct_noise_cov<-cfunction(sig=character(), body=bdtxt, includes =inctxt,language="C")
