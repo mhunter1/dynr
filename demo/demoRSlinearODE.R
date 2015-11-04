@@ -23,17 +23,13 @@ gsl_matrix_set(y_noise_cov,1,1, param[5]);
 
 }
 " 
-func_address=dynr.funcaddresses(file="~/Desktop/RSODEmodel.c",verbose=FALSE)
+func_address=dynr.funcaddresses(file="~/Dropbox/Brekfis/dynr/RSODEmodel.c",verbose=FALSE)
 tfun <- function(x){c(exp(x[1:4]), x[5:13])}
 res <- dynr.run(model, data,func_address,tfun)
 summary(res)
 
 
-
-
-save.image(file="./Dropbox/Symiin_Lu/dynr/RSLinearODE.RData")
+save.image(file="~/Dropbox/Symiin_Lu/dynr/RSLinearODE.RData")
 plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
-
-
-dynr.ggplot(res, data.dynr=data, states=c(1,2), names.state=paste0("state",states), title="Smoothed State Values", numSubjDemo=2)
+dynr.ggplot(res, data.dynr=data, states=c(1,2), title="Smoothed State Values", numSubjDemo=2)
 
