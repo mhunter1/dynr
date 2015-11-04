@@ -48,8 +48,8 @@ typedef struct ParamConfig{
     void (*func_regime_switch)(size_t, size_t, double *, const gsl_vector *, gsl_matrix *);
     /**size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov**/
     void (*func_noise_cov)(size_t, size_t, double *, gsl_matrix *, gsl_matrix *);
-    /**const ParamConfig *pc, ParamInit *pi, Param *par**/
-
+    /**double *param**/
+    void (*func_transform)(double *);
     /** tstart, tend, regime, xstart,gparameters,co_variate, (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),x_tend **/
     void (*func_dynam)(const double, const double, size_t, const gsl_vector *,
         double *,const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),

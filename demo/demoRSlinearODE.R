@@ -13,9 +13,24 @@ model <- dynr.model(
               options=list(maxtime=1*60, maxeval=20)
 )
 
-tfun <- function(x){c(exp(x[1:6]), x[7:13])}
-res <- dynr.run(model, data,tfun)
+func_noise_cov_txt="void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){
+size_t i;
+for (i=0;i<eta_noise_cov->size1;i++){
+gsl_matrix_set(eta_noise_cov,i,i,-20);
+}
+gsl_matrix_set(y_noise_cov,0,0, param[4]);
+gsl_matrix_set(y_noise_cov,1,1, param[5]);
+
+}
+" 
+func_address=dynr.funcaddresses(file="~/Desktop/RSODEmodel.c",verbose=FALSE)
+tfun <- function(x){c(exp(x[1:4]), x[5:13])}
+res <- dynr.run(model, data,func_address,tfun)
 summary(res)
+
+
+
+
 save.image(file="./Dropbox/Symiin_Lu/dynr/RSLinearODE.RData")
 plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 

@@ -1,5 +1,4 @@
 exportPattern("^[[:alpha:]]+")
 exportPattern("^[^\\.]")
 useDynLib(dynr)
-importFrom(Rcpp, evalCpp)
 

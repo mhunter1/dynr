@@ -13,8 +13,6 @@ Maintainer: Lu Ou <lzo114@psu.edu>
 Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2,plyr
 Description: More about what it does (maybe more than one line)
 License: Apache License (== 2.0) GPL (>= 2)
-Imports: Rcpp (>= 0.12.1)
-LinkingTo: Rcpp
 Version: 0.1-1
 LazyLoad: yes
 Collate:
@@ -22,3 +20,4 @@ Collate:
     'dynrModel.R'
     'dynrRun.R'
     'dynrPlot.R'
+    'dynrFuncAddress.R'

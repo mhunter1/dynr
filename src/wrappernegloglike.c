@@ -72,7 +72,7 @@ double function_neg_log_like(const double *params, void *data){
     printf("\n");
 
 
-    function_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
+    data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
 
 
     par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
@@ -82,7 +82,7 @@ double function_neg_log_like(const double *params, void *data){
  
     /** calculate the log_like **/
 
-    function_transform(&data_model.pc, &pi, &par);
+    data_model.pc.func_transform(par.func_param);
     model_constraint_init(&data_model.pc, &pi);
     
     

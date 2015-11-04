@@ -152,7 +152,7 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data, transformation, conf.level=.95) {
+dynr.run <- function(model, data, func_address, transformation, conf.level=.95) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
@@ -160,7 +160,7 @@ dynr.run <- function(model, data, transformation, conf.level=.95) {
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	backendStart <- Sys.time()
-	output <- .Call("main_R", model, data, PACKAGE = "dynr")
+	output <- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	output <- endProcessing(output, transformation, conf.level)
 	obj <- new("dynrRun", output)

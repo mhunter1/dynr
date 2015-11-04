@@ -40,8 +40,7 @@ Note
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
-#include <Rcpp.h>
-using namespace Rcpp;
+#include <Rdefines.h>
 
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
@@ -62,7 +61,7 @@ SEXP getListElement(SEXP list, const char *str)
  * @param ubvec is a vector in R of the upper bounds of search region
  * @param lbvec is a vecotr in R of the lower bounds of the search region
  */
-SEXP main_R(SEXP model_list,SEXP data_list)
+SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
 {
     size_t index,index_col,index_row;
 
@@ -93,16 +92,16 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
 
     /*function specifications*/
-    data_model.pc.func_measure=function_measurement;
-    data_model.pc.func_dF_dx=function_dF_dx;
+    data_model.pc.func_measure=R_ExternalPtrAddr(getListElement(func_address_list, "f_measure"));
+    data_model.pc.func_dx_dt=R_ExternalPtrAddr(getListElement(func_address_list, "f_dx_dt"));
+    data_model.pc.func_dF_dx=R_ExternalPtrAddr(getListElement(func_address_list, "f_dF_dx"));
+    data_model.pc.func_dP_dt=R_ExternalPtrAddr(getListElement(func_address_list, "f_dP_dt"));
+    data_model.pc.func_regime_switch=R_ExternalPtrAddr(getListElement(func_address_list, "f_regime_switch"));  
+    data_model.pc.func_noise_cov=R_ExternalPtrAddr(getListElement(func_address_list, "f_noise_cov"));
+    data_model.pc.func_initial_condition=R_ExternalPtrAddr(getListElement(func_address_list, "f_initial_condition"));
+    data_model.pc.func_transform=R_ExternalPtrAddr(getListElement(func_address_list, "f_transform"));
+    
     data_model.pc.func_jacobdynamic=function_jacobdynamic;
-    data_model.pc.func_dx_dt=function_dx_dt;
-    data_model.pc.func_dP_dt=function_dP_dt;
-    data_model.pc.func_initial_condition=function_initial_condition;
-    data_model.pc.func_regime_switch=function_regime_switch;
-    Rcpp::XPtr<funcPtr> ptr_fn_noise_cov(getListElement(model_list, "functn_noise_cov"));
-    function_noise_cov = *(ptr_fn_noise_cov);
-    data_model.pc.func_noise_cov=function_noise_cov;
     data_model.pc.isnegloglikeweightedbyT=false;
     data_model.pc.second_order=false;/*true;*/
     data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
@@ -457,23 +456,21 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    }
 
 
-	    function_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
+	    data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
 
 	    par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 	    par.y_noise_cov=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
 	    par.regime_switch_mat=gsl_matrix_alloc(data_model.pc.num_regime, data_model.pc.num_regime);
  
 	    /* calculate the log_like */
-	    function_transform(&(data_model.pc), &pi, &par);
+	    data_model.pc.func_transform(par.func_param);
 
 	    model_constraint_init(&(data_model.pc), &pi);
 
 	    /*print_matrix(par.y_noise_cov);
 	    printf("\n");*/
 
-            double neg_log_like;
-
-	    neg_log_like=EKimFilter(data_model.y, data_model.co_variate, data_model.y_time, &(data_model.pc), &pi, &par,
+            double neg_log_like=EKimFilter(data_model.y, data_model.co_variate, data_model.y_time, &(data_model.pc), &pi, &par,
 	    eta_regime_j_t,error_cov_regime_j_t,eta_regime_jk_pred,error_cov_regime_jk_pred,eta_regime_jk_t_plus_1,error_cov_regime_jk_t_plus_1,
 	    pr_t, pr_t_given_t_minus_1,innov_v,inv_residual_cov);
 	    
