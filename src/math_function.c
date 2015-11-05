@@ -507,8 +507,11 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
     }*/
 	if(fabs(det) < 1.0e-6){
 		printf("Singular matrix found by mathfunction_inv_matrix_det().\n");
+		gsl_matrix_set_zero(inv_mat);
 	}
-	gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+	else {
+		gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+	}
 
     /** free allocated space **/
     gsl_permutation_free(per);
