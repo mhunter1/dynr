@@ -10,9 +10,9 @@ data <- dynr.data(thedata, id="V1", time="V2",observed=paste0('V', 3:4),
 model <- dynr.model(
               num_regime=2,
               dim_latent_var=2,
-              xstart=c(rep(log(.1), 4), log(10.0), log(10.0), -3.0, 9.0, -1.5, -0.5, 95.0,-.3,-.3),
+              xstart=c(rep(log(.1), 4), log(10.0), log(10.0), -3.0, 9.0, -1.5, -0.5, 95.0,-25,-.3),
               ub=c(rep(10, 6), rep(10, 4), 200, 10, 10),
-              lb=c(rep(-10, 6), rep(-10, 4), 0, -10, -10),
+              lb=c(rep(-10, 6), rep(-10, 4), 0, -30, -10),
 	     options=list(maxtime=60*60, maxeval=1000)
 )
 
