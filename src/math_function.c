@@ -35,19 +35,33 @@ double mathfunction_multivariate_normal(const gsl_vector *x, const gsl_matrix *c
             printf("\n");
         }
     }*/
+    int rStatus;
     gsl_matrix *inv_cov_matrix=gsl_matrix_alloc(cov_matrix->size1, cov_matrix->size2);
-    gsl_linalg_LU_invert(cp_cov_matrix, p, inv_cov_matrix);
+	if( fabs(det) < 1.0e-6){
+		rStatus = 1;
+	}
+	else {
+		gsl_linalg_LU_invert(cp_cov_matrix, p, inv_cov_matrix);
+		rStatus = 0;
+	}
 
-    /** second step: compute the log likelihood **/
-    result=-1*(x->size/2.0)*log(M_PI*2);
-    result+=-1.0/2*log(det);
-    gsl_vector_set_zero(y);
-    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
-    gsl_blas_ddot(x, y, &mu);
-    /*if(mu!=mu){
-        printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
-    }*/
-    result+=-1.0/2*mu;
+    /* If the covariance matrix is invertible, calculate m2ll as usual */
+    if(rStatus == 0) {
+        /** second step: compute the log likelihood **/
+        result=-1*(x->size/2.0)*log(M_PI*2);
+        result+=-1.0/2*log(det);
+        gsl_vector_set_zero(y);
+        gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
+        gsl_blas_ddot(x, y, &mu);
+        /*if(mu!=mu){
+            printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
+        }*/
+        result+=-1.0/2*mu;
+    }
+    else {
+		printf("Singular Covariance matrix\n");
+		result=0.0;
+	}
 
     /** free allocated space **/
     gsl_vector_free(y);
@@ -67,6 +81,22 @@ double mathfunction_multivariate_normal(const gsl_vector *x, const gsl_matrix *c
         printf(")\n");
     }*/
     return result;
+}
+
+/**
+ * This method checks that a matrix is invertible by computing its determinant
+ * It is assumed that gsl_linalg_LU_decomp(mat, per, &sing);
+ * has been run on mat prior to checking invertibility
+ */
+int mathfunction_check_inv(const gsl_matrix *mat){
+	double eps = 1.0e-6;
+	double det = gsl_linalg_LU_det(mat, 1);
+	if( fabs(det) > eps ){
+		return 0;
+	}
+	else {
+		return 1;
+	}
 }
 
 /**
@@ -255,7 +285,12 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
             printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
         printf("\n");
     }*/
-    gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+	int rStatus;
+    rStatus = mathfunction_check_inv(cp_mat);
+	if(rStatus != 0){
+		printf("Singular matrix found by mathfunction_inv_matrix().\n");
+	}
+	gsl_linalg_LU_invert(cp_mat, per, inv_mat);
 
     /** free allocated space **/
     gsl_permutation_free(per);
@@ -470,7 +505,10 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
             printf("\n");
         }
     }*/
-    gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+	if(fabs(det) < 1.0e-6){
+		printf("Singular matrix found by mathfunction_inv_matrix_det().\n");
+	}
+	gsl_linalg_LU_invert(cp_mat, per, inv_mat);
 
     /** free allocated space **/
     gsl_permutation_free(per);
