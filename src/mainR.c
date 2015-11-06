@@ -42,6 +42,9 @@ Note
 #include <Rmath.h>
 #include <Rdefines.h>
 
+
+
+
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
 {
@@ -102,6 +105,14 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
     data_model.pc.func_transform=R_ExternalPtrAddr(getListElement(func_address_list, "f_transform"));
     
     data_model.pc.func_jacobdynamic=function_jacobdynamic;
+
+/*
+ *   data_model.pc.func_dx_dt=function_dx_dt;
+ *   data_model.pc.func_dP_dt=function_dP_dt;
+ *   data_model.pc.func_initial_condition=function_initial_condition;
+ *   data_model.pc.func_regime_switch=function_regime_switch;
+ *   data_model.pc.func_noise_cov=function_noise_cov;
+ */
     data_model.pc.isnegloglikeweightedbyT=false;
     data_model.pc.second_order=false;/*true;*/
     data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/

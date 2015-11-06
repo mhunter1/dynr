@@ -176,7 +176,7 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 
 endProcessing <- function(x, transformation, conf.level){
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
-	tHess <- J %*% solve(x$hessian.matrix) %*% t(J)
+	tHess <- J %*% x$inverse.hessian.matrix %*% t(J)
 	tSE <- sqrt(abs(diag(tHess)))
 	tParam <- transformation(x$fitted.parameters)
 	x$transformed.parameters <- tParam
