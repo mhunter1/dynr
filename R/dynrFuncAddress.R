@@ -70,6 +70,11 @@ CompileCode <- function(f, code, language, verbose) {
     gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
     
   }
+  if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
+  Sys.setenv(PKG_CPPFLAGS=gsl_cflags)
+  if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
+  Sys.setenv(PKG_LIBS=gsl_libs)
+
   extension <- switch(language, "C++"=".cpp", C=".c", Fortran=".f", F95=".f95",
                       ObjectiveC=".m", "ObjectiveC++"=".mm")
   libCFile <- sub(".EXT$", extension, libCFile)
@@ -81,9 +86,11 @@ CompileCode <- function(f, code, language, verbose) {
   if ( file.exists(libLFile) ) file.remove( libLFile )
   if ( file.exists(libLFile2) ) file.remove( libLFile2 )
   
+  
+  
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
-  cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " ",gsl_cflags," ",gsl_libs," 2> ", errfile, sep="")
+  cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
   if (verbose) cat("Compilation argument:\n", cmd, "\n")
   compiled <- system(cmd, intern=!verbose)
   errmsg <- readLines( errfile )
