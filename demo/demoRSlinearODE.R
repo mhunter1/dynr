@@ -17,11 +17,8 @@ model <- dynr.model(
 )
 
 func_address=dynr.funcaddresses(file="./demo/RSODEmodel.c",verbose=FALSE)
-tfun <- function(x){c(exp(x[1:4]), x[5:13])}
+tfun <- function(x){c(exp(x[1:6]), x[7:13])}
 res <- dynr.run(model, data,func_address,tfun)
-
-#tfun <- function(x){c(exp(x[1:6]), x[7:13])}
-#res <- dynr.run(model, data, tfun)
 #True values should be
 #c(log(.2), log(.1), log(.3), log(.2), log(9.0), log(9.0), -4, 8.5, -1, 1, 100, -2, -1)
 
