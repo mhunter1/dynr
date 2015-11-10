@@ -176,12 +176,12 @@ endProcessing <- function(x, transformation, conf.level){
 	tHess <- J %*% V1%*%t(J)
 	tSE <- sqrt(abs(diag(tHess)))
 	tParam <- transformation(x$fitted.parameters)
-	CI <- cbind(tParam - tSE*confx, tParam + tSE*confx)
+	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
 }
 	x$transformed.parameters <- tParam
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- tHess
-	x$conf.intervals <- matrix(CI, ncol=2, byrow=T, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
 	return(x)
 }
 
