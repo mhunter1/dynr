@@ -1,6 +1,6 @@
 /**
  * This file contains all self-written mathematic functions.
- * @author Peifeng Yin
+ * @author Peifeng Yin, Lu Ou, Michael Hunter, Sy-Miin Chow
  * @create Feb. 19, 2014
  */
 #include <gsl/gsl_vector.h>
@@ -9,77 +9,46 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 #include "math_function.h"
+
 /**
  * This method computes the log-likelihood of a multivariate normal distribution.
  * @param x the variable (column) vector
- * @param cov_matrix the covariance matrix
- * @return the log-likelihood
+ * @param det the determinate of the cov_matrix
+ * @param inv_cov_matrix the covariance matrix
+ * @return the negative log-likelihood
  */
-double mathfunction_multivariate_normal(const gsl_vector *x, const gsl_matrix *cov_matrix){
+double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, double det){
     /*printf("x(0)=%f\n", gsl_vector_get(x, 0));*/
-    double result=0, det=0;
-    gsl_vector *y=gsl_vector_alloc(x->size); /* y will save cov_matrix^{-1}*x*/
-    double mu; /* save result of x'*cov_matrix^{-1}*x*/
-    /*size_t ri, ci*/
-    /** first step: conduct LU decomposition in order to compute the det and inverse of the covariance matrix **/
-    gsl_permutation *p=gsl_permutation_alloc(x->size);
-    gsl_matrix *cp_cov_matrix=gsl_matrix_alloc(cov_matrix->size1, cov_matrix->size2);
-    gsl_matrix_memcpy(cp_cov_matrix, cov_matrix);
-    int signum; /* no idea what it means. The LU decomposition needs it.*/
-    gsl_linalg_LU_decomp(cp_cov_matrix, p, &signum);
-    det=gsl_linalg_LU_det(cp_cov_matrix, signum);
-    /*if(det!=det){
-        for(ri=0; ri<cp_cov_matrix->size1; ri++){
-            for(ci=0; ci<cp_cov_matrix->size2; ci++)
-                printf("%.2f ", gsl_matrix_get(cov_matrix, ri, ci));
-            printf("\n");
-        }
-    }*/
-    int rStatus;
-    gsl_matrix *inv_cov_matrix=gsl_matrix_alloc(cov_matrix->size1, cov_matrix->size2);
-	if( fabs(det) < 1.0e-6){
-		rStatus = 1;
-	}
-	else {
-		gsl_linalg_LU_invert(cp_cov_matrix, p, inv_cov_matrix);
-		rStatus = 0;
-	}
-
-    /* If the covariance matrix is invertible, calculate m2ll as usual */
-    if(rStatus == 0) {
-        /** second step: compute the log likelihood **/
-        result=-1*(x->size/2.0)*log(M_PI*2);
-        result+=-1.0/2*log(det);
-        gsl_vector_set_zero(y);
-        gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
-        gsl_blas_ddot(x, y, &mu);
-        /*if(mu!=mu){
-            printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
-        }*/
-        result+=-1.0/2*mu;
-    }
-    else {
-		printf("Singular Covariance matrix\n");
-		result=0.0;
-	}
-
+    double result=0;
+    gsl_vector *y=gsl_vector_alloc(x->size); /* y will save inv_cov_matrix*x*/
+    double mu; /* save result of x'*inv_cov_matrix*x*/
+    
+    /** compute the log likelihood **/
+    result=(x->size/2.0)*log(M_PI*2);
+    result+=log(det)/2.0;
+    gsl_vector_set_zero(y);
+    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
+    gsl_blas_ddot(x, y, &mu);
+    /*if(mu!=mu){
+     printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
+     }*/
+    result+=mu/2.0;
+    
     /** free allocated space **/
     gsl_vector_free(y);
-    gsl_permutation_free(p);
-    gsl_matrix_free(cp_cov_matrix);
-    gsl_matrix_free(inv_cov_matrix);
-
+    
     /*if(1){
-        for(ri=0; ri<cov_matrix->size1; ri++){
-            for(ci=0; ci<cov_matrix->size2; ci++)
-                printf("%.3f ", gsl_matrix_get(cov_matrix, ri, ci));
-            printf("\n");
-        }
-        printf("x: ( ");
-        for(ci=0; ci<x->size; ci++)
-            printf("%.3f ", gsl_vector_get(x, ci));
-        printf(")\n");
-    }*/
+     for(ri=0; ri<inv_cov_matrix->size1; ri++){
+     for(ci=0; ci<inv_cov_matrix->size2; ci++)
+     printf("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
+     printf("\n");
+     }
+     printf("x: ( ");
+     for(ci=0; ci<x->size; ci++)
+     printf("%.3f ", gsl_vector_get(x, ci));
+     printf(")\n");
+     }*/
+    /*result=isfinite(result)?result:1e-4;*/
     return result;
 }
 
@@ -100,168 +69,6 @@ int mathfunction_check_inv(const gsl_matrix *mat){
 }
 
 /**
- * This method computes the determinant of the given matrix.
- * The algorithm will firstly convert the given matrix to a upper triangle one. Then calculate the multiplication of diagonal values.
- * Please refer to http://en.wikipedia.org/wiki/Determinant for details.
- * @matrix the given matrix, should be a square one.
- * @return the determinant of the matrix.
- * @deprecated later I found another way to compute the det based LU decomposition implemented by GSL.
- */
-double mathfunction_matrix_determinant(const gsl_matrix *matrix){
-    size_t row_index;
-    size_t r_pointer, col_pointer;
-    double orin_value, offset_value;
-
-    double pre_multi=1; /* for each swap of row or column, this will be multiplied by -1;*/
-    double det=1;
-    gsl_matrix *cp_matrix=gsl_matrix_alloc(matrix->size1, matrix->size2);
-    gsl_matrix_memcpy(cp_matrix, matrix);
-
-    for(row_index=0; row_index<cp_matrix->size1; row_index++){
-        /* find first non-zero value*/
-        for(r_pointer=row_index; r_pointer<cp_matrix->size2; r_pointer++){
-            if(gsl_matrix_get(cp_matrix, r_pointer, row_index)!=0)
-                break;
-        }
-        if(r_pointer==cp_matrix->size2)
-            return 0;
-        if(r_pointer!=row_index){
-            gsl_matrix_swap_rows(cp_matrix, r_pointer, row_index);
-            pre_multi*=-1;
-        }
-        /* clean the lower half matrix with the current row*/
-        for(r_pointer=row_index+1; r_pointer<cp_matrix->size1; r_pointer++){
-            if(gsl_matrix_get(cp_matrix, r_pointer, row_index)==0)
-                continue;
-            for(col_pointer=cp_matrix->size2-1; col_pointer>=row_index; col_pointer--){
-                offset_value=gsl_matrix_get(cp_matrix, row_index, col_pointer)*gsl_matrix_get(cp_matrix, r_pointer, row_index)/gsl_matrix_get(cp_matrix, row_index, row_index);
-                orin_value=gsl_matrix_get(cp_matrix, r_pointer, col_pointer);
-                gsl_matrix_set(cp_matrix, r_pointer, col_pointer, orin_value-offset_value);
-                if(col_pointer==row_index)
-                    break;
-            }
-
-        }
-
-        /*for(r_pointer=0; r_pointer<cp_matrix->size1; r_pointer++){
-            for(col_pointer=0; col_pointer<cp_matrix->size2; col_pointer++)
-                printf("%.2f ",gsl_matrix_get(cp_matrix, r_pointer, col_pointer));
-            printf("\n");
-        }*/
-    }
-
-    /* compute the determinant, since now the matrix is upper triangle, the det is equal to the multiplication of its diagonal values*/
-    det*=pre_multi;
-    for(row_index=0; row_index<cp_matrix->size1; row_index++)
-        det*=gsl_matrix_get(cp_matrix, row_index, row_index);
-
-    /* free allocated space*/
-    gsl_matrix_free(cp_matrix);
-
-    return det;
-}
-
-/**
- * Given a matrix of log-values, this method normalize each element to v~(0,1) and the sum of them will be equal to 1.
- * For example, given (-1, -2), the resulted value will be (e^{-1}, e^{-2})/(e^{-1}+e^{-2}).
- * @param log_v the target matrix values. After this function, the values in original one will be modified.
- * @return the normalizer
- */
-double mathfunction_normalize_log(gsl_matrix *log_v){
-    double max_v, min_v, sum=0;
-    double temp_value;
-    size_t row_index, col_index;
-    gsl_matrix_minmax(log_v, &min_v, &max_v);
-    gsl_matrix_add_constant(log_v, -1*(min_v+max_v)/2);
-
-    /* now compute the exponential of each element as well as the sum*/
-    for(row_index=0; row_index<log_v->size1; row_index++)
-        for(col_index=0; col_index<log_v->size2; col_index++){
-            temp_value=gsl_matrix_get(log_v, row_index, col_index);
-            temp_value=exp(temp_value);
-            sum+=temp_value;
-            gsl_matrix_set(log_v, row_index, col_index, temp_value);
-        }
-
-    /* normalize all values*/
-    gsl_matrix_scale(log_v, 1.0/sum);
-    return sum;
-}
-
-/**
- * Given a vector of log-values, this method normalize each element to v~(0,1) and the sum of them will be equal to 1.
- * For example, given (-1, -2), the resulted value will be (e^{-1}, e^{-2})/(e^{-1}+e^{-2}).
- * @param log_v the target vector values. After this function, the values in original one will be modified.
- * @return the normalizer
- */
-double mathfunction_normalize_log_vector(gsl_vector *log_v){
-    double max_v=0, min_v=0, sum=0;
-    double temp_value, temp_value2;
-    size_t col_index;
-
-    gsl_vector_minmax(log_v, &min_v, &max_v); /* find a bug for this function, returns minv as -nan*/
-    /*printf("%f\n", min_v);*/
-    if(min_v!=min_v){ /* sometimes the returned min_v is nan. But recall this function will solve the problem*/
-        gsl_vector_minmax(log_v, &min_v, &max_v);
-        /*printf("%f\n", min_v);*/
-    }
-    /*max_v=gsl_vector_get(log_v, 0);
-    min_v=max_v;
-    for(col_index=1; col_index<log_v->size; col_index++){
-        temp_value=gsl_vector_get(log_v, col_index);
-        if(max_v<temp_value)
-            max_v=temp_value;
-        if(min_v>temp_value)
-            min_v=temp_value;
-    }*/
-
-    gsl_vector_add_constant(log_v, -1*(min_v+max_v)/2);
-
-    /* now compute the exponential of each element as well as the sum*/
-    for(col_index=0; col_index<log_v->size; col_index++){
-        temp_value2=gsl_vector_get(log_v, col_index);
-        temp_value=exp(temp_value2);
-        /*printf("%f\n",temp_value);*/
-        sum+=temp_value;
-        gsl_vector_set(log_v, col_index, temp_value);
-    }
-    /* normalize all values*/
-    gsl_vector_scale(log_v, 1.0/sum);
-    return sum;
-}
-
-/**
- * This method normalize the given matrix's values so that the sum of them is equal to 1.
- * @param v the given matrix to be normalized.
- * @return the normalizer
- *
- */
-double mathfunction_matrix_normalize(gsl_matrix *v){
-    double sum=0;
-    size_t row_index, col_index;
-    for(row_index=0; row_index<v->size1; row_index++){
-        for(col_index=0; col_index<v->size2; col_index++)
-            sum+=gsl_matrix_get(v, row_index, col_index);
-    }
-    /*printf("%f",sum);*/
-    gsl_matrix_scale(v, 1.0/sum);
-    return sum;
-}
-
-/**
- * This method normalizes the given vector's values so that sum of them is equal to 1.
- * @param v the given vector to be normalized.
- */
-double mathfunction_vector_normalize(gsl_vector *v){
-    size_t index;
-    double sum=0;
-    for(index=0; index<v->size; index++)
-        sum+=gsl_vector_get(v, index);
-    gsl_vector_scale(v, 1.0/sum);
-    return sum;
-}
-
-/**
  * compute the inverse of a given matrix
  * @param mat the given matrix
  * @param inv_mat the matrix where the inverse one is stored.
@@ -274,41 +81,78 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
     int sing;
     /*size_t ri, ci;*/
     /*for(ri=0; ri<mat->size1; ri++){
-        for(ci=0; ci<mat->size2; ci++)
-            printf("%.3f ",gsl_matrix_get(mat, ri, ci));
-        printf("\n");
-    }*/
+     for(ci=0; ci<mat->size2; ci++)
+     printf("%.3f ",gsl_matrix_get(mat, ri, ci));
+     printf("\n");
+     }*/
     gsl_linalg_LU_decomp(cp_mat, per, &sing);
-
+    
     /*for(ri=0; ri<cp_mat->size1; ri++){
-        for(ci=0; ci<cp_mat->size2; ci++)
-            printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
-        printf("\n");
-    }*/
-	int rStatus;
+     for(ci=0; ci<cp_mat->size2; ci++)
+     printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
+     printf("\n");
+     }*/
+    int rStatus;
     rStatus = mathfunction_check_inv(cp_mat);
-	if(rStatus != 0){
-		/*printf("Singular matrix found by mathfunction_inv_matrix().\n");*/
-	}
-	gsl_linalg_LU_invert(cp_mat, per, inv_mat);
-
+    if(rStatus != 0){
+        printf("Singular matrix found by mathfunction_inv_matrix().\n");
+    }
+    gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+    
     /** free allocated space **/
     gsl_permutation_free(per);
     gsl_matrix_free(cp_mat);
 }
 
 /**
- * This method computes the trace of the given matrix
- * @param mat the target matrix, make sure the matrix is a square one.
- * @return the trace
+ * compute the inverse of a given matrix and returns the determinant
+ * @param mat the given matrix
+ * @param inv_mat the matrix where the inverse one is stored.
  */
-double mathfunction_mat_trace(const gsl_matrix *mat){
-    double tr=0;
-    size_t index=0;
-    for(index=0; index<mat->size1; index++)
-        tr+=gsl_matrix_get(mat, index, index);
-    return tr;
+
+double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
+    /** conduct LR decomposition **/
+    gsl_permutation *per=gsl_permutation_alloc(mat->size1);
+    gsl_matrix *cp_mat=gsl_matrix_alloc(mat->size1, mat->size2);
+    gsl_matrix_memcpy(cp_mat, mat);
+    int sing;
+    double det=0;
+    /*size_t ri, ci;*/
+    /*for(ri=0; ri<mat->size1; ri++){
+     for(ci=0; ci<mat->size2; ci++)
+     printf("%.3f ",gsl_matrix_get(mat, ri, ci));
+     printf("\n");
+     }*/
+    gsl_linalg_LU_decomp(cp_mat, per, &sing);
+    det=gsl_linalg_LU_det(cp_mat, sing);
+    /*printf("cp_mat:\n");*/
+    /*for(ri=0; ri<cp_mat->size1; ri++){
+     for(ci=0; ci<cp_mat->size2; ci++)
+     printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
+     printf("\n");
+     }*/
+    /*if(det!=det){
+     for(ri=0; ri<cp_cov_matrix->size1; ri++){
+     for(ci=0; ci<cp_cov_matrix->size2; ci++)
+     printf("%.2f ", gsl_matrix_get(cov_matrix, ri, ci));
+     printf("\n");
+     }
+     }*/
+    if(fabs(det) < 1.0e-6){
+        printf("Singular matrix found by mathfunction_inv_matrix_det().\n");
+        gsl_matrix_set_zero(inv_mat);
+    }
+    else {
+        gsl_linalg_LU_invert(cp_mat, per, inv_mat);
+    }
+    
+    /** free allocated space **/
+    gsl_permutation_free(per);
+    gsl_matrix_free(cp_mat);
+    return det;
 }
+
+
 
 /**
  * print the given vector's value to the console
@@ -357,17 +201,6 @@ void print_matrix(const gsl_matrix *mat){
     }
 }
 
-void print_buffer(const void *buffer, size_t len){
-    size_t i=0;
-    printf("[ ");
-    for(i = 0; i < len; i++)
-    {
-        printf("%02x ", ((const unsigned char *) buffer)[i] & 0xff);
-    }
-    printf("]");
-}
-
-
 /**
  * This method computes C=A*B or C=A'*B or C=A*B' or C=A'*B'
  * @param mat_a the matrix of A
@@ -399,8 +232,6 @@ void mathfunction_matrix_mul(const gsl_matrix *mat_a, const gsl_matrix *mat_b, b
     }
 }
 
-
-
 /**
  * This function sums the given vector
  */
@@ -411,7 +242,6 @@ double mathfunction_sum_vector(const gsl_vector *vec){
         sum+=gsl_vector_get(vec, index);
     return sum;
 }
-
 
 /**
  * This function caculates the min of three numbers.
@@ -425,98 +255,6 @@ double mathfunction_min(const double x,const double y,const double z){
     }
 
     return mininmum;
-}
-
-
-/**
- * This method computes the log-likelihood of a multivariate normal distribution.
- * @param x the variable (column) vector
- * @param det the determinate of the cov_matrix
- * @param inv_cov_matrix the covariance matrix
- * @return the negative log-likelihood
- */
-double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, double det){
-    /*printf("x(0)=%f\n", gsl_vector_get(x, 0));*/
-    double result=0;
-    gsl_vector *y=gsl_vector_alloc(x->size); /* y will save inv_cov_matrix*x*/
-    double mu; /* save result of x'*inv_cov_matrix*x*/
-
-    /** compute the log likelihood **/
-    result=(x->size/2.0)*log(M_PI*2);
-    result+=log(det)/2.0;
-    gsl_vector_set_zero(y);
-    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
-    gsl_blas_ddot(x, y, &mu);
-    /*if(mu!=mu){
-        printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
-    }*/
-    result+=mu/2.0;
-
-    /** free allocated space **/
-    gsl_vector_free(y);
-
-    /*if(1){
-        for(ri=0; ri<inv_cov_matrix->size1; ri++){
-            for(ci=0; ci<inv_cov_matrix->size2; ci++)
-                printf("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
-            printf("\n");
-        }
-        printf("x: ( ");
-        for(ci=0; ci<x->size; ci++)
-            printf("%.3f ", gsl_vector_get(x, ci));
-        printf(")\n");
-    }*/
-    /*result=isfinite(result)?result:1e-4;*/
-    return result;
-}
-
-
-/**
- * compute the inverse of a given matrix and returns the determinant
- * @param mat the given matrix
- * @param inv_mat the matrix where the inverse one is stored.
- */
-
-double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
-    /** conduct LR decomposition **/
-    gsl_permutation *per=gsl_permutation_alloc(mat->size1);
-    gsl_matrix *cp_mat=gsl_matrix_alloc(mat->size1, mat->size2);
-    gsl_matrix_memcpy(cp_mat, mat);
-    int sing;
-    double det=0;
-    /*size_t ri, ci;*/
-    /*for(ri=0; ri<mat->size1; ri++){
-        for(ci=0; ci<mat->size2; ci++)
-            printf("%.3f ",gsl_matrix_get(mat, ri, ci));
-        printf("\n");
-    }*/
-    gsl_linalg_LU_decomp(cp_mat, per, &sing);
-    det=gsl_linalg_LU_det(cp_mat, sing);
-    /*printf("cp_mat:\n");*/
-    /*for(ri=0; ri<cp_mat->size1; ri++){
-        for(ci=0; ci<cp_mat->size2; ci++)
-            printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
-        printf("\n");
-    }*/
-    /*if(det!=det){
-        for(ri=0; ri<cp_cov_matrix->size1; ri++){
-            for(ci=0; ci<cp_cov_matrix->size2; ci++)
-                printf("%.2f ", gsl_matrix_get(cov_matrix, ri, ci));
-            printf("\n");
-        }
-    }*/
-	if(fabs(det) < 1.0e-6){
-		printf("Singular matrix found by mathfunction_inv_matrix_det().\n");
-		gsl_matrix_set_zero(inv_mat);
-	}
-	else {
-		gsl_linalg_LU_invert(cp_mat, per, inv_mat);
-	}
-
-    /** free allocated space **/
-    gsl_permutation_free(per);
-    gsl_matrix_free(cp_mat);
-    return det;
 }
 
 
@@ -652,6 +390,119 @@ void mathfunction_diagout_scale(const gsl_matrix *mat_a, const double x, gsl_vec
     for(ri=0; ri<mat_a->size1; ri++){
             gsl_vector_set(vec_b, ri, gsl_matrix_get(mat_a,ri,ri)*x);
     }
+}
+
+/**
+ * Given a matrix of log-values, this method normalize each element to v~(0,1) and the sum of them will be equal to 1.
+ * For example, given (-1, -2), the resulted value will be (e^{-1}, e^{-2})/(e^{-1}+e^{-2}).
+ * @param log_v the target matrix values. After this function, the values in original one will be modified.
+ * @return the normalizer
+ */
+double mathfunction_normalize_log(gsl_matrix *log_v){
+    double max_v, min_v, sum=0;
+    double temp_value;
+    size_t row_index, col_index;
+    gsl_matrix_minmax(log_v, &min_v, &max_v);
+    gsl_matrix_add_constant(log_v, -1*(min_v+max_v)/2);
+    
+    /* now compute the exponential of each element as well as the sum*/
+    for(row_index=0; row_index<log_v->size1; row_index++)
+        for(col_index=0; col_index<log_v->size2; col_index++){
+            temp_value=gsl_matrix_get(log_v, row_index, col_index);
+            temp_value=exp(temp_value);
+            sum+=temp_value;
+            gsl_matrix_set(log_v, row_index, col_index, temp_value);
+        }
+    
+    /* normalize all values*/
+    gsl_matrix_scale(log_v, 1.0/sum);
+    return sum;
+}
+
+/**
+ * Given a vector of log-values, this method normalize each element to v~(0,1) and the sum of them will be equal to 1.
+ * For example, given (-1, -2), the resulted value will be (e^{-1}, e^{-2})/(e^{-1}+e^{-2}).
+ * @param log_v the target vector values. After this function, the values in original one will be modified.
+ * @return the normalizer
+ */
+double mathfunction_normalize_log_vector(gsl_vector *log_v){
+    double max_v=0, min_v=0, sum=0;
+    double temp_value, temp_value2;
+    size_t col_index;
+    
+    gsl_vector_minmax(log_v, &min_v, &max_v); /* find a bug for this function, returns minv as -nan*/
+    /*printf("%f\n", min_v);*/
+    if(min_v!=min_v){ /* sometimes the returned min_v is nan. But recall this function will solve the problem*/
+        gsl_vector_minmax(log_v, &min_v, &max_v);
+        /*printf("%f\n", min_v);*/
+    }
+    /*max_v=gsl_vector_get(log_v, 0);
+     min_v=max_v;
+     for(col_index=1; col_index<log_v->size; col_index++){
+     temp_value=gsl_vector_get(log_v, col_index);
+     if(max_v<temp_value)
+     max_v=temp_value;
+     if(min_v>temp_value)
+     min_v=temp_value;
+     }*/
+    
+    gsl_vector_add_constant(log_v, -1*(min_v+max_v)/2);
+    
+    /* now compute the exponential of each element as well as the sum*/
+    for(col_index=0; col_index<log_v->size; col_index++){
+        temp_value2=gsl_vector_get(log_v, col_index);
+        temp_value=exp(temp_value2);
+        /*printf("%f\n",temp_value);*/
+        sum+=temp_value;
+        gsl_vector_set(log_v, col_index, temp_value);
+    }
+    /* normalize all values*/
+    gsl_vector_scale(log_v, 1.0/sum);
+    return sum;
+}
+
+/**
+ * This method normalize the given matrix's values so that the sum of them is equal to 1.
+ * @param v the given matrix to be normalized.
+ * @return the normalizer
+ *
+ */
+double mathfunction_matrix_normalize(gsl_matrix *v){
+    double sum=0;
+    size_t row_index, col_index;
+    for(row_index=0; row_index<v->size1; row_index++){
+        for(col_index=0; col_index<v->size2; col_index++)
+            sum+=gsl_matrix_get(v, row_index, col_index);
+    }
+    /*printf("%f",sum);*/
+    gsl_matrix_scale(v, 1.0/sum);
+    return sum;
+}
+
+/**
+ * This method normalizes the given vector's values so that sum of them is equal to 1.
+ * @param v the given vector to be normalized.
+ */
+double mathfunction_vector_normalize(gsl_vector *v){
+    size_t index;
+    double sum=0;
+    for(index=0; index<v->size; index++)
+        sum+=gsl_vector_get(v, index);
+    gsl_vector_scale(v, 1.0/sum);
+    return sum;
+}
+
+/**
+ * This method computes the trace of the given matrix
+ * @param mat the target matrix, make sure the matrix is a square one.
+ * @return the trace
+ */
+double mathfunction_mat_trace(const gsl_matrix *mat){
+    double tr=0;
+    size_t index=0;
+    for(index=0; index<mat->size1; index++)
+        tr+=gsl_matrix_get(mat, index, index);
+    return tr;
 }
 
 

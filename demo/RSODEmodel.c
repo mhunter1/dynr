@@ -47,7 +47,7 @@ void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, 
      dx[1] = -r2 * (x[1] - par[9]) - a21 * (x[1] - x[0]);
      printf("\nTesting testing in functionF!");*/
     gsl_vector_set(F_dx_dt,0,-r1 * gsl_vector_get(x,0) + a12 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
-    gsl_vector_set(F_dx_dt,1,-r2 * (gsl_vector_get(x,1) - param[10]) - a21 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
+    gsl_vector_set(F_dx_dt,1,-r2 * (gsl_vector_get(x,1) - param[4]) - a21 * (gsl_vector_get(x,1) - gsl_vector_get(x,0)));
 }
 
 
@@ -121,13 +121,10 @@ void function_regime_switch(size_t t, size_t type, double *param, const gsl_vect
             p21 = 0;
             p11 = 1;
             break;
-        case 1:
-            /**p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1))));
-            p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1))));**//*co_variate[t](2) is time-varying*/
-
-            p11 = (exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[7] + param[9]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0))));
-            p21 = (exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[6] + param[8]*gsl_vector_get(co_variate,1)+param[11]*gsl_vector_get(co_variate,0))));/*co_variate[t](2) is time-varying*/
-
+           case 1:
+            p21 = (exp(param[7] + param[11]*gsl_vector_get(co_variate,1)+param[9]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[7] + param[11]*gsl_vector_get(co_variate,1)+param[9]*gsl_vector_get(co_variate,0))));
+            p11 = (exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0))));
+            
             break;
     }
     p12 = 1-p11;
@@ -154,8 +151,8 @@ void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_no
         gsl_matrix_set(eta_noise_cov,i,i,-20);
     }
     /*gsl_matrix_set_zero(par.y_noise_cov);*/
-    gsl_matrix_set(y_noise_cov,0,0, param[4]);
-    gsl_matrix_set(y_noise_cov,1,1, param[5]);
+    gsl_matrix_set(y_noise_cov,0,0, param[5]);
+    gsl_matrix_set(y_noise_cov,1,1, param[6]);
 
 }
 

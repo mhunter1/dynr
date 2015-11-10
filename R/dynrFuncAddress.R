@@ -9,9 +9,9 @@ dynr.funcaddresses<-function(includes=character(),func_noise_cov=character(),ver
   language="C"
   #-------Check the input arguments----------------------------
   if(missing(file)){
-    if(missing(func_noise_cov)){
-      stop("The function of the noise covariance matrix is missing")
-    }
+    #if(missing(func_noise_cov)){
+    #  stop("The function of the noise covariance matrix is missing")
+    #}
     #-------Generate the code-----------  
     code<-""#paste("#include <R.h>\n#include <Rdefines.h>\n","#include <R_ext/Error.h>\n", sep="")
     code<-paste(c(code,includes, ""), collapse="\n")
@@ -24,7 +24,7 @@ dynr.funcaddresses<-function(includes=character(),func_noise_cov=character(),ver
   libLFile <- CompileCode(filename, code, language, verbose)
   #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called at the end of an R session---
   cleanup <- function(env) {
-      if ( f %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
+      if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
       unlink(libLFile)
     }
   reg.finalizer(environment(), cleanup, onexit=TRUE)
