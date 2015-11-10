@@ -1,4 +1,4 @@
-
+rm(list=ls(all=TRUE))
 require(dynr)
 
 thedata = read.table('./data/New2CovT200n10batch1ODEsimData.txt')
@@ -17,16 +17,16 @@ model <- dynr.model(
 )
 
 
-func_noise_cov_txt="void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){
-size_t i;
-for (i=0;i<eta_noise_cov->size1;i++){
-gsl_matrix_set(eta_noise_cov,i,i,-20);
-}
-gsl_matrix_set(y_noise_cov,0,0, param[5]);
-gsl_matrix_set(y_noise_cov,1,1, param[6]);
-
-}
-" 
+#func_noise_cov_txt="void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){
+#size_t i;
+#for (i=0;i<eta_noise_cov->size1;i++){
+#gsl_matrix_set(eta_noise_cov,i,i,-20);
+#}
+#gsl_matrix_set(y_noise_cov,0,0, param[5]);
+#gsl_matrix_set(y_noise_cov,1,1, param[6]);
+#
+#}
+#" 
 
 func_address=dynr.funcaddresses(file="~/Dropbox/Symiin_Lu/dynr/demo/RSODEmodel.c",verbose=FALSE)
 tfun <- function(x){c(exp(x[1:4]),x[5],exp(x[6:7]), x[8:13])}
