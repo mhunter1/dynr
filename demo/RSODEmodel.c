@@ -121,9 +121,10 @@ void function_regime_switch(size_t t, size_t type, double *param, const gsl_vect
             p21 = 0;
             p11 = 1;
             break;
+              
            case 1:
             p21 = (exp(param[7] + param[11]*gsl_vector_get(co_variate,1)+param[9]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[7] + param[11]*gsl_vector_get(co_variate,1)+param[9]*gsl_vector_get(co_variate,0))));
-            p11 = (exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0)))/(exp(0)+(exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,1)+param[12]*gsl_vector_get(co_variate,0))));
+            p11 = (exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,0)+param[12]*gsl_vector_get(co_variate,1)))/(exp(0)+(exp(param[7] + param[8] + param[10]*gsl_vector_get(co_variate,0)+param[12]*gsl_vector_get(co_variate,1))));
             
             break;
     }

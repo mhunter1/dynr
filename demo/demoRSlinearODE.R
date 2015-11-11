@@ -11,7 +11,7 @@ data <- dynr.data(thedata, id="V1", time="V2",observed=paste0('V', 3:4),
 model <- dynr.model(
               num_regime=2,
               dim_latent_var=2,
-              xstart=c(rep(log(.1), 4), 95.0, log(10.0), log(10.0), -3.0, 9.0, -1.5, -0.5, -1,-.3),
+              xstart=c(rep(log(.1), 4), 95.0, log(10.0), log(10.0), -3.0, 9.0, -1.5, 0.5, -1,-.3),
               ub=c(rep(1.5, 4), 200, 5, 5, rep(10, 6)),
               lb=c(rep(-10, 4), 0, -10, -10, rep(-10, 6)),
 	     options=list(maxtime=60*60, maxeval=1000)
