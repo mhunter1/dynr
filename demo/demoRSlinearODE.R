@@ -1,8 +1,8 @@
-rm(list=ls(all=TRUE))
-require(dynr)
+#rm(list=ls(all=TRUE))
+#require(dynr)
 options(scipen=999)
-
-thedata = read.table('./data/New2CovT500n10batch1ODEsimData.txt')
+T = 500; n = 10; batch = 1
+thedata = read.table(paste0("./data/New2CovT",T,"n",n,"batch",batch,"ODEsimData.txt"))
 thedata$V6 <- as.numeric(thedata$V6)
 data <- dynr.data(thedata, id="V1", time="V2",observed=paste0('V', 3:4), 
                   covariates=paste0('V', 5:6))

@@ -95,7 +95,7 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
     int rStatus;
     rStatus = mathfunction_check_inv(cp_mat);
     if(rStatus != 0){
-        printf("Singular matrix found by mathfunction_inv_matrix().\n");
+        /*printf("Singular matrix found by mathfunction_inv_matrix().\n");*/
     }
     gsl_linalg_LU_invert(cp_mat, per, inv_mat);
     
