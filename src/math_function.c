@@ -139,7 +139,7 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
      }
      }*/
     if(fabs(det) < 1.0e-6){
-        printf("Singular matrix found by mathfunction_inv_matrix_det().\n");
+        /*printf("Singular matrix found by mathfunction_inv_matrix_det().\n");*/
         gsl_matrix_set_zero(inv_mat);
     }
     else {
