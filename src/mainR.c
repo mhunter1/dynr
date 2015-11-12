@@ -1,5 +1,5 @@
 /*
-Author: Lu Ou, Mike Hunter
+Authors: Lu Ou, Mike Hunter, Sy-Miin Chow
 Date: 2015-07-30
 Filename: estimation_nlopt.c
 Purpose: Obtain parameters estimates by minimizing the negative log likelihood function
@@ -221,8 +221,14 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
     printf("\n");
     double ub[data_model.pc.num_func_param];
     double lb[data_model.pc.num_func_param];
-    	memcpy(ub,REAL(getListElement(model_list, "ub")),sizeof(ub));
-    	memcpy(lb,REAL(getListElement(model_list, "lb")),sizeof(lb));
+    memcpy(ub,REAL(getListElement(model_list, "ub")),sizeof(ub));
+    memcpy(lb,REAL(getListElement(model_list, "lb")),sizeof(lb));
+    int h;
+    /*printf("ub value h %f\n", ub[1]);*/
+    for (h=0; h < data_model.pc.num_func_param; h++){
+      if (ub[h]==9999){ub[h]=HUGE_VAL;}
+      if (lb[h]==9999){lb[h]=-HUGE_VAL;}      
+    }
     /*printf("Arrays allocated.\n");*/
     /*double ub[6] = {4, 4, 4, 4, 4, 4};
     double lb[6] = {-4,-4,-4,-4,-12, -12}; */

@@ -41,9 +41,6 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
 {
     printf("Optimize function called.\n");
     nlopt_opt opt;
-
-    
-	
     /*opt = nlopt_create(NLOPT_LD_MMA, 2); */
     opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
     nlopt_set_upper_bounds(opt, ub);
@@ -61,7 +58,7 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     nlopt_set_maxtime(opt, * maxtime);
     /*printf("Set maxeval option to %d\n", * maxeval);
     printf("Set maxtime option to %f\n", * maxtime);*/
-
+    /*printf("Set ftol_rel to  %f\n", *ftol_rel);*/
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
     if ( status< 0) {

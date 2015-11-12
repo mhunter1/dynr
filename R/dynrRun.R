@@ -147,8 +147,46 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	backendStart <- Sys.time()
 	output <- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
+	print(output$exitflag)
+	output$exitflag <- output$exitflag+ifelse(output$exitflag<0,6,0)+ifelse(output$exitflag>0,5,0)
+	print(output$exitflag)
+	switch(output$exitflag,
+	       {	cat('Optimization halted because of a forced termination.','\n')
+	       },
+	       {	cat('Optimization halted because of roundoff errors.','\n')
+	       },
+	       {	cat('Optimization failed. Ran out of memory.','\n')
+	       },
+	       {	cat('Optimization halted. Lower bounds are bigger than upper bounds.','\n')
+	       },
+	       {	cat('Optimization failed. Check starting values.','\n')
+	       },
+	       {	cat('Optimization terminated successfully','\n')
+	       },
+	       {
+	         cat('Optimization stopped because objective function reaches stopval','\n') 
+	       },
+	       {
+	         cat('Optimization terminated successfully: ftol_rel or ftol_abs was reached.','\n')
+	       },
+	       {
+	         cat('Optimization terminated successfully: xtol_rel or xtol_abs was reached.','\n')
+	       },  
+	       {
+	         cat('Maximum number of function evaluations reached.','\n',
+	             'Increase maxeval or change starting values.','\n')
+	       },
+	       {
+	         cat('Maximum optimization time reached.','\n',
+	             'Increase maxtime or change starting values.','\n')
+	       }
+	)
+	if (output$exitflag > 5){
 	output2 <- endProcessing(output, transformation, conf.level)
 	obj <- new("dynrRun", output2)
+	}else{
+	obj <- NULL
+	}
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
