@@ -1,5 +1,7 @@
 #rm(list=ls(all=TRUE))
-#require(dynr)
+require(dynr)
+require(inline)
+require(Rcpp)
 options(scipen=999)
 T = 500; n = 10; batch = 1
 thedata = read.table(paste0("./data/New2CovT",T,"n",n,"batch",batch,"ODEsimData.txt"))
@@ -31,7 +33,7 @@ model <- dynr.model(
 #}
 #" 
 
-func_address=dynr.funcaddresses(file="~/Dropbox/Symiin_Lu/dynr/demo/RSODEmodel.c",verbose=FALSE)
+func_address=dynr.funcaddresses(file="./demo/RSODEmodel.c",verbose=FALSE)
 tfun <- function(x){c(exp(x[1:4]),x[5],exp(x[6:7]), x[8:13])}
 res <- dynr.run(model, data,func_address,tfun)
 
