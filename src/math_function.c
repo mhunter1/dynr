@@ -96,8 +96,11 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
     rStatus = mathfunction_check_inv(cp_mat);
     if(rStatus != 0){
         /*printf("Singular matrix found by mathfunction_inv_matrix().\n");*/
+        /*gsl_matrix_set_zero(inv_mat);*/
+        gsl_matrix_set_all(inv_mat, 10000.0);
+    } else {
+        gsl_linalg_LU_invert(cp_mat, per, inv_mat);
     }
-    gsl_linalg_LU_invert(cp_mat, per, inv_mat);
     
     /** free allocated space **/
     gsl_permutation_free(per);
@@ -140,7 +143,8 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
      }*/
     if(fabs(det) < 1.0e-6){
         /*printf("Singular matrix found by mathfunction_inv_matrix_det().\n");*/
-        gsl_matrix_set_zero(inv_mat);
+        /*gsl_matrix_set_zero(inv_mat);*/
+        gsl_matrix_set_all(inv_mat, 10000.0);
     }
     else {
         gsl_linalg_LU_invert(cp_mat, per, inv_mat);
