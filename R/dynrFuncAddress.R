@@ -22,7 +22,7 @@ dynr.funcaddress<-function(includes=character(),func_noise_cov=character(),verbo
   # ---- Write and compile the code ----
   filename<- basename(tempfile())
   libLFile <- CompileCode(filename, code, language, verbose)
-  #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called at the end of an R session---
+  #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---
   cleanup <- function(env) {
       if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
       unlink(libLFile)
