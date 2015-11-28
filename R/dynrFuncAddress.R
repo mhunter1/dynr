@@ -4,7 +4,7 @@
 # takes in a C file or C scripts 
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
-dynr.funcaddresses<-function(includes=character(),func_noise_cov=character(),verbose=TRUE,file){
+dynr.funcaddress<-function(includes=character(),func_noise_cov=character(),verbose=TRUE,file){
   #-------Set some variables: This function may later be extended----------
   language="C"
   #-------Check the input arguments----------------------------
