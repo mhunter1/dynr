@@ -96,7 +96,6 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
     rStatus = mathfunction_check_inv(cp_mat);
     if(rStatus != 0){
         /*printf("Singular matrix found by mathfunction_inv_matrix().\n");*/
-        /*gsl_matrix_set_zero(inv_mat);*/
         gsl_matrix_set_all(inv_mat, 10000.0);
     } else {
         gsl_linalg_LU_invert(cp_mat, per, inv_mat);
@@ -113,7 +112,7 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
  * @param inv_mat the matrix where the inverse one is stored.
  */
 
-double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
+double mathfunction_inv_matrix_det_lu(const gsl_matrix *mat, gsl_matrix *inv_mat){
     /** conduct LR decomposition **/
     gsl_permutation *per=gsl_permutation_alloc(mat->size1);
     gsl_matrix *cp_mat=gsl_matrix_alloc(mat->size1, mat->size2);
@@ -142,8 +141,7 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
      }
      }*/
     if(fabs(det) < 1.0e-6){
-        /*printf("Singular matrix found by mathfunction_inv_matrix_det().\n");*/
-        /*gsl_matrix_set_zero(inv_mat);*/
+        /* printf("Singular matrix found by mathfunction_inv_matrix_det().\n"); */
         gsl_matrix_set_all(inv_mat, 10000.0);
     }
     else {
@@ -156,6 +154,46 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
     return det;
 }
 
+/**
+
+ * compute the inverse of a given matrix and returns the determinant
+ * @param mat the given matrix
+ * @param inv_mat the matrix where the inverse one is stored.
+ */
+
+double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
+	gsl_set_error_handler_off();
+	if(mat->size1 != mat->size2 || mat->size1 != inv_mat->size1 || inv_mat->size1 != inv_mat->size2){
+		printf("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
+	}
+	gsl_matrix_memcpy(inv_mat, mat);
+	double det=0.0;
+	int info = gsl_linalg_cholesky_decomp(inv_mat);
+	det = mathfunction_cholesky_det(inv_mat);
+	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
+		/* printf("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
+		gsl_matrix_set_all(inv_mat, 10000.0);
+		det = 0.0;
+	}
+	else {
+		gsl_linalg_cholesky_invert(inv_mat);
+	}
+	return det;
+}
+
+/**
+ * compute the determinant of a Cholesky matrix
+ * It's just the square of the product of the diagonal elements
+ */
+double mathfunction_cholesky_det(const gsl_matrix *mat){
+	size_t i=0;
+	double d=gsl_matrix_get(mat, i, i); /*d is the determinant*/
+	for(i=1; i < mat->size1; i++){
+		d*=gsl_matrix_get(mat, i, i);
+	}
+	d*=d;
+	return d;
+}
 
 
 /**
@@ -276,6 +314,7 @@ void mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){
     /*convert matrix to vector*/
     for(i=0; i<nx; i++){
             gsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));
+
     	for (j=i+1;j<nx;j++){
                 gsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));
     	    /*printf("%lu",i+j+nx-1);}*/

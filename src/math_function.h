@@ -99,7 +99,9 @@ void mathfunction_matrix_mul(const gsl_matrix *mat_a, const gsl_matrix *mat_b, b
  */
 double mathfunction_sum_vector(const gsl_vector *vec);
 double mathfunction_min(const double x,const double y,const double z);
-double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat);
+double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat); /*via Cholesky decomp*/
+double mathfunction_cholesky_det(const gsl_matrix *mat);
+double mathfunction_inv_matrix_det_lu(const gsl_matrix *mat, gsl_matrix *inv_mat); /*via LU decomp*/
 double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, double det);
 /**
  * convert a matrix (e.g.,
