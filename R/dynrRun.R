@@ -147,7 +147,7 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	backendStart <- Sys.time()
 	output <- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
-	gc()#garbage collection
+	#gc()#garbage collection
 	print(output$exitflag)
 	output$exitflag <- output$exitflag+ifelse(output$exitflag<0,6,0)+ifelse(output$exitflag>0,5,0)
 	print(output$exitflag)

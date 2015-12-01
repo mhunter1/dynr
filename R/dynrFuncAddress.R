@@ -23,11 +23,11 @@ dynr.funcaddress<-function(includes=character(),func_noise_cov=character(),verbo
   filename<- basename(tempfile())
   libLFile <- CompileCode(filename, code, language, verbose)
   #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
-  cleanup <- function(env) {
-      if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
-      unlink(libLFile)
-    }
-  reg.finalizer(environment(), cleanup, onexit=TRUE)
+  #cleanup <- function(env) {
+  #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
+  #    unlink(libLFile)
+  #  }
+  #reg.finalizer(environment(), cleanup, onexit=TRUE)
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )  
   if (model$isDiscreteTime==0){
