@@ -145,7 +145,7 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	backendStart <- Sys.time()
-	output <- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
+	output <<- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	print(output$exitflag)
@@ -182,7 +182,13 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	             'Increase maxtime or change starting values.','\n')
 	       }
 	)
-	if (output$exitflag > 5){
+	
+	output$hessian.matrix[output$hessian.matrix==0] = 10e-14
+	print(output$fitted.parameters)
+	print(transformation(output$fitted.parameters))
+	#status = ifelse(abs(det(as.numeric(x$hessian.matrix))) <1e-6, 0, 1) #0 = singular hessian matrix
+	status = ifelse(length(!is.finite(output$hessian.matrix))>1 || length(which(output$hessian.matrix==999)) > 1,0,1)
+	if (output$exitflag > 5 && status==1){
 	output2 <- endProcessing(output, transformation, conf.level)
 	obj <- new("dynrRun", output2)
 	}else{
@@ -200,15 +206,6 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 
 endProcessing <- function(x, transformation, conf.level){
   confx <- qnorm(1-(1-conf.level)/2)
-  x$hessian.matrix[x$hessian.matrix==0] = 10e-14
-  status = ifelse(abs(det(x$hessian.matrix)) <1e-6, 0, 1) #0 = singular hessian matrix
-    
-  if (x$exitflag < 0 || status == 0){
-    tSE <- rep(NA,length(x$fitted.parameters))
-    tHess <- matrix(NA,dim(x$inverse.hessian.matrix)[1],dim(x$inverse.hessian.matrix)[2])
-    tParam <- rep(NA,length(x$fitted.parameters))
-    CI <- matrix(NA,length(x$fitted.parameters),2)
-  }else{
     #Analytic Jacobian
   V1 = solve(x$hessian.matrix);
   J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
@@ -216,11 +213,11 @@ endProcessing <- function(x, transformation, conf.level){
 	tSE <- sqrt(abs(diag(tHess)))
 	tParam <- transformation(x$fitted.parameters)
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
-}
-	x$transformed.parameters <- tParam
+ x$transformed.parameters <- tParam
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- tHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	print(tParam)
 	return(x)
 }
 
