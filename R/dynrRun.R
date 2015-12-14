@@ -186,13 +186,12 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	output$hessian.matrix[output$hessian.matrix==0] = 10e-14
 	print(output$fitted.parameters)
 	print(transformation(output$fitted.parameters))
-	#status = ifelse(abs(det(as.numeric(x$hessian.matrix))) <1e-6, 0, 1) #0 = singular hessian matrix
-	status = ifelse(length(!is.finite(output$hessian.matrix))>1 || length(which(output$hessian.matrix==999)) > 1,0,1)
+	status = ifelse(any(!is.finite(output$hessian.matrix)) || sum(output$hessian.matrix==999) > 0,0,1)
 	if (output$exitflag > 5 && status==1){
-	output2 <- endProcessing(output, transformation, conf.level)
-	obj <- new("dynrRun", output2)
+		output2 <- endProcessing(output, transformation, conf.level)
+		obj <- new("dynrRun", output2)
 	}else{
-	obj <- NULL
+		obj <- NULL
 	}
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
