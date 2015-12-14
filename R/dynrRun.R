@@ -240,4 +240,14 @@ combineModelDataInformation <- function(model, data){
 }
 
 
+is.null.pointer <- function(pointer){
+	a <- attributes(pointer)
+	attributes(pointer) <- NULL
+	out <- identical(pointer, new("externalptr"))
+	attributes(pointer) <- a
+	return(out)
+}
+
+
+
 
