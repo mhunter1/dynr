@@ -95,14 +95,22 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
 
 
     /*function specifications*/
-    data_model.pc.func_measure=R_ExternalPtrAddr(getListElement(func_address_list, "f_measure"));
-    data_model.pc.func_dx_dt=R_ExternalPtrAddr(getListElement(func_address_list, "f_dx_dt"));
-    data_model.pc.func_dF_dx=R_ExternalPtrAddr(getListElement(func_address_list, "f_dF_dx"));
-    data_model.pc.func_dP_dt=R_ExternalPtrAddr(getListElement(func_address_list, "f_dP_dt"));
-    data_model.pc.func_regime_switch=R_ExternalPtrAddr(getListElement(func_address_list, "f_regime_switch"));  
-    data_model.pc.func_noise_cov=R_ExternalPtrAddr(getListElement(func_address_list, "f_noise_cov"));
-    data_model.pc.func_initial_condition=R_ExternalPtrAddr(getListElement(func_address_list, "f_initial_condition"));
-    data_model.pc.func_transform=R_ExternalPtrAddr(getListElement(func_address_list, "f_transform"));
+	SEXP f_measure_sexp = PROTECT(getListElement(func_address_list, "f_measure"));
+	SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
+	SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
+	SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
+	SEXP f_regime_switch_sexp = PROTECT(getListElement(func_address_list, "f_regime_switch"));
+	SEXP f_noise_cov_sexp = PROTECT(getListElement(func_address_list, "f_noise_cov"));
+	SEXP f_initial_condition_sexp = PROTECT(getListElement(func_address_list, "f_initial_condition"));
+	SEXP f_transform_sexp = PROTECT(getListElement(func_address_list, "f_transform"));
+    data_model.pc.func_measure=R_ExternalPtrAddr(f_measure_sexp);
+    data_model.pc.func_dx_dt=R_ExternalPtrAddr(f_dx_dt_sexp);
+    data_model.pc.func_dF_dx=R_ExternalPtrAddr(f_dF_dx_sexp);
+    data_model.pc.func_dP_dt=R_ExternalPtrAddr(f_dP_dt_sexp);
+    data_model.pc.func_regime_switch=R_ExternalPtrAddr(f_regime_switch_sexp);  
+    data_model.pc.func_noise_cov=R_ExternalPtrAddr(f_noise_cov_sexp);
+    data_model.pc.func_initial_condition=R_ExternalPtrAddr(f_initial_condition_sexp);
+    data_model.pc.func_transform=R_ExternalPtrAddr(f_transform_sexp);
     
     data_model.pc.func_jacobdynamic=function_jacobdynamic;
 
@@ -250,8 +258,8 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
 	det=mathfunction_inv_matrix_det(Hessian_mat, inv_Hessian_mat);
 	if (status < 0 || fabs(det) < 1.0e-6) {
 		/*printf("nlopt failed!\n");*/
-		gsl_matrix_set_all(Hessian_mat,999.00);
-	  gsl_matrix_set_all(inv_Hessian_mat,999.00);
+		/*gsl_matrix_set_all(Hessian_mat,999.00);*/
+		/*gsl_matrix_set_all(inv_Hessian_mat,999.00);*/
 	}
 	else {
 		/*printf("found minimum at \n");
@@ -852,7 +860,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
     /** =================Interface: Output done====================== **/
     
     /** =================Free Allocated space====================== **/
-    UNPROTECT(7+16*2);/*unprotect 3 objects*/
+    UNPROTECT(7+16*2+8);/*unprotect objects: 7 XXXs, 16*2 XXXs, 8 function pointers*/
     
     free(str_number);
     free(data_model.pc.index_sbj);
