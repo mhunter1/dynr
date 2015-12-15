@@ -4,7 +4,7 @@
 # takes in a C file or C scripts 
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE, file, model, tempdir=tempdir()){
+dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE, file, model, tmpdir=tempdir()){
   #-------Set some variables: This function may later be extended----------
   language="C"
   #-------Check the input arguments----------------------------
@@ -20,8 +20,8 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
     code<-readLines(file)
   }
   # ---- Write and compile the code ----
-  filename<- basename(tempfile())
-  libLFile <- CompileCode(filename, code, language, verbose, tempdir)
+  filename<- basename(tempfile(tmpdir=tmpdir))
+  libLFile <- CompileCode(filename, code, language, verbose, tmpdir=tmpdir)
   #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
   #cleanup <- function(env) {
   #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
@@ -55,13 +55,13 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
 # CompileCode: A function adapted from the compileCode function in the inline pacakge
 # Purpose: compiles a C file to create a shared library and returns its name.
 #------------------------------------------------
-CompileCode <- function(f, code, language, verbose, tempdir) {
+CompileCode <- function(f, code, language, verbose, tmpdir) {
   wd = getwd()
   on.exit(setwd(wd))
   ## Prepare temp file names
   if ( .Platform$OS.type == "windows" ) {
     ## windows files
-    dir <- gsub("\\\\", "/", tempdir)
+    dir <- gsub("\\\\", "/", tmpdir)
     libCFile  <- paste(dir, "/", f, ".EXT", sep="")
     libLFile  <- paste(dir, "/", f, ".dll", sep="")
     libLFile2 <- paste(dir, "/", f, ".dll", sep="")
@@ -72,9 +72,9 @@ CompileCode <- function(f, code, language, verbose, tempdir) {
   }
   else {
     ## UNIX-alike build
-    libCFile  <- paste(tempdir, "/", f, ".EXT",               sep="")
-    libLFile  <- paste(tempdir, "/", f, .Platform$dynlib.ext, sep="")
-    libLFile2 <- paste(tempdir, "/", f, ".sl",                sep="")
+    libCFile  <- paste(tmpdir, "/", f, ".EXT",               sep="")
+    libLFile  <- paste(tmpdir, "/", f, .Platform$dynlib.ext, sep="")
+    libLFile2 <- paste(tmpdir, "/", f, ".sl",                sep="")
     
     ## Unix gsl flags
     gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
