@@ -186,7 +186,7 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	output$hessian.matrix[output$hessian.matrix==0] = 10e-14
 	print(output$fitted.parameters)
 	print(transformation(output$fitted.parameters))
-	status = ifelse(any(!is.finite(output$hessian.matrix)) || sum(output$hessian.matrix==999) > 0,0,1)
+	status = ifelse(any(!is.finite(output$hessian.matrix)) || any(output$hessian.matrix==999), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
@@ -204,15 +204,15 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 }
 
 endProcessing <- function(x, transformation, conf.level){
-  confx <- qnorm(1-(1-conf.level)/2)
-    #Analytic Jacobian
-  V1 = solve(x$hessian.matrix);
-  J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
+	confx <- qnorm(1-(1-conf.level)/2)
+	#Analytic Jacobian
+	V1 = x$inverse.hessian.matrix
+	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	tHess <- J %*% V1%*%t(J)
 	tSE <- sqrt(abs(diag(tHess)))
 	tParam <- transformation(x$fitted.parameters)
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
- x$transformed.parameters <- tParam
+	x$transformed.parameters <- tParam
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- tHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
