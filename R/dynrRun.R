@@ -142,6 +142,9 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
+	if(any(sapply(func_address, is.null.pointer))){
+		stop("Found null pointer(s) in 'func_address' argument.  Try (re-)compiling your functions.")
+	}
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	backendStart <- Sys.time()
