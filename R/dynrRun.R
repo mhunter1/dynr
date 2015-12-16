@@ -83,11 +83,9 @@ setMethod( f = "summary",  signature = "dynrRun" ,
              d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
-             neg2LL = 2*object@neg.log.likelihood
-             npar = length(object@fitted.parameters)
-             AIC = neg2LL + 2*npar
-             nobs = dim(object@eta_smooth_final)[2]
-             BIC = neg2LL + npar*log(nobs)
+             neg2LL = -2*logLik(object)
+             AIC = AIC(object)
+             BIC = BIC(object)
              colnames(d) = c("Parameters","SE","t-value","CI.lower","CI.upper")
              cat("****************************SUMMARY******************************\n")
              print(d)
