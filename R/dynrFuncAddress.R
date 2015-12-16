@@ -5,7 +5,7 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE, file, model, outfile){
+dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE, file, model, outfile=tempfile()){
 
   #-------Set some variables: This function may later be extended----------
   language="C"
@@ -74,7 +74,7 @@ CompileCode <- function(code, language, verbose, outfile) {
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
     gsl_cflags <- sprintf( "-I%s/include", LIB_GSL )
-    gsl_libs   <- sprintf( "-L%s/lib -lgsl -lgslcblas", LIB_GSL )
+    gsl_libs   <- sprintf( "-L%s/lib/%s -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
   }
   else {
     ## UNIX-alike build
