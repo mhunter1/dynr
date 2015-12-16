@@ -81,18 +81,20 @@ setMethod("initialize", "dynrRun",
 setMethod( f = "summary",  signature = "dynrRun" ,
            definition = function(object){
              d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
-             d$T_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
+             d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
-             Likfin = -1*object@neg.log.likelihood
+             neg2LL = 2*object@neg.log.likelihood
              npar = length(object@fitted.parameters)
-             AIC = 2*Likfin +2*npar
-             InfDs.allT_1 = dim(object@eta_smooth_final)[2]
-             BIC = 2*Likfin +npar*log(InfDs.allT_1)
-             cat("********************************SUMMARY*****************************************\n")
+             AIC = neg2LL + 2*npar
+             nobs = dim(object@eta_smooth_final)[2]
+             BIC = neg2LL + npar*log(nobs)
+             colnames(d) = c("Parameters","SE","t-value","CI.lower","CI.upper")
+             cat("****************************SUMMARY******************************\n")
              print(d)
-             cat("\nAIC=");print(AIC)
-             cat("\nBIC=");print(BIC)
-             cat("**********END OF SUMMARY************\n")
+             cat(paste0("\n-2 log-likelihood value at convergence = ", round(neg2LL,2)))
+             cat(paste0("\nAIC = ", round(AIC,2)))
+             cat(paste0("\nBIC = ", round(BIC,2)))
+             cat("\n*************************END OF SUMMARY**************************\n")
            }
 )
 
