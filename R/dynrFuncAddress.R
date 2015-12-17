@@ -69,7 +69,7 @@ CompileCode <- function(code, language, verbose, outfile) {
     dir <- gsub("\\\\", "/", outfile)
     libCFile  <- paste(outfile, ".EXT", sep="")
     libLFile  <- paste(outfile, ".dll", sep="")
-    #libLFile2 <- paste(outfile, ".dll", sep="")
+    libLFile2 <- paste(outfile, ".dll", sep="")
     
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
@@ -81,7 +81,7 @@ CompileCode <- function(code, language, verbose, outfile) {
 
     libCFile  <- paste(outfile, ".EXT",               sep="")
     libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
-    #libLFile2 <- paste(outfile, ".sl",                sep="")
+    libLFile2 <- paste(outfile, ".sl",                sep="")
 
     ## Unix gsl flags
     gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
@@ -103,7 +103,7 @@ CompileCode <- function(code, language, verbose, outfile) {
   ## Compile the code only if dynamic library does not exist
   #if ( file.exists(libLFile2) ) file.remove( libLFile2 )
   
-  if (!file.exists(libLFile) ){ #file.remove( libLFile )
+  if (!file.exists(libLFile)&&!file.exists(libLFile2)){ #file.remove( libLFile )
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
   cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
