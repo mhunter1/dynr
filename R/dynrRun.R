@@ -185,11 +185,12 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	             'Increase maxtime or change starting values.','\n')
 	       }
 	)
-	
-	output$hessian.matrix[output$hessian.matrix==0] = 10e-14
+	diagH = diag(output$hessian.matrix)
+	diagH[diagH==0] = 10e-14
+	diag(output$hessian.matrix) = diagH
 	print(output$fitted.parameters)
 	print(transformation(output$fitted.parameters))
-	status = ifelse(any(!is.finite(output$hessian.matrix)) || any(output$hessian.matrix==999), 0, 1)
+	status = ifelse(any(!is.finite(output$hessian.matrix))||!is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
