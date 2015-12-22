@@ -56,9 +56,9 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
         xadd[col_index]=x[col_index] + eps;
         xsub[col_index]=x[col_index] - eps;
         
-        gsl_matrix_set(Hessian,col_index,col_index,(func_obj(xadd,data) - 2*fx + func_obj(xsub, data))/pow(eps,2.0));
+        gsl_matrix_set(Hessian,col_index,col_index,(func_obj(xadd,data) - 2*fx + func_obj(xsub, data))/(eps*eps));
         
-        for(row_index=0;row_index<col_index;row_index++){
+        for(row_index=0; row_index<col_index; row_index++){
             memcpy(xaa, xadd, sizeof(xaa));
             memcpy(xas, xsub, sizeof(xas));
             memcpy(xsa, xadd, sizeof(xsa));
@@ -74,7 +74,7 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
             fxsa=func_obj(xsa,data);
             fxss=func_obj(xss,data);
             
-            hvalue=(fxaa - fxas -fxsa + fxss)/(4 * pow(eps,2.0));
+            hvalue=(fxaa - fxas -fxsa + fxss)/(4 * eps * eps);
             
             gsl_matrix_set(Hessian, row_index, col_index, hvalue);
             gsl_matrix_set(Hessian, col_index, row_index, hvalue);
