@@ -254,25 +254,6 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
     int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
 	
-	double det = 0.0; 
-	det=mathfunction_inv_matrix_det(Hessian_mat, inv_Hessian_mat);
-	if (status < 0 || fabs(det) < 1.0e-6) {
-		/*printf("nlopt failed!\n");*/
-		/*gsl_matrix_set_all(Hessian_mat,999.00);*/
-		/*gsl_matrix_set_all(inv_Hessian_mat,999.00);*/
-	}
-	else {
-		/*printf("found minimum at \n");
-		print_array(fittedpar,data_model.pc.num_func_param);
-		printf("\n f = %0.10g\n", minf);
-		printf("The hessian matrix is \n");
-		print_matrix(Hessian_mat);
-		printf("\n");
-		printf("The inverse hessian matrix is \n");
-		print_matrix(inv_Hessian_mat);
-		printf("\n");*/
-	}
-	
 	
 	/*printf("Optimization done.\n");*/
     /** =================Optimization: done======================**/

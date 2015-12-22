@@ -151,9 +151,9 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	output <<- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
-	print(output$exitflag)
+	cat('Original exit flag: ', output$exitflag, '\n')
 	output$exitflag <- output$exitflag+ifelse(output$exitflag<0,6,0)+ifelse(output$exitflag>0,5,0)
-	print(output$exitflag)
+	cat('Modified exit flag: ', output$exitflag, '\n')
 	switch(output$exitflag,
 	       {	cat('Optimization halted because of a forced termination.','\n')
 	       },
@@ -188,9 +188,9 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 	diagH = diag(output$hessian.matrix)
 	diagH[diagH==0] = 10e-14
 	diag(output$hessian.matrix) = diagH
-	print(output$fitted.parameters)
-	print(transformation(output$fitted.parameters))
-	status = ifelse(any(!is.finite(output$hessian.matrix))||!is.positive.definite(output$hessian.matrix), 0, 1)
+	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
+	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
+	status = ifelse(any(!is.finite(output$hessian.matrix))|| !is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
@@ -208,19 +208,19 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95) 
 }
 
 endProcessing <- function(x, transformation, conf.level){
+	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
 	#Analytic Jacobian
-	V1 = x$inverse.hessian.matrix
+	V1 = solve(x$hessian.matrix)
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	tHess <- J %*% V1%*%t(J)
-	tSE <- sqrt(abs(diag(tHess)))
+	tSE <- sqrt(diag(tHess))
 	tParam <- transformation(x$fitted.parameters)
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
 	x$transformed.parameters <- tParam
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- tHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-	print(tParam)
 	return(x)
 }
 
@@ -249,6 +249,17 @@ is.null.pointer <- function(pointer){
 	out <- identical(pointer, new("externalptr"))
 	attributes(pointer) <- a
 	return(out)
+}
+
+
+# N.B. matrixcalc has a similar function based on the eigenvalues.
+# On a  3x3 matrix ...
+# If the matrix is PD, this check is 4x faster.
+# If the matrix is not PD, this check is 1.25x slower.
+# If the matrix has a zero eigenvalue, this check may not be useful.
+is.positive.definite <- function(x){
+	ret <- try(chol(x), silent=TRUE)
+	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
 }
 
 

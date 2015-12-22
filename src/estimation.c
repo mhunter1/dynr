@@ -64,24 +64,12 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     if ( status< 0) {
 		printf("nlopt failed!\n");
     }else{
-		/*printf("found minimum at \n");
-		print_array(fittedpar,num_func_param);
-		printf("\n f = %0.10g\n", *minf);*/
-		hessianR(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat);/*information matrix*/
-		mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat);/*variance*/
-		/*printf("The hessian matrix is \n");
-		print_matrix(Hessian_mat);
-		printf("\n");
-		printf("The inverse hessian matrix is \n");
-		print_matrix(inv_Hessian_mat);
-		printf("\n");*/
+		hessianR(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat); /*information matrix*/
+		/* mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat); */ /*variance*/
 	}
-
 	
 	nlopt_destroy(opt);
-
 	
-
 	/*printf("Done.\n");*/
 	return status;
 }
