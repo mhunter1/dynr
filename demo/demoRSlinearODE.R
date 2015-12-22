@@ -1,7 +1,5 @@
 #rm(list=ls(all=TRUE))
 require(dynr)
-require(inline)
-#require(Rcpp)
 options(scipen=999)
 T = 500; n = 10; batch = 1
 thedata = read.table(paste0("./data/New2CovT",T,"n",n,"batch",batch,"ODEsimData.txt"))
