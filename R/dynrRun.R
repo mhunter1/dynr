@@ -137,16 +137,17 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data, func_address, transformation, conf.level=.95) {
+dynr.run <- function(model, data, func_address, transformation, conf.level=.95,infile,outfile) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
-	if(any(sapply(func_address, is.null.pointer))){
-		stop("Found null pointer(s) in 'func_address' argument.  Try (re-)compiling your functions.")
-	}
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
+	if(any(sapply(func_address, is.null.pointer))){
+		stop("Found null pointer(s) in 'func_address' argument.  Try (re-)compiling your functions.")
+	  func_address=dynr.funcaddress(file=infile,verbose=TRUE,model=model,outfile = outfile)
+	}
 	backendStart <- Sys.time()
 	output <<- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
 	backendStop <- Sys.time()
