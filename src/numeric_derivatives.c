@@ -100,6 +100,10 @@ void hessianRichardson(const double *x,void *data,double (*func_obj)(const doubl
 void hessianOnDiagonal(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian, int index){
 	Data_and_Model data_model=*((Data_and_Model *)data);/*dereference the void pointer*/
 	
+	/*TODO Consider elaborating this to 
+	 * double d=0.1; max(fabs(d * x[index]), stepSize)
+	 *
+	*/
 	double stepSize = 1e-4;
 	int numIter = 4;
 	static const double v = 2.0; //Note: NumDeriv comments that this could be a parameter, but is hard-coded in the algorithm
