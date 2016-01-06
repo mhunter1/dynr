@@ -145,7 +145,7 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95,i
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	if(any(sapply(func_address, is.null.pointer))){
-		stop("Found null pointer(s) in 'func_address' argument.  Try (re-)compiling your functions.")
+		print("Found null pointer(s) in 'func_address' argument. (Re-)compiling your functions...")
 	  func_address=dynr.funcaddress(file=infile,verbose=TRUE,model=model,outfile = outfile)
 	}
 	backendStart <- Sys.time()
