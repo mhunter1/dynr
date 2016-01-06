@@ -64,7 +64,7 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     if ( status< 0) {
 		printf("nlopt failed!\n");
     }else{
-		hessianR(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat); /*information matrix*/
+		hessianRichardson(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat); /*information matrix*/
 		/* mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat); */ /*variance*/
 	}
 	

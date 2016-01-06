@@ -15,3 +15,9 @@ double myfunc_wrapper(unsigned n, const double *x, double *grad, void *my_func_d
 
 void hessianR(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian);
 
+void hessianRichardson(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian);
+
+void hessianOnDiagonal(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian, int index);
+
+void hessianOffDiagonal(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian, int row_index, int col_index);
+

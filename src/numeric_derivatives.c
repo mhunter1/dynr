@@ -84,4 +84,86 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
     
      }
 
+void hessianRichardson(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian){
+	
+	for(int i=0; i < Hessian->size1; i++){
+		hessianOnDiagonal(x, data, func_obj, fx, Hessian, i);
+	}
+	
+	for(int j=0; j < Hessian->size1; j++){
+		for(int i=j+1; i < Hessian->size1; i++){
+			hessianOffDiagonal(x, data, func_obj, fx, Hessian, i, j);
+		}
+	}
+}
+
+void hessianOnDiagonal(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian, int index){
+	Data_and_Model data_model=*((Data_and_Model *)data);/*dereference the void pointer*/
+	
+	double stepSize = 1e-4;
+	int numIter = 4;
+	static const double v = 2.0; //Note: NumDeriv comments that this could be a parameter, but is hard-coded in the algorithm
+	double iOffset = (fabs(stepSize * x[index])) > stepSize ? (fabs(stepSize * x[index])) : stepSize; /* if a > b, then a, else b*/
+	
+	double xWiggle[data_model.pc.num_func_param];
+	memcpy(xWiggle, x, sizeof(xWiggle));
+	double Happrox[numIter];
+	
+	for(int k = 0; k < numIter; k++) {
+		xWiggle[index] = x[index] + iOffset;
+		double f1 = func_obj(xWiggle, data);
+		xWiggle[index] = x[index] - iOffset;
+		double f2 = func_obj(xWiggle, data);
+		Happrox[k] = (f1 - 2.0 * fx + f2) / (iOffset * iOffset);
+		xWiggle[index] = x[index];
+		iOffset /= v;
+	}
+	
+	for(int m = 1; m < numIter; m++) {						// Richardson Step
+		for(int k = 0; k < (numIter - m); k++) {
+			// NumDeriv Hard-wires 4s for r here. Don't remember why.
+			Happrox[k] = (Happrox[k+1] * pow(4.0, m) - Happrox[k])/(pow(4.0, m)-1);
+		}
+	}
+	gsl_matrix_set(Hessian, index, index, Happrox[0]);
+
+}
+
+void hessianOffDiagonal(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian, int row_index, int col_index){
+	Data_and_Model data_model=*((Data_and_Model *)data);/*dereference the void pointer*/
+	
+	double stepSize = 1e-4;
+	int numIter = 4;
+	static const double v = 2.0; //Note: NumDeriv comments that this could be a parameter, but is hard-coded in the algorithm
+	double iOffset = (fabs(stepSize * x[row_index])) > stepSize ? (fabs(stepSize * x[row_index])) : stepSize; /* if a > b, then a, else b*/
+	double jOffset = (fabs(stepSize * x[col_index])) > stepSize ? (fabs(stepSize * x[col_index])) : stepSize;
+	
+	double xWiggle[data_model.pc.num_func_param];
+	memcpy(xWiggle, x, sizeof(xWiggle));
+	double Happrox[numIter];
+	
+	for(int k = 0; k < numIter; k++) {
+		xWiggle[row_index] = x[row_index] + iOffset;
+		xWiggle[col_index] = x[col_index] + jOffset;
+		double f1 = func_obj(xWiggle, data);
+		xWiggle[row_index] = x[row_index] - iOffset;
+		xWiggle[col_index] = x[col_index] - jOffset;
+		double f2 = func_obj(xWiggle, data);
+		Happrox[k] = (f1 - 2.0 * fx + f2 - gsl_matrix_get(Hessian, row_index, row_index)*iOffset*iOffset - gsl_matrix_get(Hessian, col_index, col_index)*jOffset*jOffset ) / (2.0 * iOffset * jOffset);
+		xWiggle[row_index] = x[row_index];
+		xWiggle[col_index] = x[col_index];
+		iOffset /= v;
+		jOffset /= v;
+	}
+	
+	for(int m = 1; m < numIter; m++) {						// Richardson Step
+		for(int k = 0; k < (numIter - m); k++) {
+			// NumDeriv Hard-wires 4s for r here. Don't remember why.
+			Happrox[k] = (Happrox[k+1] * pow(4.0, m) - Happrox[k])/(pow(4.0, m)-1);
+		}
+	}
+	gsl_matrix_set(Hessian, row_index, col_index, Happrox[0]);
+	gsl_matrix_set(Hessian, col_index, row_index, Happrox[0]);
+}
+
 
