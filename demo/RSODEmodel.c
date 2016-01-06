@@ -115,7 +115,7 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
 
 void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){
 
-    double p11, p12, p21, p22;
+    double p11=0, p12=0, p21=0, p22=0;
     switch (type) {
         case 0:
             p21 = 0;
