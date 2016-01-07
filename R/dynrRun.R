@@ -32,7 +32,8 @@ setClass(Class =  "dynrRun",
            eta_regime_smooth = "array", # LxRxT
            error_cov_regime_smooth  = "array", # LxLxRxT
            eta_smooth_final = "matrix", # LxT
-           error_cov_smooth_final  = "array" # LxLxT
+           error_cov_smooth_final  = "array", # LxLxT
+           run.times = "numeric"
          )
 )
 
@@ -137,7 +138,7 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data, func_address, transformation, conf.level=.95,infile,outfile) {
+dynr.run <- function(model, data, func_address, transformation, conf.level=.95, infile, outfile) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
@@ -146,7 +147,10 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95,i
 	model <- preProcessModel(model)
 	if(any(sapply(func_address, is.null.pointer))){
 		warning("Found null pointer(s) in 'func_address' argument. (Re-)compiling your functions...")
-	  func_address=dynr.funcaddress(file=infile,verbose=TRUE,model=model,outfile = outfile)
+		if(missing(infile)){
+			stop("Cannot compile your functions because 'infile' argument is missing.")
+		}
+		func_address=dynr.funcaddress(file=infile, verbose=TRUE, model=model, outfile = outfile)
 	}
 	backendStart <- Sys.time()
 	output <<- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
@@ -155,43 +159,14 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95,i
 	cat('Original exit flag: ', output$exitflag, '\n')
 	output$exitflag <- output$exitflag+ifelse(output$exitflag<0,6,0)+ifelse(output$exitflag>0,5,0)
 	cat('Modified exit flag: ', output$exitflag, '\n')
-	switch(output$exitflag,
-	       {	cat('Optimization halted because of a forced termination.','\n')
-	       },
-	       {	cat('Optimization halted because of roundoff errors.','\n')
-	       },
-	       {	cat('Optimization failed. Ran out of memory.','\n')
-	       },
-	       {	cat('Optimization halted. Lower bounds are bigger than upper bounds.','\n')
-	       },
-	       {	cat('Optimization failed. Check starting values.','\n')
-	       },
-	       {	cat('Optimization terminated successfully','\n')
-	       },
-	       {
-	         cat('Optimization stopped because objective function reaches stopval','\n') 
-	       },
-	       {
-	         cat('Optimization terminated successfully: ftol_rel or ftol_abs was reached.','\n')
-	       },
-	       {
-	         cat('Optimization terminated successfully: xtol_rel or xtol_abs was reached.','\n')
-	       },  
-	       {
-	         cat('Maximum number of function evaluations reached.','\n',
-	             'Increase maxeval or change starting values.','\n')
-	       },
-	       {
-	         cat('Maximum optimization time reached.','\n',
-	             'Increase maxtime or change starting values.','\n')
-	       }
-	)
+	cat(dynrExitFlags[output$exitflag], '\n')
+	
 	diagH = diag(output$hessian.matrix)
 	diagH[diagH==0] = 10e-14
 	diag(output$hessian.matrix) = diagH
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	status = ifelse(any(!is.finite(output$hessian.matrix))|| !is.positive.definite(output$hessian.matrix), 0, 1)
+	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
@@ -201,9 +176,10 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95,i
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
-	fronendTime <- totalTime-backendTime
+	frontendTime <- totalTime-backendTime
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
+	obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
 	# TODO add timing information to dynrRun object
 	return(obj)
 }
@@ -263,6 +239,18 @@ is.positive.definite <- function(x){
 	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
 }
 
-
-
+dynrExitFlags <- c(
+	'1'='Optimization halted because of a forced termination.',
+	'2'='Optimization halted because of roundoff errors.',
+	'3'='Optimization failed. Ran out of memory.',
+	'4'='Optimization halted. Lower bounds are bigger than upper bounds.',
+	'5'='Optimization failed. Check starting values.',
+	'6'='Optimization terminated successfully',
+	'7'='Optimization stopped because objective function reaches stopval',
+	'8'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
+	'9'='Optimization terminated successfully: xtol_rel or xtol_abs was reached.',
+	'10'='Maximum number of function evaluations reached.',
+	'11'='Increase maxeval or change starting values.',
+	'12'='Maximum optimization time reached.',
+	'13'='Increase maxtime or change starting values.')
 
