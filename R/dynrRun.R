@@ -180,7 +180,6 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95, 
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
 	obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
-	# TODO add timing information to dynrRun object
 	return(obj)
 }
 
@@ -190,13 +189,13 @@ endProcessing <- function(x, transformation, conf.level){
 	#Analytic Jacobian
 	V1 = solve(x$hessian.matrix)
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
-	tHess <- J %*% V1%*%t(J)
-	tSE <- sqrt(diag(tHess))
+	iHess <- J %*% V1%*%t(J)
+	tSE <- sqrt(diag(iHess))
 	tParam <- transformation(x$fitted.parameters)
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
 	x$transformed.parameters <- tParam
 	x$standard.errors <- tSE
-	x$transformed.inv.hessian <- tHess
+	x$transformed.inv.hessian <- iHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
 	return(x)
 }
