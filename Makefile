@@ -4,6 +4,8 @@ export REXEC
 #BUILDARGS = --force-biarch --dsym
 #BUILDARGS = --dsym
 
+TESTFILE = inst/tools/testModels.R
+
 # subdirectories
 RSOURCE = R
 RDOCUMENTS = man
@@ -22,6 +24,9 @@ help:
 	@echo "CLEANING"
 	@echo ""	
 	@echo "  clean      remove all files from the build directory"
+	@echo "TESTING"
+	@echo ""	
+	@echo "  test               run the test suite"
 
 
 r-libs-user-dir:
@@ -40,3 +45,6 @@ clean:
 	-rm src/*.dll
 	-rm src/Makevars
 	-rm config.log config.status
+
+test:
+	$(REXEC) --vanilla --slave -f $(TESTFILE)
