@@ -106,7 +106,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     printf("\n");*/
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params,co_variate, func_dx_dt, eta_t_plus_1);
+    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params,co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
 
     /*printf("eta_pred:\n");
     print_vector(eta_t_plus_1);
@@ -167,7 +167,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     }
     /*print_vector(error_cov_t_vec);
     printf("\n");*/
-    
+
 
     double dpparams[num_func_param+nx];
     for (i=0;i<num_func_param;i++)
@@ -280,7 +280,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
         exit(0);*/
 
         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
-       
+
 
         /*printf("ph:\n");
         print_matrix(ph);
@@ -291,7 +291,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
         printf("kalman_gain:\n");
         print_matrix(kalman_gain);
         printf("\n");*/
-        
+
     /*------------------------------------------------------*\
     * Fitered Estimate *
     \*------------------------------------------------------*/
@@ -336,8 +336,8 @@ double cda_ekalmanfilter(size_t t, size_t regime,
         /*printf("error_cov_corrected(%lf):", y_time[t]);
         print_matrix(error_cov_t_plus_1);
         printf("\n");*/
-     
- 
+
+
 
 
 
@@ -450,7 +450,7 @@ double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
     printf("ph:\n");
     print_matrix(ph);
     printf("\n");*/
- 
+
     /*printf("y_cov(%d):\n", t_plus_1);
     print_matrix(innov_cov);
     printf("\n");*/
@@ -483,7 +483,7 @@ double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
         /*mathfunction_matrix_mul(ph, inv_innov_cov, false, false, kalman_gain);*/
 
-    	
+
         /*printf("ph:\n");
         print_matrix(ph);
         printf("\n");
@@ -493,7 +493,7 @@ double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
         printf("kalman_gain:\n");
         print_matrix(kalman_gain);
         printf("\n");*/
-        
+
     /*------------------------------------------------------*\
     * Fitered Estimate *
     \*------------------------------------------------------*/
@@ -510,7 +510,7 @@ double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
         /*printf("eta_corrected(%lf):", y_time[t]);
         print_vector(eta_t_plus_1);
         printf("\n");*/
-  
+
     /*------------------------------------------------------*\
     * Filtered Error Cov Matrix *
     \*------------------------------------------------------*/
@@ -537,7 +537,7 @@ double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
         /*printf("error_cov_corrected(%lf):", y_time[t]);
         print_matrix(error_cov_t_plus_1);
         printf("\n");*/
-        
+
 
 
     /** free allocated space **/
@@ -647,7 +647,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
         print_vector(eta_t_plus_1);
         printf("\n");*/
         func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);
-        
+
         if(miss_case==1){
             for(i=0; i<y_non_miss->size; i++){
                 if(gsl_vector_get(y_non_miss, i)==1)
@@ -681,7 +681,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     }
     /*print_vector(error_cov_t_vec);
     printf("\n");*/
-    
+
 
     double dpparams[num_func_param+nx];
     for (i=0;i<num_func_param;i++)
@@ -704,7 +704,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
 
 
     func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams,co_variate, func_dP_dt, Pnewvec);
-    
+
 
     /*printf("error_cov_pred:\n");
     print_vector(Pnewvec);
@@ -717,7 +717,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     	gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
     	}
     }
-    
+
     gsl_matrix_memcpy(error_cov_pred,error_cov_t_plus_1);
 
     /*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
@@ -796,7 +796,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
         exit(0);*/
 
         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
-       
+
 
         /*printf("ph:\n");
         print_matrix(ph);
@@ -807,7 +807,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
         printf("kalman_gain:\n");
         print_matrix(kalman_gain);
         printf("\n");*/
-        
+
     /*------------------------------------------------------*\
     * Fitered Estimate *
     \*------------------------------------------------------*/
@@ -852,8 +852,8 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
         /*printf("error_cov_corrected(%lf):", y_time[t]);
         print_matrix(error_cov_t_plus_1);
         printf("\n");*/
-     
- 
+
+
 
 
 
@@ -967,7 +967,7 @@ double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
     printf("ph:\n");
     print_matrix(ph);
     printf("\n");*/
- 
+
     /*printf("y_cov(%d):\n", t_plus_1);
     print_matrix(innov_cov);
     printf("\n");*/
@@ -1000,7 +1000,7 @@ double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
         /*mathfunction_matrix_mul(ph, inv_innov_cov, false, false, kalman_gain);*/
 
-    	
+
         /*printf("ph:\n");
         print_matrix(ph);
         printf("\n");
@@ -1010,7 +1010,7 @@ double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
         printf("kalman_gain:\n");
         print_matrix(kalman_gain);
         printf("\n");*/
-        
+
     /*------------------------------------------------------*\
     * Fitered Estimate *
     \*------------------------------------------------------*/
@@ -1027,7 +1027,7 @@ double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
         /*printf("eta_corrected(%lf):", y_time[t]);
         print_vector(eta_t_plus_1);
         printf("\n");*/
-  
+
     /*------------------------------------------------------*\
     * Filtered Error Cov Matrix *
     \*------------------------------------------------------*/
@@ -1054,7 +1054,7 @@ double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
         /*printf("error_cov_corrected(%lf):", y_time[t]);
         print_matrix(error_cov_t_plus_1);
         printf("\n");*/
-        
+
 
 
     /** free allocated space **/
