@@ -109,9 +109,9 @@ CompileCode <- function(code, language, verbose, outfile) {
   cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
   if (verbose) cat("Compilation argument:\n", cmd, "\n")
   compiled <- system(cmd, intern=!verbose)
-  errmsg <- readLines( errfile )
-  unlink( errfile )
-  writeLines( errmsg )
+  errmsg <- readLines(errfile)
+  unlink(errfile)
+  writeLines(errmsg)
   setwd(wd)
 }
   
