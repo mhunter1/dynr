@@ -138,22 +138,22 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data, func_address, transformation, conf.level=.95, infile, outfile) {
+dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
-	if(any(sapply(func_address, is.null.pointer))){
-		warning("Found null pointer(s) in 'func_address' argument. (Re-)compiling your functions...")
-		if(missing(infile)){
-			stop("Cannot compile your functions because 'infile' argument is missing.")
-		}
-		func_address=dynr.funcaddress(file=infile, verbose=TRUE, model=model, outfile = outfile)
+	if(any(sapply(model$func_address, is.null.pointer))){
+	    warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
+	    if(missing(infile)){
+	      stop("Cannot compile your functions because 'infile' argument is missing.")
+	    }
+	    model$func_address=dynr.funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
 	}
 	backendStart <- Sys.time()
-	output <<- .Call("main_R", model, data, func_address, PACKAGE = "dynr")
+	output <<- .Call("main_R", model, data, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
@@ -170,16 +170,20 @@ dynr.run <- function(model, data, func_address, transformation, conf.level=.95, 
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
+		frontendStop <- Sys.time()
+		totalTime <- frontendStop-frontendStart
+		backendTime <- backendStop-backendStart
+		frontendTime <- totalTime-backendTime
+		obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
 	}else{
+	  frontendStop <- Sys.time()
+	  totalTime <- frontendStop-frontendStart
+	  backendTime <- backendStop-backendStart
+	  frontendTime <- totalTime-backendTime
 		obj <- NULL
 	}
-	frontendStop <- Sys.time()
-	totalTime <- frontendStop-frontendStart
-	backendTime <- backendStop-backendStart
-	frontendTime <- totalTime-backendTime
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
-	obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
 	return(obj)
 }
 

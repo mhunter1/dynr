@@ -32,7 +32,7 @@ default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10,
 #' @param isDiscreteTime A binary flag indicating whether the model is a discrete-time model (0 = no; 1 = yes)
 #' @param options A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.
 #' @return A list of model statements to be passed to dynr.run().
-dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, isContinuousTime=0, options=default.model.options){
+dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime=TRUE,infile, outfile=tempfile(), verbose=TRUE){
 	if(!is.list(options)){
 		stop("'options' argument to dynr.model function must be a list.")
 	}
@@ -49,9 +49,10 @@ dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, isContinuou
 	if( (length(dim_latent_var) != 1) || (round(dim_latent_var) != dim_latent_var) ){
 		stop("Number of latent variables (dim_latent_var) must be a single integer.")
 	}
-	# TODO remove these as.double calls
-	# by changing how the arguments are processed in the backend.
-	return(list(num_regime=num_regime, dim_latent_var=dim_latent_var, xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.double(length(xstart)), options=options))
+	
+	#returns a list of addresses of the compiled model functions
+	func_address=dynr.funcaddress(isContinuousTime=isContinuousTime,infile=infile,outfile=outfile,verbose=verbose)
+	return(list(num_regime=num_regime, dim_latent_var=dim_latent_var, xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.double(length(xstart)),func_address=func_address, options=options))
 }
 
 processModelOptionsArgument <- function(opt){

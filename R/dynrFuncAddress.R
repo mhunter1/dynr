@@ -5,12 +5,12 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE, file, model, outfile=tempfile()){
+dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile()){
 
   #-------Set some variables: This function may later be extended----------
   language="C"
   #-------Check the input arguments----------------------------
-  if(missing(file)){
+  if(missing(infile)){
     #if(missing(func_noise_cov)){
     #  stop("The function of the noise covariance matrix is missing")
     #}
@@ -19,7 +19,7 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
     code<-paste(c(code,includes, ""), collapse="\n")
     code<-paste(c(code,func_noise_cov, ""), collapse="\n")
   }else{
-    code<-readLines(file)
+    code<-readLines(infile)
   }
   # ---- Write and compile the code ----
 
@@ -33,7 +33,7 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
   #reg.finalizer(environment(), cleanup, onexit=TRUE)
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )  
-  if (model$isDiscreteTime==0){
+  if (isContinuousTime==TRUE){
   res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
            f_dx_dt=getNativeSymbolInfo("function_dx_dt", DLL)$address,
            f_dF_dx=getNativeSymbolInfo("function_dF_dx", DLL)$address,
@@ -65,12 +65,8 @@ CompileCode <- function(code, language, verbose, outfile) {
   ## Prepare temp file names
   if ( .Platform$OS.type == "windows" ) {
     ## windows files
+    outfile <- gsub("\\\\", "/", outfile)
 
-    dir <- gsub("\\\\", "/", outfile)
-    libCFile  <- paste(outfile, ".EXT", sep="")
-    libLFile  <- paste(outfile, ".dll", sep="")
-    libLFile2 <- paste(outfile, ".dll", sep="")
-    
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
     gsl_cflags <- sprintf( "-I%s/include", LIB_GSL )
@@ -78,10 +74,6 @@ CompileCode <- function(code, language, verbose, outfile) {
   }
   else {
     ## UNIX-alike build
-
-    libCFile  <- paste(outfile, ".EXT",               sep="")
-    libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
-    libLFile2 <- paste(outfile, ".sl",                sep="")
 
     ## Unix gsl flags
     gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
@@ -93,17 +85,17 @@ CompileCode <- function(code, language, verbose, outfile) {
   if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
   Sys.setenv(PKG_LIBS=gsl_libs)
 
+  libCFile  <- paste(outfile, ".EXT", sep="")
   extension <- switch(language, "C++"=".cpp", C=".c", Fortran=".f", F95=".f95",
                       ObjectiveC=".m", "ObjectiveC++"=".mm")
   libCFile <- sub(".EXT$", extension, libCFile)
-  
+  libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
   ## Write the code to the temp file for compilation
   write(code, libCFile)
   
-  ## Compile the code only if dynamic library does not exist
-  #if ( file.exists(libLFile2) ) file.remove( libLFile2 )
+  ## Compile the code using the running version of R if several available
+  if ( file.exists(libLFile) ) file.remove( libLFile )
   
-  if (!file.exists(libLFile)&&!file.exists(libLFile2)){ #file.remove( libLFile )
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
   cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
@@ -113,15 +105,13 @@ CompileCode <- function(code, language, verbose, outfile) {
   unlink(errfile)
   writeLines(errmsg)
   setwd(wd)
-}
-  
- # if ( !file.exists(libLFile) && file.exists(libLFile2) ) libLFile <- libLFile2
+  #### Error Messages
   if ( !file.exists(libLFile) ) {
     cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
     cat("\nProgram source:\n")
     code <- strsplit(code, "\n")
     for (i in 1:length(code[[1]])) cat(format(i,width=3), ": ", code[[1]][i], "\n", sep="")
     stop( paste( "Compilation ERROR, function(s)/method(s) not created!", paste( errmsg , collapse = "\n" ) ) )
-  }
+    }
   return( libLFile )
 }

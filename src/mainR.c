@@ -64,7 +64,7 @@ SEXP getListElement(SEXP list, const char *str)
  * @param ubvec is a vector in R of the upper bounds of search region
  * @param lbvec is a vecotr in R of the lower bounds of the search region
  */
-SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
+SEXP main_R(SEXP model_list,SEXP data_list)
 {
     size_t index,index_col,index_row;
 
@@ -95,6 +95,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
 
 
     /*function specifications*/
+    SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
 	SEXP f_measure_sexp = PROTECT(getListElement(func_address_list, "f_measure"));
 	SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
 	SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
@@ -128,8 +129,6 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
         data_model.pc.func_dynam=function_dynam_ada;
     }else{
         data_model.pc.func_dynam=rk4_odesolver;
-
-
     }
     /** If discrete-time model
     if (data_model.pc.isDiscreteTime){
@@ -849,7 +848,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP func_address_list)
     /** =================Interface: Output done====================== **/
 
     /** =================Free Allocated space====================== **/
-    UNPROTECT(7+16*2+8);/*unprotect objects: 7 XXXs, 16*2 XXXs, 8 function pointers*/
+    UNPROTECT(7+16*2+1+8);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers*/
 
     free(str_number);
     free(data_model.pc.index_sbj);
