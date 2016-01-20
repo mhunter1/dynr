@@ -91,9 +91,6 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     data_model.pc.num_regime=(size_t) *REAL(getListElement(model_list, "num_regime")); /*number of regimes*/
     printf("num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
 
-
-
-
     /*function specifications*/
     SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
 	SEXP f_measure_sexp = PROTECT(getListElement(func_address_list, "f_measure"));

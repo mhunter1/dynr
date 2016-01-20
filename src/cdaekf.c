@@ -213,6 +213,17 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
     gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
     gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
+    
+    
+    /*------------------------------------------------------*\
+    * Update P discrete--------error_cov_t_plus_1=eta_noise_cov+jacobdynamic%*%error_cov_t%*%t(jacobdynamic)*
+    \*------------------------------------------------------*/
+
+    /*gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacobdynamic, 0.0, pjacobdynamic);*/ /* compute P*jacobdynamic'*/
+    /*gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacobdynamic, pjacobdynamic, 0.0, error_cov_t_plus_1); *//* compute jacobdynamic*P*jacobdynamic'*/
+    /*gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov);*/ /*compute H*P*H'+Q*/
+
+    
 
     if(miss_case==1){ /* set corresponding rows and columns as zero*/
         for(i=0; i<y_non_miss->size; i++){
