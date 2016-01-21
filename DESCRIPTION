@@ -11,6 +11,7 @@ Author: Lu Ou [aut, cre],
 	Michael Hunter [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
 Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr
+Suggests: testthat
 Description: More about what it does (maybe more than one line)
 License: Apache License (== 2.0) GPL (>= 2)
 Version: 0.1-1
