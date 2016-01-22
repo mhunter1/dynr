@@ -5,7 +5,7 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile()){
+dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile(), cleanLib=TRUE){
 
   #-------Set some variables: This function may later be extended----------
   language="C"
@@ -24,7 +24,7 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
   # ---- Write and compile the code ----
 
   #filename<- basename(tempfile())
-  libLFile <- CompileCode(code, language, verbose, outfile)
+  libLFile <- CompileCode(code, language, verbose, outfile, cleanLib)
   #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
   #cleanup <- function(env) {
   #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
@@ -59,7 +59,7 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
 # Purpose: compiles a C file to create a shared library and returns its name.
 #------------------------------------------------
 
-CompileCode <- function(code, language, verbose, outfile) {
+CompileCode <- function(code, language, verbose, outfile, cleanLib) {
   wd = getwd()
   on.exit(setwd(wd))
   ## Prepare temp file names
@@ -94,7 +94,8 @@ CompileCode <- function(code, language, verbose, outfile) {
   write(code, libCFile)
   
   ## Compile the code using the running version of R if several available
-  if ( file.exists(libLFile) ) file.remove( libLFile )
+  if ( file.exists(libLFile) ) {
+    if (cleanlib) file.remove( libLFile )}
   
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )

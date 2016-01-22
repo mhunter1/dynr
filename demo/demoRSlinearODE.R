@@ -22,7 +22,8 @@ model <- dynr.model(
               isContinuousTime=TRUE,
               infile="./demo/RSODEmodel.c", 
               outfile="./demo/RSODEmodel2", 
-              verbose=TRUE
+              verbose=TRUE,
+              cleanLib=FALSE
 )
 
 
