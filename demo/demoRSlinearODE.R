@@ -15,10 +15,14 @@ model <- dynr.model(
               ub=rep(9999,13),lb=rep(9999,13),
               #ub=c(rep(1.5, 4), 0, 5, 5, rep(10, 6)),
               #lb=c(rep(-10, 4), 200, -10, -10, rep(-10, 6)),
-              options=list(maxtime=60*60, 
-                           maxeval=500,
+              options=list(maxtime=1*60, 
+                           maxeval=1,
                            ftol_rel=as.numeric(1e-8),
-                           xtol_rel=as.numeric(1e-5))
+                           xtol_rel=as.numeric(1e-5)),
+              isContinuousTime=TRUE,
+              infile="./demo/RSODEmodel.c", 
+              outfile="./demo/RSODEmodel2", 
+              verbose=TRUE
 )
 
 
@@ -33,9 +37,9 @@ model <- dynr.model(
 #}
 #" 
 
-func_address=dynr.funcaddress(file="./demo/RSODEmodel.c",verbose=FALSE,model=model)
+#func_address=dynr.funcaddress(file="./demo/RSODEmodel.c",verbose=FALSE,model=model)
 tfun <- function(x){c(exp(x[1:4]),x[5],exp(x[6:7]), x[8:13])}
-res <- dynr.run(model, data,func_address, tfun)
+res <- dynr.run(model, data,tfun)
 
 
 #True values should be
