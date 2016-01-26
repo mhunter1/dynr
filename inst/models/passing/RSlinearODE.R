@@ -1,8 +1,8 @@
 
 require(dynr)
 
-T = 500; n = 10; batch = 1
-thedata = read.table(paste0("./data/New2CovT",T,"n",n,"batch",batch,"ODEsimData.txt"))
+nT = 500; n = 10; batch = 1
+thedata = read.table(paste0("./data/New2CovT", nT,"n", n, "batch", batch, "ODEsimData.txt"))
 thedata$V6 <- as.numeric(thedata$V6)
 data <- dynr.data(thedata, id="V1", time="V2",observed=paste0('V', 3:4), 
                   covariates=paste0('V', 5:6))
@@ -13,18 +13,22 @@ model <- dynr.model(
               dim_latent_var=2,
               xstart=c(rep(log(.1), 4), 95.0, log(10.0), log(10.0), -3.0, 9.0, -1.5, 0.5, -1,-.3),
               ub=rep(9999,13),lb=rep(9999,13),
-              options=list(maxtime=60*60, 
-                           maxeval=500,
+              options=list(maxtime=1*60, 
+                           maxeval=1,
                            ftol_rel=as.numeric(1e-8),
-                           xtol_rel=as.numeric(1e-5))
+                           xtol_rel=as.numeric(1e-5)),
+              isContinuousTime=TRUE,
+              infile="./RSlinearODE.c", 
+              outfile="./RSODEmodel2", 
+              verbose=TRUE,
+              compileLib=FALSE
 )
 
 
 
 
-func_address=dynr.funcaddress(file="./RSlinearODE.c",verbose=FALSE,model=model)
 tfun <- function(x){c(exp(x[1:4]),x[5],exp(x[6:7]), x[8:13])}
-res <- dynr.run(model, data,func_address, tfun)
+res <- dynr.run(model, data, tfun)
 
 
 #True values should be
