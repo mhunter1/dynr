@@ -5,32 +5,38 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile(), cleanLib=TRUE){
+dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile(),compileLib){
 
   #-------Set some variables: This function may later be extended----------
   language="C"
-  #-------Check the input arguments----------------------------
-  if(missing(infile)){
-    #if(missing(func_noise_cov)){
-    #  stop("The function of the noise covariance matrix is missing")
-    #}
-    #-------Generate the code-----------  
-    code<-""#paste("#include <R.h>\n#include <Rdefines.h>\n","#include <R_ext/Error.h>\n", sep="")
-    code<-paste(c(code,includes, ""), collapse="\n")
-    code<-paste(c(code,func_noise_cov, ""), collapse="\n")
-  }else{
-    code<-readLines(infile)
+  #-------Get the full name of the library----------
+  if ( .Platform$OS.type == "windows" ) outfile <- gsub("\\\\", "/", outfile)
+  libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
+  if (compileLib|(!file.exists(libLFile))){#when the compileLib flag is TRUE or when the libLFile does not exist
+    #-------Check the input arguments----------------------------
+    if(missing(infile)){
+      #if(missing(func_noise_cov)){
+      #  stop("The function of the noise covariance matrix is missing")
+      #}
+      #-------Generate the code-----------  
+      code<-""#paste("#include <R.h>\n#include <Rdefines.h>\n","#include <R_ext/Error.h>\n", sep="")
+      code<-paste(c(code,includes, ""), collapse="\n")
+      code<-paste(c(code,func_noise_cov, ""), collapse="\n")
+    }else{
+      code<-readLines(infile)
+    }
+    # ---- Write and compile the code ----
+    
+    #filename<- basename(tempfile())
+    CompileCode(code, language, verbose, libLFile)
+    #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
+    #cleanup <- function(env) {
+    #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
+    #    unlink(libLFile)
+    #  }
+    #reg.finalizer(environment(), cleanup, onexit=TRUE)
   }
-  # ---- Write and compile the code ----
-
-  #filename<- basename(tempfile())
-  libLFile <- CompileCode(code, language, verbose, outfile, cleanLib)
-  #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
-  #cleanup <- function(env) {
-  #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
-  #    unlink(libLFile)
-  #  }
-  #reg.finalizer(environment(), cleanup, onexit=TRUE)
+  
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )  
   if (isContinuousTime==TRUE){
@@ -56,23 +62,22 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
 }    
 #--------------------------------------------------
 # CompileCode: A function adapted from the compileCode function in the inline pacakge
-# Purpose: compiles a C file to create a shared library and returns its name.
+# Purpose: compiles a C file to create a shared library
 #------------------------------------------------
 
-CompileCode <- function(code, language, verbose, outfile, cleanLib) {
+CompileCode <- function(code, language, verbose, libLFile) {
   wd = getwd()
   on.exit(setwd(wd))
   ## Prepare temp file names
   if ( .Platform$OS.type == "windows" ) {
     ## windows files
-    outfile <- gsub("\\\\", "/", outfile)
+    #outfile <- gsub("\\\\", "/", outfile)
 
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
     gsl_cflags <- sprintf( "-I%s/include", LIB_GSL )
     gsl_libs   <- sprintf( "-L%s/lib/%s -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
-  }
-  else {
+  }else {
     ## UNIX-alike build
 
     ## Unix gsl flags
@@ -85,18 +90,18 @@ CompileCode <- function(code, language, verbose, outfile, cleanLib) {
   if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
   Sys.setenv(PKG_LIBS=gsl_libs)
 
-  libCFile  <- paste(outfile, ".EXT", sep="")
+  #libCFile  <- paste(outfile, ".EXT", sep="")
+  libCFile <-sub(.Platform$dynlib.ext,".EXT",libLFile)
   extension <- switch(language, "C++"=".cpp", C=".c", Fortran=".f", F95=".f95",
                       ObjectiveC=".m", "ObjectiveC++"=".mm")
   libCFile <- sub(".EXT$", extension, libCFile)
-  libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
+  #libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
+  
   ## Write the code to the temp file for compilation
   write(code, libCFile)
   
   ## Compile the code using the running version of R if several available
-  if ( file.exists(libLFile) ) {
-    if (cleanlib) file.remove( libLFile )}
-  
+  #if ( file.exists(libLFile) ) {file.remove( libLFile )}
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
   cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
@@ -106,6 +111,7 @@ CompileCode <- function(code, language, verbose, outfile, cleanLib) {
   unlink(errfile)
   writeLines(errmsg)
   setwd(wd)
+  
   #### Error Messages
   if ( !file.exists(libLFile) ) {
     cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
@@ -114,5 +120,5 @@ CompileCode <- function(code, language, verbose, outfile, cleanLib) {
     for (i in 1:length(code[[1]])) cat(format(i,width=3), ": ", code[[1]][i], "\n", sep="")
     stop( paste( "Compilation ERROR, function(s)/method(s) not created!", paste( errmsg , collapse = "\n" ) ) )
     }
-  return( libLFile )
+  #return( libLFile )
 }
