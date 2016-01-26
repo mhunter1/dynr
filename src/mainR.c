@@ -496,6 +496,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** =================Extended Kim Filter and Smoother: done======================**/
 
     /** =================Interface: SEXP Output====================== **/
+	printf("Creating and allocating R output ... \n");
     SEXP res_list=PROTECT(allocVector(VECSXP,21));
     SEXP res_names=PROTECT(allocVector(STRSXP, 21));
 
@@ -845,6 +846,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** =================Interface: Output done====================== **/
 
     /** =================Free Allocated space====================== **/
+	printf("Freeing objects before return ... \n");
     UNPROTECT(7+16*2+1+8);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers*/
 
     free(str_number);
