@@ -502,15 +502,18 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     SEXP exitflag=PROTECT(allocVector(INTSXP,1));
     *INTEGER(exitflag)=status;
+    printf("exitflag created and copied.\n");
     SEXP negloglike=PROTECT(allocVector(REALSXP,1));
     *REAL(negloglike)=minf;
+    printf("negloglike created and copied.\n");
     SEXP fittedout=PROTECT(allocVector(REALSXP, data_model.pc.num_func_param));
 	/*printf("fittedout created.\n");*/
 	memcpy(REAL(fittedout),fittedpar,sizeof(fittedpar));
 	/*printf("fittedout copied.\n");
 	print_array(REAL(fittedout),data_model.pc.num_func_param);
 	printf("\n");*/
-
+	printf("fittedout created and copied.\n");
+	
     SEXP hessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
          ptr_index=REAL(hessian);
          double tmp;
@@ -522,6 +525,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
              }
          }
+         printf("hessian created and copied.\n");
     SEXP invhessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
          ptr_index=REAL(invhessian);
          for (index=0;index<data_model.pc.num_func_param;index++){
@@ -532,7 +536,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
              }
          }
-
+         printf("invhessian created and copied.\n");
     /*eta_regime_t: input and output of filter & input of smooth: eta^k_it|t*/
     /*error_cov_regime_t:input and output of filter & input of smooth: error_cov^k_it|t*/
     /*eta_regime_regime_t_pred: output of filter and input of smooth: eta^regime_jk_it|t-1*/
@@ -563,6 +567,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+        printf("dims_eta_regime_t created and copied.\n");
 
     SEXP dims_error_cov_regime_t=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_error_cov_regime_t), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -579,6 +584,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+        printf("dims_error_cov_regime_t created and copied.\n");
 
     SEXP dims_eta_regime_regime_t_pred=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_eta_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -596,6 +602,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+        printf("dims_eta_regime_regime_t_pred created and copied.\n");
+        
     SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
     memcpy(INTEGER(dims_error_cov_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
     SEXP error_cov_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_pred));
@@ -613,7 +621,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+        printf("dims_error_cov_regime_regime_t_pred created and copied.\n");
+        
     SEXP dims_eta_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_eta_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
     SEXP eta_regime_regime_t_plus_1 = PROTECT(Rf_allocArray(REALSXP,dims_eta_regime_regime_t_plus_1));
@@ -630,7 +639,9 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+    
+    printf("dims_eta_regime_regime_t_plus_1 created and copied.\n");
+        
     SEXP dims_error_cov_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,5));
     memcpy(INTEGER(dims_error_cov_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime, data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
     SEXP error_cov_regime_regime_t_plus_1 = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_plus_1));
@@ -649,6 +660,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+    printf("dims_error_cov_regime_regime_t_plus_1 created and copied.\n");
 
     SEXP dims_innov_vec=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -665,6 +677,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+    printf("dims_innov_vec created and copied.\n");
 
     SEXP dims_inverse_residual_cov=PROTECT(allocVector(INTSXP,5));
     memcpy(INTEGER(dims_inverse_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
@@ -683,6 +696,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
+    printf("dims_inverse_residual_cov created and copied.\n");
 
     SEXP dims_pr_t_given_t=PROTECT(allocVector(INTSXP,2));
     memcpy(INTEGER(dims_pr_t_given_t), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -695,6 +709,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             index++;
         }
     }
+    printf("dims_pr_t_given_t created and copied.\n");
+
 
     SEXP dims_pr_t_given_t_less_1=PROTECT(allocVector(INTSXP,2));
     memcpy(INTEGER(dims_pr_t_given_t_less_1), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -707,6 +723,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             index++;
         }
     }
+    printf("dims_pr_t_given_t_less_1 created and copied.\n");
 
     SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
     memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -719,6 +736,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             index++;
         }
     }
+    printf("dims_pr_t_given_T created and copied.\n");
 
     SEXP dims_transprob_given_T=PROTECT(allocVector(INTSXP,3));
     memcpy(INTEGER(dims_transprob_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),3*sizeof(int));
@@ -733,7 +751,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+    printf("dims_transprob_given_T created and copied.\n");
+    
     SEXP dims_eta_regime_smooth=PROTECT(allocVector(INTSXP,3));
     memcpy(INTEGER(dims_eta_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),3*sizeof(int));
     SEXP eta_regime_smooth = PROTECT(Rf_allocArray(REALSXP,dims_eta_regime_smooth));
@@ -747,7 +766,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+    printf("dims_eta_regime_smooth created and copied.\n");
+    
     SEXP dims_error_cov_regime_smooth=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_error_cov_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.total_obs}),4*sizeof(int));
     SEXP error_cov_regime_smooth = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_smooth));
@@ -763,7 +783,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+    printf("dims_error_cov_regime_smooth created and copied.\n");
+    
     SEXP dims_eta_smooth_final=PROTECT(allocVector(INTSXP,2));
     memcpy(INTEGER(dims_eta_smooth_final), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}),2*sizeof(int));
     SEXP eta_smooth_final = PROTECT(Rf_allocArray(REALSXP,dims_eta_smooth_final));
@@ -775,7 +796,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             index++;
         }
     }
-
+    printf("dims_eta_smooth_final created and copied.\n");
+    
     SEXP dims_error_cov_smooth_final=PROTECT(allocVector(INTSXP,3));
     memcpy(INTEGER(dims_error_cov_smooth_final), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
     SEXP error_cov_smooth_final = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_smooth_final));
@@ -789,7 +811,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             }
         }
     }
-
+    printf("dims_error_cov_smooth_final created and copied.\n");
 
 
 
@@ -838,11 +860,10 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     SET_STRING_ELT(res_names, 20, mkChar("error_cov_smooth_final"));
     SET_VECTOR_ELT(res_list, 20, error_cov_smooth_final);
 
-
+    
     setAttrib(res_list, R_NamesSymbol, res_names);
 
-
-	/*printf("Done.\n");*/
+    printf("R return list completed.\n");
     /** =================Interface: Output done====================== **/
 
     /** =================Free Allocated space====================== **/
