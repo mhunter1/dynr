@@ -166,7 +166,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	diag(output$hessian.matrix) = diagH
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
+	status = ifelse(any(!is.finite(output$hessian.matrix)) || !matrixcalc::is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
