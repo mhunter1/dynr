@@ -50,15 +50,16 @@ SEXP getListElement(SEXP list, const char *str)
 {
     SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
     size_t i;
-    for (i = 0; i < length(list); i++)
-	if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-	   elmt = VECTOR_ELT(list, i);
-	   break;
+    for (i = 0; i < length(list); i++){
+		if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
+			elmt = VECTOR_ELT(list, i);
+			break;
+		}
 	}
-    return elmt;
+	return elmt;
 }
 /**
- * The getway function for the R interface
+ * The gateway function for the R interface
  * @param model_list is a list in R of all model specifications.
  * @param paramvec is a vector in R of the parameter starting values
  * @param ubvec is a vector in R of the upper bounds of search region
@@ -73,23 +74,35 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     static Data_and_Model data_model;
 
     /* From the SEXP called model_list, get the list element named "num_sbj" */
-    data_model.pc.num_sbj=(size_t) *REAL(getListElement(model_list, "num_sbj"));/*number of subjects*/
-    printf("num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
-
-    data_model.pc.num_func_param=(size_t) *REAL(getListElement(model_list, "num_func_param")); /*number of function parameters*/
-    printf("num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
-
-    data_model.pc.dim_latent_var=(size_t) *REAL(getListElement(model_list, "dim_latent_var"));/*number of latent variables*/
-    printf("dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
-
-    data_model.pc.dim_obs_var=(size_t) *REAL(getListElement(model_list, "dim_obs_var")); /*number of observed variables*/
-    printf("dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
-
-    data_model.pc.dim_co_variate=(size_t) *REAL(getListElement(model_list, "dim_co_variate"));/*number of covariates*/
-    printf("dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
-
-    data_model.pc.num_regime=(size_t) *REAL(getListElement(model_list, "num_regime")); /*number of regimes*/
-    printf("num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
+	/*number of subjects*/
+	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
+	data_model.pc.num_sbj=(size_t) *INTEGER(num_sbj_sexp);
+	printf("num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
+	
+	/*number of function parameters*/
+	SEXP num_func_param_sexp = PROTECT(getListElement(model_list, "num_func_param"));
+	data_model.pc.num_func_param=(size_t) *INTEGER(num_func_param_sexp);
+	printf("num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
+	
+	/*number of latent variables*/
+	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
+	data_model.pc.dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
+	printf("dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
+	
+	/*number of observed variables*/
+	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
+	data_model.pc.dim_obs_var=(size_t) *INTEGER(dim_obs_var_sexp);
+	printf("dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
+	
+	/*number of covariates*/
+	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
+	data_model.pc.dim_co_variate=(size_t) *INTEGER(dim_co_variate_sexp);
+	printf("dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
+	
+	/*number of regimes*/
+	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
+	data_model.pc.num_regime=(size_t) *INTEGER(num_regime_sexp);
+	printf("num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
 
     /*function specifications*/
     SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
@@ -879,7 +892,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     /** =================Free Allocated space====================== **/
 	printf("Freeing objects before return ... \n");
-    UNPROTECT(7+16*2+1+8);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers*/
+    UNPROTECT(7+16*2+1+8+6);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers, 6 integer dimensions of matrices*/
 
     free(str_number);
     free(data_model.pc.index_sbj);

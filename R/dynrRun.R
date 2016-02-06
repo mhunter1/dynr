@@ -1,4 +1,3 @@
-
 # Class definition for the dynrRun object that
 #  stores all the output for a model that has 
 #  been run.
@@ -166,7 +165,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	diag(output$hessian.matrix) = diagH
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	status = ifelse(any(!is.finite(output$hessian.matrix)) || !matrixcalc::is.positive.definite(output$hessian.matrix), 0, 1)
+	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 		obj <- new("dynrRun", output2)
@@ -216,9 +215,9 @@ preProcessModel <- function(x){
 combineModelDataInformation <- function(model, data){
 	# TODO remove these as.double calls
 	# by changing how the arguments are processed in the backend.
-	model$num_sbj <- as.double(length(unique(data[['id']])))
-	model$dim_obs_var <- as.double(ncol(data$observed))
-	model$dim_co_variate <- as.double(ncol(data$covariates))
+	model$num_sbj <- as.integer(length(unique(data[['id']])))
+	model$dim_obs_var <- as.integer(ncol(data$observed))
+	model$dim_co_variate <- as.integer(ncol(data$covariates))
 	return(model)
 }
 
@@ -257,3 +256,4 @@ dynrExitFlags <- c(
 	'12'='Maximum optimization time reached.',
 	'13'='Increase maxtime or change starting values.')
 
+>>>>>>> Use integers for integer-valued items and PROTECT them.
