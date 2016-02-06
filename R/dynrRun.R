@@ -256,4 +256,3 @@ dynrExitFlags <- c(
 	'12'='Maximum optimization time reached.',
 	'13'='Increase maxtime or change starting values.')
 
->>>>>>> Use integers for integer-valued items and PROTECT them.
