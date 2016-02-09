@@ -221,7 +221,6 @@ SEXP main_R(SEXP model_list,SEXP data_list)
         }
     }
 
-    printf("checkpoint 1");
     data_model.y_time=(double *)malloc(data_model.pc.total_obs*sizeof(double));
         memcpy(data_model.y_time,REAL(getListElement(data_list, "time")),data_model.pc.total_obs*sizeof(double));
 
@@ -235,13 +234,19 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     */
 
     /** Optimization options **/
-    SEXP option_list = getListElement(model_list, "options");
-    double *xtol_rel = REAL(getListElement(option_list, "xtol_rel"));
-    double *stopval = REAL(getListElement(option_list, "stopval"));
-    double *ftol_rel = REAL(getListElement(option_list, "ftol_rel"));
-    double *ftol_abs = REAL(getListElement(option_list, "ftol_abs"));
-    int *maxeval = INTEGER(getListElement(option_list, "maxeval"));
-    double *maxtime = REAL(getListElement(option_list, "maxtime"));
+    SEXP option_list = PROTECT(getListElement(model_list, "options"));
+        SEXP xtol_rel_sexp = PROTECT(getListElement(option_list, "xtol_rel"));
+        SEXP stopval_sexp = PROTECT(getListElement(option_list, "stopval"));
+        SEXP ftol_rel_sexp = PROTECT(getListElement(option_list, "ftol_rel"));
+        SEXP ftol_abs_sexp = PROTECT(getListElement(option_list, "ftol_abs"));
+        SEXP maxeval_sexp = PROTECT(getListElement(option_list, "maxeval"));
+        SEXP maxtime_sexp = PROTECT(getListElement(option_list, "maxtime"));
+    double *xtol_rel = REAL(xtol_rel_sexp);
+    double *stopval = REAL(stopval_sexp);
+    double *ftol_rel = REAL(ftol_rel_sexp);
+    double *ftol_abs = REAL(ftol_abs_sexp);
+    int *maxeval = INTEGER(maxeval_sexp);
+    double *maxtime = REAL(maxtime_sexp);
 
     /** Optimization bounds and starting values **/
 
@@ -629,20 +634,29 @@ SEXP main_R(SEXP model_list,SEXP data_list)
         printf("dims_eta_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
+    printf("SEXP dimension created and protected.\n");    
     memcpy(INTEGER(dims_error_cov_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
+    printf("dimension intergers copied.\n");    
+    printf("dim_latent_var is %lu, num_regime is %lu, total_obs is %lu\n", data_model.pc.dim_latent_var, data_model.pc.num_regime,data_model.pc.total_obs);
+    printf("dimensions are %d %d %d %d %d\n", INTEGER(dims_error_cov_regime_regime_t_pred)[0], INTEGER(dims_error_cov_regime_regime_t_pred)[1],INTEGER(dims_error_cov_regime_regime_t_pred)[2],INTEGER(dims_error_cov_regime_regime_t_pred)[3],INTEGER(dims_error_cov_regime_regime_t_pred)[4]);   
     SEXP error_cov_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_pred));
+    printf("SEXP array created and protected.\n");
     index=0;
     ptr_index=REAL(error_cov_regime_regime_t_pred);
+    printf("Pointer address assigned.\n");
     for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
         for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
             for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
                 for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
                     for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
-                        ptr_index[index]=gsl_matrix_get(error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k],index_row, index_col);
-                        index++;
+			ptr_index[index]=gsl_matrix_get(error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k],index_row, index_col);
+                       /* printf("the %lu element error_cov_regime_jk_pred %lu %lu %lu %lu %lu is %f\n",index, index_sbj_t,regime_j,regime_k,index_row,index_col, elementvalue);
+*/
+			/*printf("the element is copied.\n");*/
+			index++;
                     }
                 }
-            }
+           }
         }
     }
         printf("dims_error_cov_regime_regime_t_pred created and copied.\n");
@@ -892,7 +906,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     /** =================Free Allocated space====================== **/
 	printf("Freeing objects before return ... \n");
-    UNPROTECT(7+16*2+1+8+6);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers, 6 integer dimensions of matrices*/
+    UNPROTECT(7+16*2+1+8+6+7);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers, 6 integer dimensions of matrices, 7 options list*/
 
     free(str_number);
     free(data_model.pc.index_sbj);
