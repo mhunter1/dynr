@@ -29,6 +29,8 @@ dynr.loadings <- function(map, params, idvar){
 	
 	
 	k <- 1
+	valuesMat <- matrix(0, nx, ne)
+	paramsMat <- matrix(0, nx, ne)
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
 	for(j in 1:ne){
 		for(i in 1:nx){
@@ -36,12 +38,17 @@ dynr.loadings <- function(map, params, idvar){
 				ret <- paste(ret,
 					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
 					', param[', params[k]-1, ']);\n', sep='')
+				paramsMat[i, j] <- params[k]
+				valuesMat[i, j] <- .8
 				k <- k+1
+			} else if(allVars[i] %in% map[[j]] & allVars[i] %in% idvar){
+				valuesMat[i, j] <- 1
 			}
 		}
 	}
 	ret <- paste(ret, "\n}\n\n")
 	cat(ret)
+	return(list(values=valuesMat, params=paramsMat, C=ret))
 }
 
 # Examples
