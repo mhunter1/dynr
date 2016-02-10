@@ -27,8 +27,6 @@ dynr.loadings <- function(map, params, idvar){
 		stop(paste0("Number of free parameters provided (", length(params), ") does not match number needed (", paramsNeeded, ")."))
 	}
 	
-	SOME_CONDITION_MET <- TRUE
-	SOMETHING_WITH_PARAMNUMS <- 1
 	
 	k <- 1
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
@@ -59,3 +57,32 @@ dynr.loadings <- function(map, params, idvar){
 # Two factor model with a cross loading
 #dynr.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
 
+
+# values, free, and params are all MxN matrices
+dynr.matrixLoadings <- function(values, params){
+	ne <- ncol(values)
+	nx <- nrow(values)
+
+	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
+	for(j in 1:ne){
+		for(i in 1:nx){
+			if(params[i, j] > 0){
+				ret <- paste(ret,
+					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
+					', param[', params[i, j] - 1, ']);\n', sep='')
+			} else if(values[i, j] != 0){
+				ret <- paste(ret,
+					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
+					', ', values[i, j], ');\n', sep='')
+			}
+		}
+	}
+	ret <- paste(ret, "\n}\n\n")
+	cat(ret)
+
+}
+
+
+# Examples
+# dynr.matrixLoadings(diag(1, 5), diag(1:5))
+# dynr.matrixLoadings(matrix(1, 5, 5), diag(1:5))
