@@ -27,6 +27,7 @@ help:
 	@echo "TESTING"
 	@echo ""	
 	@echo "  test               run the test suite"
+	@echo "  torture       run the test suite with gctorture(TRUE)"
 
 
 r-libs-user-dir:
@@ -48,3 +49,7 @@ clean:
 
 test:
 	$(REXEC) --vanilla --slave -f $(TESTFILE)
+
+torture:
+	$(REXEC) --vanilla --slave -f $(TESTFILE) --args gctorture
+

@@ -1,6 +1,9 @@
 
 args <- commandArgs(trailingOnly = TRUE)
-
+if (any(args == 'gctorture')) {
+	gctorture(TRUE)
+	cat("*** GCTORTURE ENABLED ***\n");
+}
 
 library(dynr)
 
