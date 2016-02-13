@@ -8,7 +8,6 @@
 # (2) n = 40, nT = 500 (same total sample size)
 ##########################################################
 
-rm(list=ls(all=TRUE))
 require('deSolve') #Library to needed for ODE data generation
 require('dynr')
 require('matrixcalc')
@@ -189,7 +188,7 @@ for (r in rStart:noMC){
     data <- dynr.data(thedata, id="ID", time="time",observed=paste0('DV', 1:2))  
 }
 
-  print(mem_used())#function from the pryr library  
+  print(pryr::mem_used())#function from the pryr library  
   if (exists("res")) {
    #rm(res)
    print(mem_change(rm(res)))
@@ -198,7 +197,7 @@ for (r in rStart:noMC){
   #print(getLoadedDLLs())
   #print(themodel$func_address)
   res <- dynr.run(themodel, data,tfun)
-  print(mem_used())#function from the pryr library   
+  print(pryr::mem_used())#function from the pryr library   
   summary(res)
          
   #------Compile results from dynr run ---------
