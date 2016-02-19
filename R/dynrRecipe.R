@@ -9,6 +9,8 @@
 # TODO create new mid-level function (for which this is a wrapper) that takes three
 #  matrices (parameter staring values, free-fixed, and parameter numbers)
 dynr.loadings <- function(map, params, idvar){
+ 
+
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
@@ -93,3 +95,46 @@ dynr.matrixLoadings <- function(values, params){
 # Examples
 # dynr.matrixLoadings(diag(1, 5), diag(1:5))
 # dynr.matrixLoadings(matrix(1, 5, 5), diag(1:5))
+
+
+# Error covariance matrix---
+dynr.error_cov <- function(map, params, idvar)
+{
+  if(missing(idvar)){
+    idvar <- sapply(map, '[', 1)
+  }
+  
+  allVars <- unique(unlist(map))
+  
+  nx <- length(allVars)
+  ne <- length(map)
+  
+  if(!all(idvar %in% c(names(map), unlist(map)))){
+    stop("The 'idvar' must all be either in the names of the 'map' argument or parts of the part 'map' argument.")
+  }
+  
+  paramsNeeded <- length(unlist(map)) - sum(idvar %in% allVars)
+  if(length(params) != paramsNeeded){
+    stop(paste0("Number of free parameters provided (", length(params), ") does not match number needed (", paramsNeeded, ")."))
+  }
+  
+  nx <- length(allVars)
+  ne <- length(map)
+  
+  k <- 1
+  ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
+  for(j in 1:ne){
+    for(i in 1:nx){
+      if(allVars[i] %in% map[[j]] & !(allVars[i] %in% idvar)){
+        ret <- paste(ret,
+                     '    gsl_matrix_set(y_noise_cov, ', i-1, ', ', j-1,
+                     ', param[', (params[k]-1), ']);\n', sep='')
+        k <- k+1
+      }
+    }
+  }
+  ret <- paste(ret, "\n}\n\n")
+  cat(ret)
+}
+
+
