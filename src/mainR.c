@@ -132,6 +132,11 @@ SEXP main_R(SEXP model_list,SEXP data_list)
  *   data_model.pc.func_regime_switch=function_regime_switch;
  *   data_model.pc.func_noise_cov=function_noise_cov;
  */
+	/*whether a continuous-time model is used*/
+	SEXP isContinuousTime_sexp = PROTECT(getListElement(model_list, "isContinuousTime"));
+	data_model.pc.isContinuousTime=*LOGICAL(isContinuousTime_sexp);
+	printf("isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
+	
     data_model.pc.isnegloglikeweightedbyT=false;
     data_model.pc.second_order=false;/*true;*/
     data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
@@ -147,19 +152,14 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     }
     **/
 
-
     /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
     /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
     /*n subjects -> n+1 indices*/
     data_model.pc.index_sbj=(size_t *)malloc((data_model.pc.num_sbj+1)*sizeof(size_t *));
 
-    /*printf("tstart 0: %zu\n",(size_t) *REAL(getListElement(data_list, "tstart")));
-    printf("tstart 1: %zu\n",(size_t) REAL(getListElement(data_list, "tstart"))[1]);
-    printf("tstart 2: %zu\n",(size_t) REAL(getListElement(data_list, "tstart"))[2]);*/
-
     double *ptr_index;/*used for multiple times*/
 
-    ptr_index=REAL(getListElement(data_list, "tstart"));
+    ptr_index=REAL(PROTECT(getListElement(data_list, "tstart")));
     for(index=0;index<=data_model.pc.num_sbj;index++){
         data_model.pc.index_sbj[index]=(size_t) ptr_index[index];
     }
@@ -169,7 +169,11 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     printf("total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
 
     /** read in the data**/
-
+	/*observed data*/
+	SEXP observed_sexp = PROTECT(getListElement(data_list,"observed")); 
+	/*covariates*/
+	SEXP covariates_sexp = PROTECT(getListElement(data_list,"covariates"));
+		
     data_model.y=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
     size_t t;
     for(t=0; t<data_model.pc.total_obs; t++){
@@ -186,11 +190,11 @@ SEXP main_R(SEXP model_list,SEXP data_list)
         sprintf(str_name, "%s", "obs");
         /*printf("The str_number is %s\n",str_number);
         printf("The str_name length is %lu\n",strlen(str_name));*/
-        ptr_index=REAL(getListElement(getListElement(data_list,"observed"), strncat(str_name, str_number, strlen(str_number))));
-
+        ptr_index=REAL(PROTECT(getListElement(observed_sexp, strncat(str_name, str_number, strlen(str_number)))));
         for(t=0; t<data_model.pc.total_obs; t++){
             gsl_vector_set(data_model.y[t],index, ptr_index[t]);
         }
+		UNPROTECT(1);
     }
 
 
@@ -207,12 +211,13 @@ SEXP main_R(SEXP model_list,SEXP data_list)
             sprintf(str_name, "%s", "covar");
             /*printf("The str_number is %s\n",str_number);
             printf("The str_name length is %lu\n",strlen(str_name));*/
-            ptr_index=REAL(getListElement(getListElement(data_list,"covariates"), strncat(str_name, str_number, strlen(str_number))));
+	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
             for(t=0; t<data_model.pc.total_obs; t++){
                 gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
             }
-
+			UNPROTECT(1);
         }
+		
     }else{
         data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
         
@@ -222,8 +227,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     }
 
     data_model.y_time=(double *)malloc(data_model.pc.total_obs*sizeof(double));
-        memcpy(data_model.y_time,REAL(getListElement(data_list, "time")),data_model.pc.total_obs*sizeof(double));
-
+        memcpy(data_model.y_time,REAL(PROTECT(getListElement(data_list, "time"))),data_model.pc.total_obs*sizeof(double));
 
     /*printf("In main_R:\n");
     print_vector(data_model.y[0]);
@@ -251,7 +255,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     /** Optimization bounds and starting values **/
 
     double params[data_model.pc.num_func_param];
-    	memcpy(params,REAL(getListElement(model_list, "xstart")),sizeof(params));
+    	memcpy(params,REAL(PROTECT(getListElement(model_list, "xstart"))),sizeof(params));
     /*printf("Array paramvec allocated.\n");*/
     /*print_array(params,data_model.pc.num_func_param);*/
     /*printf("\n");*/
@@ -262,8 +266,8 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     printf("\n");
     double ub[data_model.pc.num_func_param];
     double lb[data_model.pc.num_func_param];
-    memcpy(ub,REAL(getListElement(model_list, "ub")),sizeof(ub));
-    memcpy(lb,REAL(getListElement(model_list, "lb")),sizeof(lb));
+    memcpy(ub,REAL(PROTECT(getListElement(model_list, "ub"))),sizeof(ub));
+    memcpy(lb,REAL(PROTECT(getListElement(model_list, "lb"))),sizeof(lb));
     int h;
     /*printf("ub value h %f\n", ub[1]);*/
     for (h=0; h < data_model.pc.num_func_param; h++){
@@ -533,7 +537,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     *INTEGER(exitflag)=status;
     printf("exitflag created and copied.\n");
     SEXP negloglike=PROTECT(allocVector(REALSXP,1));
-    *REAL(negloglike)=minf;
+    *REAL(negloglike)=neg_log_like;/*should be the same as minf*/
     printf("negloglike created and copied.\n");
     SEXP fittedout=PROTECT(allocVector(REALSXP, data_model.pc.num_func_param));
 	/*printf("fittedout created.\n");*/
@@ -906,7 +910,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     /** =================Free Allocated space====================== **/
 	printf("Freeing objects before return ... \n");
-    UNPROTECT(7+16*2+1+8+6+7);/*unprotect objects: 7 XXXs, 16*2 XXXs, 1 address list, 8 function pointers, 6 integer dimensions of matrices, 7 options list*/
+    UNPROTECT(69);/*unprotect objects: find all PROTECT in the script, then -5*/
 
     free(str_number);
     free(data_model.pc.index_sbj);
