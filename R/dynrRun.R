@@ -153,7 +153,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <<- .Call("main_R", model, data, PACKAGE = "dynr")
+	output <- .Call("main_R", model, data, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
@@ -184,6 +184,8 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
+	rm(output, output2)
+	gc()
 	return(obj)
 }
 
