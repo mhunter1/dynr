@@ -21,7 +21,7 @@ void function_measurement(size_t t, size_t regime, double *param, const gsl_vect
  * The dx/dt function
  */
 
-void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){
+void function_dx_dt(double t, size_t regime, const gsl_vector *x,double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){
 
     double r1=0, r2=0, a12=0, a21=0;
 
@@ -197,7 +197,7 @@ void mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){
     }
 }
 
-void function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){
+void function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){
     
     size_t nx;
     nx = (size_t) floor(sqrt(2*(double) p->size));

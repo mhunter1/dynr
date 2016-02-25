@@ -66,7 +66,7 @@ void adaptive_ode(const double tstart, const double tend,
 	const double tau_max,const double global_error_limit,
 	gsl_vector *t, gsl_vector *tau, gsl_vector *global_error_norm,
 	gsl_matrix *x, gsl_matrix *global_error, size_t regime,
-	double *gparameters, void (*g)(double,size_t,const gsl_vector *,double *, gsl_vector *)
+	double *gparameters, size_t n_gparam, void (*g)(double,size_t,const gsl_vector *,double *, gsl_vector *)
 	);
 void function_F(size_t t, const gsl_vector *x,double *gparameters, gsl_vector *F);
 void debug_adaptive_ode();
@@ -101,7 +101,7 @@ void debug_adaptive_ode();
 void adaptive_ode_kf(const double tstart, const double tend,
 	const gsl_vector *xstart,
 	const double tau_max,const double global_error_limit, size_t regime,
-	double *gparameters, const gsl_vector *co_variate, void (*g)(double, size_t,const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+	double *gparameters, size_t n_gparam, const gsl_vector *co_variate, void (*g)(double, size_t,const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
 	gsl_vector *x_tend);
 void debug_adaptive_ode_kf();
 /******************************************************************************
@@ -131,7 +131,7 @@ void debug_adaptive_ode_kf();
 * *
 *********************************************/
 void rk4_odesolver(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-        double *gparameters,const gsl_vector *co_variate,
-        void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+        double *gparameters, size_t n_gparam,const gsl_vector *co_variate,
+        void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
 	gsl_vector *x_tend);
 #endif

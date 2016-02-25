@@ -16,7 +16,7 @@
  */
 
 #include "brekfis.h"
-#include "cdaekf.h"
+#include "ekf.h"
 #include "data_structure.h"
 #include "math_function.h"
 #include <stdlib.h>
@@ -47,7 +47,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     size_t type;
 
     /**************initialization*****************************************************************/
-     /** Input for CDAEKF **/
+     /** Input for EKF **/
     gsl_vector **eta_j_t=(gsl_vector **)malloc(config->num_regime*sizeof(gsl_vector *));
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         eta_j_t[regime_j]=gsl_vector_alloc(config->dim_latent_var);
@@ -59,7 +59,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 
     }
 
-    /** output for CDAEKF **/
+    /** output for EKF **/
     gsl_vector ***eta_jk_t_plus_1=(gsl_vector ***)malloc(config->num_regime*sizeof(gsl_vector **));
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         eta_jk_t_plus_1[regime_j]=(gsl_vector **)malloc(config->num_regime*sizeof(gsl_vector *));
@@ -172,7 +172,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	        printf("\n");*/
 
 
-                    innov_determinant=cda_ekalmanfilter_updateonly(t, regime_k,
+                    innov_determinant=ext_kalmanfilter_updateonly(t, regime_k,
                         eta_j_t[regime_j], error_cov_j_t[regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
@@ -204,11 +204,12 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	        print_matrix(error_cov_j_t[regime_j]);
             	        printf("\n");*/
 
-                    innov_determinant=cda_ekalmanfilter(t, regime_k,
+                    innov_determinant=ext_kalmanfilter(t, regime_k,
                         eta_j_t[regime_j], error_cov_j_t[regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
                         param->func_param,config->num_func_param,
+						config->isContinuousTime,
                         config->func_measure,
                         config->func_dx_dt,
                         config->func_dP_dt,
@@ -686,7 +687,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	        printf("\n");*/
 
 
-                    innov_determinant=cda_ekalmanfilter_updateonly_smoother(t, regime_k,
+                    innov_determinant=ext_kalmanfilter_updateonly_smoother(t, regime_k,
                         eta_regime_j_t[t][regime_j], error_cov_regime_j_t[t][regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
@@ -720,11 +721,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	        print_matrix(error_cov_regime_j_t[t][regime_j]);
             	        printf("\n");*/
 
-                    innov_determinant=cda_ekalmanfilter_smoother(t, regime_k,
+                    innov_determinant=ext_kalmanfilter_smoother(t, regime_k,
                         eta_regime_j_t[t-1][regime_j], error_cov_regime_j_t[t-1][regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
                         param->func_param,config->num_func_param,
+						config->isContinuousTime,
                         config->func_measure,
                         config->func_dx_dt,
                         config->func_dP_dt,

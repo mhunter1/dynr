@@ -25,7 +25,7 @@ Note
 #include <string.h>
 #include "nlopt.h"
 #include "math_function.h"
-#include "cdaekf.h"
+#include "ekf.h"
 #include "data_structure.h"
 #include "brekfis.h"
 #include "adaodesolver.h"

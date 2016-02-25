@@ -13,13 +13,13 @@
 
 
 void function_dynam_ada(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-        double *gparameters,const gsl_vector *co_variate,
-        void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+        double *gparameters, size_t n_gparam,const gsl_vector *co_variate,
+        void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
         gsl_vector *x_tend){
 
         double tau_max=(tend-tstart)/10;/*specify tau_max*/
         double global_error_limit=10;/*specify global error limit*/
-        adaptive_ode_kf(tstart, tend, xstart,tau_max,global_error_limit, regime,  gparameters, co_variate, (*g),x_tend);
+        adaptive_ode_kf(tstart, tend, xstart,tau_max,global_error_limit, regime,  gparameters, n_gparam, co_variate, (*g),x_tend);
 
 }
 

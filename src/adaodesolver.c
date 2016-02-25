@@ -258,7 +258,7 @@ void debug_adaptive_ode(){
 void adaptive_ode_kf(const double tstart, const double tend,
 	const gsl_vector *xstart,
 	const double tau_max,const double global_error_limit, size_t regime,
-	double *gparameters, const gsl_vector *co_variate, void (*g)(double, size_t,const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+	double *gparameters, size_t n_gparam, const gsl_vector *co_variate, void (*g)(double, size_t,const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
 	gsl_vector *x_tend
 	){
 
@@ -285,7 +285,7 @@ void adaptive_ode_kf(const double tstart, const double tend,
     gsl_vector *g_integral=gsl_vector_alloc(np);
     gsl_vector *g_xl12=gsl_vector_alloc(np);
     gsl_vector *g_xl22=gsl_vector_alloc(np);
-    (*g)(tstart,regime,xstart, gparameters,co_variate,g_l);
+    (*g)(tstart,regime,xstart, gparameters, n_gparam,co_variate,g_l);
 
     size_t index=0;
     for(index=0; index<xstart->size; index++){
@@ -318,14 +318,14 @@ void adaptive_ode_kf(const double tstart, const double tend,
 
             for(i=3;i!=0;i--){
                 gsl_matrix_get_col(x_column_lplus1,x,l+1);
-                (*g)(gsl_vector_get(t,l+1),regime, x_column_lplus1,gparameters, co_variate,g_lplus1);
+                (*g)(gsl_vector_get(t,l+1),regime, x_column_lplus1,gparameters, n_gparam, co_variate,g_lplus1);
 
                 for(index=0; index<np; index++){
                     gsl_vector_set(x_l12,index,a1*gsl_matrix_get(x,index,l)+a2*gsl_matrix_get(x,index,l+1)+gsl_vector_get(tau,l)*(d1*gsl_vector_get(g_l,index)-d2*gsl_vector_get(g_lplus1,index)));
                     gsl_vector_set(x_l22,index,a2*gsl_matrix_get(x,index,l)+a1*gsl_matrix_get(x,index,l+1)+gsl_vector_get(tau,l)*(d2*gsl_vector_get(g_l,index)-d1*gsl_vector_get(g_lplus1,index)));
                 }
-                (*g)(gsl_vector_get(t,l)+c1*gsl_vector_get(tau,l),regime,x_l12,gparameters, co_variate,g_xl12);
-                (*g)(gsl_vector_get(t,l)+c2*gsl_vector_get(tau,l),regime,x_l22,gparameters, co_variate,g_xl22);
+                (*g)(gsl_vector_get(t,l)+c1*gsl_vector_get(tau,l),regime,x_l12,gparameters, n_gparam, co_variate,g_xl12);
+                (*g)(gsl_vector_get(t,l)+c2*gsl_vector_get(tau,l),regime,x_l22,gparameters, n_gparam, co_variate,g_xl22);
                 for(index=0; index<np; index++)
                     gsl_vector_set(g_integral, index,gsl_vector_get(tau,l)*b*(gsl_vector_get(g_xl12,index)+gsl_vector_get(g_xl22,index)));
                 for(index=0; index<np; index++)
@@ -392,7 +392,7 @@ void adaptive_ode_kf(const double tstart, const double tend,
 
 }
 
-void function_F_debug(double t, size_t regime, const gsl_vector *x,double *gparameters, const gsl_vector *co_variate, gsl_vector *F){
+void function_F_debug(double t, size_t regime, const gsl_vector *x,double *gparameters, size_t n_gparam, const gsl_vector *co_variate, gsl_vector *F){
     gsl_vector_set(F,0,gsl_vector_get(x,1));
     gsl_vector_set(F,1,gparameters[0]*(1-pow(gsl_vector_get(x,0),2))*gsl_vector_get(x,1)-gsl_vector_get(x,0));
 }
@@ -402,13 +402,13 @@ void debug_adaptive_ode_kf(){
     gsl_vector *xstart=gsl_vector_alloc(np);
     gsl_vector *x_tend=gsl_vector_alloc(np);
     double gparameters[]={3.0};
-
+	size_t n_gparam=1;
 
     gsl_vector_set(xstart,0,0.5);
     gsl_vector_set(xstart,1,0.5);
 
 
-    adaptive_ode_kf(0, 10,xstart,0.1,0.05,regime, gparameters, NULL, function_F_debug,x_tend);
+    adaptive_ode_kf(0, 10,xstart,0.1,0.05,regime, gparameters, n_gparam, NULL, function_F_debug,x_tend);
 
      print_vector(x_tend);
 
@@ -448,8 +448,8 @@ void debug_adaptive_ode_kf(){
 * *
 *********************************************/
 void rk4_odesolver(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-        double *gparameters,const gsl_vector *co_variate,
-        void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+        double *gparameters, size_t n_gparam,const gsl_vector *co_variate,
+        void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
 	gsl_vector *x_tend){
 
         size_t np=xstart->size;
@@ -465,24 +465,24 @@ void rk4_odesolver(const double tstart, const double tend, size_t regime, const 
         print_vector(xstart);*/
 
 	double delta=tend-tstart;
-	(*g)(tstart, regime, xstart, gparameters, co_variate, k1);
+	(*g)(tstart, regime, xstart, gparameters, n_gparam, co_variate, k1);
 	gsl_vector_scale(k1, delta/2);/*k1<-delta/2*k1*/
 	gsl_vector_memcpy(x1, xstart);
 	gsl_vector_add(x1, k1);/*x1<-xstart+delta/2*k1*/
 	gsl_vector_scale(k1,1.0/3);/*k1<-delta/6*k1*/
-        (*g)(tstart, regime, x1, gparameters, co_variate, k2);
+        (*g)(tstart, regime, x1, gparameters, n_gparam, co_variate, k2);
         gsl_vector_scale(k2, delta/2);/*k2<-delta/2*k2*/
 	gsl_vector_memcpy(x2, xstart);
 	gsl_vector_add(x2, k2);/*x1<-xstart+delta/2*k2*/
 	gsl_vector_scale(k2,2.0/3);/*k2<-delta/3*k2*/
 	gsl_vector_add(k1,k2);/*k1<-delta/6*k1+delta/3*k2*/
-        (*g)(tstart, regime, x2, gparameters, co_variate, k3);
+        (*g)(tstart, regime, x2, gparameters, n_gparam, co_variate, k3);
         gsl_vector_scale(k3, delta);/*k3<-delta*k3*/
 	gsl_vector_memcpy(x3, xstart);
 	gsl_vector_add(x3, k3);/*x3<-xstart+delta*k3*/
         gsl_vector_scale(k3,1.0/3);/*k3<-delta/3*k3*/
 	gsl_vector_add(k1,k3);/*k1<-delta/6*k1+delta/3*k2+delta/3*k3*/
-	(*g)(tstart, regime, x3, gparameters, co_variate, k4);
+	(*g)(tstart, regime, x3, gparameters, n_gparam, co_variate, k4);
         gsl_vector_scale(k4,delta/6);/*k4<-delta/6*k4*/
 	gsl_vector_add(k1,k4);/*k1<-delta/6*k1+delta/3*k2+delta/3*k3+delta/6*k4*/
 

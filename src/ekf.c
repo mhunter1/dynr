@@ -1,6 +1,6 @@
- /********************************************************
-* The Continous-Discrete Adaptive Extended Kalman Filter *
-* @Author: Lu Ou.                       *
+ /*********************************************************************
+* The Discrete/Continous-Discrete Extended Kalman Filter*
+* @Author: Lu Ou.                       	*
 * @created Fall 2014
 * Purpose:    *
 * Usage:                                        *
@@ -15,13 +15,13 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 #include "math_function.h"
-#include "cdaekf.h"
+#include "ekf.h"
 #include "adaodesolver.h"
 #include "model.h"
 /******************************************************************************
-* continuous-discrete adaptive extended kalman filter (CDA-EKF)
+* extended kalman filter (EKF)
 * *
-* calculate the filtered estimates and error covariance matrix using CDA-EKF
+* calculate the filtered estimates and error covariance matrix using EKF
 * store the innovation vector and innovation covariance matrix for calculating log-likelihood
 * *
 * Parameters/Input *
@@ -58,15 +58,16 @@
 * *
 *********************************************/
 
-double cda_ekalmanfilter(size_t t, size_t regime,
+double ext_kalmanfilter(size_t t, size_t regime,
         gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
 	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,
         double *params,size_t num_func_param,
+		bool isContinuousTime,
         void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *),
-        void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
-        void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
-        void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *,const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),gsl_vector *),
+        void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+        void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+        void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *, size_t, const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),gsl_vector *),
         gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, gsl_vector *innov_v, gsl_matrix *inv_innov_cov){
 
 
@@ -106,7 +107,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     printf("\n");*/
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params,co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
+    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
 
     /*printf("eta_pred:\n");
     print_vector(eta_t_plus_1);
@@ -168,13 +169,19 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     /*print_vector(error_cov_t_vec);
     printf("\n");*/
 
-
-    double dpparams[num_func_param+nx];
+    /*dpparams include params, eta_t, and eta_noise_cov_vec*/
+	size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
+    double dpparams[n_dpparams];
     for (i=0;i<num_func_param;i++)
         dpparams[i]=params[i];
     for (i=0;i<nx;i++)
     	dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
-
+    for (i=0; i<nx; i++){
+            dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
+    	for (j=i+1;j<nx;j++){
+                dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
+    	}
+    }
 
     /*printf("y_time:\n");
     printf("%f ",y_time[t-1]);
@@ -185,11 +192,11 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     print_vector(error_cov_t_vec);
     printf("\n");
     printf("parameters:\n");
-    print_array(dpparams,num_func_param+nx);
+    print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
     printf("\n");*/
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams,co_variate, func_dP_dt, Pnewvec);
+    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
 
     /*printf("error_cov_pred:\n");
     print_vector(Pnewvec);
@@ -365,7 +372,7 @@ double cda_ekalmanfilter(size_t t, size_t regime,
     return det;
 }
 
-double cda_ekalmanfilter_updateonly(size_t t, size_t regime,
+double ext_kalmanfilter_updateonly(size_t t, size_t regime,
      gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
 	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,
@@ -582,15 +589,16 @@ size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss){
         miss_code=1;
     return miss_code;
 }
-double cda_ekalmanfilter_smoother(size_t t, size_t regime,
+double ext_kalmanfilter_smoother(size_t t, size_t regime,
         gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
 	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,
         double *params,size_t num_func_param,
+		bool isContinuousTime,
         void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *),
-        void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
-        void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
-        void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *,const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),gsl_vector *),
+        void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+        void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+        void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *, size_t, const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),gsl_vector *),
         gsl_vector *eta_pred, gsl_matrix *error_cov_pred, gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, gsl_vector *innov_v, gsl_matrix *inv_innov_cov){
 
 
@@ -630,7 +638,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     printf("\n");*/
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params,co_variate, func_dx_dt, eta_t_plus_1);
+    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1);
 
     /*printf("eta_pred:\n");
     print_vector(eta_t_plus_1);
@@ -694,12 +702,19 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     printf("\n");*/
 
 
-    double dpparams[num_func_param+nx];
+    /*dpparams include params, eta_t, and eta_noise_cov_vec*/
+	size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
+    double dpparams[n_dpparams];
     for (i=0;i<num_func_param;i++)
         dpparams[i]=params[i];
     for (i=0;i<nx;i++)
     	dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
-
+    for (i=0; i<nx; i++){
+            dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
+    	for (j=i+1;j<nx;j++){
+                dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
+    	}
+    }
 
     /*printf("y_time:\n");
     printf("%f ",y_time[t-1]);
@@ -710,11 +725,11 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     print_vector(error_cov_t_vec);
     printf("\n");
     printf("parameters:\n");
-    print_array(dpparams,num_func_param+nx);
+    print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
     printf("\n");*/
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams,co_variate, func_dP_dt, Pnewvec);
+    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
 
 
     /*printf("error_cov_pred:\n");
@@ -881,7 +896,7 @@ double cda_ekalmanfilter_smoother(size_t t, size_t regime,
     return det;
 }
 
-double cda_ekalmanfilter_updateonly_smoother(size_t t, size_t regime,
+double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
      gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
 	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,

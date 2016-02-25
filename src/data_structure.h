@@ -30,7 +30,7 @@ typedef struct ParamConfig{
     /** time, regime, parameter, eta_t, co_variate, Hk, y_t **/
     void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *);
     /** double t, size_t regime, const gsl_vector *x,double *param, co_variate, gsl_vector *F_dx_dt**/
-    void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *);
+    void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *);
     /**double t, size_t regime, const gsl_vector *x,double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx**/
     void (*func_dF_dx)(double, size_t, double *, const gsl_vector *, gsl_matrix *);
     /**const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
@@ -38,11 +38,11 @@ typedef struct ParamConfig{
         void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
 	gsl_matrix *Jx**/
     void (*func_jacobdynamic)(const double, const double, size_t, const gsl_vector *,
-        double *, size_t num_func_param,const gsl_vector *,
+        double *, size_t,const gsl_vector *,
         void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
 	gsl_matrix *);
     /** time, const gsl_vector *p,double *param, gsl_vector *F_dP_dt**/
-    void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *);
+    void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *);
     /**double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0**/
     void (*func_initial_condition)(double *, gsl_vector **, gsl_vector *, gsl_vector **, gsl_matrix **);
     /**size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat**/
@@ -51,11 +51,9 @@ typedef struct ParamConfig{
     void (*func_noise_cov)(size_t, size_t, double *, gsl_matrix *, gsl_matrix *);
     /**double *param**/
     void (*func_transform)(double *);
-    /** tstart, tend, regime, xstart,gparameters,co_variate, (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),x_tend **/
+    /** tstart, tend, regime, xstart,gparameters, n_gparam,co_variate, (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),x_tend **/
     void (*func_dynam)(const double, const double, size_t, const gsl_vector *,
-        double *,const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
-	gsl_vector *);
-
+        double *, size_t, const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *), gsl_vector *);
  } ParamConfig;
 
 /**

@@ -23,8 +23,8 @@ void function_measurement(size_t t, size_t regime, double *param, const gsl_vect
 
 
 void function_dynam_discrete(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-        double *gparameters,const gsl_vector *co_variate,
-        void (*g)(double, size_t, const gsl_vector *, double *, const gsl_vector *, gsl_vector *),
+        double *gparameters, size_t n_gparam, size_t n_gparam, const gsl_vector *co_variate,
+        void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
         gsl_vector *x_tend){
 
         /**Specify the one-step-ahead dynamic model functions here**/

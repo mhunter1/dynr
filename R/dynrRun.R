@@ -152,6 +152,8 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	    model$func_address=dynr.funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
 	}
 	gc()
+	print(model)
+	print(data)
 	backendStart <- Sys.time()
 	output <- .Call("main_R", model, data, PACKAGE = "dynr")
 	backendStop <- Sys.time()
@@ -175,6 +177,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 		backendTime <- backendStop-backendStart
 		frontendTime <- totalTime-backendTime
 		obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
+		rm(output2)
 	}else{
 	  frontendStop <- Sys.time()
 	  totalTime <- frontendStop-frontendStart
@@ -184,7 +187,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
-	rm(output, output2)
+	rm(output)
 	gc()
 	return(obj)
 }
@@ -220,7 +223,11 @@ combineModelDataInformation <- function(model, data){
 	# by changing how the arguments are processed in the backend.
 	model$num_sbj <- as.integer(length(unique(data[['id']])))
 	model$dim_obs_var <- as.integer(ncol(data$observed))
-	model$dim_co_variate <- as.integer(ncol(data$covariates))
+	if ("covariates" %in% names(data)){
+	  model$dim_co_variate <- as.integer(ncol(data$covariates))
+	}else{
+	  model$dim_co_variate <- as.integer(0)
+	}
 	return(model)
 }
 

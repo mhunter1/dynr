@@ -25,7 +25,7 @@ Note
 #include <string.h>
 #include "nlopt.h"
 #include "math_function.h"
-#include "cdaekf.h"
+#include "ekf.h"
 #include "data_structure.h"
 #include "brekfis.h"
 #include "adaodesolver.h"
@@ -158,10 +158,10 @@ SEXP main_R(SEXP model_list,SEXP data_list)
     data_model.pc.index_sbj=(size_t *)malloc((data_model.pc.num_sbj+1)*sizeof(size_t *));
 
     double *ptr_index;/*used for multiple times*/
-
-    ptr_index=REAL(PROTECT(getListElement(data_list, "tstart")));
+	int *ptr_index_int;
+    ptr_index_int=INTEGER(PROTECT(getListElement(data_list, "tstart")));
     for(index=0;index<=data_model.pc.num_sbj;index++){
-        data_model.pc.index_sbj[index]=(size_t) ptr_index[index];
+        data_model.pc.index_sbj[index]= ptr_index_int[index];
     }
     printf("index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);
 
