@@ -80,23 +80,7 @@ dynr.matrixLoadings <- function(values, params){
 	nx <- nrow(values)
 
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
-	for(j in 1:ne){
-		for(i in 1:nx){
-			if(params[i, j] > 0){
-				ret <- paste(ret,
-					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
-					', param[', params[i, j] - 1, ']);\n', sep='')
-			} else if(values[i, j] != 0){
-				ret <- paste(ret,
-					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
-					', ', values[i, j], ');\n', sep='')
-			} else {
-				ret <- paste(ret,
-					'    gsl_matrix_set(Ht, ', i-1, ', ', j-1,
-					', ', 0, ');\n', sep='')
-			}
-		}
-	}
+	ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
 	ret <- paste(ret, "\n    gsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 	ret <- paste(ret, "\n}\n\n")
 
@@ -161,45 +145,67 @@ dynr.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be
 
 #------------------------------------------------------------------------------
 #  Utility function written by Lu as a wrapper to take 
-function_gsl_matrix_set(Pattern,StartVal,Fit,MatrixName){
+function_gsl_matrix_set(Pattern, StartVal, Fit, MatrixName){
 	code=""
 	if (Pattern=="Symm"){
 		for (index_col in 1:ncol){
 			if (fit){
-				code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,param[",index_col*(index_col+1)+index_col,"]);"),""), collapse="\n")
+				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_col*(index_col+1)+index_col,"]);"),""), collapse="\n")
 			}else{
-				code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,",StartVal[index_col*(index_col+1)+index_col],");"),""), collapse="\n")
+				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_col*(index_col+1)+index_col],");"),""), collapse="\n")
 			}
 			for (index_row in (index_col+1):nrow){
 				if (fit){
-					code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,param[",index_row*(index_col+1)+index_col,"]);"),""), collapse="\n")
+					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_row*(index_col+1)+index_col,"]);"),""), collapse="\n")
 				}else{
-					code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,",StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
-					code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_col, index_row,",StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
+					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
+					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_col, index_row,", StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
 				}
 			}
 		}
 	}else if (Pattern=="Diag"){
 		for (index_col in 1:ncol){
 			if (fit){
-				code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,param[",index_col,"]);"),""), collapse="\n")
+				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_col,"]);"),""), collapse="\n")
 			}else{
-				code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,",StartVal[index_col],");"),""), collapse="\n")
+				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_col],");"),""), collapse="\n")
 			}
 		}
 	}else{#Full
 		for (index_col in 1:ncol){
 			for (index_row in 1:nrow){
 				if (fit){
-					code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,param[",index_row*ncol+index_col,"]);"),""), collapse="\n")
+					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_row*ncol+index_col,"]);"),""), collapse="\n")
 				}else{
-					code<-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ",index_row, index_col,",StartVal[index_row*ncol+index_col],");"),""), collapse="\n")
+					code <-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_row*ncol+index_col],");"),""), collapse="\n")
 				}
-	
 			}
 		}
 	}
 	return(code)
 }
+
+
+
+setGslMatrixElements <- function(values, params, name){
+	ret <- ""
+	numRow <- nrow(values)
+	numCol <- ncol(values)
+	for(j in 1:numCol){
+		for(i in 1:numRow){
+			if(params[i, j] > 0){
+				ret <- paste(ret,
+					'    gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					', param[', params[i, j] - 1, ']);\n', sep='')
+			} else if(values[i, j] != 0){
+				ret <- paste(ret,
+					'    gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					', ', values[i, j], ');\n', sep='')
+			}
+		}
+	}
+	return(ret)
+}
+
 
 
