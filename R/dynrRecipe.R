@@ -76,9 +76,6 @@ dynr.loadings <- function(map, params, idvar){
 # a zero param is taken to me fixed.
 
 dynr.matrixLoadings <- function(values, params){
-	ne <- ncol(values)
-	nx <- nrow(values)
-
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
 	ret <- paste(ret, "\n    gsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
@@ -99,43 +96,13 @@ dynr.matrixLoadings <- function(values, params){
 
 #------------------------------------------------------------------------------
 # Error covariance matrix
-dynr.error_cov <- function(map, params, idvar)
-{
-  if(missing(idvar)){
-    idvar <- sapply(map, '[', 1)
-  }
-  
-  allVars <- unique(unlist(map))
-  
-  nx <- length(allVars)
-  ne <- length(map)
-  
-  if(!all(idvar %in% c(names(map), unlist(map)))){
-    stop("The 'idvar' must all be either in the names of the 'map' argument or parts of the part 'map' argument.")
-  }
-  
-  paramsNeeded <- length(unlist(map)) - sum(idvar %in% allVars)
-  if(length(params) != paramsNeeded){
-    stop(paste0("Number of free parameters provided (", length(params), ") does not match number needed (", paramsNeeded, ")."))
-  }
-  
-  nx <- length(allVars)
-  ne <- length(map)
-  
-  k <- 1
-  ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
-  for(j in 1:ne){
-    for(i in 1:nx){
-      if(allVars[i] %in% map[[j]] & !(allVars[i] %in% idvar)){
-        ret <- paste(ret,
-                     '    gsl_matrix_set(y_noise_cov, ', i-1, ', ', j-1,
-                     ', param[', (params[k]-1), ']);\n', sep='')
-        k <- k+1
-      }
-    }
-  }
-  ret <- paste(ret, "\n}\n\n")
-  cat(ret)
+dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
+	ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
+	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
+	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
+	ret <- paste(ret, "\n}\n\n")
+
+	return(ret)
 }
 
 
