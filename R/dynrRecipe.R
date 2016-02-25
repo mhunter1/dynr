@@ -73,7 +73,7 @@ dynr.loadings <- function(map, params, idvar){
 # matrix input version
 
 # values, and params are all MxN matrices
-# a zero param is taken to me fixed.
+# a zero param is taken to be fixed.
 
 dynr.matrixLoadings <- function(values, params){
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
@@ -96,6 +96,10 @@ dynr.matrixLoadings <- function(values, params){
 
 #------------------------------------------------------------------------------
 # Error covariance matrix
+# N.B. This function produces BOTH the latent and observed error covariance matrices.
+
+#--------------------------------------
+# matrix input version
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
 	ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
@@ -103,6 +107,24 @@ dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, p
 	ret <- paste(ret, "\n}\n\n")
 
 	return(ret)
+}
+
+
+#------------------------------------------------------------------------------
+# Regime switching matrix/function
+
+dynr.regimes <- function(){
+	
+}
+
+
+#------------------------------------------------------------------------------
+# "Dynamics" functions
+
+# produces "drift" or "state-transition" matrices in continuous or discrete time, respectively.
+# second input is for the jacobian of the drift/state-transition
+dynr.dynamics <- function(){
+	
 }
 
 
