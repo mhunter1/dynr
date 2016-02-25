@@ -25,7 +25,7 @@ typedef struct ParamConfig{
     size_t num_sbj; /** number of subjects **/
     size_t *index_sbj;
     size_t total_obs;
-    bool isContinuousTime; /** Flag for discrete-time model: 1 = yes; 0 = no**/
+    bool isContinuousTime; /** Flag for continuous-time model: 1 = yes; 0 = no**/
 
     /** time, regime, parameter, eta_t, co_variate, Hk, y_t **/
     void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *);
