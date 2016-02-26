@@ -13,6 +13,8 @@
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
 
+# TODO add ability to use covariates in these functions
+
 #--------------------------------------
 # brief input version
 
@@ -98,6 +100,9 @@ dynr.matrixLoadings <- function(values, params){
 # Error covariance matrix
 # N.B. This function produces BOTH the latent and observed error covariance matrices.
 
+# TODO break below into two functions that populate into the same C function
+#  at cook time.
+
 #--------------------------------------
 # matrix input version
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
@@ -123,9 +128,22 @@ dynr.regimes <- function(){
 
 # produces "drift" or "state-transition" matrices in continuous or discrete time, respectively.
 # second input is for the jacobian of the drift/state-transition
+
+
 dynr.dynamics <- function(){
 	
 }
+
+
+dynr.linearDynamics <- function(){
+	
+}
+
+
+# nonlinear functions for lookup
+# exp, log, +, -, *, ^, **, sqrt,
+# sin, cos, tan, asin, acos, atan,
+# sinh, cosh, tanh, asinh, acosh, atanh
 
 
 #------------------------------------------------------------------------------

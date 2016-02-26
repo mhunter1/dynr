@@ -78,28 +78,26 @@ setMethod("plot", "dynrRun",
 	}
 )
 
-#' The ggplot of the smoothed state estimates and the most likely regimes
-#' 
-#' @param res The dynr object returned by dynr.run().
-#' @param data.dynr The dynr data returned by dynr.data().
-#' @param numSubjDemo The number of subjects to be randomly selected for plotting.
-#' @param states The indices of the states to be plotted.
-#' @param names.state The names of the states to be plotted, which can be missing.
-#' @param names.regime The names of the regimes to be plotted, which can be missing.
-#' @param shape.values A vector of values that correspond to the shapes of the points, which can be missing.
-#' @param title A title of the plot.
-#' @param ylab The label of the y axis.
-#' @param is.bw Is plot in black and white?
-#' @param colorPalette A palette function for lines and dots that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
-#' @param fillPalette A palette function for blocks that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
-#' @param mancolorPalette A color palette for manually scaling the colors of lines and plots.
-#' @param manfillPalette A color palette for manually scaling the colors of filled blocks.
-#' @param ... A list of element name, element pairings that modify the existing ggplot theme. Consult the theme() function in the R package ggplot.
+##' The ggplot of the smoothed state estimates and the most likely regimes
+##' 
+##' @param res The dynr object returned by dynr.run().
+##' @param data.dynr The dynr data returned by dynr.data().
+##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
+##' @param states The indices of the states to be plotted.
+##' @param names.state The names of the states to be plotted, which can be missing.
+##' @param names.regime The names of the regimes to be plotted, which can be missing.
+##' @param shape.values A vector of values that correspond to the shapes of the points, which can be missing.
+##' @param title A title of the plot.
+##' @param ylab The label of the y axis.
+##' @param is.bw Is plot in black and white?
+##' @param colorPalette A palette function for lines and dots that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
+##' @param fillPalette A palette function for blocks that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
+##' @param mancolorPalette A color palette for manually scaling the colors of lines and plots.
+##' @param manfillPalette A color palette for manually scaling the colors of filled blocks.
+##' @param ... A list of element name, element pairings that modify the existing ggplot theme. Consult the theme() function in the R package ggplot.
 dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, states, 
                         names.state, names.regime,shape.values,
-                        title="Smoothed State Values", ylab="Smoothed State Values",  	
-                        is.bw=FALSE,colorPalette="Set2",fillPalette="Set2",mancolorPalette,manfillPalette,
-                        ...){
+                        title="Smoothed State Values", ylab="Smoothed State Values", is.bw=FALSE, colorPalette="Set2", fillPalette="Set2", mancolorPalette, manfillPalette, ...){
 	dims=dim(res@eta_regime_regime_t_pred)
 	dim_latent_var=dims[1]
 	num_regime=dims[2]
