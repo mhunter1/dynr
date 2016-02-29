@@ -213,7 +213,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                         config->func_measure,
                         config->func_dx_dt,
                         config->func_dP_dt,
+						config->func_dF_dx,
                         config->func_dynam,
+						config->func_jacob_dynam,
                         eta_jk_t_plus_1[regime_j][regime_k], error_cov_jk_t_plus_1[regime_j][regime_k], innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k]);/*inverse*/
 
 
@@ -730,7 +732,9 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         config->func_measure,
                         config->func_dx_dt,
                         config->func_dP_dt,
+						config->func_dF_dx,
                         config->func_dynam,
+						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k],error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
 
@@ -1014,7 +1018,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     /*Notice that the parameters input into function_dF_dx and function_dP_dt*/
                     /*for (i=0;i<config->dim_latent_var;i++)
                         params_aug[config->num_func_param+i]=gsl_vector_get(eta_regime_j_t[t][regime_k],i);*/
-                    config->func_jacobdynamic(y_time[t],y_time[t+1],regime_k,eta_regime_j_t[t][regime_k],param->func_param,config->num_func_param, co_variate[t],config->func_dF_dx, Jacob_dyn_x);
+                    config->func_jacob_dynam(y_time[t],y_time[t+1],regime_k,eta_regime_j_t[t][regime_k],param->func_param,config->num_func_param, co_variate[t],config->func_dF_dx, Jacob_dyn_x);
 
                     /*P_tilde_regime_jk=error_cov_regime_j_t[t][regime_j] %*% Jacob_dyn_x %*% inv(error_cov_regime_jk_pred[t+1][regime_j][regime_k])*/
 

@@ -17,7 +17,8 @@
 #include "math_function.h"
 #include "ekf.h"
 #include "adaodesolver.h"
-#include "model.h"
+#include <R.h>
+#include <Rinternals.h>
 /******************************************************************************
 * extended kalman filter (EKF)
 * *
@@ -67,17 +68,21 @@ double ext_kalmanfilter(size_t t, size_t regime,
         void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *),
         void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
         void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+		void (*func_dF_dx)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
         void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *, size_t, const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),gsl_vector *),
+	    void (*func_jacob_dynam)(const double, const double, size_t, const gsl_vector *,
+			double *, size_t,const gsl_vector *,
+	        void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
+			gsl_matrix *),
         gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, gsl_vector *innov_v, gsl_matrix *inv_innov_cov){
 
 
     size_t nx=eta_t->size;
 
     size_t i,j;
-    gsl_vector *Pnewvec=gsl_vector_alloc(nx*(nx+1)/2);
-    gsl_vector *error_cov_t_vec=gsl_vector_alloc(nx*(nx+1)/2);
 
-    gsl_matrix *H_t_plus_1=gsl_matrix_alloc(y_t_plus_1->size,nx);
+
+    gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size,nx);
 
 
     gsl_matrix *ph=gsl_matrix_calloc(eta_t->size, y_t_plus_1->size); /* P*H' - error_cov*jacob'*/
@@ -153,82 +158,98 @@ double ext_kalmanfilter(size_t t, size_t regime,
     /*printf("y_hat(%d):", t_plus_1);
     print_vector(innov_v);
     printf("\n");*/
-    /*------------------------------------------------------*\
-    * update P *
-    \*------------------------------------------------------*/
-    /*print_matrix(error_cov_t);
-    printf("\n");
-    exit(0);*/
-    for(i=0; i<nx; i++){
-            gsl_vector_set(error_cov_t_vec,i,gsl_matrix_get(error_cov_t,i,i));
-    	for (j=i+1;j<nx;j++){
-                gsl_vector_set(error_cov_t_vec,i+j+nx-1,gsl_matrix_get(error_cov_t,i,j));
-    	    /*printf("%lu",i+j+nx-1);}*/
-    	}
-    }
-    /*print_vector(error_cov_t_vec);
-    printf("\n");*/
+	if (isContinuousTime){
+		
+	    gsl_vector *Pnewvec=gsl_vector_calloc(nx*(nx+1)/2);
+	    gsl_vector *error_cov_t_vec=gsl_vector_calloc(nx*(nx+1)/2);
+		
+		/*------------------------------------------------------*\
+		* update P *
+		\*------------------------------------------------------*/
+		/*print_matrix(error_cov_t);
+		printf("\n");
+		exit(0);*/
+		for(i=0; i<nx; i++){
+			gsl_vector_set(error_cov_t_vec,i,gsl_matrix_get(error_cov_t,i,i));
+			for (j=i+1;j<nx;j++){
+				gsl_vector_set(error_cov_t_vec,i+j+nx-1,gsl_matrix_get(error_cov_t,i,j));
+				/*printf("%lu",i+j+nx-1);}*/
+			}
+		}
+		/*print_vector(error_cov_t_vec);
+		printf("\n");*/
 
-    /*dpparams include params, eta_t, and eta_noise_cov_vec*/
-	size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
-    double dpparams[n_dpparams];
-    for (i=0;i<num_func_param;i++)
-        dpparams[i]=params[i];
-    for (i=0;i<nx;i++)
-    	dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
-    for (i=0; i<nx; i++){
-            dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
-    	for (j=i+1;j<nx;j++){
-                dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
-    	}
-    }
+		/*dpparams include params, eta_t, and eta_noise_cov_vec*/
+		size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
+		double dpparams[n_dpparams];
+		for (i=0;i<num_func_param;i++)
+			dpparams[i]=params[i];
+		for (i=0;i<nx;i++)
+			dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
+		for (i=0; i<nx; i++){
+			dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
+			for (j=i+1;j<nx;j++){
+				dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
+			}
+		}
 
-    /*printf("y_time:\n");
-    printf("%f ",y_time[t-1]);
-    printf("%f",y_time[t]);
-    printf("\n");
-    printf("regime: %lu\n",regime);
-    printf("error_cov_previous:\n");
-    print_vector(error_cov_t_vec);
-    printf("\n");
-    printf("parameters:\n");
-    print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
-    printf("\n");*/
-
-
-    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
-
-    /*printf("error_cov_pred:\n");
-    print_vector(Pnewvec);
-    printf("\n");*/
-
-    for(i=0; i<nx; i++){
-    gsl_matrix_set(error_cov_t_plus_1,i,i,gsl_vector_get(Pnewvec,i));
-    	for (j=i+1;j<nx;j++){
-    	gsl_matrix_set(error_cov_t_plus_1,i,j,gsl_vector_get(Pnewvec,i+j+nx-1));
-    	gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
-    	}
-    }
+		/*printf("y_time:\n");
+		printf("%f ",y_time[t-1]);
+		printf("%f",y_time[t]);
+		printf("\n");
+		printf("regime: %lu\n",regime);
+		printf("error_cov_previous:\n");
+		print_vector(error_cov_t_vec);
+		printf("\n");
+		printf("parameters:\n");
+		print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
+		printf("\n");*/
 
 
-    /*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
-    gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
-    gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
-    gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
-    gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
-    gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
-    gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
-    gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
-    gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
-    
-    
-    /*------------------------------------------------------*\
-    * Update P discrete--------error_cov_t_plus_1=eta_noise_cov+jacobdynamic%*%error_cov_t%*%t(jacobdynamic)*
-    \*------------------------------------------------------*/
+		func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
 
-    /*gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacobdynamic, 0.0, pjacobdynamic);*/ /* compute P*jacobdynamic'*/
-    /*gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacobdynamic, pjacobdynamic, 0.0, error_cov_t_plus_1); *//* compute jacobdynamic*P*jacobdynamic'*/
-    /*gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov);*/ /*compute H*P*H'+Q*/
+		/*printf("error_cov_pred:\n");
+		print_vector(Pnewvec);
+		printf("\n");*/
+
+		for(i=0; i<nx; i++){
+			gsl_matrix_set(error_cov_t_plus_1,i,i,gsl_vector_get(Pnewvec,i));
+			for (j=i+1;j<nx;j++){
+				gsl_matrix_set(error_cov_t_plus_1,i,j,gsl_vector_get(Pnewvec,i+j+nx-1));
+				gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
+			}
+		}
+
+
+		/*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
+		gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
+		gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
+		gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
+		gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
+		gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
+		gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
+		gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
+		gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
+		
+	    gsl_vector_free(error_cov_t_vec);
+	    gsl_vector_free(Pnewvec);
+		
+	}else{
+		
+	    gsl_matrix *jacob_dynam=gsl_matrix_calloc(nx,nx);
+	    gsl_matrix *p_jacob_dynam=gsl_matrix_calloc(nx, nx);
+	    /*------------------------------------------------------*\
+	    * Update P discrete--------error_cov_t_plus_1=eta_noise_cov+jacobdynamic%*%error_cov_t%*%t(jacobdynamic)*
+	    \*------------------------------------------------------*/
+		
+		func_jacob_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dF_dx,jacob_dynam);
+	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacob_dynam, 0.0, p_jacob_dynam); /* compute P*jacobdynamic'*/
+	    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacob_dynam, p_jacob_dynam, 0.0, error_cov_t_plus_1); /* compute jacobdynamic*P*jacobdynamic'*/
+	    gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov); /*compute H*P*H'+Q*/
+		
+		gsl_matrix_free(jacob_dynam);
+		gsl_matrix_free(p_jacob_dynam);
+	}
 
     
 
@@ -360,8 +381,7 @@ double ext_kalmanfilter(size_t t, size_t regime,
 
 
     /** free allocated space **/
-    gsl_vector_free(error_cov_t_vec);
-    gsl_vector_free(Pnewvec);
+
     gsl_matrix_free(ph);
     gsl_matrix_free(innov_cov);
     gsl_matrix_free(kalman_gain);
@@ -569,7 +589,7 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
 }
 /**
  * This method finds the missing data and sets it to zero (so that the following computation can go on). It also sets the corresponding position as 0.
- * @param y the data. missing ones are represented as "nan"
+ * @param y the data. missing ones are represented as NA in R
  * @param non_miss the indication. 1 for not missing and 0 for missing
  * @return the missing code, 0 - no miss, 1 - part miss, 2 - all miss
  */
@@ -579,7 +599,8 @@ size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss){
     double sum=0;
     gsl_vector_set_all(non_miss, 1);
     for(col_index=0; col_index<y->size; col_index++){
-        if(gsl_vector_get(y, col_index)!=gsl_vector_get(y, col_index)) /*missing data*/
+		if(ISNA(gsl_vector_get(y, col_index))) /*missing data*/
+        /*if(gsl_vector_get(y, col_index)!=gsl_vector_get(y, col_index))*/ /*missing data*/
             gsl_vector_set(non_miss, col_index, 0);
         sum+=gsl_vector_get(non_miss, col_index);
     }
@@ -591,22 +612,25 @@ size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss){
 }
 double ext_kalmanfilter_smoother(size_t t, size_t regime,
         gsl_vector *eta_t,  gsl_matrix *error_cov_t,
-	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
-	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,
+		const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
+		const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov,
         double *params,size_t num_func_param,
 		bool isContinuousTime,
         void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *),
         void (*func_dx_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
         void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
+		void (*func_dF_dx)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
         void (*func_dynam)(const double, const double, size_t, const gsl_vector *,double *, size_t, const gsl_vector *, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),gsl_vector *),
+	    void (*func_jacob_dynam)(const double, const double, size_t, const gsl_vector *,
+			double *, size_t,const gsl_vector *,
+	        void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
+			gsl_matrix *),
         gsl_vector *eta_pred, gsl_matrix *error_cov_pred, gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, gsl_vector *innov_v, gsl_matrix *inv_innov_cov){
 
 
     size_t nx=eta_t->size;
 
     size_t i,j;
-    gsl_vector *Pnewvec=gsl_vector_alloc(nx*(nx+1)/2);
-    gsl_vector *error_cov_t_vec=gsl_vector_alloc(nx*(nx+1)/2);
 
     gsl_matrix *H_t_plus_1=gsl_matrix_alloc(y_t_plus_1->size,nx);
 
@@ -685,64 +709,99 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     /*printf("y_hat(%d):", t_plus_1);
     print_vector(innov_v);
     printf("\n");*/
-    /*------------------------------------------------------*\
-    * update P *
-    \*------------------------------------------------------*/
-    /*print_matrix(error_cov_t);
-    printf("\n");
-    exit(0);*/
-    for(i=0; i<nx; i++){
-            gsl_vector_set(error_cov_t_vec,i,gsl_matrix_get(error_cov_t,i,i));
-    	for (j=i+1;j<nx;j++){
-                gsl_vector_set(error_cov_t_vec,i+j+nx-1,gsl_matrix_get(error_cov_t,i,j));
-    	    /*printf("%lu",i+j+nx-1);}*/
-    	}
-    }
-    /*print_vector(error_cov_t_vec);
-    printf("\n");*/
+	if (isContinuousTime){
+		
+	    gsl_vector *Pnewvec=gsl_vector_calloc(nx*(nx+1)/2);
+	    gsl_vector *error_cov_t_vec=gsl_vector_calloc(nx*(nx+1)/2);
+		
+		/*------------------------------------------------------*\
+		* update P *
+		\*------------------------------------------------------*/
+		/*print_matrix(error_cov_t);
+		printf("\n");
+		exit(0);*/
+		for(i=0; i<nx; i++){
+			gsl_vector_set(error_cov_t_vec,i,gsl_matrix_get(error_cov_t,i,i));
+			for (j=i+1;j<nx;j++){
+				gsl_vector_set(error_cov_t_vec,i+j+nx-1,gsl_matrix_get(error_cov_t,i,j));
+				/*printf("%lu",i+j+nx-1);}*/
+			}
+		}
+		/*print_vector(error_cov_t_vec);
+		printf("\n");*/
+
+		/*dpparams include params, eta_t, and eta_noise_cov_vec*/
+		size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
+		double dpparams[n_dpparams];
+		for (i=0;i<num_func_param;i++)
+			dpparams[i]=params[i];
+		for (i=0;i<nx;i++)
+			dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
+		for (i=0; i<nx; i++){
+			dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
+			for (j=i+1;j<nx;j++){
+				dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
+			}
+		}
+
+		/*printf("y_time:\n");
+		printf("%f ",y_time[t-1]);
+		printf("%f",y_time[t]);
+		printf("\n");
+		printf("regime: %lu\n",regime);
+		printf("error_cov_previous:\n");
+		print_vector(error_cov_t_vec);
+		printf("\n");
+		printf("parameters:\n");
+		print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
+		printf("\n");*/
 
 
-    /*dpparams include params, eta_t, and eta_noise_cov_vec*/
-	size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
-    double dpparams[n_dpparams];
-    for (i=0;i<num_func_param;i++)
-        dpparams[i]=params[i];
-    for (i=0;i<nx;i++)
-    	dpparams[num_func_param+i]=gsl_vector_get(eta_t,i);
-    for (i=0; i<nx; i++){
-            dpparams[num_func_param+nx+i]=gsl_matrix_get(eta_noise_cov,i,i);
-    	for (j=i+1;j<nx;j++){
-                dpparams[num_func_param+nx+i+j+nx-1]=gsl_matrix_get(eta_noise_cov,i,j);
-    	}
-    }
+		func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
 
-    /*printf("y_time:\n");
-    printf("%f ",y_time[t-1]);
-    printf("%f",y_time[t]);
-    printf("\n");
-    printf("regime: %lu\n",regime);
-    printf("error_cov_previous:\n");
-    print_vector(error_cov_t_vec);
-    printf("\n");
-    printf("parameters:\n");
-    print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
-    printf("\n");*/
+		/*printf("error_cov_pred:\n");
+		print_vector(Pnewvec);
+		printf("\n");*/
+
+		for(i=0; i<nx; i++){
+			gsl_matrix_set(error_cov_t_plus_1,i,i,gsl_vector_get(Pnewvec,i));
+			for (j=i+1;j<nx;j++){
+				gsl_matrix_set(error_cov_t_plus_1,i,j,gsl_vector_get(Pnewvec,i+j+nx-1));
+				gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
+			}
+		}
 
 
-    func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
+		/*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
+		gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
+		gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
+		gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
+		gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
+		gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
+		gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
+		gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
+		gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
+		
+	    gsl_vector_free(error_cov_t_vec);
+	    gsl_vector_free(Pnewvec);
+		
+	}else{
+		
+	    gsl_matrix *jacob_dynam=gsl_matrix_calloc(nx,nx);
+	    gsl_matrix *p_jacob_dynam=gsl_matrix_calloc(nx, nx);
+	    /*------------------------------------------------------*\
+	    * Update P discrete--------error_cov_t_plus_1=eta_noise_cov+jacobdynamic%*%error_cov_t%*%t(jacobdynamic)*
+	    \*------------------------------------------------------*/
+		
+		func_jacob_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dF_dx,jacob_dynam);
+	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacob_dynam, 0.0, p_jacob_dynam); /* compute P*jacobdynamic'*/
+	    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacob_dynam, p_jacob_dynam, 0.0, error_cov_t_plus_1); /* compute jacobdynamic*P*jacobdynamic'*/
+	    gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov); /*compute H*P*H'+Q*/
+		
+		gsl_matrix_free(jacob_dynam);
+		gsl_matrix_free(p_jacob_dynam);
+	}
 
-
-    /*printf("error_cov_pred:\n");
-    print_vector(Pnewvec);
-    printf("\n");*/
-
-    for(i=0; i<nx; i++){
-    gsl_matrix_set(error_cov_t_plus_1,i,i,gsl_vector_get(Pnewvec,i));
-    	for (j=i+1;j<nx;j++){
-    	gsl_matrix_set(error_cov_t_plus_1,i,j,gsl_vector_get(Pnewvec,i+j+nx-1));
-    	gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
-    	}
-    }
 
     gsl_matrix_memcpy(error_cov_pred,error_cov_t_plus_1);
 
@@ -884,8 +943,6 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 
 
     /** free allocated space **/
-    gsl_vector_free(error_cov_t_vec);
-    gsl_vector_free(Pnewvec);
     gsl_matrix_free(ph);
     gsl_matrix_free(innov_cov);
     gsl_matrix_free(kalman_gain);

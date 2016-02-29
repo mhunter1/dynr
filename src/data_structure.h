@@ -37,10 +37,10 @@ typedef struct ParamConfig{
         double *param, size_t num_func_param, const gsl_vector *co_variate,
         void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
 	gsl_matrix *Jx**/
-    void (*func_jacobdynamic)(const double, const double, size_t, const gsl_vector *,
+    void (*func_jacob_dynam)(const double, const double, size_t, const gsl_vector *,
         double *, size_t,const gsl_vector *,
         void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
-	gsl_matrix *);
+		gsl_matrix *);
     /** time, const gsl_vector *p,double *param, gsl_vector *F_dP_dt**/
     void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *);
     /**double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0**/

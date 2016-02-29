@@ -50,9 +50,8 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
            f_transform=getNativeSymbolInfo("function_transform", DLL)$address)
   }else{
     res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
-             f_dynamic=getNativeSymbolInfo("function_dynamic", DLL)$address,
-             f_dF_dx=getNativeSymbolInfo("function_dF_dx", DLL)$address,
-             f_dP_dt=null,
+             f_dynamic=getNativeSymbolInfo("function_dynam", DLL)$address,
+             f_jacob_dynamic=getNativeSymbolInfo("function_jacob_dynam", DLL)$address,
              f_initial_condition=getNativeSymbolInfo("function_initial_condition", DLL)$address,
              f_regime_switch=getNativeSymbolInfo("function_regime_switch", DLL)$address,
              f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,

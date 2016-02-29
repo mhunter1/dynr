@@ -106,24 +106,17 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     /*function specifications*/
     SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
+	
 	SEXP f_measure_sexp = PROTECT(getListElement(func_address_list, "f_measure"));
-	SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
-	SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
-	SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
 	SEXP f_regime_switch_sexp = PROTECT(getListElement(func_address_list, "f_regime_switch"));
 	SEXP f_noise_cov_sexp = PROTECT(getListElement(func_address_list, "f_noise_cov"));
 	SEXP f_initial_condition_sexp = PROTECT(getListElement(func_address_list, "f_initial_condition"));
 	SEXP f_transform_sexp = PROTECT(getListElement(func_address_list, "f_transform"));
     data_model.pc.func_measure=R_ExternalPtrAddr(f_measure_sexp);
-    data_model.pc.func_dx_dt=R_ExternalPtrAddr(f_dx_dt_sexp);
-    data_model.pc.func_dF_dx=R_ExternalPtrAddr(f_dF_dx_sexp);
-    data_model.pc.func_dP_dt=R_ExternalPtrAddr(f_dP_dt_sexp);
     data_model.pc.func_regime_switch=R_ExternalPtrAddr(f_regime_switch_sexp);
     data_model.pc.func_noise_cov=R_ExternalPtrAddr(f_noise_cov_sexp);
     data_model.pc.func_initial_condition=R_ExternalPtrAddr(f_initial_condition_sexp);
     data_model.pc.func_transform=R_ExternalPtrAddr(f_transform_sexp);
-
-    data_model.pc.func_jacobdynamic=function_jacobdynamic;
 
 /*
  *   data_model.pc.func_dx_dt=function_dx_dt;
@@ -137,20 +130,32 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	data_model.pc.isContinuousTime=*LOGICAL(isContinuousTime_sexp);
 	printf("isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
 	
-    data_model.pc.isnegloglikeweightedbyT=false;
-    data_model.pc.second_order=false;/*true;*/
-    data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
-    if (data_model.pc.adaodesolver){
-        data_model.pc.func_dynam=function_dynam_ada;
+    if (data_model.pc.isContinuousTime){
+		SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
+		SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
+		SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
+	    data_model.pc.func_dx_dt=R_ExternalPtrAddr(f_dx_dt_sexp);
+	    data_model.pc.func_dF_dx=R_ExternalPtrAddr(f_dF_dx_sexp);
+	    data_model.pc.func_dP_dt=R_ExternalPtrAddr(f_dP_dt_sexp);
+	    data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
+	    if (data_model.pc.adaodesolver){
+	        data_model.pc.func_dynam=function_dynam_ada;
+	    }else{
+	        data_model.pc.func_dynam=rk4_odesolver;
+	    }
+		data_model.pc.func_jacob_dynam=function_jacob_dynam_rk4;
     }else{
-        data_model.pc.func_dynam=rk4_odesolver;
+	    data_model.pc.func_dx_dt=NULL;
+	    data_model.pc.func_dF_dx=NULL;
+	    data_model.pc.func_dP_dt=NULL;
+		SEXP f_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_dynamic"));
+		SEXP f_jacob_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_jacob_dynamic"));
+    	data_model.pc.func_dynam = R_ExternalPtrAddr(f_dynamic_sexp);
+    	data_model.pc.func_jacob_dynam = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
     }
-    /** If discrete-time model
-    if (data_model.pc.isDiscreteTime){
-    data_model.pc.func_dynam = function_dynam_discrete;
-    data_model.pc.func_jacobdynamic = function_jacob_dynam;
-    }
-    **/
+	
+    data_model.pc.isnegloglikeweightedbyT=false;
+    data_model.pc.second_order=false;
 
     /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
     /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
@@ -910,7 +915,11 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
     /** =================Free Allocated space====================== **/
 	printf("Freeing objects before return ... \n");
-    UNPROTECT(69);/*unprotect objects: find all PROTECT in the script, then -5*/
+    if (data_model.pc.isContinuousTime){
+		UNPROTECT(69);
+	}else{
+		UNPROTECT(68);
+	}/*unprotect objects: find all PROTECT in the script, then -5*/
 
     free(str_number);
     free(data_model.pc.index_sbj);

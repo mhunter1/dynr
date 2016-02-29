@@ -152,8 +152,6 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	    model$func_address=dynr.funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
 	}
 	gc()
-	print(model)
-	print(data)
 	backendStart <- Sys.time()
 	output <- .Call("main_R", model, data, PACKAGE = "dynr")
 	backendStop <- Sys.time()
