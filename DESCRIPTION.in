@@ -1,4 +1,5 @@
 Package: dynr
+Date: @DATE@
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person("Sy-Miin", "Chow", role="aut"),
@@ -22,4 +23,5 @@ Collate:
     'dynrFuncAddress.R'
     'dynrRecipe.R'
     'dynrVersion.R'
+Version: @VERSION@
 
