@@ -152,7 +152,7 @@ dynr.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be
 
 #------------------------------------------------------------------------------
 #  Utility function written by Lu as a wrapper to take 
-function_gsl_matrix_set(Pattern, StartVal, Fit, MatrixName){
+function_gsl_matrix_set <- function(Pattern, StartVal, Fit, MatrixName){
 	code=""
 	if (Pattern=="Symm"){
 		for (index_col in 1:ncol){
