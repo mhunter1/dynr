@@ -68,9 +68,19 @@ install:
 clean:
 	mkdir -p build
 	-rm build/dynr_*.tar.gz
+	-rm build/dynr_*.zip
 	-rm src/*.o
 	-rm src/*.so
 	-rm src/*.dll
+	-rm src-i386/*.o
+	-rm src-i386/*.so
+	-rm src-i386/*.dll
+	-rm src-x64/*.o
+	-rm src-x64/*.so
+	-rm src-x64/*.dll
+	-rm inst/models/passing/*.o
+	-rm inst/models/passing/*.so
+	-rm inst/models/passing/*.dll
 	-rm src/Makevars
 	-rm config.log config.status
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
