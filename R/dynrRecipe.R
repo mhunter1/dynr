@@ -127,9 +127,47 @@ dynr.regimes <- function(){
 # produces "drift" or "state-transition" matrices in continuous or discrete time, respectively.
 # second input is for the jacobian of the drift/state-transition
 
+##' The translation function for the dynamic functions 
+##' 
+##' @param fomula a list of formulas specifying the equations for the latent variables
+##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
+##' @param ... 
+dynr.dynamics <- function(formula, isContinuosTime){
+formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
+              x2~param[5]*x2+param[7]*(exp(fabs(x1))/(1+exp(fabs(x1))))*x1)
+  n=length(formula)
+  vec.latent=as.character(unlist(lhs(formula)))
+  if (isContinuosTime){
+    
+  }else{
+    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+    for (i in 1:n){
+      formula.c=as.character(rhs(formula[[i]]))
+      #gsl_vector_set: use gsub on strings
+      for (j in 1:length(vec.latent)){
+        gsub(vec.latent[j],paste0("gsl_vector_get(xstart,",j-1,")"),as.character(rhs(formula[[1]])))
+      }
+      ret=paste(ret,paste0("gsl_vector_set(x_tend,",i-1,",","param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1))",";"),sep="\n\t")    
+    }
+    ret=paste0(ret,"\n\t}")
+    #gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
+    #gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
+    
+  }
+}
+translation<-function(formula){
+  while(endstatus!=1){
+    element=as.character(formula)
+    if 
+#   lhs=lhs(formula)
+#   rhs=rhs(formula)
+#   if (!is.symbol(lhs)){formula=lhs}
+#   if (!is.symbol(lhs)){formula=lhs}
+#   continue.lhs=!is.symbol(lhs)
+#   continue.rhs=!is.symbol(rhs)
+#   if (continue.lhs)
+}
 
-dynr.dynamics <- function(){
-	
 }
 
 
