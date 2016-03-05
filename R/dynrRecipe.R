@@ -101,10 +101,15 @@ dynr.matrixLoadings <- function(values, params){
 # N.B. This function produces BOTH the latent and observed error covariance matrices.
 
 # TODO break below into two functions that populate into the same C function
-#  at cook time.
+#  at cook time.-- maybe we do not need this
 
-#--------------------------------------
-# matrix input version
+##' The translation function for measurement error and process noise covariances
+##' Output a C function to set up measurement error and process noise covariances and the starting values of the related parameters.
+##' 
+##' @param values.latent a positive definite matrix of the starting or fixed values of the process noise covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
+##' @param params.latent a matrix of the parameter indices of the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
+##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
   values.latent=reverseldl(values.latent)
   values.observed=reverseldl(values.observed)
@@ -144,42 +149,42 @@ dynr.regimes <- function(){
 ##' @param fomula a list of formulas specifying the equations for the latent variables
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-dynr.dynamics <- function(formula, isContinuosTime){
-  formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
-              x2~param[5]*x2+param[7]*(exp(fabs(x1))/(1+exp(fabs(x1))))*x1)
-  n=length(formula)
-  vec.latent=as.character(unlist(lhs(formula)))
-  if (isContinuosTime){
-    
-  }else{
-    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-    for (i in 1:n){
-      formula.c=as.character(rhs(formula[[i]]))
-      #gsl_vector_set: use gsub on strings
-      for (j in 1:length(vec.latent)){
-        gsub(vec.latent[j],paste0("gsl_vector_get(xstart,",j-1,")"),as.character(rhs(formula[[1]])))
-      }
-      ret=paste(ret,paste0("gsl_vector_set(x_tend,",i-1,",","param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1))",";"),sep="\n\t")    
-    }
-    ret=paste0(ret,"\n\t}")
-    #gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
-    #gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
-    
-  }
-}
-translation<-function(formula){
-  while(endstatus!=1){
-    element=as.character(formula)
-    if 
-    #   lhs=lhs(formula)
-    #   rhs=rhs(formula)
-    #   if (!is.symbol(lhs)){formula=lhs}
-    #   if (!is.symbol(lhs)){formula=lhs}
-    #   continue.lhs=!is.symbol(lhs)
-    #   continue.rhs=!is.symbol(rhs)
-    #   if (continue.lhs)
-  }
-}
+# dynr.dynamics <- function(formula, isContinuosTime){
+#   formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
+#               x2~param[5]*x2+param[7]*(exp(fabs(x1))/(1+exp(fabs(x1))))*x1)
+#   n=length(formula)
+#   vec.latent=as.character(unlist(lhs(formula)))
+#   if (isContinuosTime){
+#     
+#   }else{
+#     ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+#     for (i in 1:n){
+#       formula.c=as.character(rhs(formula[[i]]))
+#       #gsl_vector_set: use gsub on strings
+#       for (j in 1:length(vec.latent)){
+#         gsub(vec.latent[j],paste0("gsl_vector_get(xstart,",j-1,")"),as.character(rhs(formula[[1]])))
+#       }
+#       ret=paste(ret,paste0("gsl_vector_set(x_tend,",i-1,",","param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1))",";"),sep="\n\t")    
+#     }
+#     ret=paste0(ret,"\n\t}")
+#     #gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
+#     #gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
+#     
+#   }
+# }
+# translation<-function(formula){
+#   while(endstatus!=1){
+#     element=as.character(formula)
+#     if 
+#     #   lhs=lhs(formula)
+#     #   rhs=rhs(formula)
+#     #   if (!is.symbol(lhs)){formula=lhs}
+#     #   if (!is.symbol(lhs)){formula=lhs}
+#     #   continue.lhs=!is.symbol(lhs)
+#     #   continue.rhs=!is.symbol(rhs)
+#     #   if (continue.lhs)
+#   }
+# }
 
 
 dynr.linearDynamics <- function(params, values){
@@ -212,6 +217,16 @@ dynr.linearDynamics <- function(params, values){
 #rhs.vars(cform)
 #TODO make sure all matrix are calloced 
 #TODO check model constraint function
+
+##' The translation function for initial conditions
+##' Output a C function to set up initial conditions (i.e., intial state vector, initial error covariance matrix, and initial probabilities of being in each regime) and the starting values of the related parameters.
+##' 
+##' @param values.inistate a vector of the starting or fixed values of the initial state vector
+##' @param params.inistate a vector of the parameter indices of the initial state vector. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param values.inicov a positive definite matrix of the starting or fixed values of the initial error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
+##' @param params.inicov a matrix of the parameter indices of the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.regimep a vector of the starting or fixed values of the initial probalities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
+##' @param params.regimep a vector of the parameter indices of the initial probalities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
 dynr.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov,values.regimep=1,params.regimep=0){
   ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
   ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
