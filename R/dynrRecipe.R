@@ -10,6 +10,7 @@
 #  matrices (parameter staring values, free-fixed, and parameter numbers)
 
 # TODO output the starting values for the parameters 
+# TODO add documentation
 
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
@@ -209,6 +210,29 @@ dynr.linearDynamics <- function(params, values){
 
 #cform <- carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2
 #rhs.vars(cform)
+#TODO make sure all matrix are calloced 
+#TODO check model constraint function
+dynr.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov,values.regimep=1,params.regimep=0){
+  ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
+  ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
+  ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){\n\t\tfor(i=0;i<num_sbj;i++){\n")
+  for(i in 1:length(values.inistate)){
+    if(params.inistate[i] > 0){
+      ret <- paste(ret,
+                   '\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+                   ', param[', params.inistate[i] - 1, ']);\n', sep='')
+    } else if(values.inistate[i] != 0){
+      ret <- paste(ret,
+                   '\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+                   ', ', values.inistate[i], ');\n', sep='')
+    }
+  }
+  values.inicov=reverseldl(values.inicov)
+  ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")    
+  ret <- paste(ret, "\t}\n}\n")
+  return(list(c.string=ret,startval=c(values.inistate[which(params.inistate!=0)], values.inicov[which(params.inicov!=0)], values.regimep[which(params.regimep!=0)])))
+}
+
 
 
 
@@ -268,16 +292,33 @@ setGslMatrixElements <- function(values, params, name){
 		for(i in 1:numRow){
 			if(params[i, j] > 0){
 				ret <- paste(ret,
-					'    gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					'\tgsl_matrix_set(', name, ', ', i-1, ', ', j-1,
 					', param[', params[i, j] - 1, ']);\n', sep='')
 			} else if(values[i, j] != 0){
 				ret <- paste(ret,
-					'    gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					'\tgsl_matrix_set(', name, ', ', i-1, ', ', j-1,
 					', ', values[i, j], ');\n', sep='')
 			}
 		}
 	}
 	return(ret)
+}
+
+setGslVectorElements <- function(values, params, name){
+  ret <- ""
+  numLength <- length(values)
+  for(i in 1:numLength){
+      if(params[i] > 0){
+        ret <- paste(ret,
+                     '\tgsl_vector_set(', name, ', ', i-1,
+                     ', param[', params[i] - 1, ']);\n', sep='')
+      } else if(values[i] != 0){
+        ret <- paste(ret,
+                     '\tgsl_vector_set(', name, ', ', i-1,
+                     ', ', values[i], ');\n', sep='')
+      }
+    }
+  return(ret)
 }
 
 
