@@ -9,6 +9,7 @@
 # TODO create new mid-level function (for which this is a wrapper) that takes three
 #  matrices (parameter staring values, free-fixed, and parameter numbers)
 
+# TODO output the starting values for the parameters 
 
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
@@ -104,14 +105,24 @@ dynr.matrixLoadings <- function(values, params){
 #--------------------------------------
 # matrix input version
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
-	ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
+  values.latent=reverseldl(values.latent)
+  values.observed=reverseldl(values.observed)
+  ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 	ret <- paste(ret, "\n}\n\n")
-
-	return(ret)
+	return(list(c.string=ret,startval=c(values.latent[which(params.latent!=0)],values.observed[which(params.observed!=0)])))
 }
 
+reverseldl<-function(values){
+  if (dim(values)[1]==1){
+    return(log(values))
+  }else{
+    mat<-KFAS::ldl(values)
+    diag(mat)<-log(diag(mat))
+    return(mat)
+  }
+}
 
 #------------------------------------------------------------------------------
 # Regime switching matrix/function
@@ -133,7 +144,7 @@ dynr.regimes <- function(){
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
 dynr.dynamics <- function(formula, isContinuosTime){
-formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
+  formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
               x2~param[5]*x2+param[7]*(exp(fabs(x1))/(1+exp(fabs(x1))))*x1)
   n=length(formula)
   vec.latent=as.character(unlist(lhs(formula)))
@@ -159,15 +170,14 @@ translation<-function(formula){
   while(endstatus!=1){
     element=as.character(formula)
     if 
-#   lhs=lhs(formula)
-#   rhs=rhs(formula)
-#   if (!is.symbol(lhs)){formula=lhs}
-#   if (!is.symbol(lhs)){formula=lhs}
-#   continue.lhs=!is.symbol(lhs)
-#   continue.rhs=!is.symbol(rhs)
-#   if (continue.lhs)
-}
-
+    #   lhs=lhs(formula)
+    #   rhs=rhs(formula)
+    #   if (!is.symbol(lhs)){formula=lhs}
+    #   if (!is.symbol(lhs)){formula=lhs}
+    #   continue.lhs=!is.symbol(lhs)
+    #   continue.rhs=!is.symbol(rhs)
+    #   if (continue.lhs)
+  }
 }
 
 
