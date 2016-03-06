@@ -30,11 +30,11 @@ void function_jacob_dynam_rk4(const double tstart, const double tend, size_t reg
 	gsl_matrix *Jx){
 
         size_t np=xstart->size;
-        gsl_matrix *k1=gsl_matrix_alloc(np,np);
+        gsl_matrix *k1=gsl_matrix_calloc(np,np);
         gsl_vector *diag=gsl_vector_alloc(np);
-        gsl_matrix *k2=gsl_matrix_alloc(np,np);
-        gsl_matrix *k3=gsl_matrix_alloc(np,np);
-        gsl_matrix *k4=gsl_matrix_alloc(np,np);
+        gsl_matrix *k2=gsl_matrix_calloc(np,np);
+        gsl_matrix *k3=gsl_matrix_calloc(np,np);
+        gsl_matrix *k4=gsl_matrix_calloc(np,np);
         gsl_vector *x1=gsl_vector_alloc(np);
         gsl_vector *x2=gsl_vector_alloc(np);
         gsl_vector *x3=gsl_vector_alloc(np);

@@ -90,11 +90,11 @@ void adaptive_ode(const double tstart, const double tend,
     gsl_vector *x_l22=gsl_vector_alloc(np);
     gsl_vector *local_error=gsl_vector_alloc(np);
     gsl_vector *x_column_lplus1=gsl_vector_alloc(np);
-    gsl_vector *g_l=gsl_vector_alloc(np);
-    gsl_vector *g_lplus1=gsl_vector_alloc(np);
+    gsl_vector *g_l=gsl_vector_calloc(np);
+    gsl_vector *g_lplus1=gsl_vector_calloc(np);
     gsl_vector *g_integral=gsl_vector_alloc(np);
-    gsl_vector *g_xl12=gsl_vector_alloc(np);
-    gsl_vector *g_xl22=gsl_vector_alloc(np);
+    gsl_vector *g_xl12=gsl_vector_calloc(np);
+    gsl_vector *g_xl22=gsl_vector_calloc(np);
     (*g)(tstart,regime,xstart,gparameters,g_l);
 
     size_t index=0;
@@ -280,11 +280,11 @@ void adaptive_ode_kf(const double tstart, const double tend,
     gsl_vector *x_l22=gsl_vector_alloc(np);
     gsl_vector *local_error=gsl_vector_alloc(np);
     gsl_vector *x_column_lplus1=gsl_vector_alloc(np);
-    gsl_vector *g_l=gsl_vector_alloc(np);
-    gsl_vector *g_lplus1=gsl_vector_alloc(np);
+    gsl_vector *g_l=gsl_vector_calloc(np);
+    gsl_vector *g_lplus1=gsl_vector_calloc(np);
     gsl_vector *g_integral=gsl_vector_alloc(np);
-    gsl_vector *g_xl12=gsl_vector_alloc(np);
-    gsl_vector *g_xl22=gsl_vector_alloc(np);
+    gsl_vector *g_xl12=gsl_vector_calloc(np);
+    gsl_vector *g_xl22=gsl_vector_calloc(np);
     (*g)(tstart,regime,xstart, gparameters, n_gparam,co_variate,g_l);
 
     size_t index=0;
@@ -453,10 +453,10 @@ void rk4_odesolver(const double tstart, const double tend, size_t regime, const 
 	gsl_vector *x_tend){
 
         size_t np=xstart->size;
-        gsl_vector *k1=gsl_vector_alloc(np);
-        gsl_vector *k2=gsl_vector_alloc(np);
-        gsl_vector *k3=gsl_vector_alloc(np);
-        gsl_vector *k4=gsl_vector_alloc(np);
+        gsl_vector *k1=gsl_vector_calloc(np);
+        gsl_vector *k2=gsl_vector_calloc(np);
+        gsl_vector *k3=gsl_vector_calloc(np);
+        gsl_vector *k4=gsl_vector_calloc(np);
         gsl_vector *x1=gsl_vector_alloc(np);
         gsl_vector *x2=gsl_vector_alloc(np);
         gsl_vector *x3=gsl_vector_alloc(np);

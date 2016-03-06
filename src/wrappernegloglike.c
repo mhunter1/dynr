@@ -77,7 +77,7 @@ double function_neg_log_like(const double *params, void *data){
 
     par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
     par.y_noise_cov=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
-    par.regime_switch_mat=gsl_matrix_alloc(data_model.pc.num_regime, data_model.pc.num_regime);
+    par.regime_switch_mat=gsl_matrix_calloc(data_model.pc.num_regime, data_model.pc.num_regime);
 
  
     /** calculate the log_like **/

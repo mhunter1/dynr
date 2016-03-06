@@ -20,13 +20,13 @@
 double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, double det){
     /*printf("x(0)=%f\n", gsl_vector_get(x, 0));*/
     double result=0;
-    gsl_vector *y=gsl_vector_alloc(x->size); /* y will save inv_cov_matrix*x*/
+    gsl_vector *y=gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
     double mu; /* save result of x'*inv_cov_matrix*x*/
     
     /** compute the log likelihood **/
     result=(x->size/2.0)*log(M_PI*2);
     result+=log(det)/2.0;
-    gsl_vector_set_zero(y);
+    
     gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
     gsl_blas_ddot(x, y, &mu);
     /*if(mu!=mu){

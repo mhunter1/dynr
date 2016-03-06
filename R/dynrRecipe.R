@@ -215,8 +215,6 @@ dynr.linearDynamics <- function(params, values){
 
 #cform <- carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2
 #rhs.vars(cform)
-#TODO make sure all matrix are calloced 
-#TODO check model constraint function
 
 ##' The translation function for initial conditions
 ##' Output a C function to set up initial conditions (i.e., intial state vector, initial error covariance matrix, and initial probabilities of being in each regime) and the starting values of the related parameters.

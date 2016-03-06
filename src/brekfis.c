@@ -66,7 +66,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     }
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            eta_jk_t_plus_1[regime_j][regime_k]=gsl_vector_alloc(config->dim_latent_var);
+            eta_jk_t_plus_1[regime_j][regime_k]=gsl_vector_calloc(config->dim_latent_var);
     }
     gsl_matrix ***error_cov_jk_t_plus_1=(gsl_matrix ***)malloc(config->num_regime*sizeof(gsl_matrix **));
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -74,7 +74,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     }
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            error_cov_jk_t_plus_1[regime_j][regime_k]=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
+            error_cov_jk_t_plus_1[regime_j][regime_k]=gsl_matrix_calloc(config->dim_latent_var, config->dim_latent_var);
     }
     gsl_vector ***innov_v=(gsl_vector ***)malloc(config->num_regime*sizeof(gsl_vector **));
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -82,7 +82,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     }
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            innov_v[regime_j][regime_k]=gsl_vector_alloc(config->dim_obs_var);
+            innov_v[regime_j][regime_k]=gsl_vector_calloc(config->dim_obs_var);
     }
     gsl_matrix ***residual_cov=(gsl_matrix ***)malloc(config->num_regime*sizeof(gsl_matrix **));
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -90,7 +90,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     }
     for(regime_j=0; regime_j<config->num_regime; regime_j++){
         for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            residual_cov[regime_j][regime_k]=gsl_matrix_alloc(config->dim_obs_var, config->dim_obs_var);/*may be the inverse of the residual/innov cov*/
+            residual_cov[regime_j][regime_k]=gsl_matrix_calloc(config->dim_obs_var, config->dim_obs_var);/*may be the inverse of the residual/innov cov*/
     }
 
     /** input for hamilton filter **/
@@ -946,7 +946,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
     gsl_matrix *temp_modif_p=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
     /*Pr[S_i,t+1=regime_k|Y_iT]*/
     gsl_vector *p_next_regime_T=gsl_vector_alloc(config->num_regime);
-    gsl_matrix *Jacob_dyn_x=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
+    gsl_matrix *Jacob_dyn_x=gsl_matrix_calloc(config->dim_latent_var, config->dim_latent_var);
     size_t sbj,t,regime_j,regime_k;
     /*size_t i;
       double params_aug[config->num_func_param+config->dim_latent_var];

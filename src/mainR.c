@@ -314,7 +314,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    }
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    eta_regime_j_t[index_sbj_t][regime_j]=gsl_vector_alloc(data_model.pc.dim_latent_var);
+		    eta_regime_j_t[index_sbj_t][regime_j]=gsl_vector_calloc(data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*input and output of filter & input of smooth: error_cov^k_it|t*/
@@ -324,7 +324,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    }
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    error_cov_regime_j_t[index_sbj_t][regime_j]=gsl_matrix_alloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+		    error_cov_regime_j_t[index_sbj_t][regime_j]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
 	    }
 
@@ -341,7 +341,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-		    eta_regime_jk_pred[index_sbj_t][regime_j][regime_k]=gsl_vector_alloc(data_model.pc.dim_latent_var);
+		    eta_regime_jk_pred[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*output of filter and input of smooth: error_cov^regime_jk_it|t-1*/
@@ -357,7 +357,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-			error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k]=gsl_matrix_alloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+			error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*output of filter: eta^regime_jk_it|t*/
@@ -373,7 +373,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-		    eta_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_vector_alloc(data_model.pc.dim_latent_var);
+		    eta_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*output of filter: error_cov^regime_jk_it|t*/
@@ -389,13 +389,13 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-			error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_matrix_alloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+			error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*output of filter and input of smooth: Pr(S_it=k|Y_it)*/
 	    gsl_vector **pr_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		pr_t[index_sbj_t]=gsl_vector_alloc(data_model.pc.num_regime);
+		pr_t[index_sbj_t]=gsl_vector_calloc(data_model.pc.num_regime);
 	    }
 	    /*output of filter and input of smooth: Pr(S_it=k|Y_i,t-1)*/
 	    gsl_vector **pr_t_given_t_minus_1=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
@@ -420,7 +420,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    }
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    error_cov_regime_j_smooth[index_sbj_t][regime_j]=gsl_matrix_alloc(data_model.pc.dim_latent_var,data_model.pc.dim_latent_var);
+		    error_cov_regime_j_smooth[index_sbj_t][regime_j]=gsl_matrix_calloc(data_model.pc.dim_latent_var,data_model.pc.dim_latent_var);
 		}
 	    }
 	    /*output of smooth: eta_it|T*/
@@ -436,7 +436,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    /*output of smooth: Pr(S_it=k|Y_iT)*/
 	    gsl_vector **pr_T=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		pr_T[index_sbj_t]=gsl_vector_alloc(data_model.pc.num_regime);
+		pr_T[index_sbj_t]=gsl_vector_calloc(data_model.pc.num_regime);
 	    }
 	    /*output of smooth: Pr(S_i,t+1=h, S_it=k|Y_iT)*/
 	    gsl_vector ***transprob_T=(gsl_vector ***)malloc(data_model.pc.total_obs*sizeof(gsl_vector **));
@@ -445,7 +445,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    }
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    transprob_T[index_sbj_t][regime_j]=gsl_vector_alloc(data_model.pc.num_regime);
+		    transprob_T[index_sbj_t][regime_j]=gsl_vector_calloc(data_model.pc.num_regime);
 		}
 	    }
 
@@ -462,7 +462,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-		    innov_v[index_sbj_t][regime_j][regime_k]=gsl_vector_alloc(data_model.pc.dim_obs_var);
+		    innov_v[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(data_model.pc.dim_obs_var);
 		}
 	    }
 	    /*output of filter: inverse_residual_cov*/
@@ -478,7 +478,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
 		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-			inv_residual_cov[index_sbj_t][regime_j][regime_k]=gsl_matrix_alloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
+			inv_residual_cov[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
 		}
 	    }
 
@@ -513,7 +513,7 @@ SEXP main_R(SEXP model_list,SEXP data_list)
 
 	    par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 	    par.y_noise_cov=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
-	    par.regime_switch_mat=gsl_matrix_alloc(data_model.pc.num_regime, data_model.pc.num_regime);
+	    par.regime_switch_mat=gsl_matrix_calloc(data_model.pc.num_regime, data_model.pc.num_regime);
 
 	    /* calculate the log_like */
 	    data_model.pc.func_transform(par.func_param);

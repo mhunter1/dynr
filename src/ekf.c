@@ -403,7 +403,7 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
 
     size_t nx=eta_t->size;
 
-    gsl_matrix *H_t_plus_1=gsl_matrix_alloc(y_t_plus_1->size,nx);
+    gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size,nx);
 
 
     gsl_matrix *ph=gsl_matrix_calloc(eta_t->size, y_t_plus_1->size); /* P*H' - error_cov*jacob'*/
@@ -632,7 +632,7 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 
     size_t i,j;
 
-    gsl_matrix *H_t_plus_1=gsl_matrix_alloc(y_t_plus_1->size,nx);
+    gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size,nx);
 
 
     gsl_matrix *ph=gsl_matrix_calloc(eta_t->size, y_t_plus_1->size); /* P*H' - error_cov*jacob'*/
@@ -964,7 +964,7 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
 
     size_t nx=eta_t->size;
 
-    gsl_matrix *H_t_plus_1=gsl_matrix_alloc(y_t_plus_1->size,nx);
+    gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size,nx);
 
 
     gsl_matrix *ph=gsl_matrix_calloc(eta_t->size, y_t_plus_1->size); /* P*H' - error_cov*jacob'*/
