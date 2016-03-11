@@ -12,6 +12,7 @@
 # TODO output the starting values for the parameters 
 # TODO add documentation
 
+
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
 
@@ -133,6 +134,19 @@ reverseldl<-function(values){
 #------------------------------------------------------------------------------
 # Regime switching matrix/function
 
+# For regime switching function, each element of the transition probability
+# matrix should be the result of a multinomial logistic regression.
+# That is, for a 2x2 matrix we have
+#   p11 ~ softmax(1 + x1 + x2 + ... + xn)
+#   p21 ~ softmax(1 + x1 + x2 + ... + xn)
+#   p12 ~ softmax(1 + x1 + x2 + ... + xn)
+#   p22 ~ softmax(1 + x1 + x2 + ... + xn)
+
+# Perhaps have two regime functions
+# One is analogous to the linear dynamics function, and has more limited interface
+# The other may be more general.
+# Even the limited one should be able to handle covariates as above via multinomial logistic regression
+
 dynr.regimes <- function(){
 	
 }
@@ -187,7 +201,27 @@ dynr.regimes <- function(){
 # }
 
 
-dynr.linearDynamics <- function(params, values){
+##' @param params.dyn the parameters matrix for the linear dynamics
+##' @param values.dyn the values matrix for the linear dynamics
+##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)
+##' @param values.exo the values matrix for the effect of the covariates on the dynamic outcome (see details)
+##' @param covariates the names or the index numbers of the covariates used for the dynamics
+##' @param time character. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient
+##' 
+##' @details
+##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
+##' and the derivative of the latent variable vector at the current time point in the continuous time case.
+dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
+	#TODO insert partial matching
+	if(time == 'continuous'){
+		# Construct matrices for A and B with A ~ dyn, B ~ exo
+		# dx/dt ~ A %*% x + B %*% u
+		# x is the latent state vector, u is the covariate vector
+	} else if(time == 'discrete'){
+		# Construct matrices for A and B with A ~ dyn, B ~ exo
+		# x[t] ~ A %*% x[t-1] + B %*% u
+		# x is the latent state vector, u is the covariate vector
+	}
 	
 }
 
@@ -215,6 +249,72 @@ dynr.linearDynamics <- function(params, values){
 
 #cform <- carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2
 #rhs.vars(cform)
+
+require(formula.tools)
+
+isSymbolNumberFunction <- function(x){is.symbol(x) || is.numeric(x) || is.function(x)}
+
+# Recursive function for formulat parsing
+parseFormula <- function(formula, debug=FALSE){
+	left <- formula.tools::lhs(formula)
+	right <- formula.tools::rhs(formula)
+	leftTuple <- as.character(unlist(left))
+	rightTuple <- as.character(unlist(right))
+	if(debug){
+		print("LEFT")
+		print(leftTuple)
+		print(left)
+		print("RIGHT")
+		print(rightTuple)
+		print(right)
+	}
+	if(!isSymbolNumberFunction(left)){
+		if(length(leftTuple)==3){
+			left <- parseFormula(left)
+		} else {
+			left <- parseNested(left)
+		}
+	}
+	if(!isSymbolNumberFunction(right)){
+		if(length(rightTuple)==3){
+			right <- parseFormula(right)
+		} else{
+			right <- parseNested(right)
+		}
+	}
+	return(list(left=left, right=right))
+}
+
+# TODO make this function recursive,
+#  having similar structure to the parseFormula.
+parseNested <- function(formula){
+	tuple <- as.character(unlist(formula))
+	outer <- as.symbol(tuple[[1]])
+	inner <- as.symbol(tuple[[2]])
+	return(list(outer=outer, inner=inner))
+}
+
+
+# Example usage
+#require(dynr)
+#logistic <- function(x){x}
+#
+#cform <- carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2
+#cform2 <- parseFormula(cform)
+#cform2
+#str(cform2)
+#
+# Note also some helpful functions in the pryr package
+#pryr::ast(carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2)
+#pryr::call_tree(cform)
+#
+# The source code for 
+#pryr:::tree
+# is useful in this regard.
+# We are essentially making our own version of pryr:::tree
+# that does some substitutions before collapsing back to a 
+# string that is composed of C code.
+
 
 ##' The translation function for initial conditions
 ##' Output a C function to set up initial conditions (i.e., intial state vector, initial error covariance matrix, and initial probabilities of being in each regime) and the starting values of the related parameters.
