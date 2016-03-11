@@ -217,8 +217,9 @@ preProcessModel <- function(x){
 }
 
 combineModelDataInformation <- function(model, data){
-	# TODO remove these as.double calls
-	# by changing how the arguments are processed in the backend.
+	# TODO add argument to dynrModel a la "usevars"
+	# process usevars together with dynrData to drop
+	# things from it that are not in usevars.
 	model$num_sbj <- as.integer(length(unique(data[['id']])))
 	model$dim_obs_var <- as.integer(ncol(data$observed))
 	if ("covariates" %in% names(data)){
