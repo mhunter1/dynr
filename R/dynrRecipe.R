@@ -254,45 +254,59 @@ require(formula.tools)
 
 isSymbolNumberFunction <- function(x){is.symbol(x) || is.numeric(x) || is.function(x)}
 
-# Recursive function for formulat parsing
+# Recursive function for formula parsing
 parseFormula <- function(formula, debug=FALSE){
-	left <- formula.tools::lhs(formula)
-	right <- formula.tools::rhs(formula)
-	leftTuple <- as.character(unlist(left))
-	rightTuple <- as.character(unlist(right))
+  tuple <- as.list(formula)
+  op<-tuple[[1]]
+  left <- tuple[[2]]
+  right <- tuple[[3]]
 	if(debug){
 		print("LEFT")
-		print(leftTuple)
 		print(left)
 		print("RIGHT")
-		print(rightTuple)
 		print(right)
 	}
 	if(!isSymbolNumberFunction(left)){
+	  leftTuple <- as.list(left)
 		if(length(leftTuple)==3){
-			left <- parseFormula(left)
+			left <- parseFormula(left,debug)
 		} else {
-			left <- parseNested(left)
+			left <- parseNested(left,debug)
 		}
 	}
 	if(!isSymbolNumberFunction(right)){
+	  rightTuple <- as.list(right)
 		if(length(rightTuple)==3){
-			right <- parseFormula(right)
+			right <- parseFormula(right,debug)
 		} else{
-			right <- parseNested(right)
+			right <- parseNested(right,debug)
 		}
 	}
 	return(list(left=left, right=right))
 }
 
-# TODO make this function recursive,
-#  having similar structure to the parseFormula.
-parseNested <- function(formula){
-	tuple <- as.character(unlist(formula))
-	outer <- as.symbol(tuple[[1]])
-	inner <- as.symbol(tuple[[2]])
+parseNested <- function(formula,debug=FALSE){
+	tuple <- as.list(formula)
+	outer <- tuple[[1]]
+	inner <- tuple[[2]]
+	if(debug){
+	  print(tuple)
+	  print("OUTER")
+	  print(outer)
+	  print("INNER")
+	  print(inner)
+	}
+	if(!isSymbolNumberFunction(inner)){
+	  innerTuple=as.list(inner)
+	  if(length(innerTuple)==3){
+	    inner <- parseFormula(inner,debug)
+	  } else{
+	    inner <- parseNested(inner,debug)
+	  }
+	}
 	return(list(outer=outer, inner=inner))
 }
+
 
 
 # Example usage
