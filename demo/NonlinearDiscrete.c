@@ -29,7 +29,6 @@ void function_dynam(const double tstart, const double tend, size_t regime, const
 
 }
 
-
 void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
         double *param, size_t num_func_param, const gsl_vector *co_variate,
         void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),

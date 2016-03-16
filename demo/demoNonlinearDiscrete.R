@@ -6,6 +6,10 @@ colnames(thedata)<-c("id", "Day", "Time", "pos1", "pos2", "pos3", "neg1", "neg2"
 "posEvents", "negEvents", "pss", "extrav", "agree", "consc", "emoStab", "open")
 data <- dynr.data(thedata, id="id", time="Time",observed=colnames(thedata)[c(6,5,4,9,8,7)])
 
+formula=list(x1~param[4]*x1+param[6]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+             x2~param[5]*x2+param[7]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
+dynm<-dynr.nonlindynamics(formula,NULL, isContinuosTime=FALSE)
+writeLines(dynm)
 
 model <- dynr.model(
               num_regime=1,

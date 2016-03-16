@@ -22,7 +22,3 @@ writeLines(initial$c.string)
 initial$startval
 
 dP_dt <- dynr.dP_dt
-
-
-
-parseFormula(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,debug=TRUE)

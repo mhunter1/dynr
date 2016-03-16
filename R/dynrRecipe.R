@@ -155,51 +155,34 @@ dynr.regimes <- function(){
 #------------------------------------------------------------------------------
 # "Dynamics" functions
 
-# produces "drift" or "state-transition" matrices in continuous or discrete time, respectively.
-# second input is for the jacobian of the drift/state-transition
-
 ##' The translation function for the dynamic functions 
 ##' 
-##' @param fomula a list of formulas specifying the equations for the latent variables
+##' @param fomula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
+##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-# dynr.dynamics <- function(formula, isContinuosTime){
-#   formula=list(x1~param[4]*x1+param[6]*(exp(fabs(x2))/(1+exp(fabs(x2))))*x2,
-#               x2~param[5]*x2+param[7]*(exp(fabs(x1))/(1+exp(fabs(x1))))*x1)
-#   n=length(formula)
-#   vec.latent=as.character(unlist(lhs(formula)))
-#   if (isContinuosTime){
-#     
-#   }else{
-#     ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-#     for (i in 1:n){
-#       formula.c=as.character(rhs(formula[[i]]))
-#       #gsl_vector_set: use gsub on strings
-#       for (j in 1:length(vec.latent)){
-#         gsub(vec.latent[j],paste0("gsl_vector_get(xstart,",j-1,")"),as.character(rhs(formula[[1]])))
-#       }
-#       ret=paste(ret,paste0("gsl_vector_set(x_tend,",i-1,",","param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1))",";"),sep="\n\t")    
-#     }
-#     ret=paste0(ret,"\n\t}")
-#     #gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
-#     #gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
-#     
-#   }
-# }
-# translation<-function(formula){
-#   while(endstatus!=1){
-#     element=as.character(formula)
-#     if 
-#     #   lhs=lhs(formula)
-#     #   rhs=rhs(formula)
-#     #   if (!is.symbol(lhs)){formula=lhs}
-#     #   if (!is.symbol(lhs)){formula=lhs}
-#     #   continue.lhs=!is.symbol(lhs)
-#     #   continue.rhs=!is.symbol(rhs)
-#     #   if (continue.lhs)
-#   }
-# }
-
+dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
+  
+  n=length(formula)
+  fml=processFormula(formula)
+  lhs=sapply(fml,"[",1)
+  rhs=sapply(fml,"[",2)
+  
+  if (isContinuosTime){
+    
+  }else{
+    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+    for (i in 1:n){
+      for (j in 1:length(lhs)){
+        rhs[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[i])
+      }
+      ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[i],";"),sep="\n\t")    
+    }
+    ret=paste0(ret,"\n\t}")
+  }
+  
+  return(ret)
+}
 
 ##' @param params.dyn the parameters matrix for the linear dynamics
 ##' @param values.dyn the values matrix for the linear dynamics
@@ -227,30 +210,15 @@ dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 
 
 # nonlinear functions for lookup
-# exp, log, +, -, *, ^, **, sqrt,
-# sin, cos, tan, asin, acos, atan,
-# sinh, cosh, tanh, asinh, acosh, atanh
-# sign, abs
 # logit, logistic, softmax
 
-#exp(
-#exp (
-
-#exp(myexpparam) -> exp(myexp()param)
-
-#a^b -> pow(a, b)
-
-#exp(aval^(bval*cval))
-
-#stoppingChars <- c('+', '-', '*', '**', '^', '(', ')', '[', ']')
+#https://en.wikipedia.org/wiki/C_mathematical_functions
 
 #carl ~ param[5]*carl + param[7]*logistic(abs(bob))
 #bob ~ param[4]*bob + param[6]*logistic(abs(carl))
 
 #cform <- carl ~ param[5] * carl + param[7] * logistic(abs(bob)) + dan**2
 #rhs.vars(cform)
-
-require(formula.tools)
 
 isSymbolNumberFunction <- function(x){is.symbol(x) || is.numeric(x) || is.function(x)}
 
@@ -282,7 +250,12 @@ parseFormula <- function(formula, debug=FALSE){
 			right <- parseNested(right,debug)
 		}
 	}
-	return(list(left=left, right=right))
+
+  op <- trans2CFunction(op)
+  
+  tuple.new <- list(op,left,right)
+  outFormula <- as.call(tuple.new)
+	return(outFormula)
 }
 
 parseNested <- function(formula,debug=FALSE){
@@ -304,11 +277,36 @@ parseNested <- function(formula,debug=FALSE){
 	    inner <- parseNested(inner,debug)
 	  }
 	}
-	return(list(outer=outer, inner=inner))
+	
+	outer <- trans2CFunction(outer)
+	
+	tuple.new <-as.list(c(outer,inner))
+	outFormula <- as.call(tuple.new)
+	return(outFormula)
 }
 
+#TODO check type casting int->double
+#TODO check the parameter indices
+trans2CFunction<-function(op.symbol){
+  op.char=deparse(op.symbol)
+  if (op.char %in% c("abs","^","**","mod","max","min","sign")) {
+    op.symbol<-switch(op.char,
+            abs = as.name("fabs"),
+            "^" = as.name("pow"),
+            "**"= as.name("pow"),
+            mod = as.name("fmod"),
+            max = as.name("fmax"),
+            min = as.name("fmin"),
+            sign = c(as.name("copysign"),as.double(1)))
+    }
+  return(op.symbol)
+}
 
-
+processFormula<-function(formula.list){
+  formula.char=sapply(formula.list,FUN=function(f){paste0(deparse(parseFormula(f),width.cutoff = 500L),collapse="")})
+  out=strsplit(formula.char," ~ ")
+  return(out)
+}
 # Example usage
 #require(dynr)
 #logistic <- function(x){x}
