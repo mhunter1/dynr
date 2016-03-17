@@ -21,4 +21,6 @@ initial<-dynr.initial(c(0,1), c(5,0), diag(1,2), diag(0,2))
 writeLines(initial$c.string)
 initial$startval
 
+dynamics <- dynr.linearDynamics(matrix(c(0, 1, 0, 2), 2, 2), matrix(c(0, 1, 1, 1), 2, 2), time="contin")
+
 dP_dt <- dynr.dP_dt
