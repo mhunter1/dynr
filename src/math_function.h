@@ -177,8 +177,8 @@ double mathfunction_logistic(const double x);
 /**
  * This function takes a gsl_vector and modifies its second argument (another gsl_vector)
  * It computes the softmax function (e.g. for multinomial logistic regression)
- * @param x, the double value e.g. a vector of normally distributed numbers
- * @param result, softmax(x), e.g. a numbers between 0 and 1 that sum to 1
+ * @param x, vector of double values e.g. a vector of normally distributed numbers
+ * @param result, softmax(x), e.g. a vector of numbers between 0 and 1 that sum to 1
  */
 void mathfunction_softmax(const gsl_vector *x, gsl_vector *result);
 
