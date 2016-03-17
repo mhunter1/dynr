@@ -114,7 +114,7 @@ setMethod("show", "dynrRun", function(object) {
 #------------------------------------------------------------------------------
 # Some S3 methods
 # coef
-# logLike
+# logLik
 # AIC
 # BIC
 
@@ -177,6 +177,8 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 		obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
 		rm(output2)
 	}else{
+		#TODO change this processing so that a non-NULL object is returned
+		# The object should have everything except Standard Errors and Confidence Intervals
 	  frontendStop <- Sys.time()
 	  totalTime <- frontendStop-frontendStart
 	  backendTime <- backendStop-backendStart

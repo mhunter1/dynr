@@ -137,15 +137,23 @@ reverseldl<-function(values){
 # For regime switching function, each element of the transition probability
 # matrix should be the result of a multinomial logistic regression.
 # That is, for a 2x2 matrix we have
+# Behind the scenes it does this
 #   p11 ~ softmax(1 + x1 + x2 + ... + xn)
 #   p21 ~ softmax(1 + x1 + x2 + ... + xn)
 #   p12 ~ softmax(1 + x1 + x2 + ... + xn)
 #   p22 ~ softmax(1 + x1 + x2 + ... + xn)
+#
+# Users specify this
+#   p11 ~ 1 + x1 + x2
+#   p21 ~ 1 + x2 + x3
 
 # Perhaps have two regime functions
 # One is analogous to the linear dynamics function, and has more limited interface
 # The other may be more general.
 # Even the limited one should be able to handle covariates as above via multinomial logistic regression
+
+# add identification constraints
+# 
 
 dynr.regimes <- function(){
 	
@@ -196,10 +204,13 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
 dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
 	#TODO insert partial matching
+	pmatch(time, c("continuous", "discrete"))
 	if(time == 'continuous'){
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
 		# dx/dt ~ A %*% x + B %*% u
 		# x is the latent state vector, u is the covariate vector
+		# F_dx_dt = A %*% x + B %*% u
+		# F_dx_dt_dx = A
 	} else if(time == 'discrete'){
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
 		# x[t] ~ A %*% x[t-1] + B %*% u
@@ -462,11 +473,14 @@ destroyGslMatrix <- function(name){
 
 #y <- alpha * transA(A) %*% x + beta * y
 blasMV <- function(transA, A, x, beta, y){
-	paste0("\t", "\n")
+	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
+	paste0("\tgsl_blas_dgemv( ", transA, ", ", A, "", , "\n")
 }
 
 # C <- alpha * transA(A) %*% transB(B) + beta * C
 blasMM <- function(transA, transB, alpha, A, B, beta, C){
-	paste0("\t", "\n")
+	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
+	transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
+	paste0("\tgsl_blas_dgemm( ", "\n")
 }
 
