@@ -525,6 +525,7 @@ double mathfunction_matrix_normalize(gsl_matrix *v){
 /**
  * This method normalizes the given vector's values so that sum of them is equal to 1.
  * @param v the given vector to be normalized.
+
  */
 double mathfunction_vector_normalize(gsl_vector *v){
     size_t index;
@@ -546,6 +547,40 @@ double mathfunction_mat_trace(const gsl_matrix *mat){
     for(index=0; index<mat->size1; index++)
         tr+=gsl_matrix_get(mat, index, index);
     return tr;
+}
+
+/**
+ * This function takes a double and gives back a double
+ * It computes the logistic function (i.e. the inverse of the logit link function)
+ * @param x, the double value e.g. a normally distributed number
+ * @return logistic(x), the double value e.g. a number between 0 and 1
+ */
+double mathfunction_logistic(const double x){
+	double value = 1.0/(1.0 + exp(-x));
+	return value;
+}
+
+/**
+ * This function takes a gsl_vector and modifies its second argument (another gsl_vector)
+ * It computes the softmax function (e.g. for multinomial logistic regression)
+ * @param x, the double value e.g. a vector of normally distributed numbers
+ * @param result, softmax(x), e.g. a numbers between 0 and 1 that sum to 1
+ */
+void mathfunction_softmax(const gsl_vector *x, gsl_vector *result){
+	/* Elementwise exponentiation */
+	size_t index=0;
+	for(index=0; index < x->size; index++){
+		gsl_vector_set(result, index, exp(gsl_vector_get(x, index)));
+	}
+	
+	/* Sum for the scaling coeficient */
+	double scale = 0.0;
+	for(index=0; index < x->size; index++){
+		scale += gsl_vector_get(result, index);
+	}
+	
+	/* Multiply all elements of result by 1/scale */
+	gsl_blas_dscal(1/scale, result);
 }
 
 

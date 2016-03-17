@@ -164,4 +164,22 @@ void mathfunction_mat_scale(const gsl_matrix *mat_a, const double x, gsl_matrix 
 void mathfunction_diagin_scale(const gsl_vector *vec_a, const double x, gsl_matrix *mat_b);
 void mathfunction_diagout_scale(const gsl_matrix *mat_a, const double x, gsl_vector *vec_b);
 
+
+/**
+ * This function takes a double and gives back a double
+ * It computes the logistic function (i.e. the inverse of the logit link function)
+ * @param x, the double value e.g. a normally distributed number
+ * @return logistic(x), the double value e.g. a number between 0 and 1
+ */
+double mathfunction_logistic(const double x);
+
+
+/**
+ * This function takes a gsl_vector and modifies its second argument (another gsl_vector)
+ * It computes the softmax function (e.g. for multinomial logistic regression)
+ * @param x, the double value e.g. a vector of normally distributed numbers
+ * @param result, softmax(x), e.g. a numbers between 0 and 1 that sum to 1
+ */
+void mathfunction_softmax(const gsl_vector *x, gsl_vector *result);
+
 #endif
