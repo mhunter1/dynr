@@ -514,6 +514,6 @@ blasMV <- function(transA, alpha, A, x, beta, y){
 blasMM <- function(transA, transB, alpha, A, B, beta, C){
 	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
 	transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
-	paste0("\tgsl_blas_dgemm(", "\n")
+	paste0("\tgsl_blas_dgemm(", paste(transA, transB, alpha, A, B, beta, C, sep=", "), ");\n")
 }
 
