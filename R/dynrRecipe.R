@@ -204,6 +204,11 @@ dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
 		# x[t] ~ A %*% x[t-1] + B %*% u
 		# x is the latent state vector, u is the covariate vector
+		createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix")
+		createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix")
+		
+		destroyGslMatrix("Amatrix")
+		destroyGslMatrix("Bmatrix")
 	}
 	
 }
@@ -447,4 +452,21 @@ setGslVectorElements <- function(values, params, name){
 }
 
 
+createGslMatrix <- function(nrow, ncol, name){
+	paste0("\tgsl_matrix *", name, " = gsl_matrix_calloc(", nrow, ", ", ncol, ");\n")
+}
+
+destroyGslMatrix <- function(name){
+	paste0("\tgsl_matrix_free(", name, ");\n")
+}
+
+#y <- alpha * transA(A) %*% x + beta * y
+blasMV <- function(transA, A, x, beta, y){
+	paste0("\t", "\n")
+}
+
+# C <- alpha * transA(A) %*% transB(B) + beta * C
+blasMM <- function(transA, transB, alpha, A, B, beta, C){
+	paste0("\t", "\n")
+}
 
