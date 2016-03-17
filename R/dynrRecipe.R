@@ -165,7 +165,7 @@ dynr.regimes <- function(){
 
 ##' The translation function for the dynamic functions 
 ##' 
-##' @param fomula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
+##' @param formula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
 ##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
