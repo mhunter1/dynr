@@ -197,31 +197,64 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
 ##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)
 ##' @param values.exo the values matrix for the effect of the covariates on the dynamic outcome (see details)
 ##' @param covariates the names or the index numbers of the covariates used for the dynamics
-##' @param time character. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient
+##' @param time character. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient. Capitalization is ignored.
 ##' 
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
 dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
-	#TODO insert partial matching
-	pmatch(time, c("continuous", "discrete"))
+	time <- checkAndProcessTimeArgument(time)
+	
 	if(time == 'continuous'){
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
 		# dx/dt ~ A %*% x + B %*% u
 		# x is the latent state vector, u is the covariate vector
 		# F_dx_dt = A %*% x + B %*% u
 		# F_dx_dt_dx = A
+		dynHead <- "void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+		jacHead <- "void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){"
+		inName <- "x"
+		outName <- "F_dx_dt"
+		jacName <- "F_dx_dt_dx"
 	} else if(time == 'discrete'){
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
 		# x[t] ~ A %*% x[t-1] + B %*% u
 		# x is the latent state vector, u is the covariate vector
-		createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix")
-		createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix")
-		
-		destroyGslMatrix("Amatrix")
-		destroyGslMatrix("Bmatrix")
+		dynHead <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t n_gparam, const gsl_vector *co_variate, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *), gsl_vector *x_tend){"
+		jacHead <- "void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t num_func_param, const gsl_vector *co_variate, void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *), gsl_matrix *Jx){"
+		inName <- "xstart"
+		outName <- "x_tend"
+		jacName <- "Jx"
 	}
 	
+	# Create dynamics (state-transition or drift matrix) with covariate effects
+	ret <- paste(dynHead,
+		createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix"),
+		setGslMatrixElements(values=values.dyn, params=params.dyn, name="Amatrix"),
+		blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
+		destroyGslMatrix("Amatrix"),
+		sep="\n")
+	
+	if(!missing(params.exo)){
+		ret <- paste(ret,
+			createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix"),
+			setGslMatrixElements(values=values.exo, params=params.exo, name="Bmatrix"),
+			blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
+			destroyGslMatrix("Bmatrix"),
+			sep="\n")
+	}
+	
+	ret <- paste(ret, "}\n\n", sep="\n")
+	
+	
+	# Create jacobian function
+	ret <- paste(ret,
+		jacHead,
+		setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
+		"}\n\n",
+		sep="\n")
+	
+	return(ret)
 }
 
 
@@ -472,15 +505,15 @@ destroyGslMatrix <- function(name){
 }
 
 #y <- alpha * transA(A) %*% x + beta * y
-blasMV <- function(transA, A, x, beta, y){
+blasMV <- function(transA, alpha, A, x, beta, y){
 	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
-	paste0("\tgsl_blas_dgemv( ", transA, ", ", A, "", , "\n")
+	paste0("\tgsl_blas_dgemv(", paste(transA, alpha, A, x, beta, y, sep=", "), ");\n")
 }
 
 # C <- alpha * transA(A) %*% transB(B) + beta * C
 blasMM <- function(transA, transB, alpha, A, B, beta, C){
 	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
 	transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
-	paste0("\tgsl_blas_dgemm( ", "\n")
+	paste0("\tgsl_blas_dgemm(", "\n")
 }
 

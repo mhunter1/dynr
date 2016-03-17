@@ -19,6 +19,20 @@
 # Importantly, the thing handed to the backend must
 # remain a list exactly like the above.
 
+.possible.times <- c('discrete', 'continuous')
+checkAndProcessTimeArgument <- function(time){
+	if(missing(time)){
+		time <- "discrete"
+	}
+	if(!is.character(time)){
+		stop("The 'time' argument must be a character (e.g. 'continuous' or 'discrete')")
+	}
+	time <- tolower(time)
+	timeIndex <- pmatch(time, .possible.times)
+	time <- .possible.times[timeIndex]
+	return(time)
+}
+
 
 default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10, 
                               ftol_abs=-1, maxeval=500, maxtime=-1)
