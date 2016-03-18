@@ -30,19 +30,14 @@ void function_dynam(const double tstart, const double tend, size_t regime, const
 }
 
 void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-        double *param, size_t num_func_param, const gsl_vector *co_variate,
-        void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
-		gsl_matrix *Jx){
-        
-		/*the sign function, ^2->pow(double, double)*/
-		double sign_x0=(gsl_vector_get(xstart,0)>0?1.0:0.0)-(gsl_vector_get(xstart,0)<0?1.0:0.0);
-		double sign_x1=(gsl_vector_get(xstart,1)>0?1.0:0.0)-(gsl_vector_get(xstart,1)<0?1.0:0.0);
-		gsl_matrix_set(Jx,0,0,param[4]);
-		gsl_matrix_set(Jx,0,1,(param[6]*fabs(gsl_vector_get(xstart,1)))/(fabs(gsl_vector_get(xstart,1)) + 1.0) + (param[6]*gsl_vector_get(xstart,1)*sign_x1)/(fabs(gsl_vector_get(xstart,1)) + 1.0)- (param[6]*gsl_vector_get(xstart,1)*fabs(gsl_vector_get(xstart,1))*sign_x1)/pow((fabs(gsl_vector_get(xstart,1))+1.0),2.0));
-		gsl_matrix_set(Jx,1,0,(param[7]*fabs(gsl_vector_get(xstart,0)))/(fabs(gsl_vector_get(xstart,0)) + 1.0) + (param[7]*gsl_vector_get(xstart,0)*sign_x0)/(fabs(gsl_vector_get(xstart,0)) + 1.0) - (param[7]*gsl_vector_get(xstart,0)*fabs(gsl_vector_get(xstart,0))*sign_x0)/pow((fabs(gsl_vector_get(xstart,0))+1.0),2.0));
-		gsl_matrix_set(Jx,1,1,param[5]);
-
-}
+  double *param, size_t num_func_param, const gsl_vector *co_variate,
+	void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
+	gsl_matrix *Jx){
+		gsl_matrix_set(Jx,0,0,param[4];
+		gsl_matrix_set(Jx,0,1,param[6] * (exp(fabs(gsl_vector_get(xstart,1)))/(exp(fabs(gsl_vector_get(xstart,1))) + 1) + gsl_vector_get(xstart,1) * copysign(1, gsl_vector_get(xstart,1)) * exp(fabs(gsl_vector_get(xstart,1)))/pow(1 + exp(fabs(gsl_vector_get(xstart,1))), 2));
+		gsl_matrix_set(Jx,1,1,param[5];
+		gsl_matrix_set(Jx,1,0,param[7] * (exp(fabs(gsl_vector_get(xstart,0)))/(exp(fabs(gsl_vector_get(xstart,0))) + 1) + gsl_vector_get(xstart,0) * copysign(1, gsl_vector_get(xstart,0)) * exp(fabs(gsl_vector_get(xstart,0)))/pow(1 + exp(fabs(gsl_vector_get(xstart,0))), 2));
+	}
 
 /**
  * Set the initial condition

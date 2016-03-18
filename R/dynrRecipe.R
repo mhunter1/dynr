@@ -176,9 +176,15 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
   lhs=sapply(fml,"[",1)
   rhs=sapply(fml,"[",2)
   
+  fmlj=processFormula(jacob)
+  row=sapply(fmlj,"[",1)
+  col=sapply(fmlj,"[",2)
+  rhsj=sapply(fmlj,"[",3)
+  
   if (isContinuosTime){
     
   }else{
+    #function_dynam
     ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
     for (i in 1:n){
       for (j in 1:length(lhs)){
@@ -187,7 +193,18 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
       ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[i],";"),sep="\n\t")    
     }
     ret=paste0(ret,"\n\t}")
-  }
+    
+    #function_jacob_dynam
+    ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
+    for (i in 1:length(jacob)){
+        for (j in 1:length(lhs)){
+          rhsj[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[i])
+        }
+       
+        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs==row[i])-1,",",which(lhs==col[i])-1,",",rhsj[i],";"),sep="\n\t")    
+    }
+    ret=paste0(ret,"\n\t}")
+   }
   
   return(ret)
 }
@@ -346,7 +363,7 @@ trans2CFunction<-function(op.symbol){
             mod = as.name("fmod"),
             max = as.name("fmax"),
             min = as.name("fmin"),
-            sign = c(as.name("copysign"),as.double(1)))
+            sign = c(as.name("copysign"),1))
     }
   return(op.symbol)
 }

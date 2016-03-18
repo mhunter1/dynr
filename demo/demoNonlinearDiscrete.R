@@ -8,8 +8,13 @@ data <- dynr.data(thedata, id="id", time="Time",observed=colnames(thedata)[c(6,5
 
 formula=list(x1~param[4]*x1+param[6]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
              x2~param[5]*x2+param[7]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
-dynm<-dynr.nonlindynamics(formula,NULL, isContinuosTime=FALSE)
+jacob=list(x1~x1~param[4],
+           x1~x2~param[6]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
+           x2~x2~param[5],
+           x2~x1~param[7]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
+dynm<-dynr.nonlindynamics(formula,jacob,isContinuosTime=FALSE)
 writeLines(dynm)
+
 
 model <- dynr.model(
               num_regime=1,
