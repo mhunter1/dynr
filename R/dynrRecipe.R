@@ -155,6 +155,17 @@ reverseldl<-function(values){
 # add identification constraints
 # 
 
+# Each element of the transition probability matrix (TPM) has a linear predictor (lp).
+# LPM = 
+# lp(p11) ~ 1 + x1 + x2 + ... + xn,   lp(p12) ~ 1 + x1 + x2 + ... + xn
+# lp(p21) ~ 1 + x1 + x2 + ... + xn,   lp(p22) ~ 1 + x1 + x2 + ... + xn
+# 
+# The softmax function then operates on the columns of the linear predictor matrix (LPM).
+# TPM = 
+#       cbind( softmax(LPM[,1]), softmax(LPM[,2]), ..., softmax(LPM[,k]) )
+# for k regimes
+
+
 dynr.regimes <- function(){
 	
 }
