@@ -201,7 +201,7 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
       for (j in 1:length(lhs)){
         rhs[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[i])
       }
-      ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[i],";"),sep="\n\t")    
+      ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[i],");"),sep="\n\t")    
     }
     ret=paste0(ret,"\n\t}")
     
@@ -212,7 +212,7 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
           rhsj[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[i])
         }
        
-        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs==row[i])-1,",",which(lhs==col[i])-1,",",rhsj[i],";"),sep="\n\t")    
+        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs==row[i])-1,",",which(lhs==col[i])-1,",",rhsj[i],");"),sep="\n\t")    
     }
     ret=paste0(ret,"\n\t}")
    }

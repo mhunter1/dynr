@@ -22,22 +22,38 @@ void function_dynam(const double tstart, const double tend, size_t regime, const
         double *param, size_t n_gparam,const gsl_vector *co_variate,
         void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),
         gsl_vector *x_tend){
-			
-		/*abs->fabs, exp=exp*/	
-		gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
-		gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
-
+	    
+		switch (regime) {
+			    case 0:
+				gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0));
+				gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1));	
+		        break;
+		        case 1:
+				gsl_vector_set(x_tend,0,param[4]*gsl_vector_get(xstart,0)+param[6]*(exp(fabs(gsl_vector_get(xstart,1)))/(1+exp(fabs(gsl_vector_get(xstart,1)))))*gsl_vector_get(xstart,1));
+				gsl_vector_set(x_tend,1,param[5]*gsl_vector_get(xstart,1)+param[7]*(exp(fabs(gsl_vector_get(xstart,0)))/(1+exp(fabs(gsl_vector_get(xstart,0)))))*gsl_vector_get(xstart,0));	
+     		    break;
+		}
 }
 
+
 void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,
-  double *param, size_t num_func_param, const gsl_vector *co_variate,
-	void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
-	gsl_matrix *Jx){
-		gsl_matrix_set(Jx,0,0,param[4]);
-		gsl_matrix_set(Jx,0,1,param[6] * (exp(fabs(gsl_vector_get(xstart,1)))/(exp(fabs(gsl_vector_get(xstart,1))) + 1) + gsl_vector_get(xstart,1) * copysign(1, gsl_vector_get(xstart,1)) * exp(fabs(gsl_vector_get(xstart,1)))/pow(1 + exp(fabs(gsl_vector_get(xstart,1))), 2)));
-		gsl_matrix_set(Jx,1,1,param[5]);
-		gsl_matrix_set(Jx,1,0,param[7] * (exp(fabs(gsl_vector_get(xstart,0)))/(exp(fabs(gsl_vector_get(xstart,0))) + 1) + gsl_vector_get(xstart,0) * copysign(1, gsl_vector_get(xstart,0)) * exp(fabs(gsl_vector_get(xstart,0)))/pow(1 + exp(fabs(gsl_vector_get(xstart,0))), 2)));
-	}
+        double *param, size_t num_func_param, const gsl_vector *co_variate,
+        void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),
+		gsl_matrix *Jx){
+
+		switch (regime) {
+	    		case 0:
+				gsl_matrix_set(Jx,0,0,param[4]);
+				gsl_matrix_set(Jx,1,1,param[5]);
+				break;  
+				case 1:
+				gsl_matrix_set(Jx,0,0,param[4]);
+				gsl_matrix_set(Jx,0,1,param[6] * (exp(fabs(gsl_vector_get(xstart,1)))/(exp(fabs(gsl_vector_get(xstart,1))) + 1) + gsl_vector_get(xstart,1) * copysign(1, gsl_vector_get(xstart,1)) * exp(fabs(gsl_vector_get(xstart,1)))/pow(1 + exp(fabs(gsl_vector_get(xstart,1))), 2)));
+				gsl_matrix_set(Jx,1,1,param[5]);
+				gsl_matrix_set(Jx,1,0,param[7] * (exp(fabs(gsl_vector_get(xstart,0)))/(exp(fabs(gsl_vector_get(xstart,0))) + 1) + gsl_vector_get(xstart,0) * copysign(1, gsl_vector_get(xstart,0)) * exp(fabs(gsl_vector_get(xstart,0)))/pow(1 + exp(fabs(gsl_vector_get(xstart,0))), 2)));
+				break;       
+		}
+}
 
 /**
  * Set the initial condition
@@ -69,8 +85,12 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
  */
 
 void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){
-     /*if there is only one regime*/
-	gsl_matrix_set_identity(regime_switch_mat);
+
+	gsl_matrix_set(regime_switch_mat,0,0,param[16]);
+	gsl_matrix_set(regime_switch_mat,0,1,1-param[16]);
+	gsl_matrix_set(regime_switch_mat,1,0,param[17]);
+	gsl_matrix_set(regime_switch_mat,1,1,1-param[17]);
+	
 }
 
 /**
