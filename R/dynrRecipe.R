@@ -21,6 +21,13 @@
 #--------------------------------------
 # brief input version
 
+##' Recipe function to quickly create factor loadings
+##'
+##' @param map list giving how the latent variables map onto the observed variables
+##' @param params parameter numbers
+##' @param idvar Names of the variables used to identify the factors
+##'
+##'
 dynr.loadings <- function(map, params, idvar){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
@@ -165,10 +172,48 @@ reverseldl<-function(values){
 #       cbind( softmax(LPM[,1]), softmax(LPM[,2]), ..., softmax(LPM[,k]) )
 # for k regimes
 
-
-dynr.regimes <- function(){
+##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
+##' @param param matrix of the same size as values giving the free parameters
+dynr.regimes <- function(values, params, covariates){
+	numCovariates <- length(covariates)
+	#TODO check matrix dimensions
+	#TODO check that some form of identification is made
 	
+	ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
+	ret <- paste(ret,
+		createGslMatrix(nrow(values), numCovariates, "Gmatrix"),
+		createGslVector(nrow(values), "Pvector"),
+		createGslVector(nrow(values), "Presult"),
+		sep="\n")
+	for(col in 1L:nrow(values)){
+		selCols <- ((col-1)*numCovariates + 1):(col*numCovariates)
+		ret <- paste(ret,
+			setGslMatrixElements(values=values[, selCols], params=params[, selCols], name="Gmatrix"),
+			blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "0.0", "Pvector"),
+			"\tmathfunction_softmax(Pvector, Presult);",
+			gslVector2Column("regime_switch_mat", col-1, "Presult"),
+			"\tgsl_matrix_set_zero(Gmatrix);",
+			sep="\n")
+	}
+	ret <- paste(ret,
+		destroyGslMatrix("Gmatrix"),
+		destroyGslVector("Pvector"),
+		destroyGslVector("Presult"),
+		sep="\n")
+	ret <- paste(ret, "}\n\n", sep="\n")
 }
+
+# Examples
+# Regime-switching with no covariates (self-transition ID)
+#
+#
+# Regime switching with no covariates (second regime ID)
+#
+#
+# 2 regimes with three covariates
+b <- dynr.regimes(values=matrix(c(0), 2, 6), params=matrix(c(8:19), 2, 6), covariates=c('x1', 'x2', 'x3'))
+
+# 
 
 
 #------------------------------------------------------------------------------
@@ -532,6 +577,14 @@ destroyGslMatrix <- function(name){
 	paste0("\tgsl_matrix_free(", name, ");\n")
 }
 
+createGslVector <- function(size, name){
+	paste0("\tgsl_vector *", name, " = gsl_vector_calloc(", size, ");\n")
+}
+
+destroyGslVector <- function(name){
+	paste0("\tgsl_vector_free(", name, ");\n")
+}
+
 #y <- alpha * transA(A) %*% x + beta * y
 blasMV <- function(transA, alpha, A, x, beta, y){
 	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
@@ -543,5 +596,9 @@ blasMM <- function(transA, transB, alpha, A, B, beta, C){
 	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
 	transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
 	paste0("\tgsl_blas_dgemm(", paste(transA, transB, alpha, A, B, beta, C, sep=", "), ");\n")
+}
+
+gslVector2Column <- function(matrix, column, vector){
+	paste0("\tgsl_matrix_set_col(", paste(matrix, column, vector, sep=", "), ");\n")
 }
 
