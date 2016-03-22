@@ -21,5 +21,6 @@ Collate:
     'dynrPlot.R'
     'dynrFuncAddress.R'
     'dynrRecipe.R'
+    'dynrCook.R'
     'dynrVersion.R'
 

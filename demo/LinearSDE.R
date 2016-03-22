@@ -30,4 +30,7 @@ dynamics <- dynr.linearDynamics(
 	values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
 	time="contin")
 
-dP_dt <- dynr.dP_dt
+# Proto-example of cooking
+dynr.cook(file=stdout(), meas, ecov$c.string, initial$c.string, dynamics)
+
+
