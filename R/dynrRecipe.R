@@ -174,6 +174,8 @@ reverseldl<-function(values){
 
 ##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
 ##' @param param matrix of the same size as values giving the free parameters
+##' 
+##' Note that the ROW sums for the transition probability matrix must be one.
 dynr.regimes <- function(values, params, covariates){
 	numCovariates <- length(covariates)
 	#TODO check matrix dimensions
@@ -191,7 +193,7 @@ dynr.regimes <- function(values, params, covariates){
 			setGslMatrixElements(values=values[, selCols], params=params[, selCols], name="Gmatrix"),
 			blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "0.0", "Pvector"),
 			"\tmathfunction_softmax(Pvector, Presult);",
-			gslVector2Column("regime_switch_mat", col-1, "Presult"),
+			gslVector2Column("regime_switch_mat", col-1, "Presult", 'row'),
 			"\tgsl_matrix_set_zero(Gmatrix);",
 			sep="\n")
 	}
@@ -598,7 +600,11 @@ blasMM <- function(transA, transB, alpha, A, B, beta, C){
 	paste0("\tgsl_blas_dgemm(", paste(transA, transB, alpha, A, B, beta, C, sep=", "), ");\n")
 }
 
-gslVector2Column <- function(matrix, column, vector){
-	paste0("\tgsl_matrix_set_col(", paste(matrix, column, vector, sep=", "), ");\n")
+gslVector2Column <- function(matrix, index, vector, which){
+	if(which=='column'){
+		paste0("\tgsl_matrix_set_col(", paste(matrix, index, vector, sep=", "), ");\n")
+	} else if(which=='row'){
+		paste0("\tgsl_matrix_set_row(", paste(matrix, index, vector, sep=", "), ");\n")
+	}
 }
 
