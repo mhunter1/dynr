@@ -33,6 +33,32 @@ dynamics <- dynr.linearDynamics(
 regimes <- dynr.regimes()
 
 # Proto-example of cooking
-dynr.cook(file=stdout(), meas, ecov$c.string, initial$c.string, dynamics, regimes)
+fname <- "./demo/CookedLinearSDE.c"
+dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
+
+#--------------------------------------
+# Model Specification
+data <- dynr.data(cbind(id=rep(1,100),t(ty), times=tT[,-1]), id="id", time="times", observed="y1")
+model <- dynr.model(
+              num_regime=1,
+              dim_latent_var=2,
+              xstart=c(-0.1,-0.2,log(1),log(1.5),0),
+              ub=c(rep(9999,4),10),lb=c(-10,-10,log(10^(-6)),9999,-10),
+              options=list(maxtime=30*60, 
+                           maxeval=5000,
+                           ftol_rel=as.numeric(1e-8),
+                           xtol_rel=as.numeric(1e-8)),
+              isContinuousTime=TRUE,
+              infile=fname, 
+              outfile="./demo/LinearSDE2", 
+              verbose=TRUE,
+              compileLib=TRUE
+)
+
+res <- dynr.run(model, data)
+
+summary(res)
+
+
 
 
