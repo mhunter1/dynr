@@ -1,4 +1,5 @@
 Package: dynr
+Date: 2016-03-21
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person("Sy-Miin", "Chow", role="aut"),
@@ -9,7 +10,7 @@ Author: Lu Ou [aut, cre],
 	Skukruth Reddy [aut],
 	Michael Hunter [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
-Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr
+Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr, KFAS
 Suggests: testthat
 Description: More about what it does (maybe more than one line)
 License: Apache License (== 2.0) GPL (>= 2)
@@ -22,4 +23,5 @@ Collate:
     'dynrFuncAddress.R'
     'dynrRecipe.R'
     'dynrVersion.R'
+Version: 0.01-28
 
