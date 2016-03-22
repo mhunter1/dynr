@@ -211,7 +211,7 @@ dynr.regimes <- function(values, params, covariates){
 #
 #
 # 2 regimes with three covariates
-b <- dynr.regimes(values=matrix(c(0), 2, 6), params=matrix(c(8:19), 2, 6), covariates=c('x1', 'x2', 'x3'))
+#b <- dynr.regimes(values=matrix(c(0), 2, 6), params=matrix(c(8:19), 2, 6), covariates=c('x1', 'x2', 'x3'))
 
 # 
 
