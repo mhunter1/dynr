@@ -29,11 +29,11 @@ dynr.data <- function(dataframe, id, time, observed, covariates){
   ids <- unique(dataframe[,id])
   tstart <- c(sapply(1:length(ids),function(i){min(which(dataframe[,id]%in%ids[i]))})-1,dim(dataframe)[1])
    if (!missing(covariates)){
-     data.object <- list(id=dataframe[,id],tstart=as.integer(tstart),time=as.double(dataframe[,time]),observed=data.frame(apply(dataframe[,observed],2,as.double)),covariates=data.frame(apply(dataframe[,covariates],2,as.double)))
+     data.object <- list(id=dataframe[,id],tstart=as.integer(tstart),time=as.double(dataframe[,time]),observed=data.frame(apply(dataframe[ , observed, drop=FALSE],2,as.double)),covariates=data.frame(apply(dataframe[,covariates],2,as.double)))
     names(data.object$covariates) <- paste0("covar",1:length(covariates))
    }
   else{
-     data.object <- list(id=dataframe[,id],tstart=as.integer(tstart),time=as.double(dataframe[,time]),observed=data.frame(apply(dataframe[,observed],2,as.double)))
+     data.object <- list(id=dataframe[,id],tstart=as.integer(tstart),time=as.double(dataframe[,time]),observed=data.frame(apply(dataframe[ , observed, drop=FALSE],2,as.double)))
      }
   names(data.object$observed) <- paste0("obs",1:length(observed))
     return(data.object)
