@@ -71,30 +71,40 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 
 
 #------------------------------------------------------------------------------
-#
+# Define all the model components via the RECIPE functions
 
+# measurement
 meas <- dynr.matrixLoadings(
 	values=matrix(c(1,0), 1, 2),
 	params=matrix(0, 1, 2))
 
+# observation and dynamic noise components
 ecov <- dynr.matrixErrorCov(
 	values.latent=diag(c(0.00001,1)), params.latent=diag(c(0, 3)),
 	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 ecov$c.string
 ecov$startval
 
-initial<-dynr.initial(c(0,1), c(5,0), diag(1,2), diag(0,2))
+# initial covariances and latent state values
+initial <- dynr.initial(
+	values.inistate=c(0,1),
+	params.inistate=c(5,0),
+	values.inicov=diag(1,2),
+	params.inicov=diag(0,2))
 writeLines(initial$c.string)
 initial$startval
 
+# define the differential equation
 dynamics <- dynr.linearDynamics(
 	params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
 	values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
 	time="contin")
 
+# null regimes, i.e. non-regime switching model
 regimes <- dynr.regimes()
 
 # Proto-example of cooking
+# put all the strings together
 fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
 dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
 
