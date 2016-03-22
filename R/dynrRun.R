@@ -7,23 +7,24 @@
 # T = number of time points
 setClass(Class =  "dynrRun",
          representation = representation(
-           fitted.parameters =  "numeric",
-           transformed.parameters =  "numeric",
+           fitted.parameters =  "numeric", #Can return
+           transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
-           exitflag = "numeric",
-           neg.log.likelihood = "numeric",
-           inverse.hessian = "matrix",
-           eta_regime_t = "array", # LxRxT
-           error_cov_regime_t  = "array", # LxLxRxT
-           eta_regime_regime_t_pred= "array", # LxRxRxT
-           error_cov_regime_regime_t_pred = "array", # LxLxRxRxT
-           eta_regime_regime_t_plus_1 = "array", # LxRxRxT
-           error_cov_regime_regime_t_plus_1 = "array", # LxLxRxRxT
-           innov_vec  = "array", # LxRxRxT
-           inverse_residual_cov = "array", # LxLxRxRxT
+           exitflag = "numeric", #
+           neg.log.likelihood = "numeric", #
+           inverse.hessian = "matrix", 
+           eta_regime_t = "array", # LxRxT #
+           error_cov_regime_t  = "array", # LxLxRxT #
+           eta_regime_regime_t_pred= "array", # LxRxRxT #
+           error_cov_regime_regime_t_pred = "array", # LxLxRxRxT #
+           eta_regime_regime_t_plus_1 = "array", # LxRxRxT #
+           error_cov_regime_regime_t_plus_1 = "array", # LxLxRxRxT #
+           innov_vec  = "array", # LxRxRxT #
+           inverse_residual_cov = "array", # LxLxRxRxT #
+           #Everything else from this point on
            pr_t_given_t   = "matrix", # RxT
            pr_t_given_t_less_1 = "matrix", # RxT
            pr_t_given_T  = "matrix", # RxT
@@ -179,11 +180,15 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}else{
 		#TODO change this processing so that a non-NULL object is returned
 		# The object should have everything except Standard Errors and Confidence Intervals
+	  #Sukruth to do: Have another endProcessing function and dynRun objection creation
+	  #for trials that go here.
 	  frontendStop <- Sys.time()
 	  totalTime <- frontendStop-frontendStart
 	  backendTime <- backendStop-backendStart
 	  frontendTime <- totalTime-backendTime
-		obj <- NULL
+		obj <- NULL #Return the modified dynr obj
+		#Print a message. Hessian matrix at convergence contains non-finite values or is
+		#non-positive definite. Print out the Hessian matrix
 	}
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
@@ -193,6 +198,8 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 }
 
 endProcessing <- function(x, transformation, conf.level){
+  #Sukruth to create another version of:
+  #Do line 205, 207
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
 	#Analytic Jacobian
@@ -200,9 +207,9 @@ endProcessing <- function(x, transformation, conf.level){
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess <- J %*% V1%*%t(J)
 	tSE <- sqrt(diag(iHess))
-	tParam <- transformation(x$fitted.parameters)
+	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
-	x$transformed.parameters <- tParam
+	x$transformed.parameters <- tParam #Can do
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- iHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
