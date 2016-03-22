@@ -88,7 +88,7 @@ dynr.loadings <- function(map, params, idvar){
 dynr.matrixLoadings <- function(values, params){
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
-	ret <- paste(ret, "\n    gsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
+	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 	ret <- paste(ret, "\n}\n\n")
 
 	return(ret)
@@ -177,31 +177,36 @@ reverseldl<-function(values){
 ##' 
 ##' Note that the ROW sums for the transition probability matrix must be one.
 dynr.regimes <- function(values, params, covariates){
-	numCovariates <- length(covariates)
+	numCovariates <- ifelse(missing(covariates), 0, length(covariates))
 	#TODO check matrix dimensions
 	#TODO check that some form of identification is made
+	#TODO add intercept processing
 	
 	ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
-	ret <- paste(ret,
-		createGslMatrix(nrow(values), numCovariates, "Gmatrix"),
-		createGslVector(nrow(values), "Pvector"),
-		createGslVector(nrow(values), "Presult"),
-		sep="\n")
-	for(col in 1L:nrow(values)){
-		selCols <- ((col-1)*numCovariates + 1):(col*numCovariates)
+	if(!missing(values) && !missing(params) && !missing(covariates)){
 		ret <- paste(ret,
-			setGslMatrixElements(values=values[, selCols], params=params[, selCols], name="Gmatrix"),
-			blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "0.0", "Pvector"),
-			"\tmathfunction_softmax(Pvector, Presult);",
-			gslVector2Column("regime_switch_mat", col-1, "Presult", 'row'),
-			"\tgsl_matrix_set_zero(Gmatrix);",
+			createGslMatrix(nrow(values), numCovariates, "Gmatrix"),
+			createGslVector(nrow(values), "Pvector"),
+			createGslVector(nrow(values), "Presult"),
 			sep="\n")
+		for(col in 1L:nrow(values)){
+			selCols <- ((col-1)*numCovariates + 1):(col*numCovariates)
+			ret <- paste(ret,
+				setGslMatrixElements(values=values[, selCols], params=params[, selCols], name="Gmatrix"),
+				blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "0.0", "Pvector"),
+				"\tmathfunction_softmax(Pvector, Presult);",
+				gslVector2Column("regime_switch_mat", col-1, "Presult", 'row'),
+				"\tgsl_matrix_set_zero(Gmatrix);",
+				sep="\n")
+		}
+		ret <- paste(ret,
+			destroyGslMatrix("Gmatrix"),
+			destroyGslVector("Pvector"),
+			destroyGslVector("Presult"),
+			sep="\n")
+	} else{
+		ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
 	}
-	ret <- paste(ret,
-		destroyGslMatrix("Gmatrix"),
-		destroyGslVector("Pvector"),
-		destroyGslVector("Presult"),
-		sep="\n")
 	ret <- paste(ret, "}\n\n", sep="\n")
 }
 
@@ -468,11 +473,11 @@ dynr.initial <- function(values.inistate, params.inistate, values.inicov, params
   for(i in 1:length(values.inistate)){
     if(params.inistate[i] > 0){
       ret <- paste(ret,
-                   '\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
                    ', param[', params.inistate[i] - 1, ']);\n', sep='')
     } else if(values.inistate[i] != 0){
       ret <- paste(ret,
-                   '\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
                    ', ', values.inistate[i], ');\n', sep='')
     }
   }
