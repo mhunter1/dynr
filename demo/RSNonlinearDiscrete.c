@@ -43,8 +43,8 @@ void function_jacob_dynam(const double tstart, const double tend, size_t regime,
 
 		switch (regime) {
 	    		case 0:
-				gsl_matrix_set(Jx,0,0,param[8]);
-				gsl_matrix_set(Jx,1,1,param[9]);
+				gsl_matrix_set(Jx,0,0,param[6]);
+				gsl_matrix_set(Jx,1,1,param[7]);
 				break;  
 				case 1:
 				gsl_matrix_set(Jx,0,0,param[6]);
@@ -62,6 +62,7 @@ void function_jacob_dynam(const double tstart, const double tend, size_t regime,
 void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){
 
     gsl_vector_set(pr_0,0,.8824);
+    gsl_vector_set(pr_0,1,.1176);
 
     size_t num_regime=pr_0->size;
     size_t dim_latent_var=error_cov_0[0]->size1;
@@ -85,15 +86,16 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
  */
 
 void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){
-double p11, p12, p21, p22;
+    
+    double p11, p12, p21, p22;
   /*gsl_matrix_set(regime_switch_mat,0,0,param[16]);
   gsl_matrix_set(regime_switch_mat,0,1,1-param[16]);
   gsl_matrix_set(regime_switch_mat,1,0,param[17]);
   gsl_matrix_set(regime_switch_mat,1,1,1-param[17]);*/
   
   
-            p11 = (exp(param[4]))/(exp(0)+exp(param[4]));
-            p22 = (exp(param[5]))/(exp(0)+exp(param[5]));
+    p11 = (exp(param[4]))/(exp(0)+exp(param[4]));
+    p21 = (exp(param[5]))/(exp(0)+exp(param[5]));
     
     p12 = 1-p11;
     p22 = 1-p21;

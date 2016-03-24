@@ -3,49 +3,79 @@
 # nonlinear vector autoregressive (VAR) relation at the factor level
 
 require(dynr)
-setwd("~/Dropbox/Symiin_Lu/dynr")
+
+#------------------------------------------------------------------------------
+# Define all the model components via the RECIPE functions
+
+# # measurement
+# meas <- dynr.matrixLoadings(
+#   values=matrix(c(1,0), 1, 2),
+#   params=matrix(0, 1, 2))
+# 
+# # observation and dynamic noise components
+# ecov <- dynr.matrixErrorCov(
+#   values.latent=diag(c(0.00001,1)), params.latent=diag(c(0, 3)),
+#   values.observed=diag(1.5,1), params.observed=diag(4, 1))
+# ecov$c.string
+# ecov$startval
+# 
+# # initial covariances and latent state values
+# initial <- dynr.initial(
+#   values.inistate=c(0,1),
+#   params.inistate=c(5,0),
+#   values.inicov=diag(1,2),
+#   params.inicov=diag(0,2))
+# writeLines(initial$c.string)
+# initial$startval
+# 
+# # define the differential equation
+# dynamics <- dynr.linearDynamics(
+#   params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
+#   values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
+#   time="contin")
+# 
+# # null regimes, i.e. non-regime switching model
+# regimes <- dynr.regimes()
+# 
+# # Proto-example of cooking
+# # put all the strings together
+# fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
+# dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
+# 
+# formula=list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+#              x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
+# jacob=list(x1~x1~param[6],
+#            x1~x2~param[8]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
+#            x2~x2~param[7],
+#            x2~x1~param[9]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
+# dynm<-dynr.nonlindynamics(formula,jacob,isContinuosTime=FALSE)
+# writeLines(dynm)
+
+#--------------------------------------
+# Put the cooked recipes together in a Model Specification
+
+# Data
 
 #Reading in simulated data
 thedata <- read.table(paste0("./data/NonlinearVARsimT300n10.txt"),na.strings = "NaN",sep=",")
-thedata2 <- t(thedata)
-n = 10; T = 300
-thedata2 <- cbind(rep(1:n,each=T),rep(1:T,n),thedata2)
+discreteNA <- t(thedata)
+n = 10; nT = 300
+discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
 
-colnames(thedata2)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
-data <- dynr.data(thedata2, id="id", time="Time",observed=colnames(thedata2)[c(3:8)])
-
-formula=list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
-             x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
-jacob=list(x1~x1~param[6],
-           x1~x2~param[8]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
-           x2~x2~param[7],
-           x2~x1~param[9]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
-dynm<-dynr.nonlindynamics(formula,jacob,isContinuosTime=FALSE)
-writeLines(dynm)
+colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
+data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
 pstart <- log(.9/(1-.9))
-
-#True values = 
-#c(1.2, 1.2, 1.1, .95, .98, .85, .2, .25, -.6, -.8,
-# .28, .10, .12, .13, .12, .11,
-# .35, .3)
-
-truepar <- c(1.2, 1.2, 1.1, .95, 
-             log(.98/(1-.98)), log(.85/(1-.85)), 
-             .2, .25, -.6, -.8,
-            log(c(.28, .10, .12, .13, .12, .11)),
-            log(c(.35, .3)))
-
 model <- dynr.model(
   num_regime=2,
   dim_latent_var=2,
   xstart=c(1,1,1,1,pstart,pstart,.3,.4,-.5,-.5,
            rep(log(.1),6),
            rep(log(.3),2)),
-  #ub=rep(9999,18),
-  #lb=rep(9999,18),
-  ub=c(rep(3,4),5,5,1.5,1.5,1.5,1.5,rep(log(5),6),rep(log(5),2)),
-  lb=c(rep(0,4),-5,-5,-1.5,-1.5,-1.5,-1.5,rep(log(.001),6),rep(log(.001),2)),
+  ub=rep(9999,18),
+  lb=rep(9999,18),
+  #ub=c(rep(3,4),5,5,1.5,1.5,1.5,1.5,rep(log(5),6),rep(log(5),2)),
+  #lb=c(rep(0,4),-5,-5,-1.5,-1.5,-1.5,-1.5,rep(log(.001),6),rep(log(.001),2)),
   options=list(maxtime=60*60, maxeval=1000,ftol_rel=as.numeric(1e-10),
                xtol_rel=as.numeric(1e-7)),
   isContinuousTime=FALSE,
@@ -55,7 +85,28 @@ model <- dynr.model(
   compileLib=TRUE
 )
 
+# Estimate free parameters
+res <- dynr.run(model, data)
 
+# Examine results
+summary(res)
+
+
+#True values = 
+#c(1.2, 1.2, 1.1, .95, .98, .85, .2, .25, -.6, -.8,
+# .28, .10, .12, .13, .12, .11,
+# .35, .3)
+
+truepar <- c(1.2, 1.2, 1.1, .95, 
+             log(.98/(1-.98)), log(.85/(1-.85)), 
+             .2, .25, -.6, -.8,
+             log(c(.28, .10, .12, .13, .12, .11)),
+             log(c(.35, .3)))
+#1.200000  1.200000  1.100000  0.950000  3.891820  1.734601  
+#0.200000  0.250000 -0.600000 -0.800000 
+#-1.272966 -2.302585 -2.120264-2.040221 -2.120264 -2.207275 -1.049822 -1.203973
+#------------------------------------------------------------------------------
+# End
 
 tfun <- function(x){c(x[1:4],
                       exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
@@ -64,12 +115,7 @@ tfun <- function(x){c(x[1:4],
 res <- dynr.run(model, data,tfun)
 
 
-#True values should be
-#c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), -4, 8.5, -1, 1,-2, -1)
-
-
 summary(res)
-#save.image(file="./demo/RSLinearODETestBrief.RData")
 #plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
 
