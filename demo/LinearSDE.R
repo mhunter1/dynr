@@ -31,7 +31,7 @@ require(dynr)
 xdim <- 2
 udim <- 1
 ydim <- 1
-tdim <- 100
+tdim <- 1000
 set.seed(315)
 tA <- matrix(c(0, -.3, 1, -.7), xdim, xdim)
 tB <- matrix(c(0), xdim, udim)
