@@ -183,12 +183,12 @@ dynr.regimes <- function(values, params, covariates){
 	#TODO check that some form of identification is made
 	
 	#Restructure values matrix for row-wise
-	values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
-	params <- matrix(t(params), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
-	valuesL <- list()
-	paramsL <- list()
-	rowBeginSeq <- seq(1, nrow(values), by=numRegimes)
-	rowEndSeq <- seq(numRegimes, nrow(values), by=numRegimes)
+	if(!missing(values) & !missing(params)){
+		values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+		params <- matrix(t(params), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+		rowBeginSeq <- seq(1, nrow(values), by=numRegimes)
+		rowEndSeq <- seq(numRegimes, nrow(values), by=numRegimes)
+	}
 	
 	ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
 	if(!missing(values) && !missing(params) && !missing(covariates)){
