@@ -33,7 +33,7 @@ model <- dynr.model(
               outfile="./demo/NonlinearDiscrete2", 
               verbose=TRUE,
               compileLib=TRUE
-)
+			  )
 
 
 #func_noise_cov_txt="void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){

@@ -76,8 +76,8 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
             gsl_vector_set((eta_0)[j],i*dim_latent_var+1,0.0);
         }/*statevar_1_p1 statevar_2_p1 statevar_1_p2 statevar_2_p2 ..., eta_0[] with a length of num_sbj*dim_latent_var*/
 
-        gsl_matrix_set((error_cov_0)[j],0,0,1.0);
-        gsl_matrix_set((error_cov_0)[j],1,1,1.0);
+        gsl_matrix_set((error_cov_0)[j],0,0,0.0);
+        gsl_matrix_set((error_cov_0)[j],1,1,0.0);
     }
 }
 
@@ -95,10 +95,10 @@ void function_regime_switch(size_t t, size_t type, double *param, const gsl_vect
   
   
     p11 = (exp(param[4]))/(exp(0)+exp(param[4]));
-    p21 = (exp(param[5]))/(exp(0)+exp(param[5]));
+    p22 = (exp(param[5]))/(exp(0)+exp(param[5]));
     
     p12 = 1-p11;
-    p22 = 1-p21;
+    p21 = 1-p22;
 
     gsl_matrix_set(regime_switch_mat,0,0,p11);
     gsl_matrix_set(regime_switch_mat,0,1,p12);

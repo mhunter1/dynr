@@ -66,6 +66,14 @@ colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
 data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
 pstart <- log(.9/(1-.9))
+#Im = ones(1,InfDS2.nl);
+#Eyem = eye(InfDS2.nl);
+#Am = [Eyem - (p_Mat);
+#      Im        ];
+#End = [zeros(InfDS2.nl,1);
+#       1      ];
+#St0 = (Am' * Am)\Am' * End;       %initial values of pr(St|y_t), Eq. 4.49, p. 71
+       
 model <- dynr.model(
   num_regime=2,
   dim_latent_var=2,

@@ -15,6 +15,50 @@ setClass(Class =  "dynrRun",
            conf.intervals = "matrix",
            exitflag = "numeric", #
            neg.log.likelihood = "numeric", #
+           eta_regime_t = "array", # LxRxT #
+           error_cov_regime_t  = "array", # LxLxRxT #
+           innov_vec  = "array", # LxRxRxT #
+           inverse_residual_cov = "array", # LxLxRxRxT #
+           #Everything else from this point on
+           pr_t_given_T  = "matrix", # RxT
+           eta_smooth_final = "matrix", # LxT
+           error_cov_smooth_final  = "array", # LxLxT
+           run.times = "numeric"
+         )
+)
+
+# Initialize method for the new() function
+setMethod("initialize", "dynrRun",
+          function(.Object, x){
+            .Object@fitted.parameters <- x$fitted.parameters
+            .Object@transformed.parameters <- x$transformed.parameters
+            .Object@standard.errors <- x$standard.errors
+            .Object@hessian <- x$hessian.matrix
+            .Object@transformed.inv.hessian <- x$transformed.inv.hessian
+            .Object@conf.intervals <- x$conf.intervals
+            .Object@exitflag <- x$exitflag
+            .Object@neg.log.likelihood <- x$neg.log.likelihood
+            .Object@eta_regime_t <- x$eta_regime_t
+            .Object@error_cov_regime_t <- x$error_cov_regime_t
+            .Object@innov_vec <- x$innov_vec
+            .Object@inverse_residual_cov <- x$inverse_residual_cov
+            .Object@pr_t_given_T <- x$pr_t_given_T
+            .Object@eta_smooth_final <- x$eta_smooth_final
+            .Object@error_cov_smooth_final <- x$error_cov_smooth_final
+            return(.Object)
+          }
+)
+
+setClass(Class =  "dynrDebug",
+         representation = representation(
+           fitted.parameters =  "numeric", #Can return
+           transformed.parameters =  "numeric", #
+           standard.errors =  "numeric",
+           hessian =  "matrix",
+           transformed.inv.hessian =  "matrix",
+           conf.intervals = "matrix",
+           exitflag = "numeric", #
+           neg.log.likelihood = "numeric", #
            inverse.hessian = "matrix", 
            eta_regime_t = "array", # LxRxT #
            error_cov_regime_t  = "array", # LxLxRxT #
@@ -37,11 +81,8 @@ setClass(Class =  "dynrRun",
          )
 )
 
-
-
-
 # Initialize method for the new() function
-setMethod("initialize", "dynrRun",
+setMethod("initialize", "dynrDebug",
           function(.Object, x){
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
@@ -138,7 +179,7 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE) {
+dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE,debug_flag=FALSE) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
@@ -154,7 +195,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call("main_R", model, data, PACKAGE = "dynr")
+	output <- .Call("main_R", model, data, debug_flag,PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
@@ -170,7 +211,12 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
-		obj <- new("dynrRun", output2)
+		if (debug_flag){
+			obj <- new("dynrDebug", output2)
+		}else{
+			obj <- new("dynrRun", output2)
+		}
+		
 		frontendStop <- Sys.time()
 		totalTime <- frontendStop-frontendStart
 		backendTime <- backendStop-backendStart

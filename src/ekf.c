@@ -1004,6 +1004,8 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
     \*------------------------------------------------------*/
 
     /** step 2.1: compute measurement y_hat(t+1|t) **/
+	
+	/*if miss_case==2, innov_v=0, inv_cov=0, gain=0*/
     if(miss_case!=2){
         /*printf("eta(%d):",t_plus_1);
         print_vector(eta_t_plus_1);
