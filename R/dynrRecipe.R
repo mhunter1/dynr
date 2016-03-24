@@ -178,24 +178,35 @@ reverseldl<-function(values){
 ##' Note that the ROW sums for the transition probability matrix must be one.
 dynr.regimes <- function(values, params, covariates){
 	numCovariates <- ifelse(missing(covariates), 0, length(covariates))
+	numRegimes <- nrow(values)
 	#TODO check matrix dimensions
 	#TODO check that some form of identification is made
 	#TODO add intercept processing
 	
+	#Restructure values matrix for row-wise
+	values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+	params <- matrix(t(params), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+	valuesL <- list()
+	paramsL <- list()
+	rowBeginSeq <- seq(1, nrow(values), by=numRegimes)
+	rowEndSeq <- seq(numRegimes, nrow(values), by=numRegimes)
+	
 	ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
 	if(!missing(values) && !missing(params) && !missing(covariates)){
 		ret <- paste(ret,
-			createGslMatrix(nrow(values), numCovariates, "Gmatrix"),
-			createGslVector(nrow(values), "Pvector"),
-			createGslVector(nrow(values), "Presult"),
+			createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
+			createGslVector(numRegimes, "Pvector"),
+			createGslVector(numRegimes, "Presult"),
 			sep="\n")
-		for(col in 1L:nrow(values)){
-			selCols <- ((col-1)*numCovariates + 1):(col*numCovariates)
+		for(reg in 1L:numRegimes){
+			selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
 			ret <- paste(ret,
-				setGslMatrixElements(values=values[, selCols], params=params[, selCols], name="Gmatrix"),
-				blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "0.0", "Pvector"),
+				setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
+				setGslMatrixElements(values=values[selRows, -1, drop=FALSE], params=params[selRows, -1, drop=FALSE], name="Gmatrix"),
+				blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "1.0", "Pvector"),
 				"\tmathfunction_softmax(Pvector, Presult);",
-				gslVector2Column("regime_switch_mat", col-1, "Presult", 'row'),
+				gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
+				"\tgsl_vector_set_zero(Pvector);",
 				"\tgsl_matrix_set_zero(Gmatrix);",
 				sep="\n")
 		}
@@ -204,7 +215,26 @@ dynr.regimes <- function(values, params, covariates){
 			destroyGslVector("Pvector"),
 			destroyGslVector("Presult"),
 			sep="\n")
-	} else{
+	} else if(!missing(values) && !missing(params) && missing(covariates)){
+		# same as above processing, but without the Gmatrix for the covariates
+		ret <- paste(ret,
+			createGslVector(numRegimes, "Pvector"),
+			createGslVector(numRegimes, "Presult"),
+			sep="\n")
+		for(reg in 1L:numRegimes){
+			selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
+			ret <- paste(ret,
+				setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
+				"\tmathfunction_softmax(Pvector, Presult);",
+				gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
+				"\tgsl_vector_set_zero(Pvector);",
+				sep="\n")
+		}
+		ret <- paste(ret,
+			destroyGslVector("Pvector"),
+			destroyGslVector("Presult"),
+			sep="\n")
+	} else {
 		ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
 	}
 	ret <- paste(ret, "}\n\n", sep="\n")
@@ -212,15 +242,16 @@ dynr.regimes <- function(values, params, covariates){
 
 # Examples
 # Regime-switching with no covariates (self-transition ID)
-#
+#b <- dynr.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
 #
 # Regime switching with no covariates (second regime ID)
-#
+#b <- dynr.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
 #
 # 2 regimes with three covariates
-#b <- dynr.regimes(values=matrix(c(0), 2, 6), params=matrix(c(8:19), 2, 6), covariates=c('x1', 'x2', 'x3'))
+#b <- dynr.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
 
-# 
+# B <- matrix(c(8:(8+24-1)), nr, (nc+1)*nr, byrow=TRUE)
+#matrix(t(B), nrow=nr*nr, ncol=nc+1, byrow=TRUE)
 
 
 #------------------------------------------------------------------------------
@@ -492,6 +523,14 @@ dynr.initial <- function(values.inistate, params.inistate, values.inicov, params
 
 #------------------------------------------------------------------------------
 dynr.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
+
+#TODO change 
+#	nx = (size_t) floor(sqrt(2*(double) p->size));
+# to
+#	nx = (size_t) sqrt(2*double p->size + .25) - .5
+#
+# 	size_t n_Q_vec=((1+nx)*nx)/2;
+
 
 
 #------------------------------------------------------------------------------
