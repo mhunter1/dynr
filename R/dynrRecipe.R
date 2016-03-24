@@ -178,10 +178,9 @@ reverseldl<-function(values){
 ##' Note that the ROW sums for the transition probability matrix must be one.
 dynr.regimes <- function(values, params, covariates){
 	numCovariates <- ifelse(missing(covariates), 0, length(covariates))
-	numRegimes <- nrow(values)
+	numRegimes <- ifelse(missing(values), 0, nrow(values))
 	#TODO check matrix dimensions
 	#TODO check that some form of identification is made
-	#TODO add intercept processing
 	
 	#Restructure values matrix for row-wise
 	values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
