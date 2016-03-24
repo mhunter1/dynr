@@ -228,11 +228,14 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 		# The object should have everything except Standard Errors and Confidence Intervals
 	  #Sukruth to do: Have another endProcessing function and dynRun objection creation
 	  #for trials that go here.
+	  output3 <- Processing(output, transformation)
+	  obj <- new("dynrRun", output3)
 	  frontendStop <- Sys.time()
 	  totalTime <- frontendStop-frontendStart
 	  backendTime <- backendStop-backendStart
 	  frontendTime <- totalTime-backendTime
-		obj <- NULL #Return the modified dynr obj
+	  return(obj)
+		#obj <- NULL #Return the modified dynr obj
 		#Print a message. Hessian matrix at convergence contains non-finite values or is
 		#non-positive definite. Print out the Hessian matrix
 	}
@@ -241,6 +244,22 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	rm(output)
 	gc()
 	return(obj)
+}
+
+
+Processing <- function(x, transformation){
+  cat('Doing processing for failed models\n')
+  #Analytic Jacobian
+  V1 = solve(x$hessian.matrix)
+  J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
+  tParam <- transformation(x$fitted.parameters)
+  x$transformed.parameters <- tParam
+  y <- length(x$fitted.parameters)
+  x$standard.errors <- rep(999,y)
+  x$transformed.inv.hessian <-matrix(999, nrow=y,ncol=y)
+  x$inverse.hessian.matrix <-matrix(999, nrow=y,ncol=y)
+  x$conf.intervals <-matrix(999, nrow=y,ncol=3)
+  return(x)
 }
 
 endProcessing <- function(x, transformation, conf.level){
@@ -320,3 +339,33 @@ dynrExitFlags <- c(
 	'12'='Maximum optimization time reached.',
 	'13'='Increase maxtime or change starting values.')
 
+
+#transldl function for caluaclating the LDL values
+transldl <- function(vectr,dimension){
+  #vector to matrix
+  x <- matrix(0,nc=dimension,nr=dimension)
+  for(i in 1:dimension){
+    x[i,i] <- vectr[i]
+    for (j in i+1:dimension){
+      if(j<= dimension){
+        x[i,j] <- vectr[i+j+dimension-2]
+        x[j,i] <- vectr[i+j+dimension-2]
+      }
+    }
+  }
+  #initializa the D and L values  
+  D <- matrix(0,nc=dimension,nr=dimension)
+  L <- matrix(0,nc=dimension,nr=dimension)
+  #extracting D
+  y<- x
+  y[lower.tri(y)] <- 0
+  y[upper.tri(y)] <- 0
+  D<- y
+  #extracting L
+  temp <- diag(x = 1, dimension, dimension)
+  x[upper.tri(x,diag = TRUE)] <- 0
+  L <-temp+x
+  LT <-t(L)
+  # final caluclation
+  final <- L %*% exp(D) %*% LT
+  return(final)}
