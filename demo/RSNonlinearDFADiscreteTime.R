@@ -1,4 +1,4 @@
-#rm(list=ls(all=TRUE))
+rm(list=ls(all=TRUE))
 # Example for fitting a nonlinear dynamic factor analysis model with
 # nonlinear vector autoregressive (VAR) relation at the factor level
 

@@ -59,6 +59,41 @@ setClass(Class =  "dynrDebug",
            conf.intervals = "matrix",
            exitflag = "numeric", #
            neg.log.likelihood = "numeric", #
+           #Everything else from this point on
+           pr_t_given_T  = "matrix", # RxT
+           eta_smooth_final = "matrix", # LxT
+           error_cov_smooth_final  = "array", # LxLxT
+           run.times = "numeric"
+         )
+)
+
+# Initialize method for the new() function
+setMethod("initialize", "dynrDebug",
+          function(.Object, x){
+            .Object@fitted.parameters <- x$fitted.parameters
+            .Object@transformed.parameters <- x$transformed.parameters
+            .Object@standard.errors <- x$standard.errors
+            .Object@hessian <- x$hessian.matrix
+            .Object@transformed.inv.hessian <- x$transformed.inv.hessian
+            .Object@conf.intervals <- x$conf.intervals
+            .Object@exitflag <- x$exitflag
+            .Object@neg.log.likelihood <- x$neg.log.likelihood
+            .Object@pr_t_given_T <- x$pr_t_given_T
+            .Object@eta_smooth_final <- x$eta_smooth_final
+            .Object@error_cov_smooth_final <- x$error_cov_smooth_final
+            return(.Object)
+          }
+)
+setClass(Class =  "dynrOutall",
+         representation = representation(
+           fitted.parameters =  "numeric", #Can return
+           transformed.parameters =  "numeric", #
+           standard.errors =  "numeric",
+           hessian =  "matrix",
+           transformed.inv.hessian =  "matrix",
+           conf.intervals = "matrix",
+           exitflag = "numeric", #
+           neg.log.likelihood = "numeric", #
            inverse.hessian = "matrix", 
            eta_regime_t = "array", # LxRxT #
            error_cov_regime_t  = "array", # LxLxRxT #
@@ -82,7 +117,7 @@ setClass(Class =  "dynrDebug",
 )
 
 # Initialize method for the new() function
-setMethod("initialize", "dynrDebug",
+setMethod("initialize", "dynrOutall",
           function(.Object, x){
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
@@ -139,7 +174,8 @@ setMethod( f = "summary",  signature = "dynrRun" ,
            definition = summaryResults)
 setMethod( f = "summary",  signature = "dynrDebug" ,
 		   definition = summaryResults)
-
+setMethod( f = "summary",  signature = "dynrOutall" ,
+		   definition = summaryResults)
 
 displayDynrRun <- function(x){
   str(x)
@@ -181,7 +217,7 @@ logLik.dynrRun <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE,debug_flag=FALSE) {
+dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE,debug_flag=FALSE,outall_flag=FALSE) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
@@ -197,7 +233,7 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call("main_R", model, data, debug_flag,PACKAGE = "dynr")
+	output <- .Call("main_R", model, data, debug_flag, outall_flag,PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
@@ -221,7 +257,9 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 		#Print a message. Hessian matrix at convergence contains non-finite values or is
 		#non-positive definite. ?
 	}
-	if (debug_flag){
+	if (outall_flag){
+		obj <- new("dynrOutall", output2)
+	}else if(debug_flag){
 		obj <- new("dynrDebug", output2)
 	}else{
 		obj <- new("dynrRun", output2)
@@ -249,7 +287,7 @@ endProcessing2 <- function(x, transformation){
   nParam <- length(x$fitted.parameters)
   x$standard.errors <- rep(999,nParam)
   x$transformed.inv.hessian <-matrix(999, nrow=nParam,ncol=nParam)
-  x$conf.intervals <-matrix(999, nrow=y,ncol=2)
+  x$conf.intervals <-matrix(999, nrow=nParam,ncol=2)
   return(x)
 }
 

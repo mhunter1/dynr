@@ -65,10 +65,11 @@ SEXP getListElement(SEXP list, const char *str)
  * @param ubvec is a vector in R of the upper bounds of search region
  * @param lbvec is a vecotr in R of the lower bounds of the search region
  */
-SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
+SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in)
 {
     size_t index,index_col,index_row;
     bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
+	bool outall_flag=*LOGICAL(PROTECT(outall_flag_in));
     /** =======================Interface : Start to Set up the data and the model========================= **/
 
     static Data_and_Model data_model;
@@ -537,12 +538,15 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
 	printf("Creating and allocating R output ... \n");
 	SEXP res_list;
 	SEXP res_names;
-	if (debug_flag){
+	if (outall_flag){
 	    res_list=PROTECT(allocVector(VECSXP,21));
 	    res_names=PROTECT(allocVector(STRSXP, 21));
-	}else{
+	}else if (debug_flag){
 	    res_list=PROTECT(allocVector(VECSXP,11));
 	    res_names=PROTECT(allocVector(STRSXP, 11));
+	}else{
+	    res_list=PROTECT(allocVector(VECSXP,7));
+	    res_names=PROTECT(allocVector(STRSXP, 7));
 	}
 
 
@@ -628,7 +632,26 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
 			 }
 		 }
 		 printf("dims_pr_t_given_T created and copied.\n");
+
+	     SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
+	     SET_VECTOR_ELT(res_list, 0, exitflag);
+	     SET_STRING_ELT(res_names, 1, mkChar("neg.log.likelihood"));
+	     SET_VECTOR_ELT(res_list, 1, negloglike);
+
+	     SET_STRING_ELT(res_names, 2, mkChar("fitted.parameters"));
+	     SET_VECTOR_ELT(res_list, 2, fittedout);
+	     SET_STRING_ELT(res_names, 3, mkChar("hessian.matrix"));
+	     SET_VECTOR_ELT(res_list, 3, hessian);
+    
+	 	 SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
+	     SET_VECTOR_ELT(res_list, 4, eta_smooth_final);
+	     SET_STRING_ELT(res_names, 5, mkChar("error_cov_smooth_final"));
+	     SET_VECTOR_ELT(res_list, 5, error_cov_smooth_final);
+	     SET_STRING_ELT(res_names, 6, mkChar("pr_t_given_T"));
+	     SET_VECTOR_ELT(res_list, 6, pr_t_given_T);
 		 
+	if (outall_flag|debug_flag){
+	 
 	 	SEXP dims_eta_regime_t=PROTECT(allocVector(INTSXP,3));
 	 	memcpy(INTEGER(dims_eta_regime_t), ((int[]){data_model.pc.dim_latent_var, data_model.pc.num_regime, data_model.pc.total_obs}),3*sizeof(INTEGER(dims_eta_regime_t)));
 	 	SEXP eta_regime_t = PROTECT(Rf_allocArray(REALSXP,dims_eta_regime_t));
@@ -696,24 +719,6 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
 	         }
 	     }
 	     printf("dims_inverse_residual_cov created and copied.\n");
-
-	     SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
-	     SET_VECTOR_ELT(res_list, 0, exitflag);
-	     SET_STRING_ELT(res_names, 1, mkChar("neg.log.likelihood"));
-	     SET_VECTOR_ELT(res_list, 1, negloglike);
-
-	     SET_STRING_ELT(res_names, 2, mkChar("fitted.parameters"));
-	     SET_VECTOR_ELT(res_list, 2, fittedout);
-	     SET_STRING_ELT(res_names, 3, mkChar("hessian.matrix"));
-	     SET_VECTOR_ELT(res_list, 3, hessian);
-    
-	 	 SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
-	     SET_VECTOR_ELT(res_list, 4, eta_smooth_final);
-	     SET_STRING_ELT(res_names, 5, mkChar("error_cov_smooth_final"));
-	     SET_VECTOR_ELT(res_list, 5, error_cov_smooth_final);
-	     SET_STRING_ELT(res_names, 6, mkChar("pr_t_given_T"));
-	     SET_VECTOR_ELT(res_list, 6, pr_t_given_T);
-	
 	     SET_STRING_ELT(res_names, 7, mkChar("eta_regime_t"));
 	     SET_VECTOR_ELT(res_list, 7, eta_regime_t);
 	     SET_STRING_ELT(res_names, 8, mkChar("error_cov_regime_t"));
@@ -721,9 +726,13 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
 	     SET_STRING_ELT(res_names, 9, mkChar("innov_vec"));
 	     SET_VECTOR_ELT(res_list, 9, innov_vec);
 	     SET_STRING_ELT(res_names, 10, mkChar("inverse_residual_cov"));
-	     SET_VECTOR_ELT(res_list, 10, inverse_residual_cov);    
+	     SET_VECTOR_ELT(res_list, 10, inverse_residual_cov);  
+ 	}
+
 	
-	if (debug_flag){
+  
+	
+	if (outall_flag){
 		
     SEXP invhessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
 	      ptr_index=REAL(invhessian);
@@ -933,19 +942,23 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
     /** =================Free Allocated space====================== **/
 	printf("Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
-		if (debug_flag){
-			UNPROTECT(83-13);
+		if (outall_flag){
+			UNPROTECT(88-17);
+		}else if (debug_flag){
+			UNPROTECT(88-17-19);
 		}else{
-			UNPROTECT(83-13-19);
+			UNPROTECT(88-17-19-4);
 		}
 
 	}else{
-		if (debug_flag){
-			UNPROTECT(83-13-1);
+		if (outall_flag){
+			UNPROTECT(88-17-1);
+		}else if (debug_flag){
+			UNPROTECT(88-17-19-1);
 		}else{
-			UNPROTECT(83-13-1-19);
+			UNPROTECT(88-17-19-4-1);
 		}
-	}/*unprotect objects: find all PROTECT in the script, then -6-2-1-2-2/3=-13*/
+	}/*unprotect objects: find all PROTECT in the script, then -2*2Cancel-6ENDUNP-4outputflag-2/3CTflag -1 comment=-17*/
 
     free(str_number);
     free(data_model.pc.index_sbj);

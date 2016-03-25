@@ -263,16 +263,18 @@ dynr.regimes <- function(values, params, covariates){
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
 dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
+
+  nregime=length(formula)
   
-  n=length(formula)
-  fml=processFormula(formula)
-  lhs=sapply(fml,"[",1)
-  rhs=sapply(fml,"[",2)
+  n=sapply(formula,length)
+  fml=sapply(formula,processFormula)
+  	lhs=sapply(fml,function(x){sapply(x,"[",1)})
+  	rhs=sapply(fml,function(x){sapply(x,"[",2)})
   
-  fmlj=processFormula(jacob)
-  row=sapply(fmlj,"[",1)
-  col=sapply(fmlj,"[",2)
-  rhsj=sapply(fmlj,"[",3)
+  fmlj=sapply(jacob,processFormula)
+  	row=sapply(fmlj,function(x){sapply(x,"[",1)})
+  	col=sapply(fmlj,function(x){sapply(x,"[",1)})
+  	rhsj=sapply(fmlj,function(x){sapply(x,"[",1)})
   
   if (isContinuosTime){
     
