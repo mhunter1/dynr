@@ -263,43 +263,143 @@ dynr.regimes <- function(values, params, covariates){
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
 dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
-
+  
   nregime=length(formula)
-  
   n=sapply(formula,length)
-  fml=sapply(formula,processFormula)
-  	lhs=sapply(fml,function(x){sapply(x,"[",1)})
-  	rhs=sapply(fml,function(x){sapply(x,"[",2)})
   
-  fmlj=sapply(jacob,processFormula)
-  	row=sapply(fmlj,function(x){sapply(x,"[",1)})
-  	col=sapply(fmlj,function(x){sapply(x,"[",1)})
-  	rhsj=sapply(fmlj,function(x){sapply(x,"[",1)})
+  fml=lapply(formula,processFormula)
+  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
+  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
+  
+  fmlj=lapply(jacob,processFormula)
+  row=lapply(fmlj,function(x){lapply(x,"[[",1)})
+  col=lapply(fmlj,function(x){lapply(x,"[[",2)})
+  rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
+  
+  #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
+  #TODO in the continuous case allow users to use d()
+  #TODO add covariate
   
   if (isContinuosTime){
+    #function_dx_dt
+    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+    
+    if (nregime>1){
+      ret=paste(ret,"switch (regime) {",sep="\n\t")
+      for (r in 1:nregime){
+        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
+        for (i in 1:n[r]){
+          for (j in 1:length(lhs[[r]])){
+            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
+          }
+          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
+        }
+        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+        
+      }
+      ret=paste(ret,paste0("\t}"),sep="\n\t")
+      
+    }else{
+      for (i in 1:n){
+        for (j in 1:length(lhs[[1]])){
+          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+        }
+        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+      }
+    }
+    
+    ret=paste0(ret,"\n\t}")
+    
+    #function_dF_dx
+    ret=paste0(ret,"\n\nvoid function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
+    if (nregime>1){
+      ret=paste(ret,"switch (regime) {",sep="\n\t")
+      for (r in 1:nregime){
+        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
+        for (i in 1:length(jacob[[r]])){
+          for (j in 1:length(lhs[[r]])){
+            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+          }
+          
+          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
+        }
+        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+        
+      }
+      ret=paste(ret,paste0("\t}"),sep="\n\t")
+      
+    }else{
+      for (i in 1:length(jacob[[1]])){
+        for (j in 1:length(lhs[[1]])){
+          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+        }
+        
+        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
+      }
+    }
+    
+    ret=paste0(ret,"\n\t}")
     
   }else{
     #function_dynam
     ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-    for (i in 1:n){
-      for (j in 1:length(lhs)){
-        rhs[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[i])
+    
+    if (nregime>1){
+      ret=paste(ret,"switch (regime) {",sep="\n\t")
+      for (r in 1:nregime){
+        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
+        for (i in 1:n[r]){
+          for (j in 1:length(lhs[[r]])){
+            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
+          }
+          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
+        }
+        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+        
       }
-      ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[i],");"),sep="\n\t")    
+      ret=paste(ret,paste0("\t}"),sep="\n\t")
+      
+    }else{
+      for (i in 1:n){
+        for (j in 1:length(lhs[[1]])){
+          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+        }
+        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+      }
     }
+    
     ret=paste0(ret,"\n\t}")
     
     #function_jacob_dynam
     ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
-    for (i in 1:length(jacob)){
-        for (j in 1:length(lhs)){
-          rhsj[i]=gsub(lhs[j],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[i])
+    if (nregime>1){
+      ret=paste(ret,"switch (regime) {",sep="\n\t")
+      for (r in 1:nregime){
+        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
+        for (i in 1:length(jacob[[r]])){
+          for (j in 1:length(lhs[[r]])){
+            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+          }
+          
+          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
         }
-       
-        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs==row[i])-1,",",which(lhs==col[i])-1,",",rhsj[i],");"),sep="\n\t")    
+        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+        
+      }
+      ret=paste(ret,paste0("\t}"),sep="\n\t")
+      
+    }else{
+      for (i in 1:length(jacob[[1]])){
+        for (j in 1:length(lhs[[1]])){
+          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+        }
+        
+        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
+      }
     }
+    
     ret=paste0(ret,"\n\t}")
-   }
+  }
   
   return(ret)
 }
@@ -450,8 +550,9 @@ parseNested <- function(formula,debug=FALSE){
 #TODO check the parameter indices
 trans2CFunction<-function(op.symbol){
   op.char=deparse(op.symbol)
-  if (op.char %in% c("abs","^","**","mod","max","min","sign")) {
+  if (op.char %in% c("d","abs","^","**","mod","max","min","sign")) {
     op.symbol<-switch(op.char,
+              d = NULL,       
             abs = as.name("fabs"),
             "^" = as.name("pow"),
             "**"= as.name("pow"),
