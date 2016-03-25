@@ -88,10 +88,6 @@ void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vect
 void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){
     
     double p11, p12, p21, p22;
-  /*gsl_matrix_set(regime_switch_mat,0,0,param[16]);
-  gsl_matrix_set(regime_switch_mat,0,1,1-param[16]);
-  gsl_matrix_set(regime_switch_mat,1,0,param[17]);
-  gsl_matrix_set(regime_switch_mat,1,1,1-param[17]);*/
   
   
     p11 = (exp(param[4]))/(exp(0)+exp(param[4]));

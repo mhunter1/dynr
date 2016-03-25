@@ -84,7 +84,7 @@ model <- dynr.model(
   lb=rep(9999,18),
   #ub=c(rep(3,4),5,5,1.5,1.5,1.5,1.5,rep(log(5),6),rep(log(5),2)),
   #lb=c(rep(0,4),-5,-5,-1.5,-1.5,-1.5,-1.5,rep(log(.001),6),rep(log(.001),2)),
-  options=list(maxtime=60*60, maxeval=1000,ftol_rel=as.numeric(1e-10),
+  options=list(maxtime=1*60, maxeval=2,ftol_rel=as.numeric(1e-10),
                xtol_rel=as.numeric(1e-7)),
   isContinuousTime=FALSE,
   infile="./demo/RSNonlinearDiscrete.c", 

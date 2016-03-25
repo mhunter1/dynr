@@ -119,9 +119,7 @@ setMethod("initialize", "dynrDebug",
 #  and returns/does whatever we want.
 # See Also the print method of summary.lm
 #  getAnywhere(print.summary.lm)
-
-setMethod( f = "summary",  signature = "dynrRun" ,
-           definition = function(object){
+summaryResults<-function(object){
              d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
@@ -136,7 +134,11 @@ setMethod( f = "summary",  signature = "dynrRun" ,
              cat(paste0("\nBIC = ", round(BIC,2)))
              cat("\n*************************END OF SUMMARY**************************\n")
            }
-)
+
+setMethod( f = "summary",  signature = "dynrRun" ,
+           definition = summaryResults)
+setMethod( f = "summary",  signature = "dynrDebug" ,
+		   definition = summaryResults)
 
 
 displayDynrRun <- function(x){

@@ -707,7 +707,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in)
 	     SET_STRING_ELT(res_names, 3, mkChar("hessian.matrix"));
 	     SET_VECTOR_ELT(res_list, 3, hessian);
     
-	 	SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
+	 	 SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
 	     SET_VECTOR_ELT(res_list, 4, eta_smooth_final);
 	     SET_STRING_ELT(res_names, 5, mkChar("error_cov_smooth_final"));
 	     SET_VECTOR_ELT(res_list, 5, error_cov_smooth_final);
