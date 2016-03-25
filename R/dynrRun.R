@@ -213,54 +213,43 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
 	if (output$exitflag > 5 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
-		if (debug_flag){
-			obj <- new("dynrDebug", output2)
-		}else{
-			obj <- new("dynrRun", output2)
-		}
-		
-		frontendStop <- Sys.time()
-		totalTime <- frontendStop-frontendStart
-		backendTime <- backendStop-backendStart
-		frontendTime <- totalTime-backendTime
-		obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
-		rm(output2)
-	}else{
-		#TODO change this processing so that a non-NULL object is returned
-		# The object should have everything except Standard Errors and Confidence Intervals
-	  #Sukruth to do: Have another endProcessing function and dynRun objection creation
-	  #for trials that go here.
-	  output3 <- Processing(output, transformation)
-	  obj <- new("dynrRun", output3)
-	  frontendStop <- Sys.time()
-	  totalTime <- frontendStop-frontendStart
-	  backendTime <- backendStop-backendStart
-	  frontendTime <- totalTime-backendTime
-	  return(obj)
-		#obj <- NULL #Return the modified dynr obj
+	}else{		
+	  	output2 <- endProcessing2(output, transformation)
+	  	cat('Hessian Matrix:',  '\n')
+		print(output$hessian.matrix)
+		cat('\n')
 		#Print a message. Hessian matrix at convergence contains non-finite values or is
-		#non-positive definite. Print out the Hessian matrix
+		#non-positive definite. ?
 	}
+	if (debug_flag){
+		obj <- new("dynrDebug", output2)
+	}else{
+		obj <- new("dynrRun", output2)
+	}
+	
+	frontendStop <- Sys.time()
+	totalTime <- frontendStop-frontendStart
+	backendTime <- backendStop-backendStart
+	frontendTime <- totalTime-backendTime
+	obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
+	rm(output2)
 	rm(output)
 	gc()
 	return(obj)
 }
 
 
-Processing <- function(x, transformation){
-  cat('Doing processing for failed models\n')
-  #Analytic Jacobian
-  V1 = solve(x$hessian.matrix)
-  J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
+endProcessing2 <- function(x, transformation){
+  cat('Doing end processing for a failed trial\n')
   tParam <- transformation(x$fitted.parameters)
   x$transformed.parameters <- tParam
-  y <- length(x$fitted.parameters)
-  x$standard.errors <- rep(999,y)
-  x$transformed.inv.hessian <-matrix(999, nrow=y,ncol=y)
-  x$inverse.hessian.matrix <-matrix(999, nrow=y,ncol=y)
-  x$conf.intervals <-matrix(999, nrow=y,ncol=3)
+  
+  nParam <- length(x$fitted.parameters)
+  x$standard.errors <- rep(999,nParam)
+  x$transformed.inv.hessian <-matrix(999, nrow=nParam,ncol=nParam)
+  x$conf.intervals <-matrix(999, nrow=y,ncol=2)
   return(x)
 }
 
@@ -342,32 +331,34 @@ dynrExitFlags <- c(
 	'13'='Increase maxtime or change starting values.')
 
 
+vec2mat<-function(vectr,dimension){
+    n.vec=length(vectr)
+    if (n.vec==dimension){
+  	  #diagonal
+  	  mat=diag(vectr)
+    }else if (dimension==sqrt(2*n.vec+.25) - .5){
+    	  #symmetric
+  	  mat=matrix(0,dimension,dimension)
+  	  diag(mat)<-vectr[1:dimension]
+  	  for (i in 1:(dimension-1)){
+  		  for (j in (i+1):dimension){
+  		  	mat[i,j]<-vector[i+j+dimension-2]
+  			mat[j,i]<-vector[i+j+dimension-2]
+  		  }
+  	  }
+    }else{
+  	  cat('Length of the vector does not match the matrix dimension!\n')
+    }	
+	return(mat)	
+}
+
 #transldl function for caluaclating the LDL values
-transldl <- function(vectr,dimension){
-  #vector to matrix
-  x <- matrix(0,nc=dimension,nr=dimension)
-  for(i in 1:dimension){
-    x[i,i] <- vectr[i]
-    for (j in i+1:dimension){
-      if(j<= dimension){
-        x[i,j] <- vectr[i+j+dimension-2]
-        x[j,i] <- vectr[i+j+dimension-2]
-      }
-    }
-  }
-  #initializa the D and L values  
-  D <- matrix(0,nc=dimension,nr=dimension)
-  L <- matrix(0,nc=dimension,nr=dimension)
-  #extracting D
-  y<- x
-  y[lower.tri(y)] <- 0
-  y[upper.tri(y)] <- 0
-  D<- y
-  #extracting L
-  temp <- diag(x = 1, dimension, dimension)
-  x[upper.tri(x,diag = TRUE)] <- 0
-  L <-temp+x
-  LT <-t(L)
+transldl <- function(mat){
+  L <- mat
+  diag(L)<-1
+  L[upper.tri(L)]<-0
+  D<- diag(exp(diag(mat)))
   # final caluclation
-  final <- L %*% exp(D) %*% LT
-  return(final)}
+  outldl <- L %*% D %*% t(L)
+  return(outldl)
+}
