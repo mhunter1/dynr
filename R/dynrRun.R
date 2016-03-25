@@ -5,7 +5,7 @@
 # L = number of latent variables
 # R = number of regimes
 # T = number of time points
-setClass(Class =  "dynrRun",
+setClass(Class =  "dynrDebug",
          representation = representation(
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
@@ -28,7 +28,7 @@ setClass(Class =  "dynrRun",
 )
 
 # Initialize method for the new() function
-setMethod("initialize", "dynrRun",
+setMethod("initialize", "dynrDebug",
           function(.Object, x){
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
@@ -49,7 +49,7 @@ setMethod("initialize", "dynrRun",
           }
 )
 
-setClass(Class =  "dynrDebug",
+setClass(Class =  "dynrRun",
          representation = representation(
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
@@ -68,7 +68,7 @@ setClass(Class =  "dynrDebug",
 )
 
 # Initialize method for the new() function
-setMethod("initialize", "dynrDebug",
+setMethod("initialize", "dynrRun",
           function(.Object, x){
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
