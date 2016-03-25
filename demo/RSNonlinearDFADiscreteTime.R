@@ -6,42 +6,6 @@ require(dynr)
 
 #------------------------------------------------------------------------------
 # Define all the model components via the RECIPE functions
-
-# # measurement
-# meas <- dynr.matrixLoadings(
-#   values=matrix(c(1,0), 1, 2),
-#   params=matrix(0, 1, 2))
-# 
-# # observation and dynamic noise components
-# ecov <- dynr.matrixErrorCov(
-#   values.latent=diag(c(0.00001,1)), params.latent=diag(c(0, 3)),
-#   values.observed=diag(1.5,1), params.observed=diag(4, 1))
-# ecov$c.string
-# ecov$startval
-# 
-# # initial covariances and latent state values
-# initial <- dynr.initial(
-#   values.inistate=c(0,1),
-#   params.inistate=c(5,0),
-#   values.inicov=diag(1,2),
-#   params.inicov=diag(0,2))
-# writeLines(initial$c.string)
-# initial$startval
-# 
-# # define the differential equation
-# dynamics <- dynr.linearDynamics(
-#   params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
-#   values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
-#   time="contin")
-# 
-# # null regimes, i.e. non-regime switching model
-# regimes <- dynr.regimes()
-# 
-# # Proto-example of cooking
-# # put all the strings together
-# fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-# dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
-# 
 # formula=list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
 #              x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
 # jacob=list(x1~x1~param[6],
@@ -51,7 +15,61 @@ require(dynr)
 # dynm<-dynr.nonlindynamics(formula,jacob,isContinuosTime=FALSE)
 # writeLines(dynm)
 
+#------------------------------------------------------------------------------
+# Create recipes for all the model pieces
+
+# Measurement (factor loadings)
+loads <- dynr.loadings(
+	map=list(
+		eta1=paste0('y', 1:3),
+		eta2=paste0('y', 4:6)),
+	params=1:4)
+loads
+meas <- dynr.matrixLoadings(loads$values, loads$params)
+
+
+# Initial conditions on the latent state and covariance
+initial <- dynr.initial(
+	values.inistate=c(0, 0),
+	params.inistate=c(0, 0),
+	values.inicov=diag(exp(0), 2), #Should these be left without the exp?
+	params.inicov=diag(exp(0), 2),
+	values.regimep=c(.8824, 1-.8824),
+	params.regimep=c(0, 0)
+)
+
+cat(initial$c.string)
+# Eek.  Lu, check out the empty for loop!
+
+
+# Regime-switching function
+regimes <- dynr.regimes(
+	values=matrix(c(0, 0, 0, 0), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+	params=matrix(c(5, 0, 0, 6), 2, 2))
+# Self-transition (diagonals) are estimated
+# Off-diagonal elements are fixed by the softmax scaling
+
+
+#measurement and dynamics covariances
+mdcov <- dynr.matrixErrorCov(
+	values.latent=diag(0, 2),
+	params.latent=diag(17:18, 2),
+	values.observed=diag(0, 6),
+	params.observed=diag(11:16, 6))
+
+
+# dynamics
+dynamics <- ""
+
+
 #--------------------------------------
+# Cook the recipes together
+fname <- "./demo/CookedRSNonlinearDiscrete.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
+dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
+
+
+
+#------------------------------------------------------------------------------
 # Put the cooked recipes together in a Model Specification
 
 # Data
