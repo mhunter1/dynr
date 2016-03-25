@@ -1,4 +1,4 @@
-rm(list=ls(all=TRUE))
+#rm(list=ls(all=TRUE))
 # Example for fitting a nonlinear dynamic factor analysis model with
 # nonlinear vector autoregressive (VAR) relation at the factor level
 
@@ -71,6 +71,70 @@ dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
 
 #------------------------------------------------------------------------------
 # Put the cooked recipes together in a Model Specification
+=======
+
+#------------------------------------------------------------------------------
+# Define all the model components via the RECIPE functions
+
+# # measurement
+# meas <- dynr.matrixLoadings(
+#   values=matrix(c(1,0), 1, 2),
+#   params=matrix(0, 1, 2))
+# 
+# # observation and dynamic noise components
+# ecov <- dynr.matrixErrorCov(
+#   values.latent=diag(c(0.00001,1)), params.latent=diag(c(0, 3)),
+#   values.observed=diag(1.5,1), params.observed=diag(4, 1))
+# ecov$c.string
+# ecov$startval
+# 
+# # initial covariances and latent state values
+# initial <- dynr.initial(
+#   values.inistate=c(0,1),
+#   params.inistate=c(5,0),
+#   values.inicov=diag(1,2),
+#   params.inicov=diag(0,2))
+# writeLines(initial$c.string)
+# initial$startval
+# 
+# # define the differential equation
+# dynamics <- dynr.linearDynamics(
+#   params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
+#   values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
+#   time="contin")
+# 
+# # null regimes, i.e. non-regime switching model
+# regimes <- dynr.regimes()
+# 
+# # Proto-example of cooking
+# # put all the strings together
+# fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
+# dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
+# 
+# formula=list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+#              x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
+# jacob=list(x1~x1~param[6],
+#            x1~x2~param[8]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
+#            x2~x2~param[7],
+#            x2~x1~param[9]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
+# dynm<-dynr.nonlindynamics(formula,jacob,isContinuosTime=FALSE)
+# writeLines(dynm)
+
+#--------------------------------------
+# Put the cooked recipes together in a Model Specification
+
+# Data
+
+#Reading in simulated data
+thedata <- read.table(paste0("./data/NonlinearVARsimT300n10NoMissing.txt"),na.strings = "NaN",sep=",")
+discreteNA <- t(thedata)
+n = 10; nT = 300
+discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
+
+colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
+data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
+
+pstart <- log(.9/(1-.9))
 
 # Data
 
@@ -102,7 +166,7 @@ model <- dynr.model(
   lb=rep(9999,18),
   #ub=c(rep(3,4),5,5,1.5,1.5,1.5,1.5,rep(log(5),6),rep(log(5),2)),
   #lb=c(rep(0,4),-5,-5,-1.5,-1.5,-1.5,-1.5,rep(log(.001),6),rep(log(.001),2)),
-  options=list(maxtime=1*60, maxeval=2,ftol_rel=as.numeric(1e-10),
+  options=list(maxtime=60*60, maxeval=1000,ftol_rel=as.numeric(1e-10),
                xtol_rel=as.numeric(1e-7)),
   isContinuousTime=FALSE,
   infile="./demo/RSNonlinearDiscrete.c", 
