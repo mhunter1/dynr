@@ -287,7 +287,7 @@ endProcessing2 <- function(x, transformation){
   nParam <- length(x$fitted.parameters)
   x$standard.errors <- rep(999,nParam)
   x$transformed.inv.hessian <-matrix(999, nrow=nParam,ncol=nParam)
-  x$conf.intervals <-matrix(999, nrow=nParam,ncol=2)
+  x$conf.intervals <-matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
   return(x)
 }
 

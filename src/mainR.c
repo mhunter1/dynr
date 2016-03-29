@@ -603,7 +603,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	             index++;
 	         }
 	     }
-	     printf("dims_eta_smooth_final created and copied.\n");
+	     printf("eta_smooth_final created and copied.\n");
 
 	     SEXP dims_error_cov_smooth_final=PROTECT(allocVector(INTSXP,3));
 	     memcpy(INTEGER(dims_error_cov_smooth_final), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
@@ -618,7 +618,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	             }
 	         }
 	     }
-	     printf("dims_error_cov_smooth_final created and copied.\n");
+	     printf("error_cov_smooth_final created and copied.\n");
 
 		 SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
 		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -631,7 +631,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 				 index++;
 			 }
 		 }
-		 printf("dims_pr_t_given_T created and copied.\n");
+		 printf("pr_t_given_T created and copied.\n");
 
 	     SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
 	     SET_VECTOR_ELT(res_list, 0, exitflag);
@@ -665,7 +665,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	 	         }
 	 	     }
 	 	 }
-	 	printf("dims_eta_regime_t created and copied.\n");
+	 	printf("eta_regime_t created and copied.\n");
 
 	     SEXP dims_error_cov_regime_t=PROTECT(allocVector(INTSXP,4));
 	     memcpy(INTEGER(dims_error_cov_regime_t), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -682,7 +682,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	             }
 	         }
 	     }
-	         printf("dims_error_cov_regime_t created and copied.\n");
+	     printf("error_cov_regime_t created and copied.\n");
 
 	     SEXP dims_innov_vec=PROTECT(allocVector(INTSXP,4));
 	     memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -699,7 +699,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	             }
 	         }
 	     }
-	     printf("dims_innov_vec created and copied.\n");
+	     printf("innov_vec created and copied.\n");
 
 	     SEXP dims_inverse_residual_cov=PROTECT(allocVector(INTSXP,5));
 	     memcpy(INTEGER(dims_inverse_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
@@ -718,7 +718,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 	             }
 	         }
 	     }
-	     printf("dims_inverse_residual_cov created and copied.\n");
+	     printf("inverse_residual_cov created and copied.\n");
 	     SET_STRING_ELT(res_names, 7, mkChar("eta_regime_t"));
 	     SET_VECTOR_ELT(res_list, 7, eta_regime_t);
 	     SET_STRING_ELT(res_names, 8, mkChar("error_cov_regime_t"));
@@ -838,7 +838,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-        printf("dims_eta_regime_regime_t_pred created and copied.\n");
+    printf("dims_eta_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
     printf("SEXP dimension created and protected.\n");    
@@ -947,7 +947,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 		}else if (debug_flag){
 			UNPROTECT(88-17-19);
 		}else{
-			UNPROTECT(88-17-19-4);
+			UNPROTECT(88-17-19-8);
 		}
 
 	}else{
@@ -956,7 +956,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
 		}else if (debug_flag){
 			UNPROTECT(88-17-19-1);
 		}else{
-			UNPROTECT(88-17-19-4-1);
+			UNPROTECT(88-17-19-8-1);
 		}
 	}/*unprotect objects: find all PROTECT in the script, then -2*2Cancel-6ENDUNP-4outputflag-2/3CTflag -1 comment=-17*/
 
