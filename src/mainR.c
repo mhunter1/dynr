@@ -575,7 +575,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
              }
          }
-         printf("hessian created and copied.\n");
+    printf("hessian created and copied.\n");
     /*eta_regime_t: input and output of filter & input of smooth: eta^k_it|t*/
     /*error_cov_regime_t:input and output of filter & input of smooth: error_cov^k_it|t*/
     /*eta_regime_regime_t_pred: output of filter and input of smooth: eta^regime_jk_it|t-1*/
@@ -757,7 +757,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             index++;
         }
     }
-    printf("dims_pr_t_given_t created and copied.\n");
+    printf("pr_t_given_t created and copied.\n");
 
 
     SEXP dims_pr_t_given_t_less_1=PROTECT(allocVector(INTSXP,2));
@@ -771,7 +771,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             index++;
         }
     }
-    printf("dims_pr_t_given_t_less_1 created and copied.\n");
+    printf("pr_t_given_t_less_1 created and copied.\n");
 
 
     SEXP dims_transprob_given_T=PROTECT(allocVector(INTSXP,3));
@@ -787,7 +787,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-    printf("dims_transprob_given_T created and copied.\n");
+    printf("transprob_given_T created and copied.\n");
 
     SEXP dims_eta_regime_smooth=PROTECT(allocVector(INTSXP,3));
     memcpy(INTEGER(dims_eta_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),3*sizeof(int));
@@ -802,7 +802,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-    printf("dims_eta_regime_smooth created and copied.\n");
+    printf("eta_regime_smooth created and copied.\n");
 
     SEXP dims_error_cov_regime_smooth=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_error_cov_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.total_obs}),4*sizeof(int));
@@ -819,7 +819,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-    printf("dims_error_cov_regime_smooth created and copied.\n");
+    printf("error_cov_regime_smooth created and copied.\n");
 
 	
     SEXP dims_eta_regime_regime_t_pred=PROTECT(allocVector(INTSXP,4));
@@ -838,7 +838,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-    printf("dims_eta_regime_regime_t_pred created and copied.\n");
+    printf("eta_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
     printf("SEXP dimension created and protected.\n");    
@@ -866,7 +866,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
            }
         }
     }
-        printf("dims_error_cov_regime_regime_t_pred created and copied.\n");
+        printf("error_cov_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_eta_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_eta_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -885,7 +885,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
         }
     }
 
-    printf("dims_eta_regime_regime_t_plus_1 created and copied.\n");
+    printf("eta_regime_regime_t_plus_1 created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,5));
     printf("SEXP dimension created and protected.\n");
@@ -907,7 +907,7 @@ SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag
             }
         }
     }
-    printf("dims_error_cov_regime_regime_t_plus_1 created and copied.\n");
+    printf("error_cov_regime_regime_t_plus_1 created and copied.\n");
 
 	    SET_STRING_ELT(res_names, 11, mkChar("inverse.hessian.matrix"));
 	    SET_VECTOR_ELT(res_list, 11, invhessian);

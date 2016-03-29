@@ -71,7 +71,7 @@ dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
 
 #------------------------------------------------------------------------------
 # Put the cooked recipes together in a Model Specification
-=======
+
 
 #------------------------------------------------------------------------------
 # Define all the model components via the RECIPE functions
