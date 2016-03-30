@@ -10,8 +10,8 @@ Author: Lu Ou [aut, cre],
 	Skukruth Reddy [aut],
 	Michael Hunter [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
-Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr, KFAS
-Suggests: testthat
+Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr, KFAS, 
+Suggests: testthat, roxygen2 (>= 3.1)
 Description: More about what it does (maybe more than one line)
 License: Apache License (== 2.0) GPL (>= 2)
 LazyLoad: yes

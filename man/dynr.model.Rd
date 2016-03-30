@@ -5,7 +5,8 @@
 \title{Create the model for dynr}
 \usage{
 dynr.model(num_regime = 1, dim_latent_var, xstart, ub, lb,
-  options = default.model.options)
+  options = default.model.options, isContinuousTime = TRUE, infile,
+  outfile = tempfile(), compileLib = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{num_regime}{An integer number of the regimes.}
@@ -19,6 +20,8 @@ dynr.model(num_regime = 1, dim_latent_var, xstart, ub, lb,
 \item{lb}{The lower bounds of the estimated parameters.}
 
 \item{options}{A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.}
+
+\item{isDiscreteTime}{A binary flag indicating whether the model is a discrete-time model (0 = no; 1 = yes)}
 }
 \value{
 A list of model statements to be passed to dynr.run().

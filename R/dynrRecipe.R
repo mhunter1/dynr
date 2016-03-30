@@ -172,6 +172,8 @@ reverseldl<-function(values){
 #       cbind( softmax(LPM[,1]), softmax(LPM[,2]), ..., softmax(LPM[,k]) )
 # for k regimes
 
+##' Recipe function for creating Regime Switching
+##' 
 ##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
 ##' @param param matrix of the same size as values giving the free parameters
 ##' 
@@ -404,6 +406,8 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
   return(ret)
 }
 
+##' Recipe function for creating Linear Dynamcis
+##' 
 ##' @param params.dyn the parameters matrix for the linear dynamics
 ##' @param values.dyn the values matrix for the linear dynamics
 ##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)

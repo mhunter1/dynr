@@ -4,3 +4,12 @@
 src/*.o
 src/*.so
 src/*.dll
+# The following list of roxygen built man pages is automatically updated
+man/dynr.ggplot.Rd
+man/dynr.initial.Rd
+man/dynr.linearDynamics.Rd
+man/dynr.loadings.Rd
+man/dynr.matrixErrorCov.Rd
+man/dynr.model.Rd
+man/dynr.nonlindynamics.Rd
+man/dynr.regimes.Rd

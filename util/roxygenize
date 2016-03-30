@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -o errexit
+set -o nounset
+set -o noclobber
+
+if [ ! -x util/roxygenize ]; then
+  echo "$0 must be run from the top of the package directory"
+  exit 1
+fi
+
+#rm -f man/*
+${REXEC:-R} --no-restore --no-save --no-readline <<EOF
+library(roxygen2)
+#roxygenize('.', roclets=c('rd'))
+roxygenize('.')
+EOF
