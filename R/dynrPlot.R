@@ -18,9 +18,8 @@ setMethod("plot", "dynrRun",
 		par(graphingPar)
 		thesmooth = data.frame(t(res@eta_smooth_final))  
 		
-    dims=dim(x@eta_regime_regime_t_pred)
-		dim_latent_var=dims[1]
-		num_regime=dims[2]
+		dim_latent_var=dim(res@eta_smooth_final)[1]
+		num_regime=dim(res@pr_t_given_T)[1]
 		
 		colnames(thesmooth) = paste0("state",1:dim_latent_var)
     
@@ -98,9 +97,9 @@ setMethod("plot", "dynrRun",
 dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, states, 
                         names.state, names.regime,shape.values,
                         title="Smoothed State Values", ylab="Smoothed State Values", is.bw=FALSE, colorPalette="Set2", fillPalette="Set2", mancolorPalette, manfillPalette, ...){
-	dims=dim(res@eta_regime_regime_t_pred)
-	dim_latent_var=dims[1]
-	num_regime=dims[2]
+	
+	dim_latent_var=dim(res@eta_smooth_final)[1]
+	num_regime=dim(res@pr_t_given_T)[1]
 	if(missing(names.regime)){names.regime = 1:num_regime}
 	if(missing(names.state)){names.state=paste0("state", states)}
   if(missing(shape.values)){shape.values=48+states}

@@ -1,4 +1,4 @@
-#rm(list=ls(all=TRUE))
+rm(list=ls(all=TRUE))
 # Example for fitting a nonlinear dynamic factor analysis model with
 # nonlinear vector autoregressive (VAR) relation at the factor level
 
@@ -147,7 +147,6 @@ discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
 colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
 data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
-pstart <- log(.9/(1-.9))
 #Im = ones(1,InfDS2.nl);
 #Eyem = eye(InfDS2.nl);
 #Am = [Eyem - (p_Mat);
@@ -176,7 +175,11 @@ model <- dynr.model(
 )
 
 # Estimate free parameters
-res <- dynr.run(model, data)
+tfun <- function(x){c(x[1:4],
+                      exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
+                      x[7:10],
+                      exp(x[11:18]))}
+res <- dynr.run(model=model, data=data,transformation=tfun,outall_flag = TRUE)
 
 # Examine results
 summary(res)
@@ -198,16 +201,9 @@ truepar <- c(1.2, 1.2, 1.1, .95,
 #------------------------------------------------------------------------------
 # End
 
-tfun <- function(x){c(x[1:4],
-                      exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
-                      x[7:10],
-                      exp(x[11:18]))}
-res <- dynr.run(model, data,tfun)
 
-
-summary(res)
 #plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
 
-#dynr.ggplot(res, data.dynr=data, states=c(1,2), title="Smoothed State Values", numSubjDemo=2)
+dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 
