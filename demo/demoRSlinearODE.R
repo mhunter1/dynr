@@ -16,7 +16,7 @@ model <- dynr.model(
               #ub=c(rep(1.5, 4), 0, 5, 5, rep(10, 6)),
               #lb=c(rep(-10, 4), 200, -10, -10, rep(-10, 6)),
               options=list(maxtime=60*60, 
-                           maxeval=100,
+                           maxeval=500,
                            ftol_rel=as.numeric(1e-8),
                            xtol_rel=as.numeric(1e-5)),
               isContinuousTime=TRUE,
