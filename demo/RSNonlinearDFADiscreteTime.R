@@ -179,7 +179,7 @@ tfun <- function(x){c(x[1:4],
                       exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
                       x[7:10],
                       exp(x[11:18]))}
-res <- dynr.run(model=model, data=data,transformation=tfun,outall_flag = TRUE)
+res <- dynr.run(model=model, data=data,transformation=tfun)
 
 # Examine results
 summary(res)
