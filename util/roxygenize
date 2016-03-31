@@ -12,6 +12,6 @@ fi
 #rm -f man/*
 ${REXEC:-R} --no-restore --no-save --no-readline <<EOF
 library(roxygen2)
-#roxygenize('.', roclets=c('rd'))
-roxygenize('.')
+roxygenize('.', roclets=c('rd'))
+#roxygenize('.')
 EOF
