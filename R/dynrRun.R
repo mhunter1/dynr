@@ -233,11 +233,11 @@ dynr.run <- function(model, data,transformation, conf.level=.95, infile, verbose
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call("main_R", model, data, debug_flag, outall_flag,PACKAGE = "dynr")
+	output <- .Call(dynrBackend, model, data, debug_flag, outall_flag, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
-	output$exitflag <- output$exitflag+ifelse(output$exitflag<0,6,0)+ifelse(output$exitflag>0,5,0)
+	output$exitflag <- output$exitflag + ifelse(output$exitflag<0, 6, 0) + ifelse(output$exitflag>0, 5, 0)
 	cat('Modified exit flag: ', output$exitflag, '\n')
 	cat(dynrExitFlags[output$exitflag], '\n')
 	

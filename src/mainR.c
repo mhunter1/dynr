@@ -65,7 +65,7 @@ SEXP getListElement(SEXP list, const char *str)
  * @param ubvec is a vector in R of the upper bounds of search region
  * @param lbvec is a vecotr in R of the lower bounds of the search region
  */
-SEXP main_R(SEXP model_list,SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in)
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in)
 {
     size_t index,index_col,index_row;
     bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
