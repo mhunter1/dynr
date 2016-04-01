@@ -14,6 +14,47 @@
 
 
 #------------------------------------------------------------------------------
+# Create dynrRecipe object class
+
+setClass(Class =  "dynrRecipe",
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric"
+         )
+)
+
+setClass(Class = "dynrMeasurement",
+         representation = representation(),
+         contains = "dynrRecipe"
+         )
+)
+
+setClass(Class = "dynrDynamics",
+         representation = representation(),
+         contains = "dynrRecipe"
+         )
+)
+
+setClass(Class = "dynrRegimes",
+         representation = representation(),
+         contains = "dynrRecipe"
+         )
+)
+
+setClass(Class = "dynrInitial",
+         representation = representation(),
+         contains = "dynrRecipe"
+         )
+)
+
+setClass(Class = "dynrNoise",
+         representation = representation(),
+         contains = "dynrRecipe"
+         )
+)
+
+
+#------------------------------------------------------------------------------
 # Create recipe for function measurement
 
 # TODO add ability to use covariates in these functions
