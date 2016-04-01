@@ -1,6 +1,11 @@
 # set by configure
 GSL_CFLAGS = @GSL_CFLAGS@
-GSL_LIBS = @GSL_LIBS@
+
+ifeq "$(WIN)" "64"
+GSL_LIBS = @GSL_LIBS64@
+else
+GSL_LIBS = @GSL_LIBS32@
+endif
 
 # combine with standard arguments for R
 PKG_CPPFLAGS = $(GSL_CFLAGS)
