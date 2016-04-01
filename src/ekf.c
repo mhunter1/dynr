@@ -92,8 +92,8 @@ double ext_kalmanfilter(size_t t, size_t regime,
     /** handling missing data **/
     gsl_vector *cp_y_t_plus_1=gsl_vector_alloc(y_t_plus_1->size);
     gsl_vector_memcpy(cp_y_t_plus_1, y_t_plus_1);
-	gsl_matrix *cp_y_noise_cov=gsl_matrix_alloc(y_noise_cov->size1, y_noise_cov->size2);
-	gsl_matrix_memcpy(cp_y_noise_cov, y_noise_cov);
+	
+	
 	
     gsl_vector *y_non_miss=gsl_vector_alloc(y_t_plus_1->size);
     size_t miss_case=find_miss_data(cp_y_t_plus_1, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
@@ -233,24 +233,11 @@ double ext_kalmanfilter(size_t t, size_t regime,
     \*------------------------------------------------------*/
 
     /** step 2.1: compute measurement y_hat(t+1|t) **/
-    if(miss_case!=2){
+    
         /*printf("eta(%d):",t_plus_1);
         print_vector(eta_t_plus_1);
         printf("\n");*/
         func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);/*innov_v <- y_pred*/
-        if(miss_case==1){
-            for(i=0; i<y_non_miss->size; i++){
-                if(gsl_vector_get(y_non_miss, i)==1)
-                    continue;
-                gsl_matrix_set_row(H_t_plus_1, i, zero_eta); /* set missing rows as all zeros*/
-			
-                gsl_matrix_set_row(error_cov_t_plus_1, i, zero_eta); /*set missing rows as all zeros*/
-                gsl_matrix_set_col(error_cov_t_plus_1, i, zero_eta); /* set missing columns as all zeros*/
-			
-                gsl_matrix_set_row(cp_y_noise_cov, i, zero_eta); /*set missing rows as all zeros*/
-                gsl_matrix_set_col(cp_y_noise_cov, i, zero_eta); /* set missing columns as all zeros*/
-            }
-        }
 	    /*printf("y_hat(%d):", t_plus_1);
 	    print_vector(innov_v);
 	    printf("\n");*/
@@ -287,9 +274,9 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	    print_matrix(innov_cov);
 	    printf("\n");*/
 
-	    gsl_matrix_add(innov_cov, cp_y_noise_cov); /*compute H*P*H'+R*/
+	    gsl_matrix_add(innov_cov, y_noise_cov); /*compute H*P*H'+R*/
 
-	    /*print_matrix(cp_y_noise_cov);
+	    /*print_matrix(y_noise_cov);
 	    print_matrix(innov_cov);
 	                 printf("\n");*/
 
@@ -327,7 +314,6 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	    \*------------------------------------------------------*/
 
 
-
 	    /** step 2.2: compute prediction residual y-y_hat **/
 	    gsl_vector_sub(innov_v, cp_y_t_plus_1);
 	    gsl_vector_scale(innov_v, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
@@ -354,7 +340,14 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	    printf("error_cov(%d):\n", t_plus_1);
 	    print_matrix(Pnew);
 	    printf("\n");*/
-
+		/*if(miss_case==1){
+		for(i=0; i<y_non_miss->size; i++){
+		if(gsl_vector_get(y_non_miss, i)==1)
+		continue;
+		gsl_matrix_set_col(ph, i, zero_eta); 
+		}
+		}*/
+		 
 	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
 	    /*printf("error_cov(%d):\n", t_plus_1);
@@ -367,10 +360,6 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	        print_matrix(error_cov_t_plus_1);
 	        printf("\n");*/
 
-    }else{
-        gsl_vector_set_zero(innov_v);
-	  det=mathfunction_inv_matrix_det(innov_cov, inv_innov_cov);
-    }
 
     /** free allocated space **/
 
@@ -379,7 +368,7 @@ double ext_kalmanfilter(size_t t, size_t regime,
     gsl_matrix_free(kalman_gain);
     gsl_matrix_free(H_t_plus_1);
     gsl_vector_free(cp_y_t_plus_1);
-	gsl_matrix_free(cp_y_noise_cov);
+	
     gsl_vector_free(zero_eta);
     gsl_vector_free(y_non_miss);
 
@@ -409,8 +398,8 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
     /** handling missing data **/
     gsl_vector *cp_y_t_plus_1=gsl_vector_alloc(y_t_plus_1->size);
     gsl_vector_memcpy(cp_y_t_plus_1, y_t_plus_1);
-	gsl_matrix *cp_y_noise_cov=gsl_matrix_alloc(y_noise_cov->size1, y_noise_cov->size2);
-	gsl_matrix_memcpy(cp_y_noise_cov, y_noise_cov);
+	
+	
 	
     gsl_vector *y_non_miss=gsl_vector_alloc(y_t_plus_1->size);
     size_t miss_case=find_miss_data(cp_y_t_plus_1, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
@@ -446,24 +435,12 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
       \*------------------------------------------------------*/
 
       /** step 2.1: compute measurement y_hat(t+1|t) **/
-      if(miss_case!=2){
+      
           /*printf("eta(%d):",t_plus_1);
           print_vector(eta_t_plus_1);
           printf("\n");*/
           func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);/*innov_v <- y_pred*/
-          if(miss_case==1){
-              for(i=0; i<y_non_miss->size; i++){
-                  if(gsl_vector_get(y_non_miss, i)==1)
-                      continue;
-                  gsl_matrix_set_row(H_t_plus_1, i, zero_eta); /* set missing rows as all zeros*/
-				
-                  gsl_matrix_set_row(error_cov_t_plus_1, i, zero_eta); /*set missing rows as all zeros*/
-                  gsl_matrix_set_col(error_cov_t_plus_1, i, zero_eta); /* set missing columns as all zeros*/
-				
-                  gsl_matrix_set_row(cp_y_noise_cov, i, zero_eta); /*set missing rows as all zeros*/
-                  gsl_matrix_set_col(cp_y_noise_cov, i, zero_eta); /* set missing columns as all zeros*/
-              }
-          }
+
   	    /*printf("y_hat(%d):", t_plus_1);
   	    print_vector(innov_v);
   	    printf("\n");*/
@@ -500,9 +477,9 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
   	    print_matrix(innov_cov);
   	    printf("\n");*/
 
-  	    gsl_matrix_add(innov_cov, cp_y_noise_cov); /*compute H*P*H'+R*/
+  	    gsl_matrix_add(innov_cov, y_noise_cov); /*compute H*P*H'+R*/
 
-  	    /*print_matrix(cp_y_noise_cov);
+  	    /*print_matrix(y_noise_cov);
   	    print_matrix(innov_cov);
   	                 printf("\n");*/
 
@@ -567,6 +544,13 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
   	    printf("error_cov(%d):\n", t_plus_1);
   	    print_matrix(Pnew);
   	    printf("\n");*/
+		/*if(miss_case==1){
+		for(i=0; i<y_non_miss->size; i++){
+		if(gsl_vector_get(y_non_miss, i)==1)
+		continue;
+		gsl_matrix_set_col(ph, i, zero_eta); 
+		}
+		}*/
 
   	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
@@ -580,10 +564,6 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
   	        print_matrix(error_cov_t_plus_1);
   	        printf("\n");*/
 
-      }else{
-          gsl_vector_set_zero(innov_v);
-		  det=mathfunction_inv_matrix_det(innov_cov, inv_innov_cov);
-      }
 
       /** free allocated space **/
 
@@ -592,7 +572,7 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
       gsl_matrix_free(kalman_gain);
       gsl_matrix_free(H_t_plus_1);
       gsl_vector_free(cp_y_t_plus_1);
-	  gsl_matrix_free(cp_y_noise_cov);
+	  
       gsl_vector_free(zero_eta);
       gsl_vector_free(y_non_miss);
 	  
@@ -653,8 +633,8 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     /** handling missing data **/
     gsl_vector *cp_y_t_plus_1=gsl_vector_alloc(y_t_plus_1->size);
     gsl_vector_memcpy(cp_y_t_plus_1, y_t_plus_1);
-	gsl_matrix *cp_y_noise_cov=gsl_matrix_alloc(y_noise_cov->size1, y_noise_cov->size2);
-	gsl_matrix_memcpy(cp_y_noise_cov, y_noise_cov);
+	
+	
 	
     gsl_vector *y_non_miss=gsl_vector_alloc(y_t_plus_1->size);
     size_t miss_case=find_miss_data(cp_y_t_plus_1, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
@@ -805,25 +785,11 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     \*------------------------------------------------------*/
 
     /** step 2.1: compute measurement y_hat(t+1|t) **/
-    if(miss_case!=2){
+    
         /*printf("eta(%d):",t_plus_1);
         print_vector(eta_t_plus_1);
         printf("\n");*/
         func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);
-
-        if(miss_case==1){
-            for(i=0; i<y_non_miss->size; i++){
-                if(gsl_vector_get(y_non_miss, i)==1)
-                    continue;
-                gsl_matrix_set_row(H_t_plus_1, i, zero_eta); /* set missing rows as all zeros*/
-				
-                gsl_matrix_set_row(error_cov_t_plus_1, i, zero_eta); /*set missing rows as all zeros*/
-                gsl_matrix_set_col(error_cov_t_plus_1, i, zero_eta); /* set missing columns as all zeros*/
-				
-                gsl_matrix_set_row(cp_y_noise_cov, i, zero_eta); /*set missing rows as all zeros*/
-                gsl_matrix_set_col(cp_y_noise_cov, i, zero_eta); /* set missing columns as all zeros*/
-            }
-        }
 	
     /*printf("y_hat(%d):", t_plus_1);
     print_vector(innov_v);
@@ -863,9 +829,9 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 
 
 
-    gsl_matrix_add(innov_cov, cp_y_noise_cov); /*compute H*P*H'+R*/
+    gsl_matrix_add(innov_cov, y_noise_cov); /*compute H*P*H'+R*/
 
-    /*print_matrix(cp_y_noise_cov);
+    /*print_matrix(y_noise_cov);
     print_matrix(innov_cov);
                  printf("\n");*/
 
@@ -930,6 +896,13 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     printf("error_cov(%d):\n", t_plus_1);
     print_matrix(Pnew);
     printf("\n");*/
+    /*if(miss_case==1){
+        for(i=0; i<y_non_miss->size; i++){
+            if(gsl_vector_get(y_non_miss, i)==1)
+                continue;
+            gsl_matrix_set_col(ph, i, zero_eta); 
+        }
+    }*/
 
     gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
@@ -943,19 +916,13 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
         print_matrix(error_cov_t_plus_1);
         printf("\n");*/
 	
-    }else{
-        gsl_vector_set_zero(innov_v);
-
-		det=mathfunction_inv_matrix_det(innov_cov, inv_innov_cov);
-    }
-
     /** free allocated space **/
     gsl_matrix_free(ph);
     gsl_matrix_free(innov_cov);
     gsl_matrix_free(kalman_gain);
     gsl_matrix_free(H_t_plus_1);
     gsl_vector_free(cp_y_t_plus_1);
-	gsl_matrix_free(cp_y_noise_cov);
+	
     gsl_vector_free(zero_eta);
     gsl_vector_free(y_non_miss);
     return det;
@@ -983,8 +950,8 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
     /** handling missing data **/
     gsl_vector *cp_y_t_plus_1=gsl_vector_alloc(y_t_plus_1->size);
     gsl_vector_memcpy(cp_y_t_plus_1, y_t_plus_1);
-	gsl_matrix *cp_y_noise_cov=gsl_matrix_alloc(y_noise_cov->size1, y_noise_cov->size2);
-	gsl_matrix_memcpy(cp_y_noise_cov, y_noise_cov);
+	
+	
 	
     gsl_vector *y_non_miss=gsl_vector_alloc(y_t_plus_1->size);
     size_t miss_case=find_miss_data(cp_y_t_plus_1, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
@@ -1021,25 +988,11 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
       \*------------------------------------------------------*/
 
       /** step 2.1: compute measurement y_hat(t+1|t) **/
-      if(miss_case!=2){
+      
           /*printf("eta(%d):",t_plus_1);
           print_vector(eta_t_plus_1);
           printf("\n");*/
           func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);
-
-          if(miss_case==1){
-              for(i=0; i<y_non_miss->size; i++){
-                  if(gsl_vector_get(y_non_miss, i)==1)
-                      continue;
-                  gsl_matrix_set_row(H_t_plus_1, i, zero_eta); /* set missing rows as all zeros*/
-				
-                  gsl_matrix_set_row(error_cov_t_plus_1, i, zero_eta); /*set missing rows as all zeros*/
-                  gsl_matrix_set_col(error_cov_t_plus_1, i, zero_eta); /* set missing columns as all zeros*/
-				
-                  gsl_matrix_set_row(cp_y_noise_cov, i, zero_eta); /*set missing rows as all zeros*/
-                  gsl_matrix_set_col(cp_y_noise_cov, i, zero_eta); /* set missing columns as all zeros*/
-              }
-          }
 	
       /*printf("y_hat(%d):", t_plus_1);
       print_vector(innov_v);
@@ -1079,9 +1032,9 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
 
 
 
-      gsl_matrix_add(innov_cov, cp_y_noise_cov); /*compute H*P*H'+R*/
+      gsl_matrix_add(innov_cov, y_noise_cov); /*compute H*P*H'+R*/
 
-      /*print_matrix(cp_y_noise_cov);
+      /*print_matrix(y_noise_cov);
       print_matrix(innov_cov);
                    printf("\n");*/
 
@@ -1145,6 +1098,13 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
       printf("error_cov(%d):\n", t_plus_1);
       print_matrix(Pnew);
       printf("\n");*/
+      /*if(miss_case==1){
+          for(i=0; i<y_non_miss->size; i++){
+              if(gsl_vector_get(y_non_miss, i)==1)
+                  continue;
+              gsl_matrix_set_col(ph, i, zero_eta); 
+          }
+      }*/
 
       gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
@@ -1158,10 +1118,6 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
           print_matrix(error_cov_t_plus_1);
           printf("\n");*/
 	
-  	  }else{
-          gsl_vector_set_zero(innov_v);
-		  det=mathfunction_inv_matrix_det(innov_cov, inv_innov_cov);
-      }
 
       /** free allocated space **/
       gsl_matrix_free(ph);
@@ -1169,7 +1125,7 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
       gsl_matrix_free(kalman_gain);
       gsl_matrix_free(H_t_plus_1);
       gsl_vector_free(cp_y_t_plus_1);
-	  gsl_matrix_free(cp_y_noise_cov);
+	  
       gsl_vector_free(zero_eta);
       gsl_vector_free(y_non_miss);
     return det;

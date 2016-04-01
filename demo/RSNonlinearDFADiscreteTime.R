@@ -18,54 +18,54 @@ require(dynr)
 #------------------------------------------------------------------------------
 # Create recipes for all the model pieces
 
-# Measurement (factor loadings)
-loads <- dynr.loadings(
-	map=list(
-		eta1=paste0('y', 1:3),
-		eta2=paste0('y', 4:6)),
-	params=1:4)
-loads
-meas <- dynr.matrixLoadings(loads$values, loads$params)
-
-
-# Initial conditions on the latent state and covariance
-initial <- dynr.initial(
-	values.inistate=c(0, 0),
-	params.inistate=c(0, 0),
-	values.inicov=diag(exp(0), 2), #Should these be left without the exp?
-	params.inicov=diag(exp(0), 2),
-	values.regimep=c(.8824, 1-.8824),
-	params.regimep=c(0, 0)
-)
-
-cat(initial$c.string)
-# Eek.  Lu, check out the empty for loop!
-
-
-# Regime-switching function
-regimes <- dynr.regimes(
-	values=matrix(c(0, 0, 0, 0), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-	params=matrix(c(5, 0, 0, 6), 2, 2))
-# Self-transition (diagonals) are estimated
-# Off-diagonal elements are fixed by the softmax scaling
-
-
-#measurement and dynamics covariances
-mdcov <- dynr.matrixErrorCov(
-	values.latent=diag(0, 2),
-	params.latent=diag(17:18, 2),
-	values.observed=diag(0, 6),
-	params.observed=diag(11:16, 6))
-
-
-# dynamics
-dynamics <- ""
-
-
-#--------------------------------------
-# Cook the recipes together
-fname <- "./demo/CookedRSNonlinearDiscrete.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
+# # Measurement (factor loadings)
+# loads <- dynr.loadings(
+# 	map=list(
+# 		eta1=paste0('y', 1:3),
+# 		eta2=paste0('y', 4:6)),
+# 	params=1:4)
+# loads
+# meas <- dynr.matrixLoadings(loads$values, loads$params)
+# 
+# 
+# # Initial conditions on the latent state and covariance
+# initial <- dynr.initial(
+# 	values.inistate=c(0, 0),
+# 	params.inistate=c(0, 0),
+# 	values.inicov=diag(exp(0), 2), #Should these be left without the exp?
+# 	params.inicov=diag(exp(0), 2),
+# 	values.regimep=c(.8824, 1-.8824),
+# 	params.regimep=c(0, 0)
+# )
+# 
+# cat(initial$c.string)
+# # Eek.  Lu, check out the empty for loop!
+# 
+# 
+# # Regime-switching function
+# regimes <- dynr.regimes(
+# 	values=matrix(c(0, 0, 0, 0), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+# 	params=matrix(c(5, 0, 0, 6), 2, 2))
+# # Self-transition (diagonals) are estimated
+# # Off-diagonal elements are fixed by the softmax scaling
+# 
+# 
+# #measurement and dynamics covariances
+# mdcov <- dynr.matrixErrorCov(
+# 	values.latent=diag(0, 2),
+# 	params.latent=diag(17:18, 2),
+# 	values.observed=diag(0, 6),
+# 	params.observed=diag(11:16, 6))
+# 
+# 
+# # dynamics
+# dynamics <- ""
+# 
+# 
+# #--------------------------------------
+# # Cook the recipes together
+# fname <- "./demo/CookedRSNonlinearDiscrete.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
+# dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
 
 
 
@@ -130,8 +130,9 @@ thedata <- read.table(paste0("./data/NonlinearVARsimT300n10NoMissing.txt"),na.st
 discreteNA <- t(thedata)
 n = 10; nT = 300
 discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
-
 colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
+missingprop=.1
+discreteNA[sample(1:nT,nT*missingprop), c("y1","y2","y3","y4","y5","y6")]<-NA
 data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
 pstart <- log(.9/(1-.9))
@@ -139,13 +140,13 @@ pstart <- log(.9/(1-.9))
 # Data
 
 #Reading in simulated data
-thedata <- read.table(paste0("./data/NonlinearVARsimT300n10.txt"),na.strings = "NaN",sep=",")
-discreteNA <- t(thedata)
-n = 10; nT = 300
-discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
-
-colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
-data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
+# thedata <- read.table(paste0("./data/NonlinearVARsimT300n10.txt"),na.strings = "NaN",sep=",")
+# discreteNA <- t(thedata)
+# n = 10; nT = 300
+# discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
+# 
+# colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
+# data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
 #Im = ones(1,InfDS2.nl);
 #Eyem = eye(InfDS2.nl);

@@ -254,7 +254,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                         gsl_vector_set((init->eta_0)[regime_j],config->dim_latent_var*sbj+2,gsl_vector_get(eta_jk_t_plus_1[regime_j][regime_k], 2));
                    }*/
 
-				   if(miss_case==0){
+				   
                    /** step 2: call hamilton filter to compute the probability of moving one step ahead **/
 
                    /** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
@@ -280,12 +280,12 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 
                    gsl_matrix_set(like_jk, regime_j, regime_k,p*tran_prob_jk);
 			   	   
-				   }
+				   
 
                 }/*end of from regime j*/
             }/*end of to regime k*/
 
-            if(miss_case==0){
+            
             /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
             if (config->isnegloglikeweightedbyT){
                 log_like+=log(mathfunction_matrix_normalize(like_jk))/((config->index_sbj)[sbj+1]-(config->index_sbj)[sbj]);
@@ -324,7 +324,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	        	gsl_vector_add_constant(pr_t, 0.0001);
 	        	mathfunction_vector_normalize(pr_t);
 	    		}	
-			}
+			
 
 	    /*printf("\n");
 	    print_vector(pr_t);
@@ -683,8 +683,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
                 model_constraint_par(config, param);
 
-                printf("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
-                /*printf("\n");
+                /*printf("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
+                printf("\n");
                 printf("regime_switch_matrix:\n");
                 print_matrix(param->regime_switch_mat);
                 printf("\n");
@@ -792,7 +792,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         gsl_vector_set((init->eta_0)[regime_j],config->dim_latent_var*sbj+2,gsl_vector_get(eta_regime_jk_t_plus_1[t][regime_j][regime_k], 2));
                    }*/
 
-				   if(miss_case==0){
+				   
                    /** step 2: call hamilton filter to compute the probability of moving one step ahead **/
 
                    /** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
@@ -819,12 +819,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
                    gsl_matrix_set(like_jk, regime_j, regime_k,p*tran_prob_jk);
 			   	   
-				   }
+				   
                 }/*end of to regime k*/
             }/*end of from regime j*/
 
 
-			if(miss_case==0){
+			
 				
             /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
             log_like+=log(mathfunction_matrix_normalize(like_jk));/*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
@@ -857,20 +857,21 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	        	mathfunction_vector_normalize(pr_t[t]);
 	    		}
 			
-			}else{
+			
 				/* miss_case!=0; When there is missingness*/
-				if (t!=(config->index_sbj)[sbj]){
+				/*if (t!=(config->index_sbj)[sbj]){
 				gsl_vector_memcpy(pr_t[t],pr_t[t-1]);
 				}
-				gsl_vector_memcpy(pr_t_given_t_minus_1[t],pr_t[t]);
-			}
+				gsl_vector_memcpy(pr_t_given_t_minus_1[t],pr_t[t]);*/
+			
 
-	    printf("\n");
-		printf("miss_case: %lu\n",miss_case);
-		printf("log_like: %f\n",log_like);
-	    print_vector(pr_t[t]);
-		print_matrix(like_jk);
-	    printf("\n");
+			/*printf("\n");
+			printf("miss_case: %lu\n",miss_case);
+			printf("log_like: %f\n",log_like);
+			print_vector(pr_t[t]);
+			print_matrix(like_jk);
+			printf("\n");*/
+			
 	        for(regime_k=0; regime_k<config->num_regime; regime_k++){
 	                    gsl_vector_set_zero(eta_regime_j_t[t][regime_k]);/*here, corresponds to eta_k_t in the paper*/
 	                    gsl_matrix_set_zero(error_cov_regime_j_t[t][regime_k]);/*here, corresponds to error_cov_k_t in the paper*/
