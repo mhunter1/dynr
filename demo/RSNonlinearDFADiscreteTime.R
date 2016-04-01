@@ -205,6 +205,6 @@ truepar <- c(1.2, 1.2, 1.1, .95,
 
 #plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
-
-dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
+print(res@eta_smooth_final)
+#dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 

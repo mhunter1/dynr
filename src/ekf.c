@@ -317,7 +317,13 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	    /** step 2.2: compute prediction residual y-y_hat **/
 	    gsl_vector_sub(innov_v, cp_y_t_plus_1);
 	    gsl_vector_scale(innov_v, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
-	    gsl_vector_mul(innov_v, y_non_miss);
+	    
+		/*handling missing data*/
+		for(i=0; i<y_non_miss->size; i++){
+			if(gsl_vector_get(y_non_miss, i)==1)
+				continue;
+				gsl_vector_set(innov_v, i, 0); 
+		}
 
 	    gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
 
@@ -360,7 +366,20 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	        print_matrix(error_cov_t_plus_1);
 	        printf("\n");*/
 
-
+  	  /*if(miss_case!=0){
+            printf("innov_v(%lf)", y_time[t]);
+            print_vector(innov_v);
+            printf("\n");
+  	      printf("inv_innov_cov(%lf):\n", y_time[t]);
+  	      print_matrix(inv_innov_cov);
+  	      printf("\n");
+            printf("eta_corrected(%lf):", y_time[t]);
+            print_vector(eta_t_plus_1);
+            printf("\n");
+  	      printf("error_cov_corrected(%lf):\n", y_time[t]);
+  	      print_matrix(error_cov_t_plus_1);
+  	      printf("\n");
+  	  }*/
     /** free allocated space **/
 
     gsl_matrix_free(ph);
@@ -521,7 +540,12 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
   	    /** step 2.2: compute prediction residual y-y_hat **/
   	    gsl_vector_sub(innov_v, cp_y_t_plus_1);
   	    gsl_vector_scale(innov_v, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
-  	    gsl_vector_mul(innov_v, y_non_miss);
+		/*handling missing data*/
+		for(i=0; i<y_non_miss->size; i++){
+			if(gsl_vector_get(y_non_miss, i)==1)
+				continue;
+				gsl_vector_set(innov_v, i, 0); 
+		}
 
   	    gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
 
@@ -563,7 +587,20 @@ double ext_kalmanfilter_updateonly(size_t t, size_t regime,
   	        /*printf("error_cov_corrected(%lf):", y_time[t]);
   	        print_matrix(error_cov_t_plus_1);
   	        printf("\n");*/
-
+  	  /*if(miss_case!=0){
+            printf("innov_v(%lf)", y_time[t]);
+            print_vector(innov_v);
+            printf("\n");
+  	      printf("inv_innov_cov(%lf):\n", y_time[t]);
+  	      print_matrix(inv_innov_cov);
+  	      printf("\n");
+            printf("eta_corrected(%lf):", y_time[t]);
+            print_vector(eta_t_plus_1);
+            printf("\n");
+  	      printf("error_cov_corrected(%lf):\n", y_time[t]);
+  	      print_matrix(error_cov_t_plus_1);
+  	      printf("\n");
+  	  }*/
 
       /** free allocated space **/
 
@@ -873,7 +910,12 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     /** step 2.2: compute prediction residual y-y_hat **/
     gsl_vector_sub(innov_v, cp_y_t_plus_1);
     gsl_vector_scale(innov_v, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
-    gsl_vector_mul(innov_v, y_non_miss);
+	/*handling missing data*/
+	for(i=0; i<y_non_miss->size; i++){
+		if(gsl_vector_get(y_non_miss, i)==1)
+			continue;
+			gsl_vector_set(innov_v, i, 0); 
+	}
 
     gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
 
@@ -1075,13 +1117,18 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
       /** step 2.2: compute prediction residual y-y_hat **/
       gsl_vector_sub(innov_v, cp_y_t_plus_1);
       gsl_vector_scale(innov_v, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
-      gsl_vector_mul(innov_v, y_non_miss);
+	  /*handling missing data*/
+	  for(i=0; i<y_non_miss->size; i++){
+		  if(gsl_vector_get(y_non_miss, i)==1)
+			  continue;
+		  gsl_vector_set(innov_v, i, 0); 
+  	  }
+	  
+
 
       gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
 
-          /*printf("eta_corrected(%lf):", y_time[t]);
-          print_vector(eta_t_plus_1);
-          printf("\n");*/
+
       /*------------------------------------------------------*\
       * Filtered Error Cov Matrix *
       \*------------------------------------------------------*/
@@ -1108,16 +1155,27 @@ double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
 
       gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
-      /*printf("error_cov(%d):\n", t_plus_1);
-      print_matrix(error_cov_t_plus_1);
-      printf("\n");*/
+
 
       gsl_matrix_scale(error_cov_t_plus_1, -1.0); /* compute P-W*S*W'*/
 
           /*printf("error_cov_corrected(%lf):", y_time[t]);
           print_matrix(error_cov_t_plus_1);
           printf("\n");*/
-	
+	  /*if(miss_case!=0){
+          printf("innov_v(%lf)", y_time[t]);
+          print_vector(innov_v);
+          printf("\n");
+	      printf("inv_innov_cov(%lf):\n", y_time[t]);
+	      print_matrix(inv_innov_cov);
+	      printf("\n");
+          printf("eta_corrected(%lf):", y_time[t]);
+          print_vector(eta_t_plus_1);
+          printf("\n");
+	      printf("error_cov_corrected(%lf):\n", y_time[t]);
+	      print_matrix(error_cov_t_plus_1);
+	      printf("\n");
+	  }*/
 
       /** free allocated space **/
       gsl_matrix_free(ph);
