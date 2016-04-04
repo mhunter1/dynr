@@ -100,13 +100,11 @@ dynamics <- dynr.linearDynamics(
 	values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
 	time="contin")
 
-# null regimes, i.e. non-regime switching model
-regimes <- dynr.regimes()
 
 # Proto-example of cooking
 # put all the strings together
 fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
+dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics)
 
 
 #--------------------------------------

@@ -15,7 +15,11 @@
 
 dynr.cook <- function(file=stdout(), ...){
 	includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
-	glom <- paste(includes, paste(c(...), collapse="\n\n"), dynr.dP_dt, .cfunctions, sep="\n\n")
+	body <- paste(c(...), collapse="\n\n")
+	if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
+		body <- paste(body, dynr.regimes(), sep="\n\n")
+	}
+	glom <- paste(includes, body, dynr.dP_dt, .cfunctions, sep="\n\n")
 	cat(glom, file=file)
 }
 
