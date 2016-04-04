@@ -50,6 +50,42 @@ setClass(Class = "dynrNoise",
 
 
 #------------------------------------------------------------------------------
+# Some usefull helper functions
+#
+# allow free/fixed to be used in values/params arguments
+preProcessValues <- function(x){
+	x[is.na(x)] <- 'freed'
+	if(is.null(dim(x))){
+		numRow <- length(x)
+		numCol <- 1
+	} else {
+		numRow <- nrow(x)
+		numCol <- nrow(x)
+	}
+	x <- tolower(c(x))
+	sel <- pmatch(x, "freed", duplicates.ok=TRUE)
+	x[sel %in% 1] <- 0
+	x <- matrix(as.numeric(x), numRow, numCol)
+	return(x)
+}
+
+preProcessParams <- function(x){
+	x[is.na(x)] <- 'fixed'
+	if(is.null(dim(x))){
+		numRow <- length(x)
+		numCol <- 1
+	} else {
+		numRow <- nrow(x)
+		numCol <- nrow(x)
+	}
+	x <- tolower(c(x))
+	sel <- pmatch(x, "fixed", duplicates.ok=TRUE)
+	x[sel %in% 1] <- 0
+	x <- matrix(as.numeric(x), numRow, numCol)
+	return(x)
+}
+
+#------------------------------------------------------------------------------
 # Create recipe for function measurement
 
 # TODO add ability to use covariates in these functions
@@ -122,6 +158,8 @@ dynr.loadings <- function(map, params, idvar){
 # a zero param is taken to be fixed.
 
 dynr.matrixLoadings <- function(values, params){
+	values <- preProcessValues(values)
+	params <- preProcessParams(params)
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
 	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
@@ -155,6 +193,10 @@ dynr.matrixLoadings <- function(values, params){
 ##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
 ##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
+	values.latent <- preProcessValues(values.latent)
+	params.latent <- preProcessParams(params.latent)
+	values.observed <- preProcessValues(values.observed)
+	params.observed <- preProcessParams(params.observed)
   values.latent <- replaceDiagZero(values.latent)
   values.observed <- replaceDiagZero(values.observed)
   values.latent <- reverseldl(values.latent)
@@ -223,6 +265,12 @@ replaceDiagZero <- function(x){
 ##' 
 ##' Note that the ROW sums for the transition probability matrix must be one.
 dynr.regimes <- function(values, params, covariates){
+	if(!missing(values)){
+		values <- preProcessValues(values)
+	}
+	if(!missing(params)){
+		params <- preProcessParams(params)
+	}
 	numCovariates <- ifelse(missing(covariates), 0, length(covariates))
 	numRegimes <- ifelse(missing(values), 0, nrow(values))
 	#TODO check matrix dimensions
@@ -464,6 +512,14 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
 dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
 	time <- checkAndProcessTimeArgument(time)
+	values.dyn <- preProcessValues(values.dyn)
+	params.dyn <- preProcessParams(params.dyn)
+	if(!missing(values.exo)){
+		values.exo <- preProcessValues(values.exo)
+	}
+	if(!missing(params.exo)){
+		params.exo <- preProcessParams(params.exo)
+	}
 	
 	if(time == 'continuous'){
 		# Construct matrices for A and B with A ~ dyn, B ~ exo
@@ -647,7 +703,13 @@ processFormula<-function(formula.list){
 ##' @param params.inicov a matrix of the parameter indices of the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' @param values.regimep a vector of the starting or fixed values of the initial probalities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
 ##' @param params.regimep a vector of the parameter indices of the initial probalities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
-dynr.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov,values.regimep=1,params.regimep=0){
+dynr.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
+	values.inistate <- preProcessValues(values.inistate)
+	params.inistate <- preProcessParams(params.inistate)
+	values.inicov <- preProcessValues(values.inicov)
+	params.inicov <- preProcessParams(params.inicov)
+	values.regimep <- preProcessValues(values.regimep)
+	params.regimep <- preProcessParams(params.regimep)
   ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
   ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
   ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){\n\t\tfor(i=0;i<num_sbj;i++){\n")

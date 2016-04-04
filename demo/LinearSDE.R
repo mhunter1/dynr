@@ -75,22 +75,22 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 
 # measurement
 meas <- dynr.matrixLoadings(
-	values=matrix(c(1,0), 1, 2),
+	values=matrix(c(1, 0), 1, 2),
 	params=matrix(0, 1, 2))
 
 # observation and dynamic noise components
 ecov <- dynr.matrixErrorCov(
-	values.latent=diag(c(0, 1)), params.latent=diag(c(0, 3)),
+	values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
 	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 ecov$c.string
 ecov$startval
 
 # initial covariances and latent state values
 initial <- dynr.initial(
-	values.inistate=c(0,1),
-	params.inistate=c(5,0),
+	values.inistate=c('freed',1),
+	params.inistate=c(5,'fix'),
 	values.inicov=diag(1,2),
-	params.inicov=diag(0,2))
+	params.inicov=diag('fix',2))
 writeLines(initial$c.string)
 initial$startval
 
