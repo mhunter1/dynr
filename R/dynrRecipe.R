@@ -26,31 +26,26 @@ setClass(Class =  "dynrRecipe",
 setClass(Class = "dynrMeasurement",
          representation = representation(),
          contains = "dynrRecipe"
-         )
 )
 
 setClass(Class = "dynrDynamics",
          representation = representation(),
          contains = "dynrRecipe"
-         )
 )
 
 setClass(Class = "dynrRegimes",
          representation = representation(),
          contains = "dynrRecipe"
-         )
 )
 
 setClass(Class = "dynrInitial",
          representation = representation(),
          contains = "dynrRecipe"
-         )
 )
 
 setClass(Class = "dynrNoise",
          representation = representation(),
          contains = "dynrRecipe"
-         )
 )
 
 

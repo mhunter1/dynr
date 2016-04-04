@@ -22,6 +22,7 @@ Collate:
     'dynrPlot.R'
     'dynrFuncAddress.R'
     'dynrRecipe.R'
+    'dynrClass.R'
     'dynrCook.R'
     'dynrVersion.R'
 Version: @VERSION@

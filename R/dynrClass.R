@@ -6,7 +6,7 @@ setClass("dynrOptOptions",
          representation(maxtime="numeric", 
                         maxeval="integer",
                         ftol_rel="numeric",
-                        xtol_rel="numeric",
+                        xtol_rel="numeric"
          )
 )
 setClass("dynrModel",
@@ -17,7 +17,7 @@ setClass("dynrModel",
                         nstates="numeric",
                         nresp="numeric",
                         ntimes="numeric",
-                        npars="numeric" # number of parameters
+                        npars="numeric", # number of parameters
                         num_regime="integer",
                         dim_latent_var="integer",
                         xstart="vector",
@@ -25,8 +25,8 @@ setClass("dynrModel",
                         lb="vector",
                         options="list",
                         isContinuousTime="logical",
-                        infile="character", 
-                        outfile="character", 
+                        infile="character",
+                        outfile="character",
                         verbose="logical",
                         compileLib="logical"
          )
