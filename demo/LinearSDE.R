@@ -80,7 +80,7 @@ meas <- dynr.matrixLoadings(
 
 # observation and dynamic noise components
 ecov <- dynr.matrixErrorCov(
-	values.latent=diag(c(0.00001,1)), params.latent=diag(c(0, 3)),
+	values.latent=diag(c(0, 1)), params.latent=diag(c(0, 3)),
 	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 ecov$c.string
 ecov$startval

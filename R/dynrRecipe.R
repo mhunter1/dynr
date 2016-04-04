@@ -155,8 +155,10 @@ dynr.matrixLoadings <- function(values, params){
 ##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
 ##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
-  values.latent=reverseldl(values.latent)
-  values.observed=reverseldl(values.observed)
+  values.latent <- replaceDiagZero(values.latent)
+  values.observed <- replaceDiagZero(values.observed)
+  values.latent <- reverseldl(values.latent)
+  values.observed <- reverseldl(values.observed)
   ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
 	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
@@ -173,6 +175,12 @@ reverseldl<-function(values){
     return(mat)
   }
 }
+
+replaceDiagZero <- function(x){
+	diag(x)[diag(x) == 0] <- 1e-6
+	return(x)
+}
+
 
 #------------------------------------------------------------------------------
 # Regime switching matrix/function
@@ -654,7 +662,8 @@ dynr.initial <- function(values.inistate, params.inistate, values.inicov, params
                    ', ', values.inistate[i], ');\n', sep='')
     }
   }
-  values.inicov=reverseldl(values.inicov)
+  values.inicov <- replaceDiagZero(values.inicov)
+  values.inicov <- reverseldl(values.inicov)
   ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")    
   ret <- paste(ret, "\t}\n}\n")
   return(list(c.string=ret,startval=c(values.inistate[which(params.inistate!=0)], values.inicov[which(params.inicov!=0)], values.regimep[which(params.regimep!=0)])))
