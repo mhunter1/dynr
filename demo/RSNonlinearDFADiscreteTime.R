@@ -132,7 +132,10 @@ n = 10; nT = 300
 discreteNA <- cbind(rep(1:n,each=nT),rep(1:nT,n),discreteNA)
 colnames(discreteNA)<-c("id", "Time", "y1", "y2", "y3", "y4", "y5", "y6")
 missingprop=.1
-discreteNA[sample(1:nT,nT*missingprop), c("y1","y2","y3","y4","y5","y6")]<-NA
+partialmiss=sample(1:nT,nT*missingprop)
+fullmiss=sample(setdiff(1:nT,partialmiss),nT*missingprop)
+discreteNA[partialmiss, c("y1","y5","y6")]<-NA
+discreteNA[fullmiss, c("y1","y2","y3","y4","y5","y6")]<-NA
 data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
 pstart <- log(.9/(1-.9))
@@ -180,7 +183,7 @@ tfun <- function(x){c(x[1:4],
                       exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
                       x[7:10],
                       exp(x[11:18]))}
-res <- dynr.run(model=model, data=data,transformation=tfun)
+res <- dynr.run(model=model, data=data,transformation=tfun,debug_flag=FALSE)
 
 # Examine results
 summary(res)
@@ -205,6 +208,5 @@ truepar <- c(1.2, 1.2, 1.1, .95,
 
 #plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
-print(res@eta_smooth_final)
 #dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 

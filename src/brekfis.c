@@ -265,7 +265,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                    printf("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
-                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], innov_determinant);
+                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss,innov_determinant);
                     
                     
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
@@ -807,7 +807,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    printf("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
-                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], innov_determinant);
+                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], y_non_miss, innov_determinant);
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
                     p=exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
 

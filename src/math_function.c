@@ -6,6 +6,7 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <math.h>
+#include <time.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 #include "math_function.h"
@@ -17,25 +18,87 @@
  * @param inv_cov_matrix the covariance matrix
  * @return the negative log-likelihood
  */
-double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, double det){
+double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss,double det){
     /*printf("x(0)=%f\n", gsl_vector_get(x, 0));*/
     double result=0;
-    gsl_vector *y=gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
-    double mu; /* save result of x'*inv_cov_matrix*x*/
+	
+	/*handling missing data*/
+	double non_miss_size=mathfunction_sum_vector(y_non_miss);/*miss 0 not 1*/
+	if (non_miss_size!=0){
+		if (non_miss_size<y_non_miss->size){
+		    
+			gsl_matrix *inv_cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
+			gsl_matrix *cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
+			/*Matrix View: Not efficient
+			clock_t begin, end;
+			double time_spent;
+			begin = clock();			
+			gsl_matrix *temp=gsl_matrix_calloc(non_miss_size,y_non_miss->size);
+			gsl_matrix *invtemp=gsl_matrix_calloc(y_non_miss->size,non_miss_size);
+			for(i=0; i<y_non_miss->size; i++){
+				if(gsl_vector_get(y_non_miss, i)==1){
+					gsl_matrix_set(temp,j,i,1);
+					j=j+1;
+				}
+			}
+		  	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, inv_cov_matrix, temp, 0.0,invtemp); 
+		  	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, temp, invtemp, 0.0, inv_cov_mat_small);
+			end = clock();
+			time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+			printf("time spent: %lf\n",time_spent);
+			print_matrix(inv_cov_matrix);
+			printf("det=: %lf\n",det);
+			det=mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
+			print_matrix(inv_cov_mat_small);
+			printf("det=: %lf\n",det);
+			print_matrix(cov_mat_small);
+			printf("\n");
+			gsl_matrix_free(temp);
+			gsl_matrix_free(invtemp);
+			*/
+			size_t i,j=0; 	    
+			size_t i_s=0,j_s=0; 
+			for(i=0; i<y_non_miss->size; i++){
+				if(gsl_vector_get(y_non_miss, i)==1){
+					gsl_matrix_set(inv_cov_mat_small,i_s,i_s,gsl_matrix_get(inv_cov_matrix,i,i));
+					j_s=i_s+1;
+					for(j=i+1; j<y_non_miss->size; j++){				
+						if(gsl_vector_get(y_non_miss, j)==1){
+							gsl_matrix_set(inv_cov_mat_small,i_s,j_s,gsl_matrix_get(inv_cov_matrix,i,j));
+							gsl_matrix_set(inv_cov_mat_small,j_s,i_s,gsl_matrix_get(inv_cov_matrix,i,j));
+							j_s=j_s+1;
+						}
+					}
+					i_s=i_s+1;
+				}
+			}
+			
+			det=1/mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
+
+			gsl_matrix_free(inv_cov_mat_small);
+			gsl_matrix_free(cov_mat_small);
+
+		}
+		
+
+	    gsl_vector *y=gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
+	    double mu; /* save result of x'*inv_cov_matrix*x*/
     
-    /** compute the log likelihood **/
-    result=(x->size/2.0)*log(M_PI*2);
-    result+=log(det)/2.0;
+	    /** compute the log likelihood **/
+	    result=(non_miss_size/2.0)*log(M_PI*2);
+	    result+=log(det)/2.0;
     
-    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
-    gsl_blas_ddot(x, y, &mu);
-    /*if(mu!=mu){
-     printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
-     }*/
-    result+=mu/2.0;
+	    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
+	    gsl_blas_ddot(x, y, &mu);
+	    /*if(mu!=mu){
+	     printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
+	     }*/
+	    result+=mu/2.0;
     
-    /** free allocated space **/
-    gsl_vector_free(y);
+	    /** free allocated space **/
+	    gsl_vector_free(y);
+		
+	}
     
     /*if(1){
      for(ri=0; ri<inv_cov_matrix->size1; ri++){
@@ -53,105 +116,27 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 }
 
 /**
- * This method checks that a matrix is invertible by computing its determinant
- * It is assumed that gsl_linalg_LU_decomp(mat, per, &sing);
- * has been run on mat prior to checking invertibility
- */
-int mathfunction_check_inv(const gsl_matrix *mat){
-	double eps = 1.0e-6;
-	double det = gsl_linalg_LU_det(mat, 1);
-	if( fabs(det) > eps ){
-		return 0;
-	}
-	else {
-		return 1;
-	}
-}
-
-/**
  * compute the inverse of a given matrix
  * @param mat the given matrix
  * @param inv_mat the matrix where the inverse one is stored.
  */
 void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
-    /** conduct LR decomposition **/
-    gsl_permutation *per=gsl_permutation_alloc(mat->size1);
-    gsl_matrix *cp_mat=gsl_matrix_alloc(mat->size1, mat->size2);
-    gsl_matrix_memcpy(cp_mat, mat);
-    int sing;
-    /*size_t ri, ci;*/
-    /*for(ri=0; ri<mat->size1; ri++){
-     for(ci=0; ci<mat->size2; ci++)
-     printf("%.3f ",gsl_matrix_get(mat, ri, ci));
-     printf("\n");
-     }*/
-    gsl_linalg_LU_decomp(cp_mat, per, &sing);
-    
-    /*for(ri=0; ri<cp_mat->size1; ri++){
-     for(ci=0; ci<cp_mat->size2; ci++)
-     printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
-     printf("\n");
-     }*/
-    int rStatus;
-    rStatus = mathfunction_check_inv(cp_mat);
-    if(rStatus != 0){
-        /*printf("Singular matrix found by mathfunction_inv_matrix().\n");*/
-        gsl_matrix_set_all(inv_mat, 10000.0);
-    } else {
-        gsl_linalg_LU_invert(cp_mat, per, inv_mat);
-    }
-    
-    /** free allocated space **/
-    gsl_permutation_free(per);
-    gsl_matrix_free(cp_mat);
-}
-
-/**
- * compute the inverse of a given matrix and returns the determinant
- * @param mat the given matrix
- * @param inv_mat the matrix where the inverse one is stored.
- */
-
-double mathfunction_inv_matrix_det_lu(const gsl_matrix *mat, gsl_matrix *inv_mat){
-    /** conduct LR decomposition **/
-    gsl_permutation *per=gsl_permutation_alloc(mat->size1);
-    gsl_matrix *cp_mat=gsl_matrix_alloc(mat->size1, mat->size2);
-    gsl_matrix_memcpy(cp_mat, mat);
-    int sing;
-    double det=0;
-    /*size_t ri, ci;*/
-    /*for(ri=0; ri<mat->size1; ri++){
-     for(ci=0; ci<mat->size2; ci++)
-     printf("%.3f ",gsl_matrix_get(mat, ri, ci));
-     printf("\n");
-     }*/
-    gsl_linalg_LU_decomp(cp_mat, per, &sing);
-    det=gsl_linalg_LU_det(cp_mat, sing);
-    /*printf("cp_mat:\n");*/
-    /*for(ri=0; ri<cp_mat->size1; ri++){
-     for(ci=0; ci<cp_mat->size2; ci++)
-     printf("%.3f ", gsl_matrix_get(cp_mat, ri, ci));
-     printf("\n");
-     }*/
-    /*if(det!=det){
-     for(ri=0; ri<cp_cov_matrix->size1; ri++){
-     for(ci=0; ci<cp_cov_matrix->size2; ci++)
-     printf("%.2f ", gsl_matrix_get(cov_matrix, ri, ci));
-     printf("\n");
-     }
-     }*/
-    if(fabs(det) < 1.0e-6){
-        /* printf("Singular matrix found by mathfunction_inv_matrix_det().\n"); */
-        gsl_matrix_set_all(inv_mat, 10000.0);
-    }
-    else {
-        gsl_linalg_LU_invert(cp_mat, per, inv_mat);
-    }
-    
-    /** free allocated space **/
-    gsl_permutation_free(per);
-    gsl_matrix_free(cp_mat);
-    return det;
+	gsl_set_error_handler_off();
+	if(mat->size1 != mat->size2 || mat->size1 != inv_mat->size1 || inv_mat->size1 != inv_mat->size2){
+		printf("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
+	}
+	gsl_matrix_memcpy(inv_mat, mat);
+	double det=0.0;
+	int info = gsl_linalg_cholesky_decomp(inv_mat);
+	det = mathfunction_cholesky_det(inv_mat);
+	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
+		/* printf("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
+		gsl_matrix_set_all(inv_mat, 10000.0);
+		det = 0.0;
+	}
+	else {
+		gsl_linalg_cholesky_invert(inv_mat);
+	}
 }
 
 /**
