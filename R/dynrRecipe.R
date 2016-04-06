@@ -100,7 +100,7 @@ preProcessParams <- function(x){
 ##' @param idvar Names of the variables used to identify the factors
 ##'
 ##'
-dynr.loadings <- function(map, params, idvar){
+prep.loadings <- function(map, params, idvar){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
@@ -139,16 +139,16 @@ dynr.loadings <- function(map, params, idvar){
 
 # Examples
 # Single factor model with one latent variable
-#dynr.loadings( list(eta1=paste0('y', 1:4)), 4:6)
+#prep.loadings( list(eta1=paste0('y', 1:4)), 4:6)
 
 # Two factor model with simple structure
-#dynr.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
+#prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
 
 # Two factor model with repeated use of a free parameter
-#dynr.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), c(4:6, 1:2, 4))
+#prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), c(4:6, 1:2, 4))
 
 # Two factor model with a cross loading
-#dynr.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
+#prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
 
 
 #--------------------------------------
@@ -157,7 +157,7 @@ dynr.loadings <- function(map, params, idvar){
 # values, and params are all MxN matrices
 # a zero param is taken to be fixed.
 
-dynr.matrixLoadings <- function(values, params){
+prep.matrixLoadings <- function(values, params){
 	values <- preProcessValues(values)
 	params <- preProcessParams(params)
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
@@ -170,12 +170,12 @@ dynr.matrixLoadings <- function(values, params){
 
 
 # Examples
-# a <- dynr.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-# dynr.matrixLoadings(a$values, a$params)
+# a <- prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
+# prep.matrixLoadings(a$values, a$params)
 #
-# dynr.matrixLoadings(diag(1, 5), diag(1:5))
-# dynr.matrixLoadings(matrix(1, 5, 5), diag(1:5))
-# dynr.matrixLoadings(diag(1, 5), diag(0, 5)) #identity measurement model
+# prep.matrixLoadings(diag(1, 5), diag(1:5))
+# prep.matrixLoadings(matrix(1, 5, 5), diag(1:5))
+# prep.matrixLoadings(diag(1, 5), diag(0, 5)) #identity measurement model
 
 
 #------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ dynr.matrixLoadings <- function(values, params){
 ##' @param params.latent a matrix of the parameter indices of the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
 ##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
-dynr.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
+prep.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
 	values.latent <- preProcessValues(values.latent)
 	params.latent <- preProcessParams(params.latent)
 	values.observed <- preProcessValues(values.observed)
@@ -264,7 +264,7 @@ replaceDiagZero <- function(x){
 ##' @param param matrix of the same size as values giving the free parameters
 ##' 
 ##' Note that the ROW sums for the transition probability matrix must be one.
-dynr.regimes <- function(values, params, covariates){
+prep.regimes <- function(values, params, covariates){
 	if(!missing(values)){
 		values <- preProcessValues(values)
 	}
@@ -335,13 +335,13 @@ dynr.regimes <- function(values, params, covariates){
 
 # Examples
 # Regime-switching with no covariates (self-transition ID)
-#b <- dynr.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
+#b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
 #
 # Regime switching with no covariates (second regime ID)
-#b <- dynr.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
+#b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
 #
 # 2 regimes with three covariates
-#b <- dynr.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
+#b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
 
 # B <- matrix(c(8:(8+24-1)), nr, (nc+1)*nr, byrow=TRUE)
 #matrix(t(B), nrow=nr*nr, ncol=nc+1, byrow=TRUE)
@@ -356,7 +356,7 @@ dynr.regimes <- function(values, params, covariates){
 ##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
+prep.nonlindynamics <- function(formula, jacob, isContinuosTime){
   
   nregime=length(formula)
   n=sapply(formula,length)
@@ -510,7 +510,7 @@ dynr.nonlindynamics <- function(formula, jacob, isContinuosTime){
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-dynr.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
+prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
 	time <- checkAndProcessTimeArgument(time)
 	values.dyn <- preProcessValues(values.dyn)
 	params.dyn <- preProcessParams(params.dyn)
@@ -703,7 +703,7 @@ processFormula<-function(formula.list){
 ##' @param params.inicov a matrix of the parameter indices of the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' @param values.regimep a vector of the starting or fixed values of the initial probalities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
 ##' @param params.regimep a vector of the parameter indices of the initial probalities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
-dynr.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
+prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
 	values.inistate <- preProcessValues(values.inistate)
 	params.inistate <- preProcessParams(params.inistate)
 	values.inicov <- preProcessValues(values.inicov)
@@ -735,7 +735,7 @@ dynr.initial <- function(values.inistate, params.inistate, values.inicov, params
 
 
 #------------------------------------------------------------------------------
-dynr.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
+prep.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
 
 #TODO change 
 #	nx = (size_t) floor(sqrt(2*(double) p->size));

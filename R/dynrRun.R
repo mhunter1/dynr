@@ -380,8 +380,8 @@ vec2mat<-function(vectr,dimension){
   	  diag(mat)<-vectr[1:dimension]
   	  for (i in 1:(dimension-1)){
   		  for (j in (i+1):dimension){
-  		  	mat[i,j]<-vector[i+j+dimension-2]
-  			mat[j,i]<-vector[i+j+dimension-2]
+  		  	mat[i,j]<-vectr[i+j+dimension-2]
+  			mat[j,i]<-vectr[i+j+dimension-2]
   		  }
   	  }
     }else{
