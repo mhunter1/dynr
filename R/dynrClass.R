@@ -9,16 +9,9 @@ setClass("dynrOptOptions",
                         xtol_rel="numeric"
          )
 )
-setClass("dynrModel",
-         representation(response="list", # response models
-                        prior="ANY", # the prior model (multinomial)
-                        dens="array", # response densities (B)
-                        init="array", # usually called pi 
-                        nstates="numeric",
-                        nresp="numeric",
-                        ntimes="numeric",
-                        npars="numeric", # number of parameters
-                        num_regime="integer",
+setClass(Class =  "dynrModel",
+         representation = representation(
+                     	num_regime="integer",
                         dim_latent_var="integer",
                         xstart="vector",
                         ub="vector",
@@ -28,7 +21,11 @@ setClass("dynrModel",
                         infile="character",
                         outfile="character",
                         verbose="logical",
-                        compileLib="logical"
+                        compileLib="logical",
+			            dynamics =  "dynrDynamics",
+			            measurement = "dynrMeasurement",
+			            initial = "dynrInitial",
+						regimes= "dynrRegimes",
+						Class = "dynrNoise"
          )
 )
-
