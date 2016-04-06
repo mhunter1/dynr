@@ -91,7 +91,7 @@ model <- dynr.model(
               compileLib=TRUE
 )
 
-res <- dynr.run(model, data)
+res <- dynr.cook(model, data)
 
 
 

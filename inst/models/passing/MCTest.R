@@ -196,7 +196,7 @@ for (r in rStart:noMC){
   
   #print(getLoadedDLLs())
   #print(themodel$func_address)
-  res <- dynr.run(themodel, data,tfun)
+  res <- dynr.cook(themodel, data,tfun)
   print(pryr::mem_used())#function from the pryr library   
   summary(res)
          

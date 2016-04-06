@@ -17,11 +17,11 @@ LazyLoad: yes
 Collate:
     'dynrData.R'
     'dynrModel.R'
-    'dynrRun.R'
+    'dynrCook.R'
     'dynrPlot.R'
     'dynrFuncAddress.R'
     'dynrRecipe.R'
     'dynrClass.R'
-    'dynrCook.R'
+    'dynrPrep.R'
     'dynrVersion.R'
 

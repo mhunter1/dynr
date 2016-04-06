@@ -40,7 +40,7 @@ model <- dynr.model(
 
 #func_address=dynr.funcaddress(file="./demo/RSODEmodel.c",verbose=FALSE,model=model)
 tfun <- function(x){c(exp(x[1:4]),x[5],exp(x[6:7]), x[8:13])}
-res <- dynr.run(model, data,tfun)
+res <- dynr.cook(model, data,tfun)
 
 
 #True values should be

@@ -65,7 +65,7 @@ require(dynr)
 # #--------------------------------------
 # # Cook the recipes together
 # fname <- "./demo/CookedRSNonlinearDiscrete.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-# dynr.cook(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
+# dynr.prep(file=fname, meas, mdcov$c.string, initial$c.string, dynamics, regimes)
 
 
 
@@ -109,7 +109,7 @@ require(dynr)
 # # Proto-example of cooking
 # # put all the strings together
 # fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-# dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
+# dynr.prep(file=fname, meas, ecov$c.string, initial$c.string, dynamics, regimes)
 # 
 # formula=list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
 #              x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
@@ -183,7 +183,7 @@ tfun <- function(x){c(x[1:4],
                       exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
                       x[7:10],
                       exp(x[11:18]))}
-res <- dynr.run(model=model, data=data,transformation=tfun,debug_flag=FALSE)
+res <- dynr.cook(model=model, data=data,transformation=tfun,debug_flag=FALSE)
 
 # Examine results
 summary(res)

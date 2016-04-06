@@ -45,7 +45,7 @@ default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10,
 #' @param lb The lower bounds of the estimated parameters.
 #' @param isDiscreteTime A binary flag indicating whether the model is a discrete-time model (0 = no; 1 = yes)
 #' @param options A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.
-#' @return A list of model statements to be passed to dynr.run().
+#' @return A list of model statements to be passed to dynr.cook().
 dynr.model <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime=TRUE,infile, outfile=tempfile(),compileLib=TRUE,verbose=TRUE){
 	if(!is.list(options)){
 		stop("'options' argument to dynr.model function must be a list.")

@@ -104,7 +104,7 @@ dynamics <- dynr.linearDynamics(
 # Proto-example of cooking
 # put all the strings together
 fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-dynr.cook(file=fname, meas, ecov$c.string, initial$c.string, dynamics)
+dynr.prep(file=fname, meas, ecov$c.string, initial$c.string, dynamics)
 
 
 #--------------------------------------
@@ -131,7 +131,7 @@ model <- dynr.model(
 )
 
 # Estimate free parameters
-res <- dynr.run(model, data)
+res <- dynr.cook(model, data)
 
 # Examine results
 summary(res)

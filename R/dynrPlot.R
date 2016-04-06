@@ -12,7 +12,7 @@ Mode <- function(y) {
 	uy <- unique(y)
 	uy[which.max(tabulate(match(y, uy)))]
 }
-setMethod("plot", "dynrRun",
+setMethod("plot", "dynrCook",
 	function(x, y=NULL, data.dynr, graphingPar=par(no.readonly = TRUE), ylab = "Smoothed state values", xlab = "Time", numSubjDemo=2, legend.cex=1.2){
 		opar = par(no.readonly = TRUE)
 		par(graphingPar)
@@ -79,7 +79,7 @@ setMethod("plot", "dynrRun",
 
 ##' The ggplot of the smoothed state estimates and the most likely regimes
 ##' 
-##' @param res The dynr object returned by dynr.run().
+##' @param res The dynr object returned by dynr.cook().
 ##' @param data.dynr The dynr data returned by dynr.data().
 ##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
 ##' @param states The indices of the states to be plotted.
