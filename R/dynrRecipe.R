@@ -383,6 +383,10 @@ prep.regimes <- function(values, params, covariates){
 		ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
 	}
 	ret <- paste(ret, "}\n\n", sep="\n")
+	if(missing(values)){
+		values <- matrix(, 0, 0)
+		params <- matrix(, 0, 0)
+	}
 	x <- list(c.string=ret, values=values, params=params)
 	return(new("dynrRegimes", x))
 }
@@ -623,6 +627,10 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
 		"}\n\n",
 		sep="\n")
+	if(missing(params.exo)){
+		params.exo <- matrix(, 0, 0)
+		values.exo <- matrix(, 0, 0)
+	}
 	x <- list(c.string=ret, misc=list(params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, time=time))
 	return(new("dynrDynamics", x))
 }

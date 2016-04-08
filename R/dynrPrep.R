@@ -1,4 +1,4 @@
-# Cooking is what happens to recipes.
+# Preping is what happens to recipes.
 # The alpha version of this file just takes a bunch of recipes and puts
 #  them together into a C file of the user's naming.
 #
@@ -14,12 +14,14 @@
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, .transformCFunction, sep="\n")
 
 dynr.prep <- function(file=stdout(), ...){
+	inputs <- list(...)
+	cparts <- lapply(inputs, slot, name='c.string')
 	includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
 	body <- paste(c(...), collapse="\n\n")
 	if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
-		body <- paste(body, dynr.regimes(), sep="\n\n")
+		body <- paste(body, prep.regimes()$c.string, sep="\n\n")
 	}
-	glom <- paste(includes, body, dynr.dP_dt, .cfunctions, sep="\n\n")
+	glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
 	cat(glom, file=file)
 }
 

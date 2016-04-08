@@ -74,12 +74,12 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 # Define all the model components via the RECIPE functions
 
 # measurement
-meas <- prep.matrixLoadings(
+meas <- prep.measurement(
 	values=matrix(c(1, 0), 1, 2),
 	params=matrix(0, 1, 2))
 
 # observation and dynamic noise components
-ecov <- prep.matrixErrorCov(
+ecov <- prep.noise(
 	values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
 	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 ecov$c.string
@@ -104,7 +104,7 @@ dynamics <- prep.linearDynamics(
 # Proto-example of cooking
 # put all the strings together
 fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-dynr.prep(file=fname, meas, ecov$c.string, initial$c.string, dynamics)
+dynr.prep(file=fname, meas, ecov, initial, dynamics)
 
 
 #--------------------------------------
