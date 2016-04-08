@@ -38,6 +38,8 @@ setClass(Class = "dynrMeasurement",
 setClass(Class = "dynrDynamics",
          representation = representation(
            c.string =  "character",
+           startval = "numeric",
+           paramnum = "numeric",
            misc = "list"
            ),
          contains = "dynrRecipe"
@@ -47,6 +49,8 @@ setClass(Class = "dynrDynamics",
 setClass(Class = "dynrRegimes",
          representation = representation(
            c.string =  "character",
+           startval = "numeric",
+           paramnum = "numeric",
            values = "matrix",
            params = "matrix"),
          contains = "dynrRecipe"
@@ -57,6 +61,7 @@ setClass(Class = "dynrInitial",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
+           paramnum = "numeric",
            values.inistate = "matrix",
            params.inistate = "matrix",
            values.inicov = "matrix",
@@ -72,6 +77,7 @@ setClass(Class = "dynrNoise",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
+           paramnum = "numeric",
            values.latent = "matrix",
            params.latent = "matrix",
            values.observed = "matrix",
@@ -91,6 +97,72 @@ setMethod("initialize", "dynrRecipe",
 setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
+
+setGeneric("printex", function(object) { 
+	return(standardGeneric("printex")) 
+})
+
+
+
+setMethod("printex", "dynrMeasurement",
+	function(object){
+		lC <- .xtableMatrix(object$values)
+		return(list(measurement=lC))
+	}
+)
+
+
+# not sure what to do here yet
+#setMethod("printex", "dynrDynamics",
+#	function(object){
+#		lx0 <- .xtableMatrix(object$values.inistate)
+#		lP0 <- .xtableMatrix(object$values.inicov)
+#		lr0 <- .xtableMatrix(object$values.regimep)
+#		cat(lxo)
+#		cat(lP0)
+#		cat(lr0)
+#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
+#	}
+#)
+
+
+setMethod("printex", "dynrRegimes",
+	function(object){
+		lG <- .xtableMatrix(object$values)
+		return(list(regimes=lG))
+	}
+)
+
+
+setMethod("printex", "dynrInitial",
+	function(object){
+		lx0 <- .xtableMatrix(object$values.inistate)
+		lP0 <- .xtableMatrix(object$values.inicov)
+		lr0 <- .xtableMatrix(object$values.regimep)
+		return(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0))
+	}
+)
+
+
+setMethod("printex", "dynrNoise",
+	function(object){
+		lQ <- .xtableMatrix(object$values.latent)
+		lR <- .xtableMatrix(object$values.observed)
+		return(list(dynamic.noise=lQ, measurement.noise=lR))
+	}
+)
+
+
+
+.xtableMatrix <- function(m){
+	x <- xtable::xtable(m, align=rep("", ncol(m)+1))
+	out <- print(x, floating=FALSE, tabular.environment="bmatrix", 
+		hline.after=NULL, include.rownames=FALSE, include.colnames=FALSE)
+	return(out)
+}
+
+#printex(dynrModel)
+#printex(dynrRecipe)
 
 
 #------------------------------------------------------------------------------
