@@ -111,7 +111,8 @@ dynr.prep(file=fname, meas, ecov, initial, dynamics)
 # Put the cooked recipes together in a Model Specification
 
 # Data
-data <- dynr.data(cbind(id=rep(1,100),t(ty), times=tT[,-1]), id="id", time="times", observed="y1")
+simdata <- cbind(id=rep(1,100),t(ty), times=tT[,-1])
+data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
 # Model
 model <- dynr.model(
