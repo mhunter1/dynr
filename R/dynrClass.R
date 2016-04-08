@@ -35,3 +35,7 @@ setClass(Class =  "dynrModel",
          ),
          contains="dynrControl"
 )
+
+PrepFuncNametochange<-function(dynrModel){
+  
+}
