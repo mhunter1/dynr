@@ -14,10 +14,11 @@
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, .transformCFunction, sep="\n")
 
 dynr.prep <- function(file=stdout(), ...){
+	browser()
 	inputs <- list(...)
-	cparts <- lapply(inputs, slot, name='c.string')
+	cparts <- sapply(inputs, slot, name='c.string')
 	includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
-	body <- paste(c(...), collapse="\n\n")
+	body <- paste(cparts, collapse="\n\n")
 	if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
 		body <- paste(body, prep.regimes()$c.string, sep="\n\n")
 	}
