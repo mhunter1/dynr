@@ -58,10 +58,10 @@ setClass(Class = "dynrInitial",
            c.string =  "character",
            startval = "numeric",
            values.inistate = "matrix",
-           values.inicov = "matrix",
-           values.regimep = "numeric",
            params.inistate = "matrix",
+           values.inicov = "matrix",
            params.inicov = "matrix",
+           values.regimep = "numeric",
            params.regimep = "numeric"),
          contains = "dynrRecipe"
 )
@@ -73,8 +73,8 @@ setClass(Class = "dynrNoise",
            c.string =  "character",
            startval = "numeric",
            values.latent = "matrix",
-           values.observed = "matrix",
            params.latent = "matrix",
+           values.observed = "matrix",
            params.observed = "matrix"),
          contains = "dynrRecipe"
 )
@@ -87,6 +87,11 @@ setMethod("initialize", "dynrRecipe",
 			return(.Object)
           }
 )
+
+setMethod("$", "dynrRecipe",
+          function(x, name){slot(x, name)}
+)
+
 
 #------------------------------------------------------------------------------
 # Some usefull helper functions
@@ -245,7 +250,8 @@ prep.matrixErrorCov <- function(values.latent, params.latent, values.observed, p
 	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 	ret <- paste(ret, "\n}\n\n")
-	return(list(c.string=ret,startval=c(values.latent[which(params.latent!=0)],values.observed[which(params.observed!=0)])))
+	x <- list(c.string=ret, startval=c(values.latent[which(params.latent!=0)],values.observed[which(params.observed!=0)]), values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
+	return(new("dynrNoise", x))
 }
 
 reverseldl<-function(values){
