@@ -254,6 +254,12 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	return(new("dynrNoise", x))
 }
 
+# Examples
+#prep.matrixErrorCov(
+#	values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
+#	values.observed=diag(1.5,1), params.observed=diag(4, 1))
+
+
 reverseldl<-function(values){
   if (dim(values)[1]==1){
     return(log(values))
@@ -377,6 +383,8 @@ prep.regimes <- function(values, params, covariates){
 		ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
 	}
 	ret <- paste(ret, "}\n\n", sep="\n")
+	x <- list(c.string=ret, values=values, params=params)
+	return(new("dynrRegimes", x))
 }
 
 # Examples
