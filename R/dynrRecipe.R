@@ -178,7 +178,7 @@ prep.loadings <- function(map, params, idvar){
 			}
 		}
 	}
-	x <- prep.matrixLoadings(values=valuesMat, params=paramsMat)
+	x <- prep.measurement(values=valuesMat, params=paramsMat)
 	return(x)
 }
 
@@ -202,7 +202,7 @@ prep.loadings <- function(map, params, idvar){
 # values, and params are all MxN matrices
 # a zero param is taken to be fixed.
 
-prep.matrixLoadings <- function(values, params){
+prep.measurement <- function(values, params){
 	values <- preProcessValues(values)
 	params <- preProcessParams(params)
 	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
@@ -216,11 +216,11 @@ prep.matrixLoadings <- function(values, params){
 
 # Examples
 # a <- prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-# prep.matrixLoadings(a@values, a@params)
+# prep.measurement(a@values, a@params)
 #
-# prep.matrixLoadings(diag(1, 5), diag(1:5))
-# prep.matrixLoadings(matrix(1, 5, 5), diag(1:5))
-# prep.matrixLoadings(diag(1, 5), diag(0, 5)) #identity measurement model
+# prep.measurement(diag(1, 5), diag(1:5))
+# prep.measurement(matrix(1, 5, 5), diag(1:5))
+# prep.measurement(diag(1, 5), diag(0, 5)) #identity measurement model
 
 
 #------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ prep.matrixLoadings <- function(values, params){
 ##' @param params.latent a matrix of the parameter indices of the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
 ##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
-prep.matrixErrorCov <- function(values.latent, params.latent, values.observed, params.observed){
+prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	values.latent <- preProcessValues(values.latent)
 	params.latent <- preProcessParams(params.latent)
 	values.observed <- preProcessValues(values.observed)
