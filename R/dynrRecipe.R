@@ -16,6 +16,7 @@
 #------------------------------------------------------------------------------
 # Create dynrRecipe object class
 
+##DONE##
 setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
@@ -23,31 +24,69 @@ setClass(Class =  "dynrRecipe",
          )
 )
 
+##DONE##
 setClass(Class = "dynrMeasurement",
-         representation = representation(),
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric",
+           values = "matrix",
+           params = "matrix"),
          contains = "dynrRecipe"
 )
 
+##DONE##
 setClass(Class = "dynrDynamics",
-         representation = representation(),
+         representation = representation(
+           c.string =  "character",
+           misc = "list"
+           ),
          contains = "dynrRecipe"
 )
 
+##DONE##
 setClass(Class = "dynrRegimes",
-         representation = representation(),
+         representation = representation(
+           c.string =  "character",
+           values = "matrix",
+           params = "matrix"),
          contains = "dynrRecipe"
 )
 
+##DONE##
 setClass(Class = "dynrInitial",
-         representation = representation(),
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric",
+           values.inistate = "matrix",
+           values.inicov = "matrix",
+           values.regimep = "numeric",
+           params.inistate = "matrix",
+           params.inicov = "matrix",
+           params.regimep = "numeric"),
          contains = "dynrRecipe"
 )
 
+
+##DONE##
 setClass(Class = "dynrNoise",
-         representation = representation(),
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric",
+           values.latent = "matrix",
+           values.observed = "matrix",
+           params.latent = "matrix",
+           params.observed = "matrix"),
          contains = "dynrRecipe"
 )
 
+setMethod("initialize", "dynrRecipe",
+          function(.Object, x){
+            for(i in names(x)){
+				slot(.Object, name=i, check = TRUE) <- x[[i]]
+			}
+			return(.Object)
+          }
+)
 
 #------------------------------------------------------------------------------
 # Some usefull helper functions
@@ -60,7 +99,7 @@ preProcessValues <- function(x){
 		numCol <- 1
 	} else {
 		numRow <- nrow(x)
-		numCol <- nrow(x)
+		numCol <- ncol(x)
 	}
 	x <- tolower(c(x))
 	sel <- pmatch(x, "freed", duplicates.ok=TRUE)
@@ -76,7 +115,7 @@ preProcessParams <- function(x){
 		numCol <- 1
 	} else {
 		numRow <- nrow(x)
-		numCol <- nrow(x)
+		numCol <- ncol(x)
 	}
 	x <- tolower(c(x))
 	sel <- pmatch(x, "fixed", duplicates.ok=TRUE)
@@ -134,7 +173,8 @@ prep.loadings <- function(map, params, idvar){
 			}
 		}
 	}
-	return(list(values=valuesMat, params=paramsMat))
+	x <- prep.matrixLoadings(values=valuesMat, params=paramsMat)
+	return(new("dynrMeasurement", x))
 }
 
 # Examples
@@ -165,13 +205,13 @@ prep.matrixLoadings <- function(values, params){
 	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 	ret <- paste(ret, "\n}\n\n")
 
-	return(ret)
+	return(list(c.string=ret, values=values, params=params))
 }
 
 
 # Examples
 # a <- prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-# prep.matrixLoadings(a$values, a$params)
+# prep.matrixLoadings(a@values, a@params)
 #
 # prep.matrixLoadings(diag(1, 5), diag(1:5))
 # prep.matrixLoadings(matrix(1, 5, 5), diag(1:5))
