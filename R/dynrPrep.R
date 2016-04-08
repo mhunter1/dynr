@@ -14,7 +14,6 @@
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, .transformCFunction, sep="\n")
 
 dynr.prep <- function(file=stdout(), ...){
-	browser()
 	inputs <- list(...)
 	cparts <- sapply(inputs, slot, name='c.string')
 	includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
