@@ -174,7 +174,7 @@ prep.loadings <- function(map, params, idvar){
 		}
 	}
 	x <- prep.matrixLoadings(values=valuesMat, params=paramsMat)
-	return(new("dynrMeasurement", x))
+	return(x)
 }
 
 # Examples
@@ -205,7 +205,7 @@ prep.matrixLoadings <- function(values, params){
 	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 	ret <- paste(ret, "\n}\n\n")
 
-	return(list(c.string=ret, values=values, params=params))
+	return(new("dynrMeasurement", list(c.string=ret, values=values, params=params)))
 }
 
 
