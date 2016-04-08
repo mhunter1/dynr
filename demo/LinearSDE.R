@@ -74,19 +74,19 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 # Define all the model components via the RECIPE functions
 
 # measurement
-meas <- dynr.matrixLoadings(
+meas <- prep.matrixLoadings(
 	values=matrix(c(1, 0), 1, 2),
 	params=matrix(0, 1, 2))
 
 # observation and dynamic noise components
-ecov <- dynr.matrixErrorCov(
+ecov <- prep.matrixErrorCov(
 	values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
 	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 ecov$c.string
 ecov$startval
 
 # initial covariances and latent state values
-initial <- dynr.initial(
+initial <- prep.initial(
 	values.inistate=c('freed',1),
 	params.inistate=c(5,'fix'),
 	values.inicov=diag(1,2),
@@ -95,7 +95,7 @@ writeLines(initial$c.string)
 initial$startval
 
 # define the differential equation
-dynamics <- dynr.linearDynamics(
+dynamics <- prep.linearDynamics(
 	params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
 	values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
 	time="contin")
