@@ -61,8 +61,8 @@ setClass(Class = "dynrInitial",
            params.inistate = "matrix",
            values.inicov = "matrix",
            params.inicov = "matrix",
-           values.regimep = "numeric",
-           params.regimep = "numeric"),
+           values.regimep = "matrix",
+           params.regimep = "matrix"),
          contains = "dynrRecipe"
 )
 
@@ -548,8 +548,8 @@ prep.nonlindynamics <- function(formula, jacob, isContinuosTime){
     
     ret=paste0(ret,"\n\t}")
   }
-  
-  return(ret)
+  x <- list(c.string=ret, misc=list(formula=formula, jacob=jacob, isContinuosTime=isContinuousTime))
+  return(new("dynrDynamics", x))
 }
 
 ##' Recipe function for creating Linear Dynamcis
@@ -623,8 +623,8 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
 		"}\n\n",
 		sep="\n")
-	
-	return(ret)
+	x <- list(c.string=ret, misc=list(params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, time=time))
+	return(new("dynrDynamics", x))
 }
 
 
@@ -782,7 +782,8 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
   values.inicov <- reverseldl(values.inicov)
   ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")    
   ret <- paste(ret, "\t}\n}\n")
-  return(list(c.string=ret,startval=c(values.inistate[which(params.inistate!=0)], values.inicov[which(params.inicov!=0)], values.regimep[which(params.regimep!=0)])))
+  x <- list(c.string=ret, startval=c(values.inistate[which(params.inistate!=0)], values.inicov[which(params.inicov!=0)], values.regimep[which(params.regimep!=0)]), values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+  return(new("dynrInitial", x))
 }
 
 
