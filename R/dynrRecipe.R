@@ -802,48 +802,7 @@ prep.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be
 
 
 #------------------------------------------------------------------------------
-#  Utility function written by Lu as a wrapper to take 
-function_gsl_matrix_set <- function(Pattern, StartVal, Fit, MatrixName){
-	code=""
-	if (Pattern=="Symm"){
-		for (index_col in 1:ncol){
-			if (fit){
-				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_col*(index_col+1)+index_col,"]);"),""), collapse="\n")
-			}else{
-				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_col*(index_col+1)+index_col],");"),""), collapse="\n")
-			}
-			for (index_row in (index_col+1):nrow){
-				if (fit){
-					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_row*(index_col+1)+index_col,"]);"),""), collapse="\n")
-				}else{
-					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
-					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_col, index_row,", StartVal[index_row*(index_col+1)+index_col],");"),""), collapse="\n")
-				}
-			}
-		}
-	}else if (Pattern=="Diag"){
-		for (index_col in 1:ncol){
-			if (fit){
-				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_col,"]);"),""), collapse="\n")
-			}else{
-				code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_col],");"),""), collapse="\n")
-			}
-		}
-	}else{#Full
-		for (index_col in 1:ncol){
-			for (index_row in 1:nrow){
-				if (fit){
-					code <- paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col, param[",index_row*ncol+index_col,"]);"),""), collapse="\n")
-				}else{
-					code <-paste(c(code,paste0("\t\t\tgsl_matrix_set(", MatrixName, ", index_row, index_col,", StartVal[index_row*ncol+index_col],");"),""), collapse="\n")
-				}
-			}
-		}
-	}
-	return(code)
-}
-
-
+# Utility functions for writing GSL code
 
 setGslMatrixElements <- function(values, params, name){
 	ret <- ""
