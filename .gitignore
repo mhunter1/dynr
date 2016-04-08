@@ -10,6 +10,6 @@ man/dynr.model.Rd
 man/prep.initial.Rd
 man/prep.linearDynamics.Rd
 man/prep.loadings.Rd
-man/prep.matrixErrorCov.Rd
+man/prep.noise.Rd
 man/prep.nonlindynamics.Rd
 man/prep.regimes.Rd
