@@ -217,7 +217,7 @@ logLik.dynrCook <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.cook <- function(model, data,transformation, conf.level=.95, infile, verbose=TRUE,debug_flag=FALSE,outall_flag=FALSE) {
+dynr.cook <- function(model, data, transformation, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
