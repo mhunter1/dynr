@@ -115,17 +115,15 @@ setMethod("printex", "dynrMeasurement",
 
 
 # not sure what to do here yet
-#setMethod("printex", "dynrDynamics",
-#	function(object, show){
+setMethod("printex", "dynrDynamics",
+	function(object, show){
 #		lx0 <- .xtableMatrix(object$values.inistate)
 #		lP0 <- .xtableMatrix(object$values.inicov)
 #		lr0 <- .xtableMatrix(object$values.regimep)
-#		cat(lxo)
-#		cat(lP0)
-#		cat(lr0)
 #		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
-#	}
-#)
+		message('Sorry, mate! This part is still under development.')
+	}
+)
 
 
 setMethod("printex", "dynrRegimes",
@@ -161,6 +159,7 @@ setMethod("printex", "dynrModel",
 		reg <- printex(object$regimes, show=FALSE)
 		noise <- printex(object$noise, show=FALSE)
 		init <- printex(object$initial, show=FALSE)
+		message(' :(  Dagnabbit. This part is not quite working yet.')
 		#
 		# make equations
 		# y = C x + r with
