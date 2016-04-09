@@ -97,39 +97,20 @@ initial$startval
 # define the differential equation
 dynamics <- prep.linearDynamics(
 	params.dyn=matrix(c(0, 1, 0, 2), 2, 2),
-	values.dyn=matrix(c(0, 1, 1, 1), 2, 2),
+	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
 	time="contin")
 
 
-# Proto-example of cooking
-# put all the strings together
-fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
-dynr.prep(file=fname, meas, ecov, initial, dynamics)
+# Prepare for cooking
+# put all the recipes together
+#fname <- "./demo/CookedLinearSDE.c"  #NOTE: USE MUST BE IN THE dynr DIRECTORY FOR THIS LINE
+model<-dynr.prep(dynamics,meas,ecov,initial)
 
-
-#--------------------------------------
-# Put the cooked recipes together in a Model Specification
-
+#ub=c(rep(9999,4),10),lb=c(-10,-10,log(10^(-6)),9999,-10),
+#options=list(maxtime=30*60, maxeval=5000,ftol_rel=as.numeric(1e-8),xtol_rel=as.numeric(1e-8))
 # Data
 simdata <- cbind(id=rep(1,100),t(ty), times=tT[,-1])
 data <- dynr.data(simdata, id="id", time="times", observed="y1")
-
-# Model
-model <- dynr.model(
-              num_regime=1,
-              dim_latent_var=2,
-              xstart=c(-0.1,-0.2,log(1),log(1.5),0),
-              ub=c(rep(9999,4),10),lb=c(-10,-10,log(10^(-6)),9999,-10),
-              options=list(maxtime=30*60, 
-                           maxeval=5000,
-                           ftol_rel=as.numeric(1e-8),
-                           xtol_rel=as.numeric(1e-8)),
-              isContinuousTime=TRUE,
-              infile=fname, #Cooked recipes go here
-              outfile="./demo/LinearSDE2", 
-              verbose=TRUE,
-              compileLib=TRUE
-)
 
 # Estimate free parameters
 res <- dynr.cook(model, data)
