@@ -240,6 +240,7 @@ extractValues <- function(v, p){
 	#	}
 	#	return(ret)
 	#}
+  
 	v[extractWhichParams(p)]
 }
 
@@ -501,8 +502,8 @@ prep.regimes <- function(values, params, covariates){
 	}
 	ret <- paste(ret, "}\n\n", sep="\n")
 	if(missing(values)){
-		values <- matrix(, 0, 0)
-		params <- matrix(, 0, 0)
+		values <- matrix(0, 0, 0)
+		params <- matrix(0, 0, 0)
 	}
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
