@@ -20,7 +20,8 @@
 setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
-           startval = "numeric"
+           startval = "numeric",
+           paramnum = "numeric"
          )
 )
 
@@ -29,6 +30,7 @@ setClass(Class = "dynrMeasurement",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
+           paramnum = "numeric",
            values = "matrix",
            params = "matrix"),
          contains = "dynrRecipe"
@@ -98,15 +100,15 @@ setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
 
-setGeneric("printex", function(object) { 
+setGeneric("printex", function(object, show) { 
 	return(standardGeneric("printex")) 
 })
 
 
 
 setMethod("printex", "dynrMeasurement",
-	function(object){
-		lC <- .xtableMatrix(object$values)
+	function(object, show=TRUE){
+		lC <- .xtableMatrix(object$values, show)
 		return(list(measurement=lC))
 	}
 )
@@ -114,7 +116,7 @@ setMethod("printex", "dynrMeasurement",
 
 # not sure what to do here yet
 #setMethod("printex", "dynrDynamics",
-#	function(object){
+#	function(object, show){
 #		lx0 <- .xtableMatrix(object$values.inistate)
 #		lP0 <- .xtableMatrix(object$values.inicov)
 #		lr0 <- .xtableMatrix(object$values.regimep)
@@ -127,37 +129,55 @@ setMethod("printex", "dynrMeasurement",
 
 
 setMethod("printex", "dynrRegimes",
-	function(object){
-		lG <- .xtableMatrix(object$values)
+	function(object, show=TRUE){
+		lG <- .xtableMatrix(object$values, show)
 		return(list(regimes=lG))
 	}
 )
 
 
 setMethod("printex", "dynrInitial",
-	function(object){
-		lx0 <- .xtableMatrix(object$values.inistate)
-		lP0 <- .xtableMatrix(object$values.inicov)
-		lr0 <- .xtableMatrix(object$values.regimep)
+	function(object, show=TRUE){
+		lx0 <- .xtableMatrix(object$values.inistate, show)
+		lP0 <- .xtableMatrix(object$values.inicov, show)
+		lr0 <- .xtableMatrix(object$values.regimep, show)
 		return(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0))
 	}
 )
 
 
 setMethod("printex", "dynrNoise",
-	function(object){
-		lQ <- .xtableMatrix(object$values.latent)
-		lR <- .xtableMatrix(object$values.observed)
+	function(object, show=TRUE){
+		lQ <- .xtableMatrix(object$values.latent, show)
+		lR <- .xtableMatrix(object$values.observed, show)
 		return(list(dynamic.noise=lQ, measurement.noise=lR))
+	}
+)
+
+setMethod("printex", "dynrModel",
+	function(object, show){
+		meas <- printex(object$measurement, show=FALSE)
+		dyn <- printex(object$dynamics, show=FALSE)
+		reg <- printex(object$regimes, show=FALSE)
+		noise <- printex(object$noise, show=FALSE)
+		init <- printex(object$initial, show=FALSE)
+		#
+		# make equations
+		# y = C x + r with
+		# Cov(r) = measurement.noise
+		#
+		# x = dynamics(x) + q with
+		# Cov(q) = dynamic.noise
 	}
 )
 
 
 
-.xtableMatrix <- function(m){
+.xtableMatrix <- function(m, show){
 	x <- xtable::xtable(m, align=rep("", ncol(m)+1))
 	out <- print(x, floating=FALSE, tabular.environment="bmatrix", 
-		hline.after=NULL, include.rownames=FALSE, include.colnames=FALSE)
+		hline.after=NULL, include.rownames=FALSE, include.colnames=FALSE,
+		print.results=show)
 	return(out)
 }
 
@@ -199,6 +219,25 @@ preProcessParams <- function(x){
 	x[sel %in% 1] <- 0
 	x <- matrix(as.numeric(x), numRow, numCol)
 	return(x)
+}
+
+extractWhichParams <- function(p){
+	p!=0 & !duplicated(p, MARGIN=0)
+}
+
+extractParams <- function(p){
+	p[extractWhichParams(p)]
+}
+
+extractValues <- function(v, p){
+	#if(is.list(v)){
+	#	ret <- c()
+	#	for(i in 1:length(v)){
+	#		ret <- c(ret, extractValues(v[[i]], p[[i]]))
+	#	}
+	#	return(ret)
+	#}
+	v[extractWhichParams(p)]
 }
 
 #------------------------------------------------------------------------------
@@ -282,7 +321,7 @@ prep.measurement <- function(values, params){
 	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 	ret <- paste(ret, "\n}\n\n")
 
-	return(new("dynrMeasurement", list(c.string=ret, values=values, params=params)))
+	return(new("dynrMeasurement", list(c.string=ret, startval=extractValues(values, params), paramnum=extractParams(params), values=values, params=params)))
 }
 
 
@@ -322,13 +361,16 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 	ret <- paste(ret, "\n}\n\n")
-	x <- list(c.string=ret, startval=c(values.latent[which(params.latent!=0)],values.observed[which(params.observed!=0)]), values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
+	sv <- c(extractValues(values.latent, params.latent), extractValues(values.observed, params.observed))
+	pn <- c(extractParams(params.latent), extractParams(params.observed))
+	sv <- extractValues(sv, pn)
+	pn <- extractParams(pn)
+	x <- list(c.string=ret, startval=sv, paramnum=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
 	return(new("dynrNoise", x))
 }
 
 # Examples
-#prep.matrixErrorCov(
-#	values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
+#prep.noise(values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
 #	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 
 
@@ -459,7 +501,9 @@ prep.regimes <- function(values, params, covariates){
 		values <- matrix(, 0, 0)
 		params <- matrix(, 0, 0)
 	}
-	x <- list(c.string=ret, values=values, params=params)
+	sv <- extractValues(values, params)
+	pn <- extractParams(params)
+	x <- list(c.string=ret, startval=sv, paramnum=pn, values=values, params=params)
 	return(new("dynrRegimes", x))
 }
 
@@ -703,7 +747,12 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		params.exo <- matrix(, 0, 0)
 		values.exo <- matrix(, 0, 0)
 	}
-	x <- list(c.string=ret, misc=list(params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, time=time))
+	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo))
+	pn <- c(extractParams(params.dyn), extractParams(params.exo))
+	sv <- extractValues(sv, pn)
+	pn <- extractParams(pn)
+
+	x <- list(c.string=ret, startval=sv, paramnum=pn, misc=list(params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, time=time))
 	return(new("dynrDynamics", x))
 }
 
@@ -862,7 +911,11 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
   values.inicov <- reverseldl(values.inicov)
   ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")    
   ret <- paste(ret, "\t}\n}\n")
-  x <- list(c.string=ret, startval=c(values.inistate[which(params.inistate!=0)], values.inicov[which(params.inicov!=0)], values.regimep[which(params.regimep!=0)]), values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov, params.inicov), extractValues(values.regimep, params.regimep))
+	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
+	sv <- extractValues(sv, pn)
+	pn <- extractParams(pn)
+  x <- list(c.string=ret, startval=sv, paramnum=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
   return(new("dynrInitial", x))
 }
 
