@@ -100,7 +100,7 @@ setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
 
-setGeneric("printex", function(object, show) { 
+setGeneric("printex", function(object, show=TRUE) { 
 	return(standardGeneric("printex")) 
 })
 
@@ -155,7 +155,7 @@ setMethod("printex", "dynrNoise",
 )
 
 setMethod("printex", "dynrModel",
-	function(object, show){
+	function(object, show=TRUE){
 		meas <- printex(object$measurement, show=FALSE)
 		dyn <- printex(object$dynamics, show=FALSE)
 		reg <- printex(object$regimes, show=FALSE)
@@ -165,6 +165,9 @@ setMethod("printex", "dynrModel",
 		# make equations
 		# y = C x + r with
 		# Cov(r) = measurement.noise
+		# Make a matrix of the names of the observed variables for y
+		# Make a matreis of the names of the latent variables for x
+		# C is the meas$measurement factor loadings
 		#
 		# x = dynamics(x) + q with
 		# Cov(q) = dynamic.noise
