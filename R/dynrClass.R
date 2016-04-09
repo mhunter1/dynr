@@ -41,3 +41,25 @@ setMethod("initialize", "dynrModel",
 setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
+
+setMethod("printex", "dynrModel",
+	function(object, show=TRUE){
+		meas <- printex(object$measurement, show=FALSE)
+		dyn <- printex(object$dynamics, show=FALSE)
+		reg <- printex(object$regimes, show=FALSE)
+		noise <- printex(object$noise, show=FALSE)
+		init <- printex(object$initial, show=FALSE)
+		message(' :(  Dagnabbit. This part is not quite working yet.')
+		#
+		# make equations
+		# y = C x + r with
+		# Cov(r) = measurement.noise
+		# Make a matrix of the names of the observed variables for y
+		# Make a matreis of the names of the latent variables for x
+		# C is the meas$measurement factor loadings
+		#
+		# x = dynamics(x) + q with
+		# Cov(q) = dynamic.noise
+	}
+)
+
