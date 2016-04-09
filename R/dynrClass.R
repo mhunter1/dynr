@@ -3,13 +3,13 @@
 # 
 setClass(Class =  "dynrModel",
          representation = representation(
-           num_regime="integer",
-           dim_latent_var="integer",
            dynamics =  "dynrDynamics",
            measurement = "dynrMeasurement",
+           noise = "dynrNoise",
            initial = "dynrInitial",
            regimes= "dynrRegimes",
-           noise = "dynrNoise",
+           num_regime="integer",
+           dim_latent_var="integer",
            infile="character",
            outfile="character",
            isContinuousTime="logical",
@@ -19,30 +19,25 @@ setClass(Class =  "dynrModel",
            ub="vector",
            lb="vector",
            options="list"
+         ),
+         prototype(
+           num_regime=as.integer(1),
+           isContinuousTime=TRUE,
+           verbose=TRUE,
+           compileLib=TRUE,
+           options=default.model.options
          )
 )
 
-dynr.prep.Nametochange<-function(dynamics,measurement,noise,regimes,initial){
-  #take in a dynrModel object
-  obj.dynrModel=new("dynrModel",dynamics=dynamics,measurement=measurement,noise=noise,regimes=regimes,initial=initial)
-  #modify the object slot, including starting values, etc.
-}
+setMethod("initialize", "dynrModel",
+          function(.Object, x){
+            for(i in names(x)){
+              slot(.Object, name=i, check = TRUE) <- x[[i]]
+            }
+            return(.Object)
+          }
+)
 
-dynr.cook.Nametochange<-function(dynrModel,data){
-  #1. dynr.model convert dynrModel to a model list
-  model<-dynr.model(
-    num_regime=dynrModel@num_regime,
-    dim_latent_var=dynrModel@dim_latent_var,
-    xstart=dynrModel@opt.control@xstart,
-    ub=dynrModel@opt.control@ub,
-    lb=dynrModel@opt.control@lb,
-    options=dynrModel@opt.control@options,
-    isContinuousTime=dynrModel@isContinuousTime,
-    infile=dynrModel@infile,
-    outfile=dynrModel@outfile,
-    compileLib=dynrModel@compileLib,
-    verbose=dynrModel@verbose
-  )
-  #Others keep unchanged
-  #model$func_addresss = dynr.funcaddress()
-}
+setMethod("$", "dynrModel",
+          function(x, name){slot(x, name)}
+)
