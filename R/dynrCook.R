@@ -217,11 +217,26 @@ logLik.dynrCook <- function(object, ...){
 #------------------------------------------------------------------------------
 
 
-dynr.cook <- function(model, data, transformation, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
+dynr.cook <- function(dynrModel, data, transformation, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
 	frontendStart <- Sys.time()
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
+	#dynr.model convert dynrModel to a model list
+	model<-dynr.model(
+	  num_regime=dynrModel@num_regime,
+	  dim_latent_var=dynrModel@dim_latent_var,
+	  xstart=dynrModel@xstart,
+	  ub=dynrModel@ub,
+	  lb=dynrModel@lb,
+	  options=dynrModel@options,
+	  isContinuousTime=dynrModel@isContinuousTime,
+	  infile=dynrModel@infile,
+	  outfile=dynrModel@outfile,
+	  compileLib=dynrModel@compileLib,
+	  verbose=dynrModel@verbose
+	)
+	
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	if(any(sapply(model$func_address, is.null.pointer))){
