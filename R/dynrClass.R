@@ -1,7 +1,6 @@
 # 
 # dynr model CLASS
 # 
-
 setClass(Class =  "dynrModel",
          representation = representation(
            num_regime="integer",
@@ -22,30 +21,10 @@ setClass(Class =  "dynrModel",
            options="list"
          )
 )
-setMethod("initialize", "dynrModel",
-          function(.Object, meas, noise, initial, dynamics){
-            .Object@num_regime="integer",
-            .Object@dim_latent_var="integer",
-            .Object@dynamics =  "dynrDynamics",
-            .Object@measurement = meas,
-            .Object@initial = initial,
-            .Object@regimes= "dynrRegimes",
-            .Object@noise = noise,
-            .Object@infile="character",
-            .Object@outfile="character",
-            .Object@isContinuousTime=FALSE,
-            .Object@verbose=FALSE,
-            .Object@compileLib=TRUE,
-            .Object@xstart="vector",
-            .Object@ub="vector",
-            .Object@lb="vector",
-            .Object@options=default.model.options
-            return(.Object)
-          }
-)
-dynr.prep.Nametochange<-function(dynrModel){
+
+dynr.prep.Nametochange<-function(dynamics,measurement,noise,regimes,initial){
   #take in a dynrModel object
-  
+  obj.dynrModel=new("dynrModel",dynamics=dynamics,measurement=measurement,noise=noise,regimes=regimes,initial=initial)
   #modify the object slot, including starting values, etc.
 }
 
