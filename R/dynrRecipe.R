@@ -571,6 +571,20 @@ setMethod("writeCcode", "dynrNoise",
 #------------------------------------------------------------------------------
 # Some usefull helper functions
 #
+
+# a new method for diag with character input
+setMethod("diag", "character", #diag.character <-
+	function(x=1, nrow, ncol){
+		n <- length(x)
+		if(!missing(nrow)) n <- nrow
+		if(missing(ncol)) ncol <- n
+		r <- matrix("0", nrow, ncol)
+		diag(r) <- x
+		return(r)
+	}
+)
+
+
 # allow free/fixed to be used in values/params arguments
 preProcessValues <- function(x){
 	x[is.na(x)] <- 'freed'
