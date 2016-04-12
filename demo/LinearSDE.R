@@ -112,12 +112,12 @@ initial <- prep.initial(
 dynamics <- prep.linearDynamics(
 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
 	params.dyn=matrix(c('fixed', 1, 'fixed', 2), 2, 2), #uses parameters 1 and 2
-	time="continuous")
+	isContinuousTime=TRUE)
 
 
 # Prepare for cooking
 # put all the recipes together
-model <- dynr.prep(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, outfile="cooked")
+model <- dynr.prep(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), writeCcode(prep.regimes()), outfile="cooked")
 
 
 # Data

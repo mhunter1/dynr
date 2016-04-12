@@ -79,7 +79,8 @@ setClass(Class = "dynrRegimes",
            startval = "numeric",
            paramnum = "numeric",
            values = "matrix",
-           params = "matrix"),
+           params = "matrix",
+           covariates = "character"),
          contains = "dynrRecipe"
 )
 
@@ -197,65 +198,363 @@ setMethod("printex", "dynrNoise",
 #------------------------------------------------------------------------------
 # writeCcode method definitions
 
-setGeneric("writeCCode", function(object, show=TRUE) { 
-	return(standardGeneric("writeCCode")) 
+setGeneric("writeCcode", function(object, show=TRUE) { 
+	return(standardGeneric("writeCcode")) 
 })
 
 
 
-setMethod("writeCCode", "dynrMeasurement",
-	function(object, show=TRUE){
-		lC <- .xtableMatrix(object$values, show)
-		return(list(measurement=lC))
+setMethod("writeCcode", "dynrMeasurement",
+	function(object){
+		values <- object$values
+		params <- object$params
+		ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
+		ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
+		ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
+		ret <- paste(ret, "\n}\n\n")
+		object@c.string <- ret
+		return(object)
 	}
 )
 
 
 # not sure what to do here yet
-setMethod("writeCCode", "dynrDynamicsFormula",
-	function(object, show){
-#		lx0 <- .xtableMatrix(object$values.inistate)
-#		lP0 <- .xtableMatrix(object$values.inicov)
-#		lr0 <- .xtableMatrix(object$values.regimep)
-#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
-		message('Sorry, mate! This part is still under development.')
+setMethod("writeCcode", "dynrDynamicsFormula",
+	function(object){
+	  formula <- object$formula
+	  jacob <- object$jacobian
+	  nregime=length(formula)
+	  n=sapply(formula,length)
+	  
+	  fml=lapply(formula,processFormula)
+	  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
+	  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
+	  
+	  if (missing(jacob)){
+	    autojcb=try(lapply(formula,autojacob,n[1]))
+	    if (class(autojcb) == "try-error") {
+	      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
+	    }else{
+	      row=lapply(autojcb,"[[","row")
+	      col=lapply(autojcb,"[[","col")
+	      rhsj=lapply(autojcb,"[[","rhsj")
+	      jacob=lapply(autojcb,"[[","jacob")
+	    }
+	  }else{
+	    fmlj=lapply(jacob,processFormula)
+	    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
+	    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
+	    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
+	  }
+	  
+	  
+	  #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
+	  #TODO in the continuous case allow users to use d()
+	  #TODO add covariate
+	  
+	  if (isContinuosTime){
+	    #function_dx_dt
+	    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+	    
+	    if (nregime>1){
+	      ret=paste(ret,"switch (regime) {",sep="\n\t")
+	      for (r in 1:nregime){
+	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
+	        for (i in 1:n[r]){
+	          for (j in 1:length(lhs[[r]])){
+	            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
+	          }
+	          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
+	        }
+	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+	        
+	      }
+	      ret=paste(ret,paste0("\t}"),sep="\n\t")
+	      
+	    }else{
+	      for (i in 1:n){
+	        for (j in 1:length(lhs[[1]])){
+	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+	        }
+	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+	      }
+	    }
+	    
+	    ret=paste0(ret,"\n\t}")
+	    
+	    #function_dF_dx
+	    ret=paste0(ret,"\n\nvoid function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
+	    if (nregime>1){
+	      ret=paste(ret,"switch (regime) {",sep="\n\t")
+	      for (r in 1:nregime){
+	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
+	        for (i in 1:length(jacob[[r]])){
+	          for (j in 1:length(lhs[[r]])){
+	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+	          }
+	          
+	          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
+	        }
+	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+	        
+	      }
+	      ret=paste(ret,paste0("\t}"),sep="\n\t")
+	      
+	    }else{
+	      for (i in 1:length(jacob[[1]])){
+	        for (j in 1:length(lhs[[1]])){
+	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+	        }
+	        
+	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
+	      }
+	    }
+	    
+	    ret=paste0(ret,"\n\t}")
+	    
+	  }else{
+	    #function_dynam
+	    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+	    
+	    if (nregime>1){
+	      ret=paste(ret,"switch (regime) {",sep="\n\t")
+	      for (r in 1:nregime){
+	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
+	        for (i in 1:n[r]){
+	          for (j in 1:length(lhs[[r]])){
+	            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
+	          }
+	          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
+	        }
+	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+	        
+	      }
+	      ret=paste(ret,paste0("\t}"),sep="\n\t")
+	      
+	    }else{
+	      for (i in 1:n){
+	        for (j in 1:length(lhs[[1]])){
+	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+	        }
+	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+	      }
+	    }
+	    
+	    ret=paste0(ret,"\n\t}")
+	    
+	    #function_jacob_dynam
+	    ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
+	    if (nregime>1){
+	      ret=paste(ret,"switch (regime) {",sep="\n\t")
+	      for (r in 1:nregime){
+	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
+	        for (i in 1:length(jacob[[r]])){
+	          for (j in 1:length(lhs[[r]])){
+	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+	          }
+	          
+	          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
+	        }
+	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
+	        
+	      }
+	      ret=paste(ret,paste0("\t}"),sep="\n\t")
+	      
+	    }else{
+	      for (i in 1:length(jacob[[1]])){
+	        for (j in 1:length(lhs[[1]])){
+	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+	        }
+	        
+	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
+	      }
+	    }
+	    
+	    ret=paste0(ret,"\n\t}")
+	  }
+	  object@c.string <- ret
+	  return(object)
 	}
 )
 
-setMethod("writeCCode", "dynrDynamicsMatrix",
-	function(object, show){
-#		lx0 <- .xtableMatrix(object$values.inistate)
-#		lP0 <- .xtableMatrix(object$values.inicov)
-#		lr0 <- .xtableMatrix(object$values.regimep)
-#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
-		message('Sorry, mate! This part is still under development.')
+setMethod("writeCcode", "dynrDynamicsMatrix",
+	function(object){
+		isContinuousTime <- object$isContinuousTime
+		params.dyn <- object$params.dyn
+		values.dyn <- object$values.dyn
+		params.exo <- object$params.exo
+		values.exo <- object$values.exo
+		time <- ifelse(isContinuousTime, 'continuous', 'discrete')
+		if(time == 'continuous'){
+			# Construct matrices for A and B with A ~ dyn, B ~ exo
+			# dx/dt ~ A %*% x + B %*% u
+			# x is the latent state vector, u is the covariate vector
+			# F_dx_dt = A %*% x + B %*% u
+			# F_dx_dt_dx = A
+			dynHead <- "void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+			jacHead <- "void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){"
+			inName <- "x"
+			outName <- "F_dx_dt"
+			jacName <- "F_dx_dt_dx"
+		} else if(time == 'discrete'){
+			# Construct matrices for A and B with A ~ dyn, B ~ exo
+			# x[t] ~ A %*% x[t-1] + B %*% u
+			# x is the latent state vector, u is the covariate vector
+			dynHead <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t n_gparam, const gsl_vector *co_variate, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *), gsl_vector *x_tend){"
+			jacHead <- "void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t num_func_param, const gsl_vector *co_variate, void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *), gsl_matrix *Jx){"
+			inName <- "xstart"
+			outName <- "x_tend"
+			jacName <- "Jx"
+		}
+		
+		# Create dynamics (state-transition or drift matrix) with covariate effects
+		ret <- paste(dynHead,
+			createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix"),
+			setGslMatrixElements(values=values.dyn, params=params.dyn, name="Amatrix"),
+			blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
+			destroyGslMatrix("Amatrix"),
+			sep="\n")
+		
+		if(nrow(params.exo) != 0){
+			ret <- paste(ret,
+				createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix"),
+				setGslMatrixElements(values=values.exo, params=params.exo, name="Bmatrix"),
+				blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
+				destroyGslMatrix("Bmatrix"),
+				sep="\n")
+		}
+		
+		ret <- paste(ret, "}\n\n", sep="\n")
+		
+		
+		# Create jacobian function
+		ret <- paste(ret,
+			jacHead,
+			setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
+			"}\n\n",
+			sep="\n")
+		object@c.string <- ret
+		return(object)
 	}
 )
 
 
-setMethod("writeCCode", "dynrRegimes",
-	function(object, show=TRUE){
-		lG <- .xtableMatrix(object$values, show)
-		return(list(regimes=lG))
+setMethod("writeCcode", "dynrRegimes",
+	function(object){
+		values <- object$values
+		params <- object$params
+		covariates <- object$covariates
+		numCovariates <- length(covariates)
+		numRegimes <- nrow(values)
+		
+		#Restructure values matrix for row-wise
+		if(nrow(values)!=0 && nrow(params)!=0){
+			values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+			params <- matrix(t(params), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
+			rowBeginSeq <- seq(1, nrow(values), by=numRegimes)
+			rowEndSeq <- seq(numRegimes, nrow(values), by=numRegimes)
+		}
+		
+		ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
+		if(prod(nrow(values), nrow(params), length(covariates)) != 0){
+			ret <- paste(ret,
+				createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
+				createGslVector(numRegimes, "Pvector"),
+				createGslVector(numRegimes, "Presult"),
+				sep="\n")
+			for(reg in 1L:numRegimes){
+				selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
+				ret <- paste(ret,
+					setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
+					setGslMatrixElements(values=values[selRows, -1, drop=FALSE], params=params[selRows, -1, drop=FALSE], name="Gmatrix"),
+					blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "1.0", "Pvector"),
+					"\tmathfunction_softmax(Pvector, Presult);",
+					gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
+					"\tgsl_vector_set_zero(Pvector);",
+					"\tgsl_matrix_set_zero(Gmatrix);",
+					sep="\n")
+			}
+			ret <- paste(ret,
+				destroyGslMatrix("Gmatrix"),
+				destroyGslVector("Pvector"),
+				destroyGslVector("Presult"),
+				sep="\n")
+		} else if(nrow(values) != 0 && nrow(params) != 0 && length(covariates) == 0){
+			# same as above processing, but without the Gmatrix for the covariates
+			ret <- paste(ret,
+				createGslVector(numRegimes, "Pvector"),
+				createGslVector(numRegimes, "Presult"),
+				sep="\n")
+			for(reg in 1L:numRegimes){
+				selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
+				ret <- paste(ret,
+					setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
+					"\tmathfunction_softmax(Pvector, Presult);",
+					gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
+					"\tgsl_vector_set_zero(Pvector);",
+					sep="\n")
+			}
+			ret <- paste(ret,
+				destroyGslVector("Pvector"),
+				destroyGslVector("Presult"),
+				sep="\n")
+		} else {
+			ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
+		}
+		ret <- paste(ret, "}\n\n", sep="\n")
+		object@c.string <- ret
+		return(object)
 	}
 )
 
 
-setMethod("writeCCode", "dynrInitial",
-	function(object, show=TRUE){
-		lx0 <- .xtableMatrix(object$values.inistate, show)
-		lP0 <- .xtableMatrix(object$values.inicov, show)
-		lr0 <- .xtableMatrix(object$values.regimep, show)
-		return(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0))
+setMethod("writeCcode", "dynrInitial",
+	function(object){
+		values.inistate <- object$values.inistate
+		params.inistate <- object$params.inistate
+		values.inicov <- object$values.inicov
+		params.inicov <- object$params.inicov
+		values.regimep <- object$values.regimep
+		params.regimep <- object$params.regimep
+		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
+		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
+		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){\n\t\tfor(i=0;i<num_sbj;i++){\n")
+		for(i in 1:length(values.inistate)){
+			if(params.inistate[i] > 0){
+				ret <- paste(ret,
+					'\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+					', param[', params.inistate[i] - 1, ']);\n', sep='')
+			} else if(values.inistate[i] != 0){
+				ret <- paste(ret,
+					'\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+					', ', values.inistate[i], ');\n', sep='')
+			}
+		}
+		values.inicov <- replaceDiagZero(values.inicov)
+		values.inicov <- reverseldl(values.inicov)
+		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")
+		ret <- paste(ret, "\t}\n}\n")
+		object@c.string <- ret
+		return(object)
 	}
 )
 
 
-setMethod("writeCCode", "dynrNoise",
-	function(object, show=TRUE){
-		lQ <- .xtableMatrix(object$values.latent, show)
-		lR <- .xtableMatrix(object$values.observed, show)
-		return(list(dynamic.noise=lQ, measurement.noise=lR))
+setMethod("writeCcode", "dynrNoise",
+	function(object){
+		params.latent <- object$params.latent
+		params.observed <- object$params.observed
+		#Note: should we mutate these other slots of the object or leave them alone?
+		values.latent <- replaceDiagZero(object@values.latent)
+		values.observed <- replaceDiagZero(object@values.observed)
+		values.latent <- reverseldl(values.latent)
+		values.observed <- reverseldl(values.observed)
+		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
+		ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
+		ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
+		ret <- paste(ret, "\n}\n\n")
+		object@c.string <- ret
+		return(object)
 	}
 )
 
@@ -392,12 +691,7 @@ prep.loadings <- function(map, params, idvar){
 prep.measurement <- function(values, params){
 	values <- preProcessValues(values)
 	params <- preProcessParams(params)
-	ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
-	ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
-	ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
-	ret <- paste(ret, "\n}\n\n")
-
-	return(new("dynrMeasurement", list(c.string=ret, startval=extractValues(values, params), paramnum=extractParams(params), values=values, params=params)))
+	return(new("dynrMeasurement", list(startval=extractValues(values, params), paramnum=extractParams(params), values=values, params=params)))
 }
 
 
@@ -429,19 +723,11 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	params.latent <- preProcessParams(params.latent)
 	values.observed <- preProcessValues(values.observed)
 	params.observed <- preProcessParams(params.observed)
-  values.latent <- replaceDiagZero(values.latent)
-  values.observed <- replaceDiagZero(values.observed)
-  values.latent <- reverseldl(values.latent)
-  values.observed <- reverseldl(values.observed)
-  ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
-	ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
-	ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
-	ret <- paste(ret, "\n}\n\n")
 	sv <- c(extractValues(values.latent, params.latent), extractValues(values.observed, params.observed))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-	x <- list(c.string=ret, startval=sv, paramnum=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
+	x <- list(startval=sv, paramnum=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
 	return(new("dynrNoise", x))
 }
 
@@ -513,73 +799,15 @@ prep.regimes <- function(values, params, covariates){
 	if(!missing(params)){
 		params <- preProcessParams(params)
 	}
-	numCovariates <- ifelse(missing(covariates), 0, length(covariates))
-	numRegimes <- ifelse(missing(values), 0, nrow(values))
 	#TODO check matrix dimensions
 	#TODO check that some form of identification is made
-	
-	#Restructure values matrix for row-wise
-	if(!missing(values) & !missing(params)){
-		values <- matrix(t(values), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
-		params <- matrix(t(params), nrow=numRegimes*numRegimes, ncol=numCovariates+1, byrow=TRUE)
-		rowBeginSeq <- seq(1, nrow(values), by=numRegimes)
-		rowEndSeq <- seq(numRegimes, nrow(values), by=numRegimes)
-	}
-	
-	ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
-	if(!missing(values) && !missing(params) && !missing(covariates)){
-		ret <- paste(ret,
-			createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
-			createGslVector(numRegimes, "Pvector"),
-			createGslVector(numRegimes, "Presult"),
-			sep="\n")
-		for(reg in 1L:numRegimes){
-			selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
-			ret <- paste(ret,
-				setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
-				setGslMatrixElements(values=values[selRows, -1, drop=FALSE], params=params[selRows, -1, drop=FALSE], name="Gmatrix"),
-				blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "1.0", "Pvector"),
-				"\tmathfunction_softmax(Pvector, Presult);",
-				gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
-				"\tgsl_vector_set_zero(Pvector);",
-				"\tgsl_matrix_set_zero(Gmatrix);",
-				sep="\n")
-		}
-		ret <- paste(ret,
-			destroyGslMatrix("Gmatrix"),
-			destroyGslVector("Pvector"),
-			destroyGslVector("Presult"),
-			sep="\n")
-	} else if(!missing(values) && !missing(params) && missing(covariates)){
-		# same as above processing, but without the Gmatrix for the covariates
-		ret <- paste(ret,
-			createGslVector(numRegimes, "Pvector"),
-			createGslVector(numRegimes, "Presult"),
-			sep="\n")
-		for(reg in 1L:numRegimes){
-			selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
-			ret <- paste(ret,
-				setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
-				"\tmathfunction_softmax(Pvector, Presult);",
-				gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
-				"\tgsl_vector_set_zero(Pvector);",
-				sep="\n")
-		}
-		ret <- paste(ret,
-			destroyGslVector("Pvector"),
-			destroyGslVector("Presult"),
-			sep="\n")
-	} else {
-		ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
-	}
-	ret <- paste(ret, "}\n\n", sep="\n")
 	if(missing(values)){
 		values <- matrix(0, 0, 0)
 		params <- matrix(0, 0, 0)
 	}
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
-	x <- list(c.string=ret, startval=sv, paramnum=pn, values=values, params=params)
+	x <- list(startval=sv, paramnum=pn, values=values, params=params)
 	return(new("dynrRegimes", x))
 }
 
@@ -618,160 +846,11 @@ autojacob<-function(formula,n){
 ##' The translation function for the dynamic functions 
 ##' 
 ##' @param formula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
-##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
+##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-prep.nonlindynamics <- function(formula,isContinuousTime=FALSE,jacob){
-  
-  nregime=length(formula)
-  n=sapply(formula,length)
-  
-  fml=lapply(formula,processFormula)
-  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
-  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
-  
-  if (missing(jacob)){
-    autojcb=try(lapply(formula,autojacob,n[1]))
-    if (class(autojcb) == "try-error") {
-      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
-    }else{
-      row=lapply(autojcb,"[[","row")
-      col=lapply(autojcb,"[[","col")
-      rhsj=lapply(autojcb,"[[","rhsj")
-      jacob=lapply(autojcb,"[[","jacob")
-    }
-  }else{
-    fmlj=lapply(jacob,processFormula)
-    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
-    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
-    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
-  }
-  
-  #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
-  #TODO in the continuous case allow users to use d()
-  #TODO add covariate
-  
-  if (isContinuosTime){
-    #function_dx_dt
-    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
-    
-    if (nregime>1){
-      ret=paste(ret,"switch (regime) {",sep="\n\t")
-      for (r in 1:nregime){
-        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
-        for (i in 1:n[r]){
-          for (j in 1:length(lhs[[r]])){
-            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
-          }
-          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
-        }
-        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-        
-      }
-      ret=paste(ret,paste0("\t}"),sep="\n\t")
-      
-    }else{
-      for (i in 1:n){
-        for (j in 1:length(lhs[[1]])){
-          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
-        }
-        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
-      }
-    }
-    
-    ret=paste0(ret,"\n\t}")
-    
-    #function_dF_dx
-    ret=paste0(ret,"\n\nvoid function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
-    if (nregime>1){
-      ret=paste(ret,"switch (regime) {",sep="\n\t")
-      for (r in 1:nregime){
-        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
-        for (i in 1:length(jacob[[r]])){
-          for (j in 1:length(lhs[[r]])){
-            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
-          }
-          
-          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
-        }
-        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-        
-      }
-      ret=paste(ret,paste0("\t}"),sep="\n\t")
-      
-    }else{
-      for (i in 1:length(jacob[[1]])){
-        for (j in 1:length(lhs[[1]])){
-          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
-        }
-        
-        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
-      }
-    }
-    
-    ret=paste0(ret,"\n\t}")
-    
-  }else{
-    #function_dynam
-    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-    
-    if (nregime>1){
-      ret=paste(ret,"switch (regime) {",sep="\n\t")
-      for (r in 1:nregime){
-        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
-        for (i in 1:n[r]){
-          for (j in 1:length(lhs[[r]])){
-            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
-          }
-          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
-        }
-        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-        
-      }
-      ret=paste(ret,paste0("\t}"),sep="\n\t")
-      
-    }else{
-      for (i in 1:n){
-        for (j in 1:length(lhs[[1]])){
-          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
-        }
-        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
-      }
-    }
-    
-    ret=paste0(ret,"\n\t}")
-    
-    #function_jacob_dynam
-    ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
-    if (nregime>1){
-      ret=paste(ret,"switch (regime) {",sep="\n\t")
-      for (r in 1:nregime){
-        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
-        for (i in 1:length(jacob[[r]])){
-          for (j in 1:length(lhs[[r]])){
-            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
-          }
-          
-          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
-        }
-        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-        
-      }
-      ret=paste(ret,paste0("\t}"),sep="\n\t")
-      
-    }else{
-      for (i in 1:length(jacob[[1]])){
-        for (j in 1:length(lhs[[1]])){
-          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
-        }
-        
-        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
-      }
-    }
-    
-    ret=paste0(ret,"\n\t}")
-  }
-  x <- list(c.string=ret, misc=list(formula=formula, jacobian=jacobian, isContinuosTime=isContinuousTime))
+prep.nonlindynamics <- function(formula, isContinuousTime=FALSE, jacobian){
+  x <- list(formula=formula, jacobian=jacobian, isContinuosTime=isContinuousTime)
   return(new("dynrDynamicsFormula", x))
 }
 
@@ -789,7 +868,6 @@ prep.nonlindynamics <- function(formula,isContinuousTime=FALSE,jacob){
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
 prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
 	#time <- checkAndProcessTimeArgument(time)
-	time <- ifelse(isContinuousTime, 'continuous', 'discrete')
 	values.dyn <- preProcessValues(values.dyn)
 	params.dyn <- preProcessParams(params.dyn)
 	if(!missing(values.exo)){
@@ -799,54 +877,6 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		params.exo <- preProcessParams(params.exo)
 	}
 	
-	if(time == 'continuous'){
-		# Construct matrices for A and B with A ~ dyn, B ~ exo
-		# dx/dt ~ A %*% x + B %*% u
-		# x is the latent state vector, u is the covariate vector
-		# F_dx_dt = A %*% x + B %*% u
-		# F_dx_dt_dx = A
-		dynHead <- "void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
-		jacHead <- "void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){"
-		inName <- "x"
-		outName <- "F_dx_dt"
-		jacName <- "F_dx_dt_dx"
-	} else if(time == 'discrete'){
-		# Construct matrices for A and B with A ~ dyn, B ~ exo
-		# x[t] ~ A %*% x[t-1] + B %*% u
-		# x is the latent state vector, u is the covariate vector
-		dynHead <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t n_gparam, const gsl_vector *co_variate, void (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *), gsl_vector *x_tend){"
-		jacHead <- "void function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart, double *param, size_t num_func_param, const gsl_vector *co_variate, void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *), gsl_matrix *Jx){"
-		inName <- "xstart"
-		outName <- "x_tend"
-		jacName <- "Jx"
-	}
-	
-	# Create dynamics (state-transition or drift matrix) with covariate effects
-	ret <- paste(dynHead,
-		createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix"),
-		setGslMatrixElements(values=values.dyn, params=params.dyn, name="Amatrix"),
-		blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
-		destroyGslMatrix("Amatrix"),
-		sep="\n")
-	
-	if(!missing(params.exo)){
-		ret <- paste(ret,
-			createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix"),
-			setGslMatrixElements(values=values.exo, params=params.exo, name="Bmatrix"),
-			blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
-			destroyGslMatrix("Bmatrix"),
-			sep="\n")
-	}
-	
-	ret <- paste(ret, "}\n\n", sep="\n")
-	
-	
-	# Create jacobian function
-	ret <- paste(ret,
-		jacHead,
-		setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
-		"}\n\n",
-		sep="\n")
 	if(missing(params.exo)){
 		params.exo <- matrix(0, 0, 0)
 		values.exo <- matrix(0, 0, 0)
@@ -856,7 +886,7 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 
-	x <- list(c.string=ret, startval=sv, paramnum=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
+	x <- list(startval=sv, paramnum=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
 	return(new("dynrDynamicsMatrix", x))
 }
 
@@ -997,30 +1027,12 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	params.inicov <- preProcessParams(params.inicov)
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
-  ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
-  ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
-  ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){\n\t\tfor(i=0;i<num_sbj;i++){\n")
-  for(i in 1:length(values.inistate)){
-    if(params.inistate[i] > 0){
-      ret <- paste(ret,
-                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-                   ', param[', params.inistate[i] - 1, ']);\n', sep='')
-    } else if(values.inistate[i] != 0){
-      ret <- paste(ret,
-                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-                   ', ', values.inistate[i], ');\n', sep='')
-    }
-  }
-  values.inicov <- replaceDiagZero(values.inicov)
-  values.inicov <- reverseldl(values.inicov)
-  ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")    
-  ret <- paste(ret, "\t}\n}\n")
 	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov, params.inicov), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-  x <- list(c.string=ret, startval=sv, paramnum=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
-  return(new("dynrInitial", x))
+	x <- list(startval=sv, paramnum=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+	return(new("dynrInitial", x))
 }
 
 
