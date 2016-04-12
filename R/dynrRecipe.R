@@ -41,10 +41,35 @@ setClass(Class = "dynrDynamics",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "numeric",
-           misc = "list"
+           paramnum = "numeric"
            ),
          contains = "dynrRecipe"
+)
+
+setClass(Class = "dynrDynamicsFormula",
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric",
+           paramnum = "numeric",
+           formula = "formula",
+           jacobian = "formula",
+           isContinuousTime = "logical"
+           ),
+         contains = "dynrDynamics"
+)
+
+setClass(Class = "dynrDynamicsMatrix",
+         representation = representation(
+           c.string =  "character",
+           startval = "numeric",
+           paramnum = "numeric",
+           values.dyn = "matrix",
+           params.dyn = "matrix",
+           values.exo = "matrix",
+           params.exo = "matrix",
+           isContinuousTime = "logical"
+           ),
+         contains = "dynrDynamics"
 )
 
 ##DONE##
@@ -511,7 +536,7 @@ prep.regimes <- function(values, params, covariates){
 ##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-prep.nonlindynamics <- function(formula, jacob, isContinuosTime){
+prep.nonlindynamics <- function(formula, jacobian, isContinuosTime){
   
   nregime=length(formula)
   n=sapply(formula,length)
@@ -649,8 +674,8 @@ prep.nonlindynamics <- function(formula, jacob, isContinuosTime){
     
     ret=paste0(ret,"\n\t}")
   }
-  x <- list(c.string=ret, misc=list(formula=formula, jacob=jacob, isContinuosTime=isContinuousTime))
-  return(new("dynrDynamics", x))
+  x <- list(c.string=ret, misc=list(formula=formula, jacobian=jacobian, isContinuosTime=isContinuousTime))
+  return(new("dynrDynamicsFormula", x))
 }
 
 ##' Recipe function for creating Linear Dynamcis
@@ -660,13 +685,14 @@ prep.nonlindynamics <- function(formula, jacob, isContinuosTime){
 ##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)
 ##' @param values.exo the values matrix for the effect of the covariates on the dynamic outcome (see details)
 ##' @param covariates the names or the index numbers of the covariates used for the dynamics
-##' @param time character. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient. Capitalization is ignored.
+##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient. Capitalization is ignored.
 ##' 
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, time){
-	time <- checkAndProcessTimeArgument(time)
+prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
+	#time <- checkAndProcessTimeArgument(time)
+	time <- ifelse(isContinuousTime, 'continuous', 'discrete')
 	values.dyn <- preProcessValues(values.dyn)
 	params.dyn <- preProcessParams(params.dyn)
 	if(!missing(values.exo)){
@@ -733,8 +759,8 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 
-	x <- list(c.string=ret, startval=sv, paramnum=pn, misc=list(params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, time=time))
-	return(new("dynrDynamics", x))
+	x <- list(c.string=ret, startval=sv, paramnum=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
+	return(new("dynrDynamicsMatrix", x))
 }
 
 
