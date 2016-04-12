@@ -130,14 +130,14 @@ setMethod("$", "dynrRecipe",
 #------------------------------------------------------------------------------
 # printex method definitions
 
-setGeneric("printex", function(object, show=TRUE) { 
+setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) { 
 	return(standardGeneric("printex")) 
 })
 
 
 
 setMethod("printex", "dynrMeasurement",
-	function(object, show=TRUE){
+	function(object, observed, latent, covariates, show=TRUE){
 		lC <- .xtableMatrix(object$values, show)
 		return(invisible(list(measurement=lC)))
 	}
@@ -145,8 +145,8 @@ setMethod("printex", "dynrMeasurement",
 
 
 # not sure what to do here yet
-setMethod("printex", "dynrDynamics",
-	function(object, show){
+setMethod("printex", "dynrDynamicsFormula",
+	function(object, observed, latent, covariates, show=TRUE){
 #		lx0 <- .xtableMatrix(object$values.inistate)
 #		lP0 <- .xtableMatrix(object$values.inicov)
 #		lr0 <- .xtableMatrix(object$values.regimep)
@@ -155,17 +155,26 @@ setMethod("printex", "dynrDynamics",
 	}
 )
 
+setMethod("printex", "dynrDynamicsMatrix",
+	function(object, observed, latent, covariates, show=TRUE){
+		lA <- .xtableMatrix(object$values.dyn, show)
+		#TODO add something better for covariates
+		lB <- ifelse(nrow(object$values.exo) != 0, .xtableMatrix(object$values.exo, show), "")
+		return(invisible(list(dyn=lA, exo=lB)))
+	}
+)
+
 
 setMethod("printex", "dynrRegimes",
-	function(object, show=TRUE){
-		lG <- .xtableMatrix(object$values, show)
+	function(object, observed, latent, covariates, show=TRUE){
+		lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
 		return(invisible(list(regimes=lG)))
 	}
 )
 
 
 setMethod("printex", "dynrInitial",
-	function(object, show=TRUE){
+	function(object, observed, latent, covariates, show=TRUE){
 		lx0 <- .xtableMatrix(object$values.inistate, show)
 		lP0 <- .xtableMatrix(object$values.inicov, show)
 		lr0 <- .xtableMatrix(object$values.regimep, show)
@@ -175,7 +184,7 @@ setMethod("printex", "dynrInitial",
 
 
 setMethod("printex", "dynrNoise",
-	function(object, show=TRUE){
+	function(object, observed, latent, covariates, show=TRUE){
 		lQ <- .xtableMatrix(object$values.latent, show)
 		lR <- .xtableMatrix(object$values.observed, show)
 		return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))

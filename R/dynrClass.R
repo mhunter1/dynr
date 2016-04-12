@@ -43,13 +43,38 @@ setMethod("$", "dynrModel",
 )
 
 setMethod("printex", "dynrModel",
-	function(object, show=TRUE){
+	function(object, observed, latent, covariates, show=TRUE){
 		meas <- printex(object$measurement, show=FALSE)
 		dyn <- printex(object$dynamics, show=FALSE)
 		reg <- printex(object$regimes, show=FALSE)
 		noise <- printex(object$noise, show=FALSE)
 		init <- printex(object$initial, show=FALSE)
 		message(' :(  Dagnabbit. This part is not quite working yet.')
+		measTex <- paste("The measurement model is given by\n\\begin{equation}\n",
+			.xtableMatrix(matrix(observed, nrow=length(observed), ncol=1), show=FALSE),
+			" = ",
+			meas$measurement,
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			" + \\vec{r}\n",
+			"\\end{equation}\nwith\n",
+			"\\begin{equation}\n\\text{Cov}(\\vec{r}) = ",
+			noise$measurement.noise,
+			"\\end{equation}\n", sep="")
+		dynTex <- paste("The dynamic model is given by\n\\begin{equation}\n",
+			ifelse(object$isContinuousTime, "\\frac{d}{dt} ", ""),
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			ifelse(object$isContinuousTime, "", "_t"),
+			" = ",
+			dyn$dyn,
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			ifelse(object$isContinuousTime, "", "_t"),
+			" + ",
+			"\\vec{q}\n",
+			"\\end{equation}\nwith\n",
+			"\\begin{equation}\n\\text{Cov}(\\vec{q}) = ",
+			noise$dynamic.noise,
+			"\\end{equation}\n", sep="")
+		return(paste(measTex, dynTex, sep="\n"))
 		#
 		# make equations
 		# y = C x + r with

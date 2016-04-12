@@ -119,6 +119,7 @@ dynamics <- prep.linearDynamics(
 # put all the recipes together
 model <- dynr.prep(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), outfile="cooked")
 
+cat(printex(model, observed="y1", latent=c("ksi", "ksiDot")))
 
 # Data
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
