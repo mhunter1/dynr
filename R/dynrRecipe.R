@@ -125,6 +125,10 @@ setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
 
+
+#------------------------------------------------------------------------------
+# printex method definitions
+
 setGeneric("printex", function(object, show=TRUE) { 
 	return(standardGeneric("printex")) 
 })
@@ -134,7 +138,7 @@ setGeneric("printex", function(object, show=TRUE) {
 setMethod("printex", "dynrMeasurement",
 	function(object, show=TRUE){
 		lC <- .xtableMatrix(object$values, show)
-		return(list(measurement=lC))
+		return(invisible(list(measurement=lC)))
 	}
 )
 
@@ -154,7 +158,7 @@ setMethod("printex", "dynrDynamics",
 setMethod("printex", "dynrRegimes",
 	function(object, show=TRUE){
 		lG <- .xtableMatrix(object$values, show)
-		return(list(regimes=lG))
+		return(invisible(list(regimes=lG)))
 	}
 )
 
@@ -164,7 +168,7 @@ setMethod("printex", "dynrInitial",
 		lx0 <- .xtableMatrix(object$values.inistate, show)
 		lP0 <- .xtableMatrix(object$values.inicov, show)
 		lr0 <- .xtableMatrix(object$values.regimep, show)
-		return(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0))
+		return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
 	}
 )
 
@@ -173,7 +177,7 @@ setMethod("printex", "dynrNoise",
 	function(object, show=TRUE){
 		lQ <- .xtableMatrix(object$values.latent, show)
 		lR <- .xtableMatrix(object$values.observed, show)
-		return(list(dynamic.noise=lQ, measurement.noise=lR))
+		return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
 	}
 )
 
@@ -188,6 +192,72 @@ setMethod("printex", "dynrNoise",
 
 #printex(dynrModel)
 #printex(dynrRecipe)
+
+
+#------------------------------------------------------------------------------
+# writeCcode method definitions
+
+setGeneric("writeCCode", function(object, show=TRUE) { 
+	return(standardGeneric("writeCCode")) 
+})
+
+
+
+setMethod("writeCCode", "dynrMeasurement",
+	function(object, show=TRUE){
+		lC <- .xtableMatrix(object$values, show)
+		return(list(measurement=lC))
+	}
+)
+
+
+# not sure what to do here yet
+setMethod("writeCCode", "dynrDynamicsFormula",
+	function(object, show){
+#		lx0 <- .xtableMatrix(object$values.inistate)
+#		lP0 <- .xtableMatrix(object$values.inicov)
+#		lr0 <- .xtableMatrix(object$values.regimep)
+#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
+		message('Sorry, mate! This part is still under development.')
+	}
+)
+
+setMethod("writeCCode", "dynrDynamicsMatrix",
+	function(object, show){
+#		lx0 <- .xtableMatrix(object$values.inistate)
+#		lP0 <- .xtableMatrix(object$values.inicov)
+#		lr0 <- .xtableMatrix(object$values.regimep)
+#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
+		message('Sorry, mate! This part is still under development.')
+	}
+)
+
+
+setMethod("writeCCode", "dynrRegimes",
+	function(object, show=TRUE){
+		lG <- .xtableMatrix(object$values, show)
+		return(list(regimes=lG))
+	}
+)
+
+
+setMethod("writeCCode", "dynrInitial",
+	function(object, show=TRUE){
+		lx0 <- .xtableMatrix(object$values.inistate, show)
+		lP0 <- .xtableMatrix(object$values.inicov, show)
+		lr0 <- .xtableMatrix(object$values.regimep, show)
+		return(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0))
+	}
+)
+
+
+setMethod("writeCCode", "dynrNoise",
+	function(object, show=TRUE){
+		lQ <- .xtableMatrix(object$values.latent, show)
+		lR <- .xtableMatrix(object$values.observed, show)
+		return(list(dynamic.noise=lQ, measurement.noise=lR))
+	}
+)
 
 
 #------------------------------------------------------------------------------
