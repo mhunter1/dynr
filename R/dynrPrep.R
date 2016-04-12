@@ -24,7 +24,7 @@ dynr.prep<-function(dynamics, measurement, noise, initial, ..., infile=tempfile(
   includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
   body <- paste(cparts, collapse="\n\n")
   if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
-    body <- paste(body, prep.regimes()$c.string, sep="\n\n")
+    body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
   }
   glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
   cat(glom, file=obj.dynrModel@infile)

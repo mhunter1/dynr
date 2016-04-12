@@ -117,7 +117,7 @@ dynamics <- prep.linearDynamics(
 
 # Prepare for cooking
 # put all the recipes together
-model <- dynr.prep(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), writeCcode(prep.regimes()), outfile="cooked")
+model <- dynr.prep(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), outfile="cooked")
 
 
 # Data
