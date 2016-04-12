@@ -11,7 +11,7 @@
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, .transformCFunction, sep="\n")
 
-dynr.prep<-function(dynamics, measurement, noise, initial, ..., infile=tempfile(),outfile="./demo/cooked"){
+dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(),outfile="./demo/cooked"){
   #initiate a dynrModel object
   obj.dynrModel=new("dynrModel",list(infile=infile, outfile=outfile, dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...))
   obj.dynrModel@dim_latent_var=dim(obj.dynrModel@noise@values.latent)[1]

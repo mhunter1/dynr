@@ -117,7 +117,7 @@ dynamics <- prep.linearDynamics(
 
 # Prepare for cooking
 # put all the recipes together
-model <- dynr.prep(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), outfile="cooked")
+model <- dynr.model(dynamics=writeCcode(dynamics), measurement=writeCcode(meas), noise=writeCcode(ecov), initial=writeCcode(initial), outfile="cooked")
 
 cat(printex(model, observed="y1", latent=c("ksi", "ksiDot")))
 

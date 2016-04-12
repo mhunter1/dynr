@@ -222,8 +222,8 @@ dynr.cook <- function(dynrModel, data, transformation, conf.level=.95, infile, v
 	if(missing(transformation)){
 		transformation <- function(x){x}
 	}
-	#dynr.model convert dynrModel to a model list
-	model<-dynr.model(
+	#internalModelPrep convert dynrModel to a model list
+	model <- internalModelPrep(
 	  num_regime=dynrModel@num_regime,
 	  dim_latent_var=dynrModel@dim_latent_var,
 	  xstart=dynrModel@xstart,
