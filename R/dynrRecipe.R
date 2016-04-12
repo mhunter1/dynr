@@ -596,6 +596,21 @@ prep.regimes <- function(values, params, covariates){
 # B <- matrix(c(8:(8+24-1)), nr, (nc+1)*nr, byrow=TRUE)
 #matrix(t(B), nrow=nr*nr, ncol=nc+1, byrow=TRUE)
 
+autojacob<-function(formula,n){
+  #formula=list(x1~a*x1,x2~b*x2)
+  tuple=lapply(formula,as.list)
+  lhs=sapply(tuple,function(x){deparse(x[[2]])})
+  rhs=sapply(tuple,function(x){x[[3]]})
+  rhsj=vector("list", n*n)
+  jacob=vector("list", n*n)
+  for (i in 1:n){
+    for (j in 1:n){
+      rhsj[[(i-1)*n+j]]=paste0(deparse(D(rhs[[i]],lhs[[j]]),width.cutoff = 500L),collapse="")
+      jacob[[(i-1)*n+j]]=as.formula(paste0(lhs[[i]],"~",lhs[[j]],"~",rhsj[[(i-1)*n+j]],collapse=""))
+    }
+  }
+  return(list(row=as.list(rep(lhs,each=2)),col=as.list(rep(lhs,2)),rhsj=rhsj,jacob=jacob))
+}
 
 #------------------------------------------------------------------------------
 # "Dynamics" functions
@@ -606,7 +621,7 @@ prep.regimes <- function(values, params, covariates){
 ##' @param jacob a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-prep.nonlindynamics <- function(formula, jacobian, isContinuosTime){
+prep.nonlindynamics <- function(formula,isContinuousTime=FALSE,jacob){
   
   nregime=length(formula)
   n=sapply(formula,length)
@@ -615,10 +630,22 @@ prep.nonlindynamics <- function(formula, jacobian, isContinuosTime){
   lhs=lapply(fml,function(x){lapply(x,"[[",1)})
   rhs=lapply(fml,function(x){lapply(x,"[[",2)})
   
-  fmlj=lapply(jacob,processFormula)
-  row=lapply(fmlj,function(x){lapply(x,"[[",1)})
-  col=lapply(fmlj,function(x){lapply(x,"[[",2)})
-  rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
+  if (missing(jacob)){
+    autojcb=try(lapply(formula,autojacob,n[1]))
+    if (class(autojcb) == "try-error") {
+      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
+    }else{
+      row=lapply(autojcb,"[[","row")
+      col=lapply(autojcb,"[[","col")
+      rhsj=lapply(autojcb,"[[","rhsj")
+      jacob=lapply(autojcb,"[[","jacob")
+    }
+  }else{
+    fmlj=lapply(jacob,processFormula)
+    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
+    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
+    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
+  }
   
   #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
   #TODO in the continuous case allow users to use d()
@@ -821,8 +848,8 @@ prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 		"}\n\n",
 		sep="\n")
 	if(missing(params.exo)){
-		params.exo <- matrix(, 0, 0)
-		values.exo <- matrix(, 0, 0)
+		params.exo <- matrix(0, 0, 0)
+		values.exo <- matrix(0, 0, 0)
 	}
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo))
 	pn <- c(extractParams(params.dyn), extractParams(params.exo))
