@@ -1078,11 +1078,11 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 prep.tfun<-function(formula.trans,formula.inv){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))
-  if (missing(formula.trans){
+  if (missing(formula.trans)){
     #TODO modify this part if needed
     x<-list()
   }else{
-    if (missing(formula.inv){
+    if (missing(formula.inv)){
       #TODO when formula.inv is not specified, use automatic inverse functions
       inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
       eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}")) 

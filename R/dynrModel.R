@@ -1,92 +1,125 @@
-# TODO
-# create dynrModel objects
-# They should output a list like this
-#model <- list(num_sbj=20,
-#              dim_latent_var=2,
-#              dim_obs_var=2,
-#              dim_co_variate=2, 
-#              num_regime=2,
-#              isDiscretTime=0,
-#              xstart=c(rep(log(.1), 4), log(10.0), log(10.0), -3.0, 9.0, -1.5, -0.5, 95.0,-.3,-.3),
-#              num_func_param=13,
-#              ub=c(rep(10, 6), rep(20, 4), 1000, 20, 20),
-#              lb=c(rep(-10, 6), rep(-20, 4), 0, -20, -20)
-#)
+# 
+# dynr model CLASS
+# 
+setClass(Class =  "dynrModel",
+         representation = representation(
+           dynamics =  "dynrDynamics",
+           measurement = "dynrMeasurement",
+           noise = "dynrNoise",
+           initial = "dynrInitial",
+           regimes= "dynrRegimes",
+           num_regime="integer",
+           dim_latent_var="integer",
+           infile="character",
+           outfile="character",
+           isContinuousTime="logical",
+           verbose="logical",
+           compileLib="logical",
+           xstart="vector",
+           ub="vector",
+           lb="vector",
+           options="list"
+         ),
+         prototype(
+           num_regime=as.integer(1),
+           isContinuousTime=TRUE,
+           verbose=TRUE,
+           compileLib=TRUE,
+           options=default.model.options
+         )
+)
 
-# Really all the model needs right now is
-# num_regime, xstart, ub, lb
-# Everything else can be gathered from the data.
-# Importantly, the thing handed to the backend must
-# remain a list exactly like the above.
+setMethod("initialize", "dynrModel",
+          function(.Object, x){
+            for(i in names(x)){
+              slot(.Object, name=i, check = TRUE) <- x[[i]]
+            }
+            return(.Object)
+          }
+)
 
-.possible.times <- c('discrete', 'continuous')
-checkAndProcessTimeArgument <- function(time){
-	if(missing(time)){
-		time <- "discrete"
+setMethod("$", "dynrModel",
+          function(x, name){slot(x, name)}
+)
+
+setMethod("printex", "dynrModel",
+	function(object, observed, latent, covariates, show=TRUE){
+		meas <- printex(object$measurement, show=FALSE)
+		dyn <- printex(object$dynamics, show=FALSE)
+		reg <- printex(object$regimes, show=FALSE)
+		noise <- printex(object$noise, show=FALSE)
+		init <- printex(object$initial, show=FALSE)
+		message(' :(  Dagnabbit. This part is not quite working yet.')
+		measTex <- paste("The measurement model is given by\n\\begin{equation}\n",
+			.xtableMatrix(matrix(observed, nrow=length(observed), ncol=1), show=FALSE),
+			" = ",
+			meas$measurement,
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			" + \\vec{r}\n",
+			"\\end{equation}\nwith\n",
+			"\\begin{equation}\n\\text{Cov}(\\vec{r}) = ",
+			noise$measurement.noise,
+			"\\end{equation}\n", sep="")
+		dynTex <- paste("The dynamic model is given by\n\\begin{equation}\n",
+			ifelse(object$isContinuousTime, "\\frac{d}{dt} ", ""),
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			ifelse(object$isContinuousTime, "", "_t"),
+			" = ",
+			dyn$dyn,
+			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+			ifelse(object$isContinuousTime, "", "_t"),
+			" + ",
+			"\\vec{q}\n",
+			"\\end{equation}\nwith\n",
+			"\\begin{equation}\n\\text{Cov}(\\vec{q}) = ",
+			noise$dynamic.noise,
+			"\\end{equation}\n", sep="")
+		return(paste(measTex, dynTex, sep="\n"))
+		#
+		# make equations
+		# y = C x + r with
+		# Cov(r) = measurement.noise
+		# Make a matrix of the names of the observed variables for y
+		# Make a matreis of the names of the latent variables for x
+		# C is the meas$measurement factor loadings
+		#
+		# x = dynamics(x) + q with
+		# Cov(q) = dynamic.noise
 	}
-	if(!is.character(time)){
-		stop("The 'time' argument must be a character (e.g. 'continuous' or 'discrete')")
-	}
-	time <- tolower(time)
-	timeIndex <- pmatch(time, .possible.times)
-	time <- .possible.times[timeIndex]
-	return(time)
+)
+
+
+# modeling is what happens to recipes.
+# The alpha version of this file just takes a bunch of recipes and puts
+#  them together into a C file of the user's naming.
+#
+
+.logisticCFunction <- "/**\n * This function takes a double and gives back a double\n * It computes the logistic function (i.e. the inverse of the logit link function)\n * @param x, the double value e.g. a normally distributed number\n * @return logistic(x), the double value e.g. a number between 0 and 1\n */\ndouble mathfunction_logistic(const double x){\n\tdouble value = 1.0/(1.0 + exp(-x));\n\treturn value;\n}\n"
+
+.softmaxCFunction <- "/**\n * This function takes a gsl_vector and modifies its second argument (another gsl_vector)\n * It computes the softmax function (e.g. for multinomial logistic regression)\n * @param x, vector of double values e.g. a vector of normally distributed numbers\n * @param result, softmax(x), e.g. a vector of numbers between 0 and 1 that sum to 1\n */\nvoid mathfunction_softmax(const gsl_vector *x, gsl_vector *result){\n\t/* Elementwise exponentiation */\n\tsize_t index=0;\n\tfor(index=0; index < x->size; index++){\n\t\tgsl_vector_set(result, index, exp(gsl_vector_get(x, index)));\n\t}\n\t\n\t/* Sum for the scaling coeficient */\n\tdouble scale = 0.0;\n\tfor(index=0; index < x->size; index++){\n\t\tscale += gsl_vector_get(result, index);\n\t}\n\t\n\t/* Multiply all elements of result by 1/scale */\n\tgsl_blas_dscal(1/scale, result);\n}\n"
+
+.cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
+
+dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(),outfile="./demo/cooked"){
+  #initiate a dynrModel object
+  obj.dynrModel=new("dynrModel",list(infile=infile, outfile=outfile, dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...))
+  obj.dynrModel@dim_latent_var=dim(obj.dynrModel@noise@values.latent)[1]
+  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial,...)
+  obj.dynrModel@xstart<-unlist(sapply(inputs, slot, name='startval'))
+  obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))
+  obj.dynrModel@lb<-rep(9999,length(obj.dynrModel@xstart))
+  #write out the C script
+  cparts <- sapply(inputs, slot, name='c.string')
+  includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
+  body <- paste(cparts, collapse="\n\n")
+  if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
+    body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
+  }
+  glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
+  cat(glom, file=obj.dynrModel@infile)
+  
+  return(obj.dynrModel)
+  #modify the object slot, including starting values, etc.
 }
 
-
-default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10, 
-                              ftol_abs=-1, maxeval=as.integer(500), maxtime=-1)
-#' Do internal model preparation for dynr
-#' 
-#' Principally, this function takes a host of arguments and gives back
-#' a list that importantly includes the function addresses.
-#' 
-#' @param num_regime An integer number of the regimes.
-#' @param dim_latent_var An integer number of the latent variables.
-#' @param xstart The starting values for parameter estimation.
-#' @param ub The upper bounds of the estimated parameters.
-#' @param lb The lower bounds of the estimated parameters.
-#' @param isDiscreteTime A binary flag indicating whether the model is a discrete-time model (0 = no; 1 = yes)
-#' @param options A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.
-#' @return A list of model statements to be passed to dynr.cook().
-internalModelPrep <- function(num_regime=1, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime=TRUE,infile, outfile=tempfile(),compileLib=TRUE,verbose=TRUE){
-	if(!is.list(options)){
-		stop("'options' argument to internalModelPrep function must be a list.")
-	}
-	options <- processModelOptionsArgument(options)
-	xlen <- length(xstart)
-	ulen <- length(ub)
-	llen <- length(lb)
-	if( (xlen != ulen) || (xlen != llen) || (ulen != llen)){
-		stop("Length of 'xstart', 'ub', and 'lb' must match.")
-	}
-	if( (length(num_regime) != 1) || (round(num_regime) != num_regime) ){
-		stop("Number of regimes (num_regime) must be a single integer.")
-	}
-	if( (length(dim_latent_var) != 1) || (round(dim_latent_var) != dim_latent_var) ){
-		stop("Number of latent variables (dim_latent_var) must be a single integer.")
-	}
-	
-	#returns a list of addresses of the compiled model functions
-	func_address=dynr.funcaddress(isContinuousTime=isContinuousTime,infile=infile,outfile=outfile,verbose=verbose, compileLib=compileLib)
-	return(list(num_regime=as.integer(num_regime), dim_latent_var=as.integer(dim_latent_var), xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.integer(length(xstart)),func_address=func_address, options=options))
-}
-
-processModelOptionsArgument <- function(opt){
-	if(!identical(opt, default.model.options)){
-		nameMatch <- names(opt) %in% names(default.model.options)
-		if( any(!nameMatch) ){
-			msg <- paste("Tried to set invalid option(s): ", paste(names(opt)[!nameMatch], collapse=', '))
-			stop(msg)
-		}
-		newopt <- default.model.options
-		for(i in 1:length(opt)){
-			newopt[[names(opt)[i]]] <- opt[[i]]
-		}
-		newopt$maxeval <- as.integer(newopt$maxeval)
-		return(newopt)
-	}else{
-		return(opt)
-	}
-}
 

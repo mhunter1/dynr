@@ -17,13 +17,12 @@ License: Apache License (== 2.0) GPL (>= 2)
 LazyLoad: yes
 Collate:
     'dynrData.R'
+    'dynrRecipe.R'
+    'dynrModelInternal.R'
     'dynrModel.R'
     'dynrCook.R'
     'dynrPlot.R'
     'dynrFuncAddress.R'
-    'dynrRecipe.R'
-    'dynrClass.R'
-    'dynrPrep.R'
     'dynrVersion.R'
 Version: @VERSION@
 
