@@ -691,7 +691,7 @@ setMethod("writeCcode", "dynrTrans",
             
             n=length(object@formula.trans)
             if (n>0){
-              formula.trans=object$formula.trans
+              formula.trans=object@formula.trans
               fml=processFormula(formula.trans)
               lhs=lapply(fml,function(x){x[1]})
               rhs=lapply(fml,function(x){x[2]})
@@ -1011,13 +1011,13 @@ autojacob<-function(formula,n){
 ##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
   if(is.null(names(startval))){
     stop('startval must be a named vector')
   }
   x <- list(formula=formula, startval=startval, paramnum=names(startval), isContinuousTime=isContinuousTime)
   if(!missing(jacobian)){x$jacobian <- jacobian}
+  x$paramnum<-names(x$startval)
   return(new("dynrDynamicsFormula", x))
 }
 

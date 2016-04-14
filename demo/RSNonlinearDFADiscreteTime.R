@@ -20,59 +20,61 @@ meas <- prep.loadings(
   map=list(
     eta1=paste0('y', 1:3),
     eta2=paste0('y', 4:6)),
-  params=1:4)
+  params=c("lambda_{21}","lambda_{31}","lambda_{52}","lambda_{62}"))
 
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
 	values.inistate=c(0, 0),
-	params.inistate=c(0, 0),
+	params.inistate=c("fixed", "fixed"),
 	values.inicov=diag(1, 2), 
-	params.inicov=diag(1, 2),
+	params.inicov=diag("P_0", 2),
 	values.regimep=c(.8824, 1-.8824),
-	params.regimep=c(0, 0)
+	params.regimep=c("fixed", "fixed")
 )
 
 # Regime-switching function
 regimes <- prep.regimes(
 	values=matrix(c(0, 0, 0, 0), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-	params=matrix(c(5, 0, 0, 6), 2, 2))
+	params=matrix(c("p11", 0, 0, "p22"), 2, 2))
 # Self-transition (diagonals) are estimated
 # Off-diagonal elements are fixed by the softmax scaling
 
 
 #measurement and dynamics covariances
 mdcov <- prep.noise(
-	values.latent=diag(0, 2),
-	params.latent=diag(17:18, 2),
-	values.observed=diag(0, 6),
-	params.observed=diag(11:16, 6))
+	values.latent=diag(0.3, 2),
+	params.latent=diag(paste0("zeta_",1:2), 2),
+	values.observed=diag(0.1, 6),
+	params.observed=diag(paste0("episilon_",1:6), 6))
 
 # dynamics
 formula=list(
-  list(x1~param6*x1,
-       x2~param7*x2),
-  list(x1~param6*x1+param8*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
-       x2~param7*x2+param9*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
+  list(x1~a1*x1,
+       x2~a2*x2),
+  list(x1~a1*x1+c12*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+       x2~a2*x2+c21*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
 )
 
 jacob=list(
-  list(x1~x1~param6,
-       x2~x2~param7),
-  list(x1~x1~param6,
-       x1~x2~param8*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
-       x2~x2~param7,
-       x2~x1~param9*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
+  list(x1~x1~a1,
+       x2~x2~a2),
+  list(x1~x1~a1,
+       x1~x2~c12*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
+       x2~x2~a2,
+       x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
 
-dynm<-prep.formulaDynamics(formula=formula,startval=c(param6=.3, param7=.4, param8=-.5, param9=-.5),isContinuousTime=FALSE,jacobian=jacob)
+dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
 #cat(writeCcode(dynm)$c.string)
 
+trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+exp(p22))),formula.inv=list(p11~log(p11/(1-p11)),p22~log(p22/(1-p22))))
+#cat(writeCcode(trans)$c.string)
 #------------------------------------------------------------------------------
 # Cooking materials
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial,regimes=regimes, outfile="RSNonlinearDFA")
+model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA")
 # View specified model in latex
 printex(model)
 
