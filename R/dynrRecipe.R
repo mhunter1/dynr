@@ -143,14 +143,6 @@ setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
 
-setMethod("initialize", "dynrTrans",
-          function(.Object, x){
-            for(i in names(x)){
-              slot(.Object, name=i, check = TRUE) <- x[[i]]
-            }
-            return(.Object)
-          }
-)
 
 
 #------------------------------------------------------------------------------
