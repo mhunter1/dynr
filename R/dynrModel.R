@@ -8,6 +8,7 @@ setClass(Class =  "dynrModel",
            noise = "dynrNoise",
            initial = "dynrInitial",
            regimes= "dynrRegimes",
+           transform="dynrTrans",
            num_regime="integer",
            dim_latent_var="integer",
            infile="character",
@@ -102,18 +103,23 @@ setMethod("printex", "dynrModel",
 
 dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(),outfile="./demo/cooked"){
   #initiate a dynrModel object
-  obj.dynrModel=new("dynrModel",list(infile=infile, outfile=outfile, dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...))
+  obj.dynrModel=new("dynrModel",lapply(list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...),writeCcode))
+  obj.dynrModel@infile=infile
+  obj.dynrModel@outfile=outfile
   obj.dynrModel@dim_latent_var=dim(obj.dynrModel@noise@values.latent)[1]
-  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial,...)
+  inputs <- list(dynamics=obj.dynrModel@dynamics, measurement=obj.dynrModel@measurement, noise=obj.dynrModel@noise, initial=obj.dynrModel@initial,regimes=obj.dynrModel@regimes,transform=obj.dynrModel@transform)
   obj.dynrModel@xstart<-unlist(sapply(inputs, slot, name='startval'))
   obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))
   obj.dynrModel@lb<-rep(9999,length(obj.dynrModel@xstart))
   #write out the C script
-  cparts <- sapply(inputs, slot, name='c.string')
+  cparts <- unlist(sapply(inputs, slot, name='c.string'))
   includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
   body <- paste(cparts, collapse="\n\n")
   if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
     body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
+  }
+  if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in an empty function
+    body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
   }
   glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
   cat(glom, file=obj.dynrModel@infile)
