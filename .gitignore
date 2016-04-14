@@ -7,10 +7,10 @@ src/*.dll
 # The following list of roxygen built man pages is automatically updated
 man/dynr.ggplot.Rd
 man/internalModelPrep.Rd
+man/prep.formulaDynamics.Rd
 man/prep.initial.Rd
-man/prep.linearDynamics.Rd
 man/prep.loadings.Rd
+man/prep.matrixDynamics.Rd
 man/prep.noise.Rd
-man/prep.nonlindynamics.Rd
 man/prep.regimes.Rd
 man/prep.tfun.Rd

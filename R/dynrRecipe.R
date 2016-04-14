@@ -42,6 +42,7 @@ setClass(Class = "dynrDynamics",
            c.string =  "character",
            startval = "numeric",
            paramnum = "character"
+           isContinuousTime = "logical"
            ),
          contains = "dynrRecipe"
 )
@@ -51,8 +52,8 @@ setClass(Class = "dynrDynamicsFormula",
            c.string =  "character",
            startval = "numeric",
            paramnum = "character",
-           formula = "formula",
-           jacobian = "formula",
+           formula = "list",
+           jacobian = "list",
            isContinuousTime = "logical"
            ),
          contains = "dynrDynamics"
@@ -146,6 +147,7 @@ setMethod("initialize", "dynrTrans",
             return(.Object)
           }
 )
+
 
 #------------------------------------------------------------------------------
 # printex method definitions
@@ -345,7 +347,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  #TODO in the continuous case allow users to use d()
 	  #TODO add covariate
 	  
-	  if (isContinuosTime){
+	  if (object@isContinuousTime){
 	    #function_dx_dt
 	    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
 	    
@@ -611,21 +613,26 @@ setMethod("writeCcode", "dynrInitial",
 		params.regimep <- object$params.regimep
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
 		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
-		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){\n\t\tfor(i=0;i<num_sbj;i++){\n")
-		for(i in 1:length(values.inistate)){
-			if(params.inistate[i] > 0){
-				ret <- paste(ret,
-					'\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-					', param[', params.inistate[i] - 1, ']);\n', sep='')
-			} else if(values.inistate[i] != 0){
-				ret <- paste(ret,
-					'\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-					', ', values.inistate[i], ');\n', sep='')
-			}
+		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){")
+		if (sum(values.inistate!=0)!=0){
+		  ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
+		  for(i in 1:length(values.inistate)){
+		    if(params.inistate[i] > 0){
+		      ret <- paste(ret,
+		                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+		                   ', param[', params.inistate[i] - 1, ']);\n', sep='')
+		    } else if(values.inistate[i] != 0){
+		      ret <- paste(ret,
+		                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
+		                   ', ', values.inistate[i], ');\n', sep='')
+		    }
+		  }
+		  ret <- paste0(ret,"\t\t}")
 		}
+
 		values.inicov <- replaceDiagZero(values.inicov)
 		values.inicov <- reverseldl(values.inicov)
-		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\t\t}\n")
+		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\n")
 		ret <- paste(ret, "\t}\n}\n")
 		object@c.string <- ret
 		return(object)
@@ -972,19 +979,20 @@ autojacob<-function(formula,n){
 #------------------------------------------------------------------------------
 # "Dynamics" functions
 
-##' The translation function for the dynamic functions 
+##' The translation function for the linear and nonlinear dynamic functions using formulas
 ##' 
 ##' @param formula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
 ##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/state-transition
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
-prep.nonlindynamics <- function(formula, isContinuousTime=FALSE, jacobian){
-  x <- list(formula=formula, isContinuosTime=isContinuousTime)
+
+prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
+  x <- list(formula=formula, startval=startval, isContinuousTime=isContinuousTime)
   if(!missing(jacobian)){x$jacobian <- jacobian}
   return(new("dynrDynamicsFormula", x))
 }
 
-##' Recipe function for creating Linear Dynamcis
+##' Recipe function for creating Linear Dynamcis using matrices
 ##' 
 ##' @param params.dyn the parameters matrix for the linear dynamics
 ##' @param values.dyn the values matrix for the linear dynamics
@@ -996,7 +1004,7 @@ prep.nonlindynamics <- function(formula, isContinuousTime=FALSE, jacobian){
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-prep.linearDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
+prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
 	#time <- checkAndProcessTimeArgument(time)
 	values.dyn <- preProcessValues(values.dyn)
 	params.dyn <- preProcessParams(params.dyn)

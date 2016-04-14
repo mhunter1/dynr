@@ -109,7 +109,7 @@ initial <- prep.initial(
 
 
 # define the differential equation
-dynamics <- prep.linearDynamics(
+dynamics <- prep.matrixDynamics(
 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2), #uses parameters 1 and 2
 	isContinuousTime=TRUE)
