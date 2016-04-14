@@ -88,8 +88,8 @@ meas
 # the latent noise is the dynamic noise, Psi in SEM notation or Q in OpenMx notation
 # the observed noise is the measurement noise, Theta in SEM notation or R in OpenMx notation
 ecov <- prep.noise(
-	values.latent=diag(c(0, 1), 2), params.latent=diag(c('fixed', 3), 2), # uses free parameter 3
-	values.observed=diag(1.5, 1), params.observed=diag(4, 1)) # uses free parameter 4
+	values.latent=diag(c(0, 1), 2), params.latent=diag(c('fixed', 'dnoise'), 2), # uses free parameter 3
+	values.observed=diag(1.5, 1), params.observed=diag('mnoise', 1)) # uses free parameter 4
 # Look
 ecov
 # ... wait what happened to the values?
@@ -103,7 +103,7 @@ log(1.5)
 # These are x0 and P0 in OpenMx notation
 initial <- prep.initial(
 	values.inistate=c(0, 1),
-	params.inistate=c(5, 'fixed'), #initial position is free parameter 5, initial slope is fixed at 1
+	params.inistate=c('inipos', 'fixed'), #initial position is free parameter 5, initial slope is fixed at 1
 	values.inicov=diag(1, 2),
 	params.inicov=diag('fixed', 2)) #initial covariance is fixed to a diagonal matrix of 1s.
 
@@ -111,7 +111,7 @@ initial <- prep.initial(
 # define the differential equation
 dynamics <- prep.linearDynamics(
 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
-	params.dyn=matrix(c('fixed', 1, 'fixed', 2), 2, 2), #uses parameters 1 and 2
+	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2), #uses parameters 1 and 2
 	isContinuousTime=TRUE)
 
 

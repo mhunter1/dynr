@@ -68,7 +68,7 @@ setMethod("printex", "dynrModel",
 			" = ",
 			dyn$dyn,
 			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
-			ifelse(object$isContinuousTime, "", "_t"),
+			ifelse(object$isContinuousTime, "", "_{t-1}"),
 			" + ",
 			"\\vec{q}\n",
 			"\\end{equation}\nwith\n",
@@ -101,14 +101,35 @@ setMethod("printex", "dynrModel",
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
 
-dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(),outfile="./demo/cooked"){
+dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile="./demo/cooked"){
+  # gather inputs
+  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+  
+  # Figure out what the unique parameters are
+  all.values <- unlist(sapply(inputs, slot, name='startval'))
+  all.params <- unlist(sapply(inputs, slot, name='paramnum'))
+  unique.values <- extractValues(all.values, all.params)
+  unique.params <- extractParams(all.params)
+  unique.numbers <- c() #allow for model with no free parameters
+  if(length(unique.params) > 0){unique.numbers <- 1L:length(unique.params)}
+  
+  # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
+  param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values)
+  
+  #TODO write a way to extract param.data from a model object (grabs from recipes within model)
+  
+  #TODO write a way to assign param.data to a model object (assigns to recipes within model)
+  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
+  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+  
+  # writeCcode on each recipe
+  inputs <- sapply(inputs, writeCcode)
+  
   #initiate a dynrModel object
-  obj.dynrModel=new("dynrModel",lapply(list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...),writeCcode))
-  obj.dynrModel@infile=infile
-  obj.dynrModel@outfile=outfile
-  obj.dynrModel@dim_latent_var=dim(obj.dynrModel@noise@values.latent)[1]
-  inputs <- list(dynamics=obj.dynrModel@dynamics, measurement=obj.dynrModel@measurement, noise=obj.dynrModel@noise, initial=obj.dynrModel@initial,regimes=obj.dynrModel@regimes,transform=obj.dynrModel@transform)
-  obj.dynrModel@xstart<-unlist(sapply(inputs, slot, name='startval'))
+  obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile), inputs))
+  obj.dynrModel@dim_latent_var <- dim(obj.dynrModel@measurement@values)[2]
+  
+  obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))
   obj.dynrModel@lb<-rep(9999,length(obj.dynrModel@xstart))
   #write out the C script
@@ -118,7 +139,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
     body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
   }
-  if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in an empty function
+  if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
   }
   glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
