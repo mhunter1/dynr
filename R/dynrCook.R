@@ -63,7 +63,8 @@ setClass(Class =  "dynrCook",
            pr_t_given_T  = "matrix", # RxT
            eta_smooth_final = "matrix", # LxT
            error_cov_smooth_final  = "array", # LxLxT
-           run.times = "numeric"
+           run.times = "numeric",
+           param.names = "character"
          )
 )
 
@@ -155,13 +156,13 @@ setMethod("initialize", "dynrOutall",
 # See Also the print method of summary.lm
 #  getAnywhere(print.summary.lm)
 summaryResults<-function(object){
-             d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
+             d <- data.frame(names=object@param.names, transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
              neg2LL = -2*logLik(object)
              AIC = AIC(object)
              BIC = BIC(object)
-             colnames(d) = c("Parameters","SE","t-value","CI.lower","CI.upper")
+             colnames(d) = c("Names","Parameters","SE","t-value","CI.lower","CI.upper")
              cat("****************************SUMMARY******************************\n")
              print(d)
              cat(paste0("\n-2 log-likelihood value at convergence = ", round(neg2LL,2)))
@@ -279,6 +280,8 @@ dynr.cook <- function(dynrModel, data, transformation, conf.level=.95, infile, v
 	}else{
 		obj <- new("dynrCook", output2)
 	}
+	
+	obj@param.names <- dynrModel$param.names
 	
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart

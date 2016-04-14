@@ -18,7 +18,8 @@ setClass(Class =  "dynrModel",
            xstart="vector",
            ub="vector",
            lb="vector",
-           options="list"
+           options="list",
+           param.names="character"
          ),
          prototype(
            num_regime=as.integer(1),
@@ -124,7 +125,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   inputs <- sapply(inputs, writeCcode)
   
   #initiate a dynrModel object
-  obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile), inputs))
+  obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
   obj.dynrModel@dim_latent_var <- dim(obj.dynrModel@measurement@values)[2]
   
   obj.dynrModel@xstart <- param.data$param.value
