@@ -1347,8 +1347,8 @@ prep.tfun<-function(formula.trans,formula.inv){
     }else{
       x <- list(formula.trans=formula.trans, formula.inv=formula.inv)
     }
-  return(new("dynrTrans", x))
   }
+  return(new("dynrTrans", x))
 }
 
 formula2string<-function(formula.list){
