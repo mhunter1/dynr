@@ -126,7 +126,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-  obj.dynrModel@dim_latent_var <- dim(obj.dynrModel@measurement@values)[2]
+  obj.dynrModel@dim_latent_var <- dim(obj.dynrModel@measurement@values[[1]])[2] #TODO check that all values have the same dimensions?
   
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))

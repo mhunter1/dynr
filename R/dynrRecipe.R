@@ -31,8 +31,8 @@ setClass(Class = "dynrMeasurement",
            c.string =  "character",
            startval = "numeric",
            paramnum = "character",
-           values = "matrix",
-           params = "matrix"),
+           values = "list",
+           params = "list"),
          contains = "dynrRecipe"
 )
 
@@ -251,7 +251,7 @@ setGeneric("paramName2Number", function(object, names) {
 
 setMethod("paramName2Number", "dynrMeasurement",
 	function(object, names){
-		object@params <- .exchangeNamesAndNumbers(object$params, names)
+		object@params <- lapply(object$params, .exchangeNamesAndNumbers, names=names)
 		return(object)
 	}
 )
@@ -348,8 +348,25 @@ setMethod("writeCcode", "dynrMeasurement",
 	function(object){
 		values <- object$values
 		params <- object$params
+		if(is.list(values) && length(values) > 1){
+			nregime <- length(values)
+		} else {
+			nregime <- 1
+			values <- values[[1]]
+			params <- params[[1]]
+		}
 		ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
-		ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
+		if(nregime > 1) {
+			ret <- paste(ret, "\tswitch (regime) {", sep="\n")
+			for(reg in 1:nregime){
+				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+				ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values[[reg]], params[[reg]], "Ht"), "\n")
+				ret <- paste0("\t\t", "break;", "\n") 
+			}
+			ret <- paste0(ret, "\t", "}\n\n")
+		} else {
+			ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
+		}
 		ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
 		ret <- paste(ret, "\n}\n\n")
 		object@c.string <- ret
@@ -877,19 +894,27 @@ extractWhichParams <- function(p){
 }
 
 extractParams <- function(p){
-	p[extractWhichParams(p)]
+	if(is.list(p)){
+		ret <- c()
+		for(i in 1:length(p)){
+			ret <- c(ret, extractParams(p[[i]]))
+		}
+		return(ret)
+	} else {
+		return(p[extractWhichParams(p)])
+	}
 }
 
 extractValues <- function(v, p){
-	#if(is.list(v)){
-	#	ret <- c()
-	#	for(i in 1:length(v)){
-	#		ret <- c(ret, extractValues(v[[i]], p[[i]]))
-	#	}
-	#	return(ret)
-	#}
-  
-	v[extractWhichParams(p)]
+	if(is.list(v) && is.list(p) && length(v) == length(p)){
+		ret <- c()
+		for(i in 1:length(v)){
+			ret <- c(ret, extractValues(v[[i]], p[[i]]))
+		}
+		return(ret)
+	} else {
+		return(v[extractWhichParams(p)])
+	}
 }
 
 #------------------------------------------------------------------------------
@@ -966,8 +991,14 @@ prep.loadings <- function(map, params, idvar){
 # a zero param is taken to be fixed.
 
 prep.measurement <- function(values, params){
-	values <- preProcessValues(values)
-	params <- preProcessParams(params)
+	if(!is.list(values)){
+		values <- list(values)
+	}
+	if(!is.list(params)){
+		params <- list(params)
+	}
+	values <- lapply(values, preProcessValues)
+	params <- lapply(params, preProcessParams)
 	return(new("dynrMeasurement", list(startval=extractValues(values, params), paramnum=extractParams(params), values=values, params=params)))
 }
 
