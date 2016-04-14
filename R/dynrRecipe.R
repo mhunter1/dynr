@@ -234,7 +234,15 @@ setGeneric("paramName2Number", function(object, names) {
 
 
 .exchangeNamesAndNumbers <- function(params, names){
-	matrix(match(params, names, nomatch=0), nrow(params), ncol(params))
+	matrix(match(params, names, nomatch=0)-1, nrow(params), ncol(params))
+}
+
+.exchangeformulaNamesAndNumbers <- function(formula, paramnum, names){
+  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+  for (i in 1:length(parannum)){
+    string<-gsub(paramnum[i],paste0("param[",match(paramnum[i], names, nomatch=0)-1,"]"),string)
+  }
+  eval(parse(text=string))
 }
 
 setMethod("paramName2Number", "dynrMeasurement",
@@ -273,8 +281,8 @@ setMethod("paramName2Number", "dynrMeasurement",
 
 setMethod("paramName2Number", "dynrDynamicsFormula",
 	function(object, names){
-		object@formula <- lapply(object$formula, .exchangeNamesInFormula, names=names)
-		object@jacobian <- lapply(object$jacobian, .exchangeNamesInFormula, names=names)
+	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnum, names)
+	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnum, names)
 		return(object)
 	}
 )
@@ -312,6 +320,13 @@ setMethod("paramName2Number", "dynrNoise",
 		object@params.observed <- .exchangeNamesAndNumbers(object$params.observed, names)
 		return(object)
 	}
+)
+
+setMethod("paramName2Number", "dynrTrans",
+  function(object, names){
+    object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnum, names)
+    return(object)
+  }
 )
 
 
