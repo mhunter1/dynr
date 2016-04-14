@@ -109,11 +109,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   all.params <- unlist(sapply(inputs, slot, name='paramnum'))
   unique.values <- extractValues(all.values, all.params)
   unique.params <- extractParams(all.params)
-  if (!missing(transform)){
-    transform@paramnum<-unique.params[!grepl("noise", names(unique.params))]
-  }
   unique.numbers <- c() #allow for model with no free parameters
-  if(length(unique.params) > 0){unique.numbers <- 0L:(length(unique.params)-1)}
+  if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
   
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values)

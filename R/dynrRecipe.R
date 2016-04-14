@@ -121,7 +121,8 @@ setClass(Class = "dynrTrans",
            paramnum = "character",#not sure if needed in dynrTrans
            tfun="function",
            inv.tfun="function",
-           formula.trans="list"
+           formula.trans="list",
+           formula.inv="list"
            ),
          contains = "dynrRecipe"
 )
@@ -722,6 +723,98 @@ setMethod("writeCcode", "dynrTrans",
           }
 )
 
+setGeneric("createRfun", function(object,param.data, show=TRUE) { 
+  return(standardGeneric("createRfun")) 
+})
+setMethod("createRfun", "dynrTrans",
+          function(object,param.data){
+            #inv.tfun
+            if (length(object@formula.inv)==0){
+              #TODO when formula.inv is not specified, use automatic inverse functions
+              #inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
+              #eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}")) 
+            }else{
+              fml.str=formula2string(object@formula.inv)
+              lhs=fml.str$lhs
+              rhs=fml.str$rhs
+              sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
+              f.string<-"inv.tf<-function(vec){"
+              for (j in 1:length(rhs)){
+                #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
+                for (i in 1:length(lhs)){
+                  rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+                }
+                eq=paste0(sub[j],"=",rhs[j])
+                f.string<-paste(f.string,eq,sep="\t\n")
+              }
+              f.string<-paste0(f.string,"\t\nreturn(vec)}")
+              eval(parse(text=f.string))            
+            }
+            
+            fml.str=formula2string(object@formula.trans)
+            lhs=fml.str$lhs
+            rhs=fml.str$rhs
+            sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
+            f.string<-"tf<-function(vec){"
+            for (j in 1:length(rhs)){
+              #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
+              for (i in 1:length(lhs)){
+                rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+              }
+              eq=paste0(sub[j],"=",rhs[j])
+              f.string<-paste(f.string,eq,sep="\t\n")
+            }
+            f.string<-paste0(f.string,"\t\nreturn(vec)}")
+            eval(parse(text=f.string))            
+            
+            object@tfun <- tf
+            object@inv.tfun <- inv.tf
+            return(object)
+          }
+)
+
+vec2mat<-function(vectr,dimension){
+  n.vec=length(vectr)
+  if (n.vec==dimension){
+    #diagonal
+    mat=diag(vectr)
+  }else if (dimension==sqrt(2*n.vec+.25) - .5){
+    #symmetric
+    mat=matrix(0,dimension,dimension)
+    diag(mat)<-vectr[1:dimension]
+    for (i in 1:(dimension-1)){
+      for (j in (i+1):dimension){
+        mat[i,j]<-vectr[i+j+dimension-2]
+        mat[j,i]<-vectr[i+j+dimension-2]
+      }
+    }
+  }else{
+    cat('Length of the vector does not match the matrix dimension!\n')
+  }	
+  return(mat)	
+}
+
+#transldl function for caluaclating the LDL values
+transldl <- function(mat){
+  L <- mat
+  diag(L)<-1
+  L[upper.tri(L)]<-0
+  D<- diag(exp(diag(mat)))
+  # final caluclation
+  outldl <- L %*% D %*% t(L)
+  return(outldl)
+}
+
+reverseldl<-function(values){
+  if (dim(values)[1]==1){
+    return(log(values))
+  }else{
+    mat<-KFAS::ldl(values)
+    diag(mat)<-log(diag(mat))
+    return(mat)
+  }
+}
+
 #------------------------------------------------------------------------------
 # Some usefull helper functions
 #
@@ -912,16 +1005,6 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 #prep.noise(values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
 #	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 
-
-reverseldl<-function(values){
-  if (dim(values)[1]==1){
-    return(log(values))
-  }else{
-    mat<-KFAS::ldl(values)
-    diag(mat)<-log(diag(mat))
-    return(mat)
-  }
-}
 
 replaceDiagZero <- function(x){
 	diag(x)[diag(x) == 0] <- 1e-6
@@ -1230,40 +1313,14 @@ prep.tfun<-function(formula.trans,formula.inv){
     x<-list()
   }else{
     if (missing(formula.inv)){
-      #TODO when formula.inv is not specified, use automatic inverse functions
-      inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
-      eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}")) 
+      x <- list(formula.trans=formula.trans)
     }else{
-      fml.str=formula2string(formula.inv)
-      lhs=fml.str$lhs
-      rhs=fml.str$rhs
-      sub=paste0("namedvec[\"",lhs,"\"]")
-      f.string<-"inv.tf<-function(namedvec){return(c("
-      for (i in 1:length(lhs)){
-        #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
-        if (i!=1){f.string<-paste0(f.string,",")}
-        f.string<-paste0(f.string,lhs[i],"=",gsub(lhs[i],sub[i],rhs[i]))
-      }
-      f.string<-paste0(f.string,"))}")
-      eval(parse(text=f.string))
+      x <- list(formula.trans=formula.trans, formula.inv=formula.inv)
     }
-    fml.str=formula2string(formula.trans)
-    lhs=fml.str$lhs
-    rhs=fml.str$rhs
-    sub=paste0("namedvec[\"",lhs,"\"]")
-    f.string<-"tf<-function(namedvec){return(c("
-    for (i in 1:length(lhs)){
-      #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
-      if (i!=1){f.string<-paste0(f.string,",")}
-      f.string<-paste0(f.string,lhs[i],"=",gsub(lhs[i],sub[i],rhs[i]))
-    }
-    f.string<-paste0(f.string,"))}")
-    eval(parse(text=f.string))
-    x <- list(tfun=tf,inv.tfun=inv.tf,formula.trans=formula.trans)
-  }
-  
   return(new("dynrTrans", x))
+  }
 }
+
 formula2string<-function(formula.list){
   tuple=lapply(formula.list,as.list)
   lhs=sapply(tuple,function(x){paste0(deparse(x[[2]],width.cutoff = 500L),collapse="")})

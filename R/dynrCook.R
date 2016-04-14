@@ -387,34 +387,3 @@ dynrExitFlags <- c(
 	'13'='Increase maxtime or change starting values.')
 
 
-vec2mat<-function(vectr,dimension){
-    n.vec=length(vectr)
-    if (n.vec==dimension){
-  	  #diagonal
-  	  mat=diag(vectr)
-    }else if (dimension==sqrt(2*n.vec+.25) - .5){
-    	  #symmetric
-  	  mat=matrix(0,dimension,dimension)
-  	  diag(mat)<-vectr[1:dimension]
-  	  for (i in 1:(dimension-1)){
-  		  for (j in (i+1):dimension){
-  		  	mat[i,j]<-vectr[i+j+dimension-2]
-  			mat[j,i]<-vectr[i+j+dimension-2]
-  		  }
-  	  }
-    }else{
-  	  cat('Length of the vector does not match the matrix dimension!\n')
-    }	
-	return(mat)	
-}
-
-#transldl function for caluaclating the LDL values
-transldl <- function(mat){
-  L <- mat
-  diag(L)<-1
-  L[upper.tri(L)]<-0
-  D<- diag(exp(diag(mat)))
-  # final caluclation
-  outldl <- L %*% D %*% t(L)
-  return(outldl)
-}
