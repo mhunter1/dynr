@@ -41,7 +41,7 @@ setClass(Class = "dynrDynamics",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character"
+           paramnum = "character",
            isContinuousTime = "logical"
            ),
          contains = "dynrRecipe"
