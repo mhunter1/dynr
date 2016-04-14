@@ -170,7 +170,7 @@ setMethod("printex", "dynrDynamicsFormula",
 #		lx0 <- .xtableMatrix(object$values.inistate)
 #		lP0 <- .xtableMatrix(object$values.inicov)
 #		lr0 <- .xtableMatrix(object$values.regimep)
-#		return(list(initial.state=lxo, initial.covariance=lP0, initial.probability=lr0))
+		return(invisible(list(dyn=, names=)))
 		message('Sorry, mate! This part is still under development.')
 	}
 )
@@ -979,7 +979,8 @@ autojacob<-function(formula,n){
 ##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
 ##' @param ... 
 prep.nonlindynamics <- function(formula, isContinuousTime=FALSE, jacobian){
-  x <- list(formula=formula, jacobian=jacobian, isContinuosTime=isContinuousTime)
+  x <- list(formula=formula, isContinuosTime=isContinuousTime)
+  if(!missing(jacobian)){x$jacobian <- jacobian}
   return(new("dynrDynamicsFormula", x))
 }
 
