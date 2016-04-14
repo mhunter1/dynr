@@ -106,7 +106,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   
   # Figure out what the unique parameters are
   all.values <- unlist(sapply(inputs, slot, name='startval'))
-  all.params <- unlist(sapply(inputs, slot, name='paramnum'))
+  all.params <- unlist(sapply(inputs, slot, name='paramnames'))
   unique.values <- extractValues(all.values, all.params)
   unique.params <- extractParams(all.params)
   unique.numbers <- c() #allow for model with no free parameters

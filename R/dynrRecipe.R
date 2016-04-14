@@ -21,7 +21,7 @@ setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character"
+           paramnames = "character"
          )
 )
 
@@ -30,7 +30,7 @@ setClass(Class = "dynrMeasurement",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            values = "list",
            params = "list"),
          contains = "dynrRecipe"
@@ -41,7 +41,7 @@ setClass(Class = "dynrDynamics",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            isContinuousTime = "logical"
            ),
          contains = "dynrRecipe"
@@ -51,7 +51,7 @@ setClass(Class = "dynrDynamicsFormula",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            formula = "list",
            jacobian = "list",
            isContinuousTime = "logical"
@@ -63,7 +63,7 @@ setClass(Class = "dynrDynamicsMatrix",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            values.dyn = "matrix",
            params.dyn = "matrix",
            values.exo = "matrix",
@@ -78,7 +78,7 @@ setClass(Class = "dynrRegimes",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            values = "matrix",
            params = "matrix",
            covariates = "character"),
@@ -90,7 +90,7 @@ setClass(Class = "dynrInitial",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            values.inistate = "matrix",
            params.inistate = "matrix",
            values.inicov = "matrix",
@@ -107,7 +107,7 @@ setClass(Class = "dynrNoise",
          representation = representation(
            c.string =  "character",
            startval = "numeric",
-           paramnum = "character",
+           paramnames = "character",
            values.latent = "matrix",
            params.latent = "matrix",
            values.observed = "matrix",
@@ -121,7 +121,7 @@ setClass(Class = "dynrTrans",
          representation = representation(
            c.string =  "character",
            startval = "numeric",#not sure if needed in dynrTrans
-           paramnum = "character",#not sure if needed in dynrTrans
+           paramnames = "character",#not sure if needed in dynrTrans
            tfun="function",
            inv.tfun="function",
            formula.trans="list",
@@ -233,10 +233,10 @@ setGeneric("paramName2Number", function(object, names) {
 	matrix(match(params, names, nomatch=0)-1, nrow(params), ncol(params))
 }
 
-.exchangeformulaNamesAndNumbers <- function(formula, paramnum, names){
+.exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
   string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
   for (i in 1:length(parannum)){
-    string<-gsub(paramnum[i],paste0("param[",match(paramnum[i], names, nomatch=0)-1,"]"),string)
+    string<-gsub(paramnames[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"),string)
   }
   eval(parse(text=string))
 }
@@ -277,8 +277,8 @@ setMethod("paramName2Number", "dynrMeasurement",
 
 setMethod("paramName2Number", "dynrDynamicsFormula",
 	function(object, names){
-	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnum, names)
-	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnum, names)
+	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnames, names)
+	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnames, names)
 		return(object)
 	}
 )
@@ -320,7 +320,7 @@ setMethod("paramName2Number", "dynrNoise",
 
 setMethod("paramName2Number", "dynrTrans",
   function(object, names){
-    object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnum, names)
+    object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnames, names)
     return(object)
   }
 )
@@ -875,14 +875,14 @@ preProcessParams <- function(x){
 		numCol <- ncol(x)
 	}
 	x <- tolower(c(x))
-	sel <- pmatch(x, "fixed", duplicates.ok=TRUE)
-	x[sel %in% 1] <- "0"
+	sel <- x %in% c("0", "fix", "fixed")
+	x[sel] <- "fixed"
 	x <- matrix(as.character(x), numRow, numCol)
 	return(x)
 }
 
 extractWhichParams <- function(p){
-	p!="0" & !duplicated(p, MARGIN=0)
+	p!="fixed" & !duplicated(p, MARGIN=0)
 }
 
 extractParams <- function(p){
@@ -991,7 +991,7 @@ prep.measurement <- function(values, params){
 	}
 	values <- lapply(values, preProcessValues)
 	params <- lapply(params, preProcessParams)
-	return(new("dynrMeasurement", list(startval=extractValues(values, params), paramnum=extractParams(params), values=values, params=params)))
+	return(new("dynrMeasurement", list(startval=extractValues(values, params), paramnames=extractParams(params), values=values, params=params)))
 }
 
 
@@ -1027,7 +1027,7 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-	x <- list(startval=sv, paramnum=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
+	x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
 	return(new("dynrNoise", x))
 }
 
@@ -1097,7 +1097,7 @@ prep.regimes <- function(values, params, covariates){
 	}
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
-	x <- list(startval=sv, paramnum=pn, values=values, params=params)
+	x <- list(startval=sv, paramnames=pn, values=values, params=params)
 	return(new("dynrRegimes", x))
 }
 
@@ -1143,9 +1143,9 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
   if(is.null(names(startval))){
     stop('startval must be a named vector')
   }
-  x <- list(formula=formula, startval=startval, paramnum=names(startval), isContinuousTime=isContinuousTime)
+  x <- list(formula=formula, startval=startval, paramnames=names(startval), isContinuousTime=isContinuousTime)
   if(!missing(jacobian)){x$jacobian <- jacobian}
-  x$paramnum<-names(x$startval)
+  x$paramnames<-names(x$startval)
   return(new("dynrDynamicsFormula", x))
 }
 
@@ -1181,7 +1181,7 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 
-	x <- list(startval=sv, paramnum=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
+	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
 	return(new("dynrDynamicsMatrix", x))
 }
 
@@ -1326,7 +1326,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-	x <- list(startval=sv, paramnum=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
 	return(new("dynrInitial", x))
 }
 
