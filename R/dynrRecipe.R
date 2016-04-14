@@ -94,6 +94,7 @@ setClass(Class = "dynrInitial",
            values.inistate = "matrix",
            params.inistate = "matrix",
            values.inicov = "matrix",
+           values.inicov.inv.ldl = "matrix",
            params.inicov = "matrix",
            values.regimep = "matrix",
            params.regimep = "matrix"),
@@ -110,7 +111,9 @@ setClass(Class = "dynrNoise",
            values.latent = "matrix",
            params.latent = "matrix",
            values.observed = "matrix",
-           params.observed = "matrix"),
+           params.observed = "matrix",
+           values.latent.inv.ldl = "matrix",
+           values.observed.inv.ldl = "matrix"),#TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
          contains = "dynrRecipe"
 )
 
@@ -676,6 +679,8 @@ setMethod("writeCcode", "dynrInitial",
 		values.inicov <- reverseldl(values.inicov)
 		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\n")
 		ret <- paste(ret, "\t}\n}\n")
+		
+		object@values.inicov.inv.ldl<-values.inicov
 		object@c.string <- ret
 		return(object)
 	}
@@ -695,6 +700,8 @@ setMethod("writeCcode", "dynrNoise",
 		ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 		ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 		ret <- paste(ret, "\n}\n\n")
+		object@values.latent.inv.ldl <- values.latent
+		object@values.observed.inv.ldl <- values.observed
 		object@c.string <- ret
 		return(object)
 	}
