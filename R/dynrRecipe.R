@@ -244,11 +244,37 @@ setMethod("paramName2Number", "dynrMeasurement",
 	}
 )
 
+.exchangeNamesInFormula <- function(formula, names){
+	sall <- formula2string(formula)
+	sr <- sall$rhs
+	for(i in 1:length(sr)){
+		for(j in 1:length(names)){
+			pat <- paste0('\\<', names[j], '\\>')
+			sr[i] <- gsub(pat, paste0('param[', j, ']'), sr[i])
+		}
+		formula[[i]] <- as.formula(paste(sall$lhs[i], '~', sr[i]))
+	}
+	return(formula)
+}
+
+# Example
+## dynamics
+#formula=list(
+#  list(x1~a*x1,
+#       x2~b*x2),
+#  list(x1~a*x1+e*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+#       x2~b*x2+f*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
+#)
+#paramnames <- c('a', 'b', 'e', 'f')
+
+#.exchangeNamesInFormula(formula[[1]], paramnames)
+#lapply(formula, .exchangeNamesInFormula, names=paramnames)
+
 
 setMethod("paramName2Number", "dynrDynamicsFormula",
 	function(object, names){
-		# SOMETHING
-		message('Sorry, mate! This part is still under development.')
+		object@formula <- lapply(object$formula, .exchangeNamesInFormula, names=names)
+		object@jacobian <- lapply(object$jacobian, .exchangeNamesInFormula, names=names)
 		return(object)
 	}
 )
@@ -987,7 +1013,10 @@ autojacob<-function(formula,n){
 ##' @param ... 
 
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
-  x <- list(formula=formula, startval=startval, isContinuousTime=isContinuousTime)
+  if(is.null(names(startval))){
+    stop('startval must be a named vector')
+  }
+  x <- list(formula=formula, startval=startval, paramnum=names(startval), isContinuousTime=isContinuousTime)
   if(!missing(jacobian)){x$jacobian <- jacobian}
   return(new("dynrDynamicsFormula", x))
 }

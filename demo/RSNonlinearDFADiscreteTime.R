@@ -50,21 +50,21 @@ mdcov <- prep.noise(
 
 # dynamics
 formula=list(
-  list(x1~param[6]*x1,
-       x2~param[7]*x2),
-  list(x1~param[6]*x1+param[8]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
-       x2~param[7]*x2+param[9]*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
+  list(x1~param6*x1,
+       x2~param7*x2),
+  list(x1~param6*x1+param8*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+       x2~param7*x2+param9*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
 )
 
 jacob=list(
-  list(x1~x1~param[6],
-       x2~x2~param[7]),
-  list(x1~x1~param[6],
-       x1~x2~param[8]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
-       x2~x2~param[7],
-       x2~x1~param[9]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
+  list(x1~x1~param6,
+       x2~x2~param7),
+  list(x1~x1~param6,
+       x1~x2~param8*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
+       x2~x2~param7,
+       x2~x1~param9*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
 
-dynm<-prep.formulaDynamics(formula=formula,startval=c(.3,.4,-.5,-.5),isContinuousTime=FALSE,jacobian=jacob)
+dynm<-prep.formulaDynamics(formula=formula,startval=c(param6=.3, param7=.4, param8=-.5, param9=-.5),isContinuousTime=FALSE,jacobian=jacob)
 #cat(writeCcode(dynm)$c.string)
 
 #------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ tfun <- function(x){c(x[1:4],
                       exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
                       x[7:10],
                       exp(x[11:18]))}
-res <- dynr.cook(model=model, data=data,transformation=tfun,debug_flag=FALSE)
+res <- dynr.cook(model, data=data,transformation=tfun,debug_flag=FALSE)
 
 # Examine results
 summary(res)
