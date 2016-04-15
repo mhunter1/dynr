@@ -11,6 +11,7 @@
 #3. prep.matrixDynamics should be allowed to be regime-dependent
 #4. prep.tfun then cat(writeCcode(trans)$c.string) generated error
 #   "Error in .local(object) : object 'formula.trans' not found"
+#   though formula.trans is there as a list
 #5. Get rid of tfun - still need to do trans to tfun conversion
 #6. Remove "transformation" from dynr.cook
 
@@ -119,7 +120,7 @@ summary(res)
 
 #True values should be
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
-# -4, 8.5, -1, 1,-2, -1)
+# -4, 4.5, -1, 1,-2, -1)
 
 
 summary(res)
@@ -127,8 +128,6 @@ summary(res)
 
 #dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 
-# Examine results
-summary(res)
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
