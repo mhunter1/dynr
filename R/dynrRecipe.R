@@ -156,7 +156,7 @@ setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) 
 
 setMethod("printex", "dynrMeasurement",
 	function(object, observed, latent, covariates, show=TRUE){
-		lC <- .xtableMatrix(object$values, show)
+		lC <- lapply(object$values, .xtableMatrix, show=show)
 		return(invisible(list(measurement=lC)))
 	}
 )
