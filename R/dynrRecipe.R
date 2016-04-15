@@ -125,7 +125,8 @@ setClass(Class = "dynrTrans",
            tfun="function",
            inv.tfun="function",
            formula.trans="list",
-           formula.inv="list"
+           formula.inv="list",
+           transCcode="logical"
            ),
          contains = "dynrRecipe"
 )
@@ -694,6 +695,12 @@ setMethod("writeCcode", "dynrInitial",
 		
 		object@values.inicov.inv.ldl<-values.inicov
 		object@c.string <- ret
+		
+		sv <- c(extractValues(values.inistate, params.inistate), extractValues(object@values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
+		pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
+		sv <- extractValues(sv, pn)
+		#pn <- extractParams(pn)
+		object@startval <- sv
 		return(object)
 	}
 )
@@ -715,6 +722,12 @@ setMethod("writeCcode", "dynrNoise",
 		object@values.latent.inv.ldl <- values.latent
 		object@values.observed.inv.ldl <- values.observed
 		object@c.string <- ret
+		
+		sv <- c(extractValues(object@values.latent.inv.ldl, params.latent), extractValues(object@values.observed.inv.ldl, params.observed))
+		pn <- c(extractParams(params.latent), extractParams(params.observed))
+		sv <- extractValues(sv, pn)
+		#pn <- extractParams(pn)
+		object@startval<-sv
 		return(object)
 	}
 )
@@ -725,7 +738,7 @@ setMethod("writeCcode", "dynrTrans",
             ret="/**\n * This function modifies some of the parameters so that it satisfies the model constraint.\n * Do not include parameters in noise_cov matrices \n */\nvoid function_transform(double *param){"
             
             n=length(object@formula.trans)
-            if (n>0){
+            if ((n>0)&(object@transCcode)){
               formula.trans=object@formula.trans
               fml=processFormula(formula.trans)
               lhs=lapply(fml,function(x){x[1]})
@@ -768,28 +781,30 @@ setMethod("createRfun", "dynrTrans",
                 f.string<-paste(f.string,eq,sep="\t\n")
               }
               f.string<-paste0(f.string,"\t\nreturn(vec)}")
-              eval(parse(text=f.string))            
+              eval(parse(text=f.string)) 
+              
+              object@inv.tfun <- inv.tf
             }
-            
-            fml.str=formula2string(object@formula.trans)
-            lhs=fml.str$lhs
-            rhs=fml.str$rhs
-            sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
-            f.string<-"tf<-function(vec){"
-            for (j in 1:length(rhs)){
-              #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
-              for (i in 1:length(lhs)){
-                rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+            if (length(object@formula.trans)>0){
+              fml.str=formula2string(object@formula.trans)
+              lhs=fml.str$lhs
+              rhs=fml.str$rhs
+              sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
+              f.string<-"tf<-function(vec){"
+              for (j in 1:length(rhs)){
+                #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
+                for (i in 1:length(lhs)){
+                  rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+                }
+                eq=paste0(sub[j],"=",rhs[j])
+                f.string<-paste(f.string,eq,sep="\t\n")
               }
-              eq=paste0(sub[j],"=",rhs[j])
-              f.string<-paste(f.string,eq,sep="\t\n")
+              f.string<-paste0(f.string,"\t\nreturn(vec)}")
+              eval(parse(text=f.string))   
+              object@tfun <- tf
             }
-            f.string<-paste0(f.string,"\t\nreturn(vec)}")
-            eval(parse(text=f.string))            
-            
 			      object@paramnames<-lhs
-            object@tfun <- tf
-            object@inv.tfun <- inv.tf
+            
             return(object)
           }
 )
@@ -815,6 +830,25 @@ vec2mat<-function(vectr,dimension){
   return(mat)	
 }
 
+mat2vec<-function(mat,n.vec){
+  dimension=dim(mat)[1]
+  vec=numeric(n.vec)
+  if (n.vec==dimension){
+    #diagonal
+    vec=diag(mat)
+  }else if (dimension==sqrt(2*n.vec+.25) - .5){
+    #symmetric
+    vec[1:dimension]<-diag(mat)
+    for (i in 1:(dimension-1)){
+      for (j in (i+1):dimension){
+        vec[i+j+dimension-2]<-mat[i,j]
+      }
+    }
+  }else{
+    cat('Length of the vector does not match the matrix dimension!\n')
+  }	
+  return(vec)	
+}
 #transldl function for caluaclating the LDL values
 transldl <- function(mat){
   L <- mat
@@ -887,7 +921,7 @@ preProcessParams <- function(x){
 }
 
 extractWhichParams <- function(p){
-	p!="fixed" & !duplicated(p, MARGIN=0)
+	p!="fixed" & !duplicated(p, MARGIN=0) & (p!=-1)
 }
 
 extractParams <- function(p){
@@ -1340,17 +1374,19 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 ##' 
 ##' @param formula.trans a list of formulae that transform free parameters in the model that are not in the covariance structures
 ##' @param formula.inv a list of formulae that inverse the transformation on the free parameters. If formula.inv is missing, point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
-prep.tfun<-function(formula.trans,formula.inv){
+prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))
-  if (missing(formula.trans)){
+  if (missing(formula.trans)&missing(formula.inv)){
     #TODO modify this part if needed
-    x<-list()
+    x<-list(transCcode = FALSE)
   }else{
     if (missing(formula.inv)){
-      x <- list(formula.trans=formula.trans)
+      x <- list(formula.trans=formula.trans, transCcode = transCcode)
+    }else if (missing(formula.trans)){
+      x <- list(formula.inv=formula.inv, transCcode = FALSE)
     }else{
-      x <- list(formula.trans=formula.trans, formula.inv=formula.inv)
+      x <- list(formula.trans=formula.trans, formula.inv=formula.inv, transCcode = transCcode)
     }
   }
   return(new("dynrTrans", x))

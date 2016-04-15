@@ -35,8 +35,8 @@ initial <- prep.initial(
 
 # Regime-switching function
 regimes <- prep.regimes(
-	values=matrix(c(log(.9/(1-.9)), 0, 0, log(.9/(1-.9))), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-	params=matrix(c("invp11", 0, 0, "invp22"), 2, 2))
+	values=matrix(c(.9, 0, 0, .9), 2, 2), #nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+	params=matrix(c("p11", 0, 0, "p22"), 2, 2))
 # Self-transition (diagonals) are estimated
 # Off-diagonal elements are fixed by the softmax scaling
 
@@ -67,14 +67,14 @@ jacob=list(
 dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
 #cat(writeCcode(dynm)$c.string)
 
-#trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+exp(p22))),formula.inv=list(p11~log(p11/(1-p11)),p22~log(p22/(1-p22))))
+trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+exp(p22))), formula.inv=list(p11~log(p11/(1-p11)),p22~log(p22/(1-p22))), transCcode=FALSE)
 #cat(writeCcode(trans)$c.string)
 #------------------------------------------------------------------------------
 # Cooking materials
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, outfile="RSNonlinearDFA")
+model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA")
 # View specified model in latex
 printex(model)
 

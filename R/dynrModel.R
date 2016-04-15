@@ -105,28 +105,33 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
   # Figure out what the unique parameters are
-  all.values <- unlist(sapply(inputs, slot, name='startval'))
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))
-  unique.values <- extractValues(all.values, all.params)
   unique.params <- extractParams(all.params)
   unique.numbers <- c() #allow for model with no free parameters
   if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
   
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
-  param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values,stringsAsFactors=FALSE)
+  param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
   
-  # populate transform slots
-  if(any(sapply(inputs, class) %in% 'dynrTrans')){
-    inputs$transform<-createRfun(inputs$transform,param.data)
-  }
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
+  # populate transform slots
+  if(any(sapply(inputs, class) %in% 'dynrTrans')){
+    inputs$transform<-createRfun(inputs$transform,param.data)#paramnum gets populated, which is needed for paramName2Number
+  }
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
   # writeCcode on each recipe
-  inputs <- sapply(inputs, writeCcode)
+  inputs <- sapply(inputs, writeCcode)#reverseldl is applied when writeCcode is called. 
+  all.values <- unlist(sapply(inputs, slot, name='startval'))
+  unique.values <- extractValues(all.values, all.params)
+  
+  if(any(sapply(inputs, class) %in% 'dynrTrans')){
+    unique.values<-inputs$transform$inv.tfun(unique.values)
+  }
+  param.data$param.value=unique.values
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
