@@ -14,6 +14,7 @@
 #   though formula.trans is there as a list
 #5. Get rid of tfun - still need to do trans to tfun conversion
 #6. Remove "transformation" from dynr.cook
+#7. Can we set params = NULL as the default?
 
 rm(list=ls(all=TRUE))
 require(dynr)
