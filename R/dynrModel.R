@@ -100,10 +100,10 @@ setMethod("printex", "dynrModel",
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
 
-dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile="./demo/cooked"){
+dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile="/cooked"){
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
-  
+
   # Figure out what the unique parameters are
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))
@@ -115,6 +115,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values,stringsAsFactors=FALSE)
   
+  # populate transform slots
+  if(any(sapply(inputs, class) %in% 'dynrTrans')){
+    inputs$transform<-createRfun(inputs$transform,param.data)
+  }
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
@@ -142,7 +146,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
   }
   glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
-  cat(glom, file=obj.dynrModel@infile)
+  cat(glom, file=obj.dynrModel@outfile)
   
   return(obj.dynrModel)
   #modify the object slot, including starting values, etc.

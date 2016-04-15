@@ -237,7 +237,7 @@ setGeneric("paramName2Number", function(object, names) {
   string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
   pattern=gsub("\\{","\\\\\\{",paramnames)
   pattern=gsub("\\}","\\\\\\}",pattern)
-  print(pattern[1])
+
   for (i in 1:length(paramnames)){
 	
     string<-gsub(pattern[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
@@ -742,9 +742,10 @@ setMethod("writeCcode", "dynrTrans",
           }
 )
 
-setGeneric("createRfun", function(object,param.data, show=TRUE) { 
+setGeneric("createRfun", function(object, param.data, show=TRUE) { 
   return(standardGeneric("createRfun")) 
 })
+
 setMethod("createRfun", "dynrTrans",
           function(object,param.data){
             #inv.tfun
@@ -786,6 +787,7 @@ setMethod("createRfun", "dynrTrans",
             f.string<-paste0(f.string,"\t\nreturn(vec)}")
             eval(parse(text=f.string))            
             
+			      object@paramnames<-lhs
             object@tfun <- tf
             object@inv.tfun <- inv.tf
             return(object)
@@ -1371,7 +1373,7 @@ setMethod("writeCcode", "dynrTrans",
               return(object)
             }
             
-            n=length(formula.trans)
+            n=length(object$formula.trans)
             if (n>0){
               formula.trans=object$formula.trans
               fml=processFormula(formula.trans)
