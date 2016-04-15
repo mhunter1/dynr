@@ -5,7 +5,7 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), verbose=TRUE,isContinuousTime, infile, outfile=tempfile(),compileLib){
+dynr.funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
 
   #-------Set some variables: This function may later be extended----------
   language="C"
@@ -14,17 +14,7 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
   libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
   if (compileLib|(!file.exists(libLFile))){#when the compileLib flag is TRUE or when the libLFile does not exist
     #-------Check the input arguments----------------------------
-    if(missing(infile)){
-      #if(missing(func_noise_cov)){
-      #  stop("The function of the noise covariance matrix is missing")
-      #}
-      #-------Generate the code-----------  
-      code<-""#paste("#include <R.h>\n#include <Rdefines.h>\n","#include <R_ext/Error.h>\n", sep="")
-      code<-paste(c(code,includes, ""), collapse="\n")
-      code<-paste(c(code,func_noise_cov, ""), collapse="\n")
-    }else{
-      code<-readLines(infile)
-    }
+    code<-readLines(infile)
     # ---- Write and compile the code ----
     
     #filename<- basename(tempfile())
@@ -38,8 +28,9 @@ dynr.funcaddress<-function(includes=character(), func_noise_cov=character(), ver
   }
   
   #-----dynamically load the library-------
-  DLL <- dyn.load( libLFile )  
-  if (isContinuousTime==TRUE){
+  DLL <- dyn.load( libLFile )
+  print(isContinuousTime)
+  if (isContinuousTime){
   res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
            f_dx_dt=getNativeSymbolInfo("function_dx_dt", DLL)$address,
            f_dF_dx=getNativeSymbolInfo("function_dF_dx", DLL)$address,

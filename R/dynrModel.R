@@ -21,7 +21,7 @@ setClass(Class =  "dynrModel",
            options="list",
            param.names="character"
          ),
-         prototype(
+         prototype = prototype(
            num_regime=as.integer(1),
            verbose=TRUE,
            compileLib=TRUE,
@@ -100,7 +100,7 @@ setMethod("printex", "dynrModel",
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
 
-dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile="/cooked"){
+dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile){
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
@@ -113,12 +113,19 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
   
+  param.data$ldl.latent<-param.data$param.name%in%extractParams(inputs$noise$params.latent)
+  param.data$ldl.observed<-param.data$param.name%in%extractParams(inputs$noise$params.observed)
+  param.data$ldl.inicov<-param.data$param.name%in%extractParams(inputs$initial$params.inicov)
+  
+  dim.observed<-dim(inputs$noise$params.observed)[1]
+  dim.latent<-dim(inputs$noise$params.latent)[1]
+  dim.inicov<-dim(inputs$initial$params.inicov)[1]
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
   if(any(sapply(inputs, class) %in% 'dynrTrans')){
-    inputs$transform<-createRfun(inputs$transform,param.data)#paramnum gets populated, which is needed for paramName2Number
+    inputs$transform<-createRfun(inputs$transform,param.data,dim.observed=dim.observed,dim.latent=dim.latent, dim.inicov=dim.inicov)#paramnum gets populated, which is needed for paramName2Number
   }
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
@@ -135,11 +142,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-  obj.dynrModel@dim_latent_var <- dim(obj.dynrModel@measurement@values[[1]])[2] #TODO check that all values have the same dimensions?
+  obj.dynrModel@dim_latent_var <- dim.latent
   
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))
   obj.dynrModel@lb<-rep(9999,length(obj.dynrModel@xstart))
+  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
+    obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
+  }
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
   includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
@@ -150,7 +160,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
   }
-  glom <- paste(includes, body, prep.dP_dt, .cfunctions, sep="\n\n")
+  glom <- paste(includes, .cfunctions, body, sep="\n\n")
+  if (obj.dynrModel@dynamics@isContinuousTime){
+    glom <- paste(glom, prep.dP_dt, sep="\n\n")
+  }
   cat(glom, file=obj.dynrModel@outfile)
   
   return(obj.dynrModel)

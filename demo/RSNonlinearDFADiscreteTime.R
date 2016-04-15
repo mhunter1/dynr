@@ -28,7 +28,7 @@ initial <- prep.initial(
 	values.inistate=c(0, 0),
 	params.inistate=c("fixed", "fixed"),
 	values.inicov=diag(1, 2), 
-	params.inicov=diag("P_0", 2),
+	params.inicov=diag("fixed", 2),
 	values.regimep=c(.8824, 1-.8824),
 	params.regimep=c("fixed", "fixed")
 )
@@ -74,7 +74,7 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA")
+model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA.c")
 # View specified model in latex
 printex(model)
 
@@ -95,11 +95,7 @@ data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)
 
 
 # Estimate free parameters
-tfun <- function(x){c(x[1:4],
-                      exp(x[5])/(1+exp(x[5])), exp(x[6])/(1+exp(x[6])),
-                      x[7:10],
-                      exp(x[11:18]))}
-res <- dynr.cook(model, data=data,transformation=tfun,debug_flag=FALSE)
+res <- dynr.cook(model, data=data, debug_flag=FALSE)
 
 # Examine results
 summary(res)

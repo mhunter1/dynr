@@ -217,12 +217,10 @@ logLik.dynrCook <- function(object, ...){
 
 #------------------------------------------------------------------------------
 
-
-dynr.cook <- function(dynrModel, data, transformation, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
+dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
 	frontendStart <- Sys.time()
-	if(missing(transformation)){
-		transformation <- function(x){x}
-	}
+	transformation=dynrModel@transform@tfun
+
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
 	  num_regime=dynrModel@num_regime,

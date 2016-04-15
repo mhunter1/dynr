@@ -128,7 +128,10 @@ setClass(Class = "dynrTrans",
            formula.inv="list",
            transCcode="logical"
            ),
-         contains = "dynrRecipe"
+         contains = "dynrRecipe",
+         prototype = prototype(
+           tfun=function(x){x}
+         )
 )
 
 setMethod("initialize", "dynrRecipe",
@@ -671,7 +674,11 @@ setMethod("writeCcode", "dynrInitial",
 		params.regimep <- object$params.regimep
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
 		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
-		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i,j;\n\tfor(j=0;j<num_regime;j++){")
+		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
+		if (sum(values.inistate!=0)!=0){
+		  ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
+		}
+		ret <- paste0(ret,"\n\tsize_t j;\n\tfor(j=0;j<num_regime;j++){")
 		if (sum(values.inistate!=0)!=0){
 		  ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
 		  for(i in 1:length(values.inistate)){
@@ -736,31 +743,33 @@ setMethod("writeCcode", "dynrTrans",
           function(object){
             #function_transform
             ret="/**\n * This function modifies some of the parameters so that it satisfies the model constraint.\n * Do not include parameters in noise_cov matrices \n */\nvoid function_transform(double *param){"
-            
-            n=length(object@formula.trans)
-            if ((n>0)&(object@transCcode)){
-              formula.trans=object@formula.trans
+            n=length(object$formula.trans)
+            if(n == 0){
+              object@c.string <- paste0(ret, "\n}\n\n")
+              return(object)
+            }else if (object@transCcode){
+              formula.trans=object$formula.trans
               fml=processFormula(formula.trans)
               lhs=lapply(fml,function(x){x[1]})
               rhs=lapply(fml,function(x){x[2]})
               
               for (i in 1:n){
-                ret=paste(ret,paste0(lhs[i],"=",rhs[i]),sep="\n\t") 
+                ret=paste(ret,paste0(lhs[i],"=",rhs[i],";"),sep="\n\t") 
               }
             }
             
-            ret=paste0(ret,"\n\t}\n")              
+            ret=paste0(ret,"\n\t}\n")
             object@c.string <- ret
             return(object)
           }
 )
 
-setGeneric("createRfun", function(object, param.data, show=TRUE) { 
+setGeneric("createRfun", function(object, param.data, dim.observed, dim.latent, dim.inicov, show=TRUE) { 
   return(standardGeneric("createRfun")) 
 })
 
 setMethod("createRfun", "dynrTrans",
-          function(object,param.data){
+          function(object, param.data, dim.observed, dim.latent, dim.inicov){
             #inv.tfun
             if (length(object@formula.inv)==0){
               #TODO when formula.inv is not specified, use automatic inverse functions
@@ -799,6 +808,13 @@ setMethod("createRfun", "dynrTrans",
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\t\n")
               }
+              #observed
+              f.string<-paste(f.string,makeldlchar.observed(param.data,dim.observed),sep="\t\n")
+              #latent
+              f.string<-paste(f.string,makeldlchar.latent(param.data,dim.latent),sep="\t\n")
+              #inicov
+              f.string<-paste(f.string,makeldlchar.inicov(param.data,dim.inicov),sep="\t\n")
+              
               f.string<-paste0(f.string,"\t\nreturn(vec)}")
               eval(parse(text=f.string))   
               object@tfun <- tf
@@ -808,6 +824,23 @@ setMethod("createRfun", "dynrTrans",
             return(object)
           }
 )
+makeldlchar.latent<-function(param.data,dim){
+  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.latent]),collapse=","),")"),"]")
+  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.latent),")")
+  return(char)
+}
+
+makeldlchar.observed<-function(param.data,dim){
+  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.observed]),collapse=","),")"),"]")
+  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.observed),")")
+  return(char)
+}
+
+makeldlchar.inicov<-function(param.data,dim){
+  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.inicov]),collapse=","),")"),"]")
+  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.inicov),")")
+  return(char)
+}
 
 vec2mat<-function(vectr,dimension){
   n.vec=length(vectr)
@@ -1398,34 +1431,6 @@ formula2string<-function(formula.list){
   rhs=sapply(tuple,function(x){paste0(deparse(x[[3]],width.cutoff = 500L),collapse="")})
   return(list(lhs=lhs,rhs=rhs))
 }
-
-
-setMethod("writeCcode", "dynrTrans",
-          function(object){
-            #function_transform
-            ret="/**\n * This function modifies some of the parameters so that it satisfies the model constraint.\n * Do not include parameters in noise_cov matrices \n */\nvoid function_transform(double *param){"
-            if(length(object$formula.trans) == 0){
-              object@c.string <- paste0(ret, "\n}\n\n")
-              return(object)
-            }
-            
-            n=length(object$formula.trans)
-            if (n>0){
-              formula.trans=object$formula.trans
-              fml=processFormula(formula.trans)
-              lhs=lapply(fml,function(x){x[1]})
-              rhs=lapply(fml,function(x){x[2]})
-              
-              for (i in 1:n){
-                ret=paste(ret,paste0(lhs[i],"=",rhs[i]),sep="\n\t") 
-              }
-            }
-            
-            ret=paste0(ret,"\n\t}\n")
-            object@c.string <- ret
-            return(object)
-          }
-)
 
 #------------------------------------------------------------------------------
 prep.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
