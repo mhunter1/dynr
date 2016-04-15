@@ -113,7 +113,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
   
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
-  param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values)
+  param.data <- data.frame(param.number=unique.numbers, param.name=unique.params, param.value=unique.values,stringsAsFactors=FALSE)
   
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   

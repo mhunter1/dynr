@@ -235,8 +235,12 @@ setGeneric("paramName2Number", function(object, names) {
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
   string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-  for (i in 1:length(parannum)){
-    string<-gsub(paramnames[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"),string)
+  pattern=gsub("\\{","\\\\\\{",paramnames)
+  pattern=gsub("\\}","\\\\\\}",pattern)
+  print(pattern[1])
+  for (i in 1:length(paramnames)){
+	
+    string<-gsub(pattern[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
   }
   eval(parse(text=string))
 }
@@ -324,7 +328,6 @@ setMethod("paramName2Number", "dynrTrans",
     return(object)
   }
 )
-
 
 
 #------------------------------------------------------------------------------
