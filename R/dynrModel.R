@@ -124,8 +124,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   if(any(sapply(inputs, class) %in% 'dynrTrans')){
     inputs$transform<-createRfun(inputs$transform, param.data, 
                                  params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
-                                 values.observed=inputs$noise$values.observed, values.latent=inputs$noise$values.latent, values.inicov=inputs$initial$values.inicov)
+                                 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl)
     #at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
+  }else{
+    inputs$transform<-createRfun(prep.tfun(), param.data, 
+                                 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
+                                 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl)
   }
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
@@ -135,7 +139,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
-  if(any(sapply(inputs, class) %in% 'dynrTrans')){
+  if(length(inputs$transform$formula.inv)>0){
     unique.values<-inputs$transform$inv.tfun(unique.values)
   }
   param.data$param.value=unique.values
@@ -157,9 +161,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
     body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
   }
-  if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
-    body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
-  }
+#   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
+#     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
+#   }
   glom <- paste(includes, .cfunctions, body, sep="\n\n")
   if (obj.dynrModel@dynamics@isContinuousTime){
     glom <- paste(glom, prep.dP_dt, sep="\n\n")
