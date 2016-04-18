@@ -238,15 +238,15 @@ setGeneric("paramName2Number", function(object, names) {
 }
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
-  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-  pattern=gsub("\\{","\\\\\\{",paramnames)
-  pattern=gsub("\\}","\\\\\\}",pattern)
-
-  for (i in 1:length(paramnames)){
-	
-    string<-gsub(pattern[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
-  }
-  eval(parse(text=string))
+    string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+    pattern=gsub("\\{","\\\\\\{",paramnames)
+    pattern=gsub("\\}","\\\\\\}",pattern)
+    
+    for (i in 1:length(paramnames)){
+      
+      string<-gsub(pattern[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
+    }
+    eval(parse(text=string))
 }
 
 setMethod("paramName2Number", "dynrMeasurement",
@@ -328,7 +328,9 @@ setMethod("paramName2Number", "dynrNoise",
 
 setMethod("paramName2Number", "dynrTrans",
   function(object, names){
-    object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnames, names)
+    if (length(object@formula.trans)>0){
+      object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnames, names)
+    }
     return(object)
   }
 )
@@ -668,7 +670,7 @@ setMethod("writeCcode", "dynrInitial",
 	function(object){
 		values.inistate <- object$values.inistate
 		params.inistate <- object$params.inistate
-		values.inicov <- object$values.inicov
+		values.inicov <- object@values.inicov.inv.ldl
 		params.inicov <- object$params.inicov
 		values.regimep <- object$values.regimep
 		params.regimep <- object$params.regimep
@@ -695,46 +697,31 @@ setMethod("writeCcode", "dynrInitial",
 		  ret <- paste0(ret,"\t\t}")
 		}
 
-		values.inicov <- replaceDiagZero(values.inicov)
-		values.inicov <- reverseldl(values.inicov)
 		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\n")
 		ret <- paste(ret, "\t}\n}\n")
 		
-		object@values.inicov.inv.ldl<-values.inicov
 		object@c.string <- ret
 		
-		sv <- c(extractValues(values.inistate, params.inistate), extractValues(object@values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
-		pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
-		sv <- extractValues(sv, pn)
-		#pn <- extractParams(pn)
-		object@startval <- sv
 		return(object)
 	}
 )
-
 
 setMethod("writeCcode", "dynrNoise",
 	function(object){
 		params.latent <- object$params.latent
 		params.observed <- object$params.observed
 		#Note: should we mutate these other slots of the object or leave them alone?
-		values.latent <- replaceDiagZero(object@values.latent)
-		values.observed <- replaceDiagZero(object@values.observed)
-		values.latent <- reverseldl(values.latent)
-		values.observed <- reverseldl(values.observed)
+		values.latent <- object@values.latent.inv.ldl
+		values.observed <- object@values.observed.inv.ldl
+		
 		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
 		ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 		ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 		ret <- paste(ret, "\n}\n\n")
-		object@values.latent.inv.ldl <- values.latent
-		object@values.observed.inv.ldl <- values.observed
+
 		object@c.string <- ret
 		
-		sv <- c(extractValues(object@values.latent.inv.ldl, params.latent), extractValues(object@values.observed.inv.ldl, params.observed))
-		pn <- c(extractParams(params.latent), extractParams(params.observed))
-		sv <- extractValues(sv, pn)
-		#pn <- extractParams(pn)
-		object@startval<-sv
+
 		return(object)
 	}
 )
@@ -796,12 +783,15 @@ setMethod("createRfun", "dynrTrans",
               
               object@inv.tfun <- inv.tf
             }
-            if (length(object@formula.trans)>0){
+            
+            f.string<-"tf<-function(vec){"
+              
+              if (length(object@formula.trans)>0){
               fml.str=formula2string(object@formula.trans)
               lhs=fml.str$lhs
               rhs=fml.str$rhs
               sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
-              f.string<-"tf<-function(vec){"
+              
               for (j in 1:length(rhs)){
                 #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
                 for (i in 1:length(lhs)){
@@ -810,24 +800,27 @@ setMethod("createRfun", "dynrTrans",
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\t\n")
               }
-              #observed
-              if (sum(param.data$ldl.observed)>0){
-                f.string<-paste(f.string, makeldlchar(param.data, "ldl.observed", values.observed, params.observed),sep="\t\n")
+              object@paramnames<-lhs
               }
-              #latent
-              if (sum(param.data$ldl.latent)>0){
-                f.string<-paste(f.string, makeldlchar(param.data, "ldl.latent", values.latent, params.latent),sep="\t\n")
-              }
-              #inicov
-              if (sum(param.data$ldl.inicov)>0){
-                f.string<-paste(f.string, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov),sep="\t\n")
-              }
-              
-              f.string<-paste0(f.string,"\t\nreturn(vec)}")
-              eval(parse(text=f.string))   
-              object@tfun <- tf
+            
+            #observed
+            if (sum(param.data$ldl.observed)>0){
+              f.string<-paste(f.string, makeldlchar(param.data, "ldl.observed", values.observed, params.observed),sep="\t\n")
             }
-			      object@paramnames<-lhs
+            #latent
+            if (sum(param.data$ldl.latent)>0){
+              f.string<-paste(f.string, makeldlchar(param.data, "ldl.latent", values.latent, params.latent),sep="\t\n")
+            }
+            #inicov
+            if (sum(param.data$ldl.inicov)>0){
+              f.string<-paste(f.string, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov),sep="\t\n")
+            }
+              
+            f.string<-paste0(f.string,"\t\nreturn(vec)}")
+            eval(parse(text=f.string))   
+            object@tfun <- tf
+              
+			      
             
             return(object)
           }
@@ -1100,11 +1093,17 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	params.latent <- preProcessParams(params.latent)
 	values.observed <- preProcessValues(values.observed)
 	params.observed <- preProcessParams(params.observed)
-	sv <- c(extractValues(values.latent, params.latent), extractValues(values.observed, params.observed))
+	
+	values.latent.inv.ldl <- replaceDiagZero(values.latent)
+	values.latent.inv.ldl <- reverseldl(values.latent.inv.ldl)
+	values.observed.inv.ldl <- replaceDiagZero(values.observed)
+	values.observed.inv.ldl <- reverseldl(values.observed.inv.ldl)
+	
+	sv <- c(extractValues(values.latent.inv.ldl, params.latent), extractValues(values.observed.inv.ldl, params.observed))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-	x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed)
+	x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed, values.latent.inv.ldl=values.latent.inv.ldl, values.observed.inv.ldl=values.observed.inv.ldl)
 	return(new("dynrNoise", x))
 }
 
@@ -1395,15 +1394,21 @@ processFormula<-function(formula.list){
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
 	values.inistate <- preProcessValues(values.inistate)
 	params.inistate <- preProcessParams(params.inistate)
+	
 	values.inicov <- preProcessValues(values.inicov)
 	params.inicov <- preProcessParams(params.inicov)
+	values.inicov.inv.ldl <- replaceDiagZero(values.inicov)
+	values.inicov.inv.ldl <- reverseldl(values.inicov.inv.ldl)
+	
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
-	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov, params.inicov), extractValues(values.regimep, params.regimep))
+	
+	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+	
+	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, values.inicov.inv.ldl=values.inicov.inv.ldl, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
 	return(new("dynrInitial", x))
 }
 
