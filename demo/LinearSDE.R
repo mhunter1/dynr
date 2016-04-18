@@ -6,13 +6,13 @@
 #  in dynr.
 #------------------------------------------------------------------------------
 
+rm(list=ls(all=TRUE))
 
 #------------------------------------------------------------------------------
 # Load packages
-
+require(dynr)
 require(mvtnorm)
 require(Matrix)
-require(dynr)
 
 #------------------------------------------------------------------------------
 # Example 2
@@ -125,11 +125,8 @@ cat(printex(model, observed="y1", latent=c("ksi", "ksiDot")))
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
 data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
-#define a transformation function for those pesky variances
-tfun <- function(x){return(c(x[1:2], exp(x[3:4]), x[5]))}
-
 # Estimate free parameters
-res <- dynr.cook(model, data, tfun)
+res <- dynr.cook(model, data)
 
 # Examine results
 summary(res)
