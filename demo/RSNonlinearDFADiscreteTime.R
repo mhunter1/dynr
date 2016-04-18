@@ -74,7 +74,7 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA.c")
+model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA")
 # View specified model in latex
 printex(model)
 
@@ -92,28 +92,14 @@ discreteNA[fullmiss, c("y1","y2","y3","y4","y5","y6")]<-NA
 head(discreteNA)
 data <- dynr.data(discreteNA, id="id", time="Time",observed=colnames(discreteNA)[c(3:8)])
 
-
-
 # Estimate free parameters
 res <- dynr.cook(model, data=data, debug_flag=FALSE)
 
 # Examine results
 summary(res)
 
-
-#plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
-
-#dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
-
-# Examine results
-summary(res)
-
-#------------------------------------------------------------------------------
-# some miscellaneous nice functions
-
 # get the estimated parameters from a cooked model/data combo
 coef(res)
-
 
 # get the log likelihood, AIC, and BIC from a cooked model/data combo
 logLik(res)
@@ -122,22 +108,15 @@ BIC(res)
 
 
 # compare true parameters to estimated ones
-truepar <- c(1.2, 1.2, 1.1, .95, 
-             log(.98/(1-.98)), log(.85/(1-.85)), 
-             .2, .25, -.6, -.8,
-             log(c(.28, .10, .12, .13, .12, .11)),
-             log(c(.35, .3)))
-#1.200000  1.200000  1.100000  0.950000  3.891820  1.734601  
-#0.200000  0.250000 -0.600000 -0.800000 
-#-1.272966 -2.302585 -2.120264-2.040221 -2.120264 -2.207275 -1.049822 -1.203973
-data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=truepar, estim=coef(res))
+truepar <- c(
+  .2, .25, -.6, -.8,
+  1.2, 1.2, 1.1, .95, 
+  c(.35, .3),
+  c(.28, .10, .12, .13, .12, .11),
+  0.98,0.85)
+data.frame(name=res@param.names , true=truepar, estim=coef(res))
 
-
-# compare estimated smoothed latent states to true
-# simulated ones
-sm <- data.frame(t(res@eta_smooth_final))
-cor(sm, t(tx)[-1,])
-
+dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 
 #------------------------------------------------------------------------------
 # End

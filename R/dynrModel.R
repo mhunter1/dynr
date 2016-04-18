@@ -117,15 +117,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   param.data$ldl.observed<-param.data$param.name%in%extractParams(inputs$noise$params.observed)
   param.data$ldl.inicov<-param.data$param.name%in%extractParams(inputs$initial$params.inicov)
   
-  dim.observed<-dim(inputs$noise$params.observed)[1]
-  dim.latent<-dim(inputs$noise$params.latent)[1]
-  dim.inicov<-dim(inputs$initial$params.inicov)[1]
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
   if(any(sapply(inputs, class) %in% 'dynrTrans')){
-    inputs$transform<-createRfun(inputs$transform,param.data,dim.observed=dim.observed,dim.latent=dim.latent, dim.inicov=dim.inicov)#paramnum gets populated, which is needed for paramName2Number
+    inputs$transform<-createRfun(inputs$transform, param.data, 
+                                 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
+                                 values.observed=inputs$noise$values.observed, values.latent=inputs$noise$values.latent, values.inicov=inputs$initial$values.inicov)
+    #at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
   }
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
@@ -142,7 +142,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-  obj.dynrModel@dim_latent_var <- dim.latent
+  obj.dynrModel@dim_latent_var <- dim(inputs$noise$params.latent)[1]
   
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))

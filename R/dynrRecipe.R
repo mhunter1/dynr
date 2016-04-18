@@ -234,7 +234,7 @@ setGeneric("paramName2Number", function(object, names) {
 
 
 .exchangeNamesAndNumbers <- function(params, names){
-	matrix(match(params, names, nomatch=0)-1, nrow(params), ncol(params))
+	matrix(match(params, names, nomatch=0), nrow(params), ncol(params))
 }
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
@@ -764,15 +764,17 @@ setMethod("writeCcode", "dynrTrans",
           }
 )
 
-setGeneric("createRfun", function(object, param.data, dim.observed, dim.latent, dim.inicov, show=TRUE) { 
+setGeneric("createRfun", function(object, param.data, params.observed, params.latent, params.inicov,
+                                  values.observed, values.latent, values.inicov, show=TRUE) { 
   return(standardGeneric("createRfun")) 
 })
 
 setMethod("createRfun", "dynrTrans",
-          function(object, param.data, dim.observed, dim.latent, dim.inicov){
+          function(object, param.data, params.observed, params.latent, params.inicov,
+                   values.observed, values.latent, values.inicov){
             #inv.tfun
             if (length(object@formula.inv)==0){
-              #TODO when formula.inv is not specified, use automatic inverse functions
+              #TODO If formula.inv is missing, point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
               #inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
               #eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}")) 
             }else{
@@ -809,11 +811,17 @@ setMethod("createRfun", "dynrTrans",
                 f.string<-paste(f.string,eq,sep="\t\n")
               }
               #observed
-              f.string<-paste(f.string,makeldlchar.observed(param.data,dim.observed),sep="\t\n")
+              if (sum(param.data$ldl.observed)>0){
+                f.string<-paste(f.string, makeldlchar(param.data, "ldl.observed", values.observed, params.observed),sep="\t\n")
+              }
               #latent
-              f.string<-paste(f.string,makeldlchar.latent(param.data,dim.latent),sep="\t\n")
+              if (sum(param.data$ldl.latent)>0){
+                f.string<-paste(f.string, makeldlchar(param.data, "ldl.latent", values.latent, params.latent),sep="\t\n")
+              }
               #inicov
-              f.string<-paste(f.string,makeldlchar.inicov(param.data,dim.inicov),sep="\t\n")
+              if (sum(param.data$ldl.inicov)>0){
+                f.string<-paste(f.string, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov),sep="\t\n")
+              }
               
               f.string<-paste0(f.string,"\t\nreturn(vec)}")
               eval(parse(text=f.string))   
@@ -824,21 +832,18 @@ setMethod("createRfun", "dynrTrans",
             return(object)
           }
 )
-makeldlchar.latent<-function(param.data,dim){
-  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.latent]),collapse=","),")"),"]")
-  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.latent),")")
-  return(char)
-}
+makeldlchar<-function(param.data, ldl.char, values, params){
+  vec.noise=paste0("vec[",paste0("c(",paste(param.data$param.number[param.data[,ldl.char]],collapse=","),")"),"]")
+  param.name=param.data$param.name[param.data[,ldl.char]]
 
-makeldlchar.observed<-function(param.data,dim){
-  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.observed]),collapse=","),")"),"]")
-  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.observed),")")
-  return(char)
-}
-
-makeldlchar.inicov<-function(param.data,dim){
-  vec.noise=paste0("vec[",paste0("c(",paste(as.character(param.data$param.number[param.data$ldl.inicov]),collapse=","),")"),"]")
-  char=paste0(vec.noise,"=mat2vec(transldl(vec2mat(",vec.noise,",",dim,")),",sum(param.data$ldl.inicov),")")
+  vec.sub=as.vector(params)
+  mat.index=sapply(param.name,function(x){min(which(vec.sub==x))})
+  for (i in 1:length(param.name)){
+    vec.sub=gsub(param.name[i], paste0("vec[",param.data$param.number[param.data$param.name==param.name[i]],"]"), vec.sub)
+  }
+  vec.sub[which(vec.sub=="fixed")]<-as.vector(values)[which(vec.sub=="fixed")]
+  
+  char=paste0(vec.noise,"=as.vector(transldl(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(params),")))[",paste0("c(",paste(mat.index,collapse=","),")"),"]")
   return(char)
 }
 
@@ -954,7 +959,7 @@ preProcessParams <- function(x){
 }
 
 extractWhichParams <- function(p){
-	p!="fixed" & !duplicated(p, MARGIN=0) & (p!=-1)
+	p!="fixed" & !duplicated(p, MARGIN=0) & (p!=0)
 }
 
 extractParams <- function(p){
@@ -1402,11 +1407,11 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	return(new("dynrInitial", x))
 }
 
-##' The translation function for transformation functions of free parameters that are not in covariance structures
-##' Output a C function to set up transformation functions
+##' Create a dynrTrans object to handle the transformations and inverse transformations of model paramters
 ##' 
-##' @param formula.trans a list of formulae that transform free parameters in the model that are not in the covariance structures
-##' @param formula.inv a list of formulae that inverse the transformation on the free parameters. If formula.inv is missing, point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
+##' @param formula.trans a list of formulae that transform free parameters in the model that are not in the covariance structures. In cases where the parameters passed to optimizers are transformations of the parameters of interest, the formulae will be used to create an R transformation function to get the point estimates and standard errors of the paramters of interests. If transCcode is TRUE, the formulae will also be translated to a C function and utilized in each iteration of the optimization process for purposes of imposing constraints on certain parameter values.
+##' @param formula.inv a list of formulae that inverse the transformation on the free parameters and will be used to calculate the starting values of the parameters.
+##' @param transCcode a logical value indicating whether the formula.trans needs to be transformed to a function in C. 
 prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))
