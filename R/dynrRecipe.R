@@ -388,7 +388,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
 	  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
 	  
-	  if (missing(jacob)){
+	  if (length(jacob)==0){
 	    autojcb=try(lapply(formula,autojacob,n[1]))
 	    if (class(autojcb) == "try-error") {
 	      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
@@ -534,6 +534,15 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  return(object)
 	}
 )
+#Example
+# formula=list(
+#   list(x1~a1*x1,
+#        x2~a2*x2),
+#   list(x1~a1*x1+c12*(exp(x2)/(1+exp(x2)))*x2,
+#        x2~a2*x2+c21*(exp(x1)/(1+exp(x1)))*x1) 
+# )
+# dynam<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE)
+# cat(writeCcode(dynam)$c.string)
 
 setMethod("writeCcode", "dynrDynamicsMatrix",
 	function(object){
