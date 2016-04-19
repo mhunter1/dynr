@@ -919,7 +919,7 @@ reverseldl<-function(values){
 	if(dim(values)[1]==1){
 		return(log(values))
 	}else{
-		mat <- KFAS::ldl(values)
+		mat <- dynr.ldl(values)
 		diag(mat) <- log(diag(mat))
 		return(mat)
 	}
