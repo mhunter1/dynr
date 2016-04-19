@@ -900,14 +900,29 @@ transldl <- function(mat){
   return(outldl)
 }
 
+
+##' LDL Decomposition for Matrices
+##' @param x a numeric matrix
+##'
+##' This is a wrapper function around the \code{\link{chol}} function.
+##' The goal is for factor a square, symmetrix, positive (semi-)definite matrix into the product of a lower triangular matrix, a diagonal matrix, and the transpose of the lower triangular matrix.
+##' The value returned is a lower triangular matrix with the elements of D on the diagonal.
+dynr.ldl <- function(x){
+	ret <- t(chol(x))
+	d <- diag(ret)
+	ret <- ret %*% diag(1/d, nrow=length(d))
+	diag(ret) <- d^2
+	return(ret)
+}
+
 reverseldl<-function(values){
-  if (dim(values)[1]==1){
-    return(log(values))
-  }else{
-    mat<-KFAS::ldl(values)
-    diag(mat)<-log(diag(mat))
-    return(mat)
-  }
+	if(dim(values)[1]==1){
+		return(log(values))
+	}else{
+		mat <- KFAS::ldl(values)
+		diag(mat) <- log(diag(mat))
+		return(mat)
+	}
 }
 
 #------------------------------------------------------------------------------
