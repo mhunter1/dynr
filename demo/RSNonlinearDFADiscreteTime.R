@@ -46,7 +46,7 @@ mdcov <- prep.noise(
 	values.latent=diag(0.3, 2),
 	params.latent=diag(paste0("zeta_",1:2), 2),
 	values.observed=diag(0.1, 6),
-	params.observed=diag(paste0("episilon_",1:6), 6))
+	params.observed=diag(paste0("epsilon_",1:6), 6))
 
 # dynamics
 formula=list(
@@ -74,7 +74,9 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, regimes=regimes, transform=trans, outfile="RSNonlinearDFA")
+model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, 
+                    initial=initial, regimes=regimes, transform=trans, 
+                    outfile="RSNonlinearDFA")
 # View specified model in latex
 printex(model)
 

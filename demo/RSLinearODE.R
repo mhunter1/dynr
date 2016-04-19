@@ -6,15 +6,14 @@
 #   a regime-switching linear ODE
 #------------------------------------------------------------------------------
 #TO DO: 
-#1. Suppress warnings about "In matrix(as.numeric(x), numRow, numCol) : NAs introduced by coercion"
+#1. Automatic jacobian calculation needs to allow for
+# regime-specific jacobian functions. 
+# When doing automatic jacobian calculation, doing
+# cat(writeCcode(dynm)$c.string) led to error:
+# Error in jacob[[r]] : subscript out of bounds
 #2. Add intercepts and allow for regime-dependent intercepts and Lambda
 #3. prep.matrixDynamics should be allowed to be regime-dependent
-#4. prep.tfun then cat(writeCcode(trans)$c.string) generated error
-#   "Error in .local(object) : object 'formula.trans' not found"
-#   though formula.trans is there as a list
-#5. Get rid of tfun - still need to do trans to tfun conversion
-#6. Remove "transformation" from dynr.cook
-#7. Can we set params = NULL as the default?
+
 
 rm(list=ls(all=TRUE))
 require(dynr)
@@ -41,11 +40,12 @@ meas <- prep.loadings(
 initial <- prep.initial(
 	values.inistate=c(70, 40),
 	params.inistate=c("fixed", "fixed"),
-	values.inicov=diag(1, 2), 
-	params.inicov=diag(c("P_11", "P22"),2),
-	values.regimep=c(225, 100),
+	values.inicov=diag(c(225,100)), 
+	params.inicov=diag("fixed",2),
+	values.regimep=c(1, 0),
 	params.regimep=c("fixed", "fixed")
 )
+
 
 # Regime-switching function
 # The RS model assumes that each element of the transition probability 
@@ -69,7 +69,7 @@ mdcov <- prep.noise(
 	values.latent=diag(1e-6, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
 	values.observed=diag(c(10,10)),
-	params.observed=diag(c("sigma^2_{epsilon,1}","sigma^2_{epsilon,2}"),2))
+	params.observed=diag(c("sigma2_epsilon1","sigma2_epsilon2"),2))
 
 # dynamics
 formula=list(
@@ -86,9 +86,10 @@ jacob=list(
   )
 
 
-dynm<-prep.formulaDynamics(formula=formula,jacobian=jacob,
+dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(r1=.1,r2=.1,a12=.1,a21=.1),
-                           isContinuousTime=TRUE)
+                           isContinuousTime=TRUE,jacobian=jacob) #
+
 #cat(writeCcode(dynm)$c.string)
 
 trans<-prep.tfun(formula.trans=list(r1~exp(r1), 
@@ -99,16 +100,18 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
                                   r2~log(r2),
                                   a12~log(a12),
                                   a21~log(a21)))
+
 #cat(writeCcode(trans)$c.string)
 #------------------------------------------------------------------------------
 # Cooking materials
 
 # Model
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas, 
+model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans, 
                     outfile="RSODEmodelRecipe.c")
+
 # View specified model in latex
 printex(model)
 

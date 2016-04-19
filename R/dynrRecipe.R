@@ -1398,8 +1398,8 @@ processFormula<-function(formula.list){
 ##' @param params.inistate a vector of the parameter indices of the initial state vector. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
 ##' @param values.inicov a positive definite matrix of the starting or fixed values of the initial error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
 ##' @param params.inicov a matrix of the parameter indices of the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
-##' @param values.regimep a vector of the starting or fixed values of the initial probalities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
-##' @param params.regimep a vector of the parameter indices of the initial probalities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param values.regimep a vector of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
+##' @param params.regimep a vector of the parameter indices of the initial probabilities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
 	values.inistate <- preProcessValues(values.inistate)
 	params.inistate <- preProcessParams(params.inistate)
@@ -1423,9 +1423,9 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 
 ##' Create a dynrTrans object to handle the transformations and inverse transformations of model paramters
 ##' 
-##' @param formula.trans a list of formulae that transform free parameters in the model that are not in the covariance structures. In cases where the parameters passed to optimizers are transformations of the parameters of interest, the formulae will be used to create an R transformation function to get the point estimates and standard errors of the paramters of interests. If transCcode is TRUE, the formulae will also be translated to a C function and utilized in each iteration of the optimization process for purposes of imposing constraints on certain parameter values.
+##' @param formula.trans a list of formulae for transforming freed parameters other than variance-covariance parameters during the optimization process. These transformation functions may be helpful for transforming parameters that would normally appear on a constrained scale to an unconstrained scale (e.g., parameters that can only take on positive values can be subjected to exponential transformation to ensure positivity.)
 ##' @param formula.inv a list of formulae that inverse the transformation on the free parameters and will be used to calculate the starting values of the parameters.
-##' @param transCcode a logical value indicating whether the formula.trans needs to be transformed to a function in C. 
+##' @param transCcode a logical value indicating whether the functions in formula.trans need to be transformed to functions in C. The default for transCcode is TRUE, which means that the formulae will be translated to C functions and utilized during the optimization process. If transCcode = FALSE, the transformations are only performed at the end of the optimization process for standard error calculations but not during the optimization process. 
 prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))
