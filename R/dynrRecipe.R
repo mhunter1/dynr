@@ -1183,7 +1183,7 @@ prep.regimes <- function(values, params, covariates){
 	}
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
-	x <- list(startval=sv, paramnames=pn, values=values, params=params)
+	x <- list(startval=sv, paramnames=pn, values=values, params=params, covariates=covariates)
 	return(new("dynrRegimes", x))
 }
 
