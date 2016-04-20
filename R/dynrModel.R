@@ -135,7 +135,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
   # writeCcode on each recipe
-  inputs <- sapply(inputs, writeCcode)#reverseldl is applied when writeCcode is called. 
+  inputs <- sapply(inputs, writeCcode) 
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   

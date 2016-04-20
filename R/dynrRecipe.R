@@ -388,26 +388,12 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
 	  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
 	  
-	  if (length(jacob)==0){
-	    autojcb=try(lapply(formula,autojacob,n[1]))
-	    if (class(autojcb) == "try-error") {
-	      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
-	    }else{
-	      row=lapply(autojcb,"[[","row")
-	      col=lapply(autojcb,"[[","col")
-	      rhsj=lapply(autojcb,"[[","rhsj")
-	      jacob=lapply(autojcb,"[[","jacob")
-	    }
-	  }else{
-	    fmlj=lapply(jacob,processFormula)
-	    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
-	    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
-	    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
-	  }
-	  
+    fmlj=lapply(jacob,processFormula)
+    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
+    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
+    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
 	  
 	  #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
-	  #TODO in the continuous case allow users to use d()
 	  #TODO add covariate
 	  
 	  if (object@isContinuousTime){
@@ -1244,7 +1230,15 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
     stop('startval must be a named vector')
   }
   x <- list(formula=formula, startval=startval, paramnames=names(startval), isContinuousTime=isContinuousTime)
-  if(!missing(jacobian)){x$jacobian <- jacobian}
+  if (missing(jacobian)){
+    autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+    if (class(autojcb) == "try-error") {
+      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
+    }else{
+      jacobian=lapply(autojcb,"[[","jacob")
+    }
+  }
+  x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
   return(new("dynrDynamicsFormula", x))
 }
