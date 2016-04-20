@@ -6,13 +6,10 @@
 #   a regime-switching linear ODE
 #------------------------------------------------------------------------------
 #TO DO: 
-#1. Automatic jacobian calculation needs to allow for
-# regime-specific jacobian functions. 
-# When doing automatic jacobian calculation, doing
-# cat(writeCcode(dynm)$c.string) led to error:
-# Error in jacob[[r]] : subscript out of bounds
-#2. Add intercepts and allow for regime-dependent intercepts and Lambda
-#3. prep.matrixDynamics should be allowed to be regime-dependent
+#
+#1. Add intercepts and allow for regime-dependent intercepts and Lambda
+#2. prep.matrixDynamics should be allowed to be regime-dependent
+
 
 
 rm(list=ls(all=TRUE))
@@ -36,6 +33,8 @@ meas <- prep.loadings(
     eta2=paste0('y', 2)),
     params = NULL)
 
+#cat(writeCcode(meas)$c.string) #Can't write C code yet
+
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
 	values.inistate=c(70, 40),
@@ -57,8 +56,8 @@ initial <- prep.initial(
 # lp(p12) and lp(p22) are fixed at zero.
 
 regimes <- prep.regimes(
-  values=matrix(c(6,.5,-.3,rep("fixed",3),
-                  rep("fixed",3),-3,-1.5,-1), 
+  values=matrix(c(6,.5,-.3,rep(0,3),
+                  rep(0,3),-3,-1.5,-1), 
                 nrow=2, ncol=6,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
   params=matrix(c("a_{11}","d_{11,1}","d_{11,2}",rep("fixed",3),
                   rep("fixed",3),"a_{21}","d_{21,1}","d_{21,2}"), 
@@ -69,26 +68,26 @@ mdcov <- prep.noise(
 	values.latent=diag(1e-6, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
 	values.observed=diag(c(10,10)),
-	params.observed=diag(c("sigma2_epsilon1","sigma2_epsilon2"),2))
+	params.observed=diag(c("sigmae1","sigmae2"),2))
 
 # dynamics
 formula=list(
-  list(x1~ -r1 * x1,
-       x2~ -r2 * (x2 - base)),
-  list(x1~ a12 * (x2 - x1),
-       x2~ - a21 * (x2 - x1)))
+  list(eta1~ -r1 * eta1,
+       eta2~ -r2 * (eta2 - base)),
+  list(eta1~ a12 * (eta2 - eta1),
+       eta2~ - a21 * (eta2 - eta1)))
 
-jacob=list(
-  list(x1~x1~-r1,x1~x2~0,
-       x2~x1~0, x2~x2~-r2),
-  list(x1~x1~-a12,x1~x2~a12,
-       x2~x1~a21, x2~x2~-a21)
-  )
+#jacob=list(
+#  list(x1~x1~-r1,x1~x2~0,
+#       x2~x1~0, x2~x2~-r2),
+#  list(x1~x1~-a12,x1~x2~a12,
+#       x2~x1~a21, x2~x2~-a21)
+#  )
 
 
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(r1=.1,r2=.1,a12=.1,a21=.1),
-                           isContinuousTime=TRUE,jacobian=jacob) #
+                           startval=c(r1=.1,r2=.1,a12=.1,a21=.1,base=95),
+                           isContinuousTime=TRUE) #,jacobian=jacob
 
 #cat(writeCcode(dynm)$c.string)
 
