@@ -5,12 +5,6 @@
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching linear ODE
 #------------------------------------------------------------------------------
-#TO DO: 
-#
-#1. Add intercepts and allow for regime-dependent intercepts and Lambda
-#2. prep.matrixDynamics should be allowed to be regime-dependent
-
-
 
 rm(list=ls(all=TRUE))
 require(dynr)
@@ -57,10 +51,10 @@ initial <- prep.initial(
 
 regimes <- prep.regimes(
   values=matrix(c(6,.5,-.3,rep(0,3),
-                  rep(0,3),-3,-1.5,-1), 
+                  -3,-1.5,-1,rep(0,3)), 
                 nrow=2, ncol=6,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
   params=matrix(c("a_{11}","d_{11,1}","d_{11,2}",rep("fixed",3),
-                  rep("fixed",3),"a_{21}","d_{21,1}","d_{21,2}"), 
+                  "a_{21}","d_{21,1}","d_{21,2}",rep("fixed",3)), 
                 nrow=2, ncol=6,byrow=T), covariates=c('x1', 'x2'))
 
 #measurement and dynamics covariances
@@ -68,7 +62,7 @@ mdcov <- prep.noise(
 	values.latent=diag(1e-6, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
 	values.observed=diag(c(10,10)),
-	params.observed=diag(c("sigmae1","sigmae2"),2))
+	params.observed=diag(c("sigmasq_e1","sigmasq_e2"),2))
 
 # dynamics
 formula=list(
@@ -123,13 +117,12 @@ summary(res)
 
 #True values should be
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
-# -4, 4.5, -1, 1,-2, -1)
+# 4.5, -4, 1,-1,-1, -2)
 
+plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
-summary(res)
-#plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
-
-#dynr.ggplot(res, data.dynr=data, states=c(1,2), names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
+dynr.ggplot(res, data.dynr=data, states=c(1,2), 
+            names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 
 
 #------------------------------------------------------------------------------
