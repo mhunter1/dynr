@@ -116,7 +116,7 @@ printex(model)
 
 # Estimate free parameters
 #Need to remove transformation in dynr.cook
-res <- dynr.cook(model, data=data,transformation=tfun,debug_flag=FALSE)
+res <- dynr.cook(model, data=data,debug_flag=FALSE)
 
 # Examine results
 summary(res)
