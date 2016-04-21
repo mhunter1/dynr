@@ -105,6 +105,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     regimes=regimes, transform=trans, 
                     outfile="RSODEmodelRecipe.c")
 
+#cat(writeCcode(model$dynamics)$c.string)
+
 # View specified model in latex
 printex(model)
 
@@ -119,11 +121,18 @@ summary(res)
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
 # 4.5, -4, 1,-1,-1, -2)
 
-plot(res, data=data, graphingPar=list(cex.main=1, cex.axis=1, cex.lab=1.2), numSubjDemo=2)
 
-dynr.ggplot(res, data.dynr=data, states=c(1,2), 
-            names.regime=1:2,title="Smoothed State Values", numSubjDemo=2)
 
+
+p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+            names.regime=c("Exploration","Proximity-seeking"),
+            names.state=c("Mom","Infant"),
+            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
+            shape.values = c(1,2),
+            text=element_text(size=16))
+
+print(p1)
+plot(res,data.dynr = data,model)
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
