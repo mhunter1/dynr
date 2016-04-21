@@ -1175,15 +1175,24 @@ prep.regimes <- function(values, params, covariates){
 	if(!missing(params)){
 		params <- preProcessParams(params)
 	}
-	#TODO check matrix dimensions
-	#TODO check that some form of identification is made
-	if(missing(values)){
-		values <- preProcessValues(matrix(0, 0, 0))
-		params <- preProcessParams(matrix(0, 0, 0))
+
+  if(missing(values)){
+    values <- preProcessValues(matrix(0, 0, 0))
+    params <- preProcessParams(matrix(0, 0, 0))
+  }
+  
+	if(!all(dim(values))==all(dim(params))) {
+	  stop('The dimensions of values and matrix must match.')
+	}else if(!ncol(values)== nrow(values)*(length(covariates)+1)){
+	  stop(paste0("The matrix values should have ",nrow(values)*(length(covariates)+1), " columns."))
 	}
+  
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
-	x <- list(startval=sv, paramnames=pn, values=values, params=params, covariates=covariates)
+
+		if (length(sv) > nrow(values)*(length(covariates)+1)) 
+	  stop("Regime transition probability parameters not uniquely identified.\nFix all parameters in at least one cell of each row of the \ntransition probability matrix to be zero.")
+	x <- list(startval=sv, paramnames=pn, values=values, params=params,covariates=covariates)
 	return(new("dynrRegimes", x))
 }
 
