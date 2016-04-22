@@ -61,9 +61,9 @@ setMethod("printex", "dynrModel",
 			noise$measurement.noise,
 			"\\end{equation}\n", sep="")
 		if (class(model$dynamics)=="dynrDynamicsFormula"){
-		  dynequ<-paste0(paste0("\\begin{bmatrix}",paste(dyn[[2]]$left,collapse="\\"), "\\end{bmatrix}"),
+		  dynequ<-paste0(paste0("\\begin{bmatrix}",paste(dyn[[2]]$left,collapse="\\\\"), "\\end{bmatrix}"),
 		                 " = ",
-		                 paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\"), "\\end{bmatrix}"))
+		                 paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\\\"), "\\end{bmatrix}"))
 		}else{
 		  dynequ<-paste0(ifelse(object$dynamics$isContinuousTime, "\\frac{d}{dt} ", ""),
 		                 .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
