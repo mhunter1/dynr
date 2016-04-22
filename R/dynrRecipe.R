@@ -1093,11 +1093,24 @@ prep.loadings <- function(map, params, idvar){
 ##' @param params.exo matrix or list of matrices. Params of the covariate effects.
 ##' @param values.int matrix or list of matrices. Values of the intercepts.
 ##' @param params.int matrix or list of matrices. Params of the intercerpts.
+##'
+##' The values.* arguments give the starting and fixed values for their respective matrices.
+##' The params.* arguments give the free parameter labels for their respective matrices.
+##' Numbers can be used as labels.
+##' The number 0 and the character 'fixed' are reserved for fixed parameters.
+##'
+##' When a single matrix is given to values.*, that matrix is not regime-switching.
+##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
 ##' 
 ##' @examples
 ##' prep.measurement(diag(1, 5), diag(1:5))
 ##' prep.measurement(matrix(1, 5, 5), diag(1:5))
 ##' prep.measurement(diag(1, 5), diag(0, 5)) #identity measurement model
+##' 
+##' #Regime-switching measurement model where the first latent variable is
+##' # active for regime 1, and the second latent variable is active for regime 2
+##' # No free parameters are present.
+##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
 prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int){
 	if(!is.list(values.load)){
 		values.load <- list(values.load)
