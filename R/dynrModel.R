@@ -60,14 +60,22 @@ setMethod("printex", "dynrModel",
 			"\\begin{equation}\n\\text{Cov}(\\vec{r}) = ",
 			noise$measurement.noise,
 			"\\end{equation}\n", sep="")
-		dynTex <- paste("The dynamic model is given by\n\\begin{equation}\n",
-			ifelse(object$dynamics$isContinuousTime, "\\frac{d}{dt} ", ""),
-			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
-			ifelse(object$dynamics$isContinuousTime, "", "_t"),
-			" = ",
-			dyn$dyn,
-			#ifelse(object$dynamics, .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE), ),
-			ifelse(object$dynamics$isContinuousTime, "", "_{t-1}"),
+		if (class(model$dynamics)=="dynrDynamicsFormula"){
+		  dynequ<-paste0(paste0("\\begin{bmatrix}",paste(dyn[[2]]$left,collapse="\\"), "\\end{bmatrix}"),
+		                 " = ",
+		                 paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\"), "\\end{bmatrix}"))
+		}else{
+		  dynequ<-paste0(ifelse(object$dynamics$isContinuousTime, "\\frac{d}{dt} ", ""),
+		                 .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
+		                 ifelse(object$dynamics$isContinuousTime, "", "_t"),
+		                 " = ",
+		                 dyn$dyn,
+		                 #ifelse(object$dynamics, .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE), ),
+		                 ifelse(object$dynamics$isContinuousTime, "", "_{t-1}"))
+		  
+		}
+		
+		dynTex <- paste("The dynamic model is given by\n\\begin{equation}\n",dynequ,
 			" + ",
 			"\\vec{q}\n",
 			"\\end{equation}\nwith\n",
