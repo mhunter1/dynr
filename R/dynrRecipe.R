@@ -268,6 +268,7 @@ setGeneric("paramName2Number", function(object, names) {
     string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
     pattern=gsub("\\{","\\\\\\{",paramnames)
     pattern=gsub("\\}","\\\\\\}",pattern)
+    pattern=gsub("\\\\","\\\\\\\\",pattern)
     
     for (i in 1:length(paramnames)){
       
