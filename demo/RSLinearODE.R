@@ -104,6 +104,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans,
                     outfile="RSODEmodelRecipe.c")
+model@lb = c()
 
 #cat(writeCcode(model$dynamics)$c.string)
 
@@ -135,22 +136,22 @@ print(p1)
 plot(res,data.dynr = data,model)
 
 
-par(cex.axis=1.3,cex.lab=1.5,mgp=c(2,.8,0))
-plot(thedata$y1, res@residuals,type="n",
-     xlab="y1(t)/dt", ylab=expression(paste("Residuals y1(t)")))
-grid(5, 7, lwd = 2,lty="solid") # grid lines
-points(thedata$y1, res@residuals)
-abline(0,coef(lm(coef(res@residuals~y1))[2],col="red",lty=2,lwd=3)
-#lines(thedata$y1, coef(gall)["dx"]*dxall$dx,lwd=2,col="red",lty=2)
-lines(loess.smooth(thedata$y1, res@residuals, 
-                   span = 2/3, degree = 2),
-      col="green",lwd=3)
-
-#loessLine(dxall$dx, residuals(gall)+coef(gall)["dx"]*dxall$dx, 
-#          col="green",smoother.args=list(),log.x=FALSE,log.y=FALSE)
-legend("topright",c("Linear least sqs","Loess"),lty=c(2,1),lwd=c(3,1),col=c("red","green"),
-       bty="n",cex=1.3)
-title(main="Component-Plus-Residual Plot: dx(t)/dt",cex.main=1.5) 
+#par(cex.axis=1.3,cex.lab=1.5,mgp=c(2,.8,0))
+#plot(thedata$y1, res@residuals,type="n",
+#     xlab="y1(t)/dt", ylab=expression(paste("Residuals y1(t)")))
+#grid(5, 7, lwd = 2,lty="solid") # grid lines
+#points(thedata$y1, res@residuals)
+#abline(0,coef(lm(coef(res@residuals~y1))[2],col="red",lty=2,lwd=3)
+##lines(thedata$y1, coef(gall)["dx"]*dxall$dx,lwd=2,col="red",lty=2)
+#lines(loess.smooth(thedata$y1, res@residuals, 
+#                   span = 2/3, degree = 2),
+#      col="green",lwd=3)
+#
+##loessLine(dxall$dx, residuals(gall)+coef(gall)["dx"]*dxall$dx, 
+##          col="green",smoother.args=list(),log.x=FALSE,log.y=FALSE)
+#legend("topright",c("Linear least sqs","Loess"),lty=c(2,1),lwd=c(3,1),col=c("red","green"),
+#       bty="n",cex=1.3)
+#title(main="Component-Plus-Residual Plot: dx(t)/dt",cex.main=1.5) 
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions

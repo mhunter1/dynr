@@ -217,6 +217,24 @@ logLik.dynrCook <- function(object, ...){
 
 #------------------------------------------------------------------------------
 
+##' Function for "cooking dinner" -- namely, to start the estimation process
+##' 
+##' @param a dynr model compiled using dynr.model, consisting of recipes for submodels, starting values, parameter names, and C code for each submodel
+##' @param dynr data
+##' @param a cumulative proportion indicating the level of desired confidence intervals for the final parameter estimates (default is .95)
+##' @param (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
+##' @param a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
+##' @param a flag (TRUE/FALSE) indicating whether users want additional dynr output that can be used for diagnostic purposes 
+##' @param a flag (TRUE/FALSE) indicating whether users want all the dynr output and by-products from the estimation procedure
+##' 
+##' @details
+##' TO BE COMPLETED: 
+##' a description of things output when both debug_flag and outall_flag = FALSE
+##' a description of things output when both debug_flag = TRUE and outall_flag = FALSE
+##' a description of things output when both debug_flag = TRUE and outall_flag = TRUE
+##' 
+##' @examples
+##' 
 dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
