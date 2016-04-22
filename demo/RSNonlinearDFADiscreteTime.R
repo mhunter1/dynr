@@ -65,7 +65,14 @@ jacob=list(
        x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
 
 dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
-#cat(writeCcode(dynm)$c.string)
+dyn=printex(dynm)
+dynequ<-paste0(paste0("\\begin{bmatrix}\n",paste(dyn[[2]]$left,collapse="\\\\"), "\\end{bmatrix}\n"),
+               " = ",
+               paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\\\"), "\\end{bmatrix}"))
+
+write(paste0("\\documentclass{article}\n\\usepackage{amsmath}\n\\begin{document}\n\\begin{equation}\n",dynequ,"\\end{equation}\n\\end{document}\n"),"formula.tex")
+tools::texi2pdf("formula.tex")
+system(paste(getOption("pdfviewer"), "formula.pdf"))
 
 trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+exp(p22))), formula.inv=list(p11~log(p11/(1-p11)),p22~log(p22/(1-p22))), transCcode=FALSE)
 #cat(writeCcode(trans)$c.string)
