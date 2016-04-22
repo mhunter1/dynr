@@ -1229,7 +1229,18 @@ replaceDiagZero <- function(x){
 ##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
 ##' @param param matrix of the same size as values giving the free parameters
 ##' 
+##' @details
 ##' Note that the ROW sums for the transition probability matrix must be one.
+##' 
+##' @examples
+##' #Regime-switching with no covariates (self-transition ID)
+##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
+##' 
+##' #Regime switching with no covariates (second regime ID)
+##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
+##' 
+##' #2 regimes with three covariates
+##' b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
 prep.regimes <- function(values, params, covariates){
 	if(!missing(values)){
 		values <- preProcessValues(values)
@@ -1261,18 +1272,7 @@ prep.regimes <- function(values, params, covariates){
 	return(new("dynrRegimes", x))
 }
 
-# Examples
-# Regime-switching with no covariates (self-transition ID)
-#b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
-#
-# Regime switching with no covariates (second regime ID)
-#b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
-#
-# 2 regimes with three covariates
-#b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
 
-# B <- matrix(c(8:(8+24-1)), nr, (nc+1)*nr, byrow=TRUE)
-#matrix(t(B), nrow=nr*nr, ncol=nc+1, byrow=TRUE)
 
 autojacob<-function(formula,n){
   #formula=list(x1~a*x1,x2~b*x2)
