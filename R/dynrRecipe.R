@@ -918,9 +918,9 @@ mat2vec<-function(mat,n.vec){
 #transldl function for caluaclating the LDL values
 transldl <- function(mat){
   L <- mat
-  diag(L)<-1
-  L[upper.tri(L)]<-0
-  D<- diag(exp(diag(mat)))
+  diag(L) <- 1
+  L[upper.tri(L)] <- 0
+  D <- diag(exp(diag(mat)), nrow=nrow(mat))
   # final caluclation
   outldl <- L %*% D %*% t(L)
   return(outldl)
@@ -1367,7 +1367,6 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
 prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
-	#time <- checkAndProcessTimeArgument(time)
 	values.dyn <- preProcessValues(values.dyn)
 	params.dyn <- preProcessParams(params.dyn)
 	if(!missing(values.exo)){
