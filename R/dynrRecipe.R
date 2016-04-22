@@ -169,15 +169,39 @@ setMethod("printex", "dynrMeasurement",
 	}
 )
 
+dynfmltex<-function(eqregime,isContinuousTime){
+  eq.char=lapply(eqregime, as.character)
+  str.left=sapply(eq.char,"[",2)
+  str.right=sapply(eq.char,"[",3)
+  neq=length(eqregime)
+  mulpatn<-"([[:print:]]*)"
+  sigpatnn<-"([0-9A-Za-z ^*]*)"
+  for (j in 1:neq){
+    if (!isContinuousTime){
+      for (i in 1:neq){
+        str.right[j]=gsub(str.left[i],paste0(str.left[i],"_{t-1}"),str.right[j])
+      }
+    }
+    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub("exp","\\\\exp",str.right[j])
+    str.right[j]=gsub("log","\\\\log",str.right[j])
+    str.right[j]=gsub("\\*","\\\\times",str.right[j])
+  }
+  
+  for (j in 1:neq){
+    str.left[j]=gsub(paste0(sigpatnn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
+  }
+  
+  return(list(left=str.left,right=str.right))
+}
 
-# not sure what to do here yet
 setMethod("printex", "dynrDynamicsFormula",
 	function(object, observed, latent, covariates, show=TRUE){
-#		lx0 <- .xtableMatrix(object$values.inistate)
-#		lP0 <- .xtableMatrix(object$values.inicov)
-#		lr0 <- .xtableMatrix(object$values.regimep)
-		return(invisible(list(dyn=, names=)))
-		message('Sorry, mate! This part is still under development.')
+    dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
+		return(invisible(dyn))
 	}
 )
 
@@ -189,7 +213,6 @@ setMethod("printex", "dynrDynamicsMatrix",
 		return(invisible(list(dyn=lA, exo=lB)))
 	}
 )
-
 
 setMethod("printex", "dynrRegimes",
 	function(object, observed, latent, covariates, show=TRUE){
