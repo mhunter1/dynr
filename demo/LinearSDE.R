@@ -77,8 +77,8 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 # measurement
 # this is the factor loadings matrix, Lambda in SEM notation or C in OpenMx notation
 meas <- prep.measurement(
-	values=matrix(c(1, 0), 1, 2), # starting values and fixed values
-	params=matrix(c('fixed', 'fixed'), 1, 2)) # parameter numbers or indication that parameter is fixed
+	values.load=matrix(c(1, 0), 1, 2), # starting values and fixed values
+	params.load=matrix(c('fixed', 'fixed'), 1, 2)) # parameter numbers or indication that parameter is fixed
 # Look
 meas
 # no free parameters in the factor loadings

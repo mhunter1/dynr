@@ -31,8 +31,12 @@ setClass(Class = "dynrMeasurement",
            c.string =  "character",
            startval = "numeric",
            paramnames = "character",
-           values = "list",
-           params = "list"),
+           values.load = "list",
+           params.load = "list",
+           values.exo = "list",
+           params.exo = "list",
+           values.int = "list",
+           params.int = "list"),
          contains = "dynrRecipe"
 )
 
@@ -160,7 +164,7 @@ setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) 
 
 setMethod("printex", "dynrMeasurement",
 	function(object, observed, latent, covariates, show=TRUE){
-		lC <- lapply(object$values, .xtableMatrix, show=show)
+		lC <- lapply(object$values.load, .xtableMatrix, show=show)
 		return(invisible(list(measurement=lC)))
 	}
 )
@@ -251,7 +255,9 @@ setGeneric("paramName2Number", function(object, names) {
 
 setMethod("paramName2Number", "dynrMeasurement",
 	function(object, names){
-		object@params <- lapply(object$params, .exchangeNamesAndNumbers, names=names)
+		object@params.load <- lapply(object$params.load, .exchangeNamesAndNumbers, names=names)
+		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
+		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
 		return(object)
 	}
 )
@@ -347,28 +353,38 @@ setGeneric("writeCcode", function(object, show=TRUE) {
 
 setMethod("writeCcode", "dynrMeasurement",
 	function(object){
-		values <- object$values
-		params <- object$params
-		if(is.list(values) && length(values) > 1){
-			nregime <- length(values)
+		values.load <- object$values.load
+		params.load <- object$params.load
+		hasCovariates <- length(object$values.exo) > 0
+		hasIntercepts <- length(object$values.int) > 0
+		if(is.list(values.load) && length(values.load) > 1){
+			nregime <- length(values.load)
 		} else {
 			nregime <- 1
-			values <- values[[1]]
-			params <- params[[1]]
+			values.load <- values.load[[1]]
+			params.load <- params.load[[1]]
 		}
 		ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
+		if(hasCovariates){ret <- paste(ret, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), sep="\n\t")}#create covariates matrix
+		if(hasIntercepts){ret <- paste(ret, createGslVector(nrow(params.exo[[1]]), "intVector"), sep="\n\t")}#create intercepts vector
 		if(nregime > 1) {
 			ret <- paste(ret, "\tswitch (regime) {", sep="\n")
 			for(reg in 1:nregime){
 				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
-				ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values[[reg]], params[[reg]], "Ht"), "\n")
+				ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values.load[[reg]], params.load[[reg]], "Ht"), "\n")
+				if(hasCovariates){paste0(ret, "\t\t\t", setGslMatrixElements(values.exo[[reg]], params.exo[[reg]], "Bmatrix"), "\n")}#set covariates matrix
+				if(hasIntercepts){paste0(ret, "\t\t\t", setGslVectorElements(values.int[[reg]], params.int[[reg]], "intVector"), "\n")}#set intercepts vector
 				ret <- paste0("\t\t", "break;", "\n") 
 			}
 			ret <- paste0(ret, "\t", "}\n\n")
 		} else {
-			ret <- paste(ret, setGslMatrixElements(values, params, "Ht"), sep="\n")
+			ret <- paste(ret, setGslMatrixElements(values.load, params.load, "Ht"), sep="\n")
+			if(hasCovariates){paste(ret, setGslMatrixElements(values.exo[[1]], params.exo[[1]], "Bmatrix"), sep="\n")}#set covariates matrix
+			if(hasIntercepts){paste(ret, setGslVectorElements(values.int[[1]], params.int[[1]], "intVector"), sep="\n")}#set intercepts vector
 		}
 		ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
+		if(hasCovariates){paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Bmatrix, co_variate, 1.0, y);\n", destroyGslMatrix("Bmatrix"))}#multiply, add, and destroy covariates matrix
+		if(hasIntercepts){paste(ret, "\n\tgsl_vector_add(y, intVector);\n", destroyGslVector("intVector"))}#add and destroy intercepts vector
 		ret <- paste(ret, "\n}\n\n")
 		object@c.string <- ret
 		return(object)
@@ -966,25 +982,29 @@ extractWhichParams <- function(p){
 }
 
 extractParams <- function(p){
-	if(is.list(p)){
+	if(is.list(p) && length(p) > 0){
 		ret <- c()
 		for(i in 1:length(p)){
 			ret <- c(ret, extractParams(p[[i]]))
 		}
 		return(ret)
-	} else {
+	} else if(length(p) == 0){
+		return(character(0))
+	}else {
 		return(p[extractWhichParams(p)])
 	}
 }
 
 extractValues <- function(v, p){
-	if(is.list(v) && is.list(p) && length(v) == length(p)){
+	if(is.list(v) && is.list(p) && length(v) == length(p) && length(v) > 0){
 		ret <- c()
 		for(i in 1:length(v)){
 			ret <- c(ret, extractValues(v[[i]], p[[i]]))
 		}
 		return(ret)
-	} else {
+	} else if(length(v) == 0){
+		return(numeric(0))
+	}else {
 		return(v[extractWhichParams(p)])
 	}
 }
@@ -1002,8 +1022,23 @@ extractValues <- function(v, p){
 ##' @param map list giving how the latent variables map onto the observed variables
 ##' @param params parameter numbers
 ##' @param idvar Names of the variables used to identify the factors
-##'
-##'
+##' 
+##' @details
+##' The default pattern for 'idvar' is to fix the first factor loading for each factor to one.
+##' The variable names listed in 'idvar' have their factor loadings fixed to one.
+##' 
+##' @examples
+##' #Single factor model with one latent variable
+##' prep.loadings( list(eta1=paste0('y', 1:4)), 4:6)
+##' 
+##' # Two factor model with simple structure
+##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
+##' 
+##' #Two factor model with repeated use of a free parameter
+##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), c(4:6, 1:2, 4))
+##' 
+##' #Two factor model with a cross loading
+##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
 prep.loadings <- function(map, params, idvar){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
@@ -1038,22 +1073,10 @@ prep.loadings <- function(map, params, idvar){
 			}
 		}
 	}
-	x <- prep.measurement(values=valuesMat, params=paramsMat)
+	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat)
 	return(x)
 }
 
-# Examples
-# Single factor model with one latent variable
-#prep.loadings( list(eta1=paste0('y', 1:4)), 4:6)
-
-# Two factor model with simple structure
-#prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
-
-# Two factor model with repeated use of a free parameter
-#prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), c(4:6, 1:2, 4))
-
-# Two factor model with a cross loading
-#prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
 
 
 #--------------------------------------
@@ -1062,18 +1085,57 @@ prep.loadings <- function(map, params, idvar){
 # values, and params are all MxN matrices
 # a zero param is taken to be fixed.
 
-prep.measurement <- function(values, params){
-	if(!is.list(values)){
-		values <- list(values)
+##' Prepare the measurement recipe
+##'
+##' @param values.load matrix or list of matrices. Values of the factor loadings.
+##' @param params.load matrix or list of matrices. Params of the factor loadings.
+##' @param values.exo matrix or list of matrices. Values of the covariate effects.
+##' @param params.exo matrix or list of matrices. Params of the covariate effects.
+##' @param values.int matrix or list of matrices. Values of the intercepts.
+##' @param params.int matrix or list of matrices. Params of the intercerpts.
+##' 
+##' @examples
+##' prep.measurement(diag(1, 5), diag(1:5))
+##' prep.measurement(matrix(1, 5, 5), diag(1:5))
+##' prep.measurement(diag(1, 5), diag(0, 5)) #identity measurement model
+prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int){
+	if(!is.list(values.load)){
+		values.load <- list(values.load)
 	}
-	if(!is.list(params)){
-		params <- list(params)
+	if(missing(params.load)){
+		params.load <- rep(list(matrix(0, nrow(values.load[[1]]), ncol(values.load[[1]]))), length(values.load))
 	}
-	values <- lapply(values, preProcessValues)
-	params <- lapply(params, preProcessParams)
-	return(new("dynrMeasurement", list(startval=extractValues(values, params), paramnames=extractParams(params), values=values, params=params)))
+	if(!is.list(params.load)){
+		params.load <- list(params.load)
+	}
+	if(missing(values.exo)){
+		values.exo <- list()
+		params.exo <- list()
+	}
+	if(missing(params.exo)){
+		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
+	}
+	if(missing(values.int)){
+		values.int <- list()
+		params.int <- list()
+	}
+	if(missing(params.int)){
+		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
+	}
+	values.load <- lapply(values.load, preProcessValues)
+	params.load <- lapply(params.load, preProcessParams)
+	values.exo <- lapply(values.exo, preProcessValues)
+	params.exo <- lapply(params.exo, preProcessParams)
+	values.int <- lapply(values.int, preProcessValues)
+	params.int <- lapply(params.int, preProcessParams)
+	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
+	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
+	sv <- extractValues(sv, pn)
+	pn <- extractParams(pn)
+	x <- list(startval=sv, paramnames=pn, values.load=values.load, params.load=params.load,
+		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int)
+	return(new("dynrMeasurement", x))
 }
-
 
 # Examples
 # a <- prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
