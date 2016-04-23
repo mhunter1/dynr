@@ -24,7 +24,8 @@ setClass(Class =  "dynrDebug",
            eta_smooth_final = "matrix", # LxT
            error_cov_smooth_final  = "array", # LxLxT
            run.times = "numeric"
-         )
+         ),
+         contains = "dynrCook"
 )
 
 # Initialize method for the new() function
@@ -114,7 +115,8 @@ setClass(Class =  "dynrOutall",
            eta_smooth_final = "matrix", # LxT
            error_cov_smooth_final  = "array", # LxLxT
            run.times = "numeric"
-         )
+         ),
+         contains = "dynrCook"
 )
 
 # Initialize method for the new() function
