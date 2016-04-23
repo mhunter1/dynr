@@ -73,8 +73,8 @@ recIni <- prep.initial(
 # Dynamics
 
 recDyn <- prep.matrixDynamics(
-	values.dyn=matrix(.5, 1, 1),
-	params.dyn=matrix('phi1', 1, 1),
+	values.dyn=list(matrix(.1, 1, 1), matrix(.8, 1, 1)),
+	params.dyn=list(matrix('phi0', 1, 1), matrix('phi1', 1, 1)),
 	isContinuousTime=FALSE)
 
 
@@ -94,7 +94,14 @@ yum <- dynr.cook(rsmod, dd, outall_flag=TRUE)
 summary(yum)
 
 #true parametes
-truep <- c(phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, measnoise=0, dynnoise=sqrt(.5))
+truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, measnoise=0, dynnoise=.5^2, p00=.99, p10=.01)
+
+r1 <- c(2.54, 0)
+exp(r1)/sum(exp(r1)) #first row of transition probability matrix
+r2 <- c(-3.875, 0)
+exp(r2)/sum(exp(r2)) #second row of transition probability matrix
+
+
 
 #------------------------------------------------------------------------------
 # End
