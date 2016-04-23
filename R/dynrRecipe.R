@@ -68,10 +68,12 @@ setClass(Class = "dynrDynamicsMatrix",
            c.string =  "character",
            startval = "numeric",
            paramnames = "character",
-           values.dyn = "matrix",
-           params.dyn = "matrix",
-           values.exo = "matrix",
-           params.exo = "matrix",
+           values.dyn = "list",
+           params.dyn = "list",
+           values.exo = "list",
+           params.exo = "list",
+           values.int = "list",
+           params.int = "list",
            isContinuousTime = "logical"
            ),
          contains = "dynrDynamics"
@@ -207,9 +209,11 @@ setMethod("printex", "dynrDynamicsFormula",
 
 setMethod("printex", "dynrDynamicsMatrix",
 	function(object, observed, latent, covariates, show=TRUE){
+		#TODO update for list objects
 		lA <- .xtableMatrix(object$values.dyn, show)
 		#TODO add something better for covariates
 		lB <- ifelse(nrow(object$values.exo) != 0, .xtableMatrix(object$values.exo, show), "")
+		#TODO add intercepts processing
 		return(invisible(list(dyn=lA, exo=lB)))
 	}
 )
@@ -323,8 +327,9 @@ setMethod("paramName2Number", "dynrDynamicsFormula",
 
 setMethod("paramName2Number", "dynrDynamicsMatrix",
 	function(object, names){
-		object@params.dyn <- .exchangeNamesAndNumbers(object$params.dyn, names)
-		object@params.exo <- .exchangeNamesAndNumbers(object$params.exo, names)
+		object@params.dyn <- lapply(object$params.dyn, .exchangeNamesAndNumbers, names=names)
+		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
+		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
 		return(object)
 	}
 )
@@ -379,36 +384,36 @@ setMethod("writeCcode", "dynrMeasurement",
 	function(object){
 		values.load <- object$values.load
 		params.load <- object$params.load
-		hasCovariates <- length(object$values.exo) > 0
-		hasIntercepts <- length(object$values.int) > 0
-		if(is.list(values.load) && length(values.load) > 1){
-			nregime <- length(values.load)
-		} else {
-			nregime <- 1
-			values.load <- values.load[[1]]
-			params.load <- params.load[[1]]
-		}
+		values.exo <- object$values.exo
+		params.exo <- object$params.exo
+		values.int <- object$values.int
+		params.int <- object$params.int
+		hasCovariates <- length(values.exo) > 0
+		hasIntercepts <- length(values.int) > 0
+		nregime <- length(values.load)
 		ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
 		if(hasCovariates){ret <- paste(ret, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), sep="\n\t")}#create covariates matrix
-		if(hasIntercepts){ret <- paste(ret, createGslVector(nrow(params.exo[[1]]), "intVector"), sep="\n\t")}#create intercepts vector
+		if(hasIntercepts){ret <- paste(ret, createGslVector(nrow(params.int[[1]]), "intVector"), sep="\n\t")}#create intercepts vector
 		if(nregime > 1) {
-			ret <- paste(ret, "\tswitch (regime) {", sep="\n")
+			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
 			for(reg in 1:nregime){
 				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
-				ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values.load[[reg]], params.load[[reg]], "Ht"), "\n")
-				if(hasCovariates){paste0(ret, "\t\t\t", setGslMatrixElements(values.exo[[reg]], params.exo[[reg]], "Bmatrix"), "\n")}#set covariates matrix
-				if(hasIntercepts){paste0(ret, "\t\t\t", setGslVectorElements(values.int[[reg]], params.int[[reg]], "intVector"), "\n")}#set intercepts vector
-				ret <- paste0("\t\t", "break;", "\n") 
+				ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values.load[[reg]], params.load[[reg]], "Ht"))
+				if(hasCovariates){ #set covariates matrix
+					ret <- paste0(ret, "\t\t\t", setGslMatrixElements(values.exo[[reg]], params.exo[[reg]], "Bmatrix"))
+				}
+				if(hasIntercepts){ret <- paste0(ret, "\t\t\t", setGslVectorElements(values.int[[reg]], params.int[[reg]], "intVector"))}#set intercepts vector
+				ret <- paste0(ret, "\t\t", "break;", "\n") 
 			}
 			ret <- paste0(ret, "\t", "}\n\n")
 		} else {
-			ret <- paste(ret, setGslMatrixElements(values.load, params.load, "Ht"), sep="\n")
+			ret <- paste(ret, setGslMatrixElements(values.load[[1]], params.load[[1]], "Ht"), sep="\n")
 			if(hasCovariates){paste(ret, setGslMatrixElements(values.exo[[1]], params.exo[[1]], "Bmatrix"), sep="\n")}#set covariates matrix
 			if(hasIntercepts){paste(ret, setGslVectorElements(values.int[[1]], params.int[[1]], "intVector"), sep="\n")}#set intercepts vector
 		}
 		ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
-		if(hasCovariates){paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Bmatrix, co_variate, 1.0, y);\n", destroyGslMatrix("Bmatrix"))}#multiply, add, and destroy covariates matrix
-		if(hasIntercepts){paste(ret, "\n\tgsl_vector_add(y, intVector);\n", destroyGslVector("intVector"))}#add and destroy intercepts vector
+		if(hasCovariates){ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Bmatrix, co_variate, 1.0, y);\n", destroyGslMatrix("Bmatrix"))}#multiply, add, and destroy covariates matrix
+		if(hasIntercepts){ret <- paste(ret, "\n\tgsl_vector_add(y, intVector);\n", destroyGslVector("intVector"))}#add and destroy intercepts vector
 		ret <- paste(ret, "\n}\n\n")
 		object@c.string <- ret
 		return(object)
@@ -577,6 +582,13 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 		values.dyn <- object$values.dyn
 		params.exo <- object$params.exo
 		values.exo <- object$values.exo
+		params.int <- object$params.int
+		values.int <- object$values.int
+		
+		nregime <- length(values.dyn)
+		hasCovariates <- length(values.exo) > 0
+		hasIntercepts <- length(values.int) > 0
+		
 		time <- ifelse(isContinuousTime, 'continuous', 'discrete')
 		if(time == 'continuous'){
 			# Construct matrices for A and B with A ~ dyn, B ~ exo
@@ -600,32 +612,45 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 			jacName <- "Jx"
 		}
 		
-		# Create dynamics (state-transition or drift matrix) with covariate effects
-		ret <- paste(dynHead,
-			createGslMatrix(nrow(params.dyn), ncol(params.dyn), "Amatrix"),
-			setGslMatrixElements(values=values.dyn, params=params.dyn, name="Amatrix"),
-			blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
-			destroyGslMatrix("Amatrix"),
-			sep="\n")
-		
-		if(nrow(params.exo) != 0){
+		#If numRegimes > 1
+		if(nregime > 1){
+			
+		} else { #Else If numRegimes == 1
+			# Create dynamics (state-transition or drift matrix) with covariate effects
+			ret <- paste(dynHead,
+				createGslMatrix(nrow(params.dyn[[1]]), ncol(params.dyn[[1]]), "Amatrix"),
+				setGslMatrixElements(values=values.dyn[[1]], params=params.dyn[[1]], name="Amatrix"),
+				blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
+				destroyGslMatrix("Amatrix"),
+				sep="\n")
+			
+			if(hasCovariates){
+				ret <- paste(ret,
+					createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"),
+					setGslMatrixElements(values=values.exo[[1]], params=params.exo[[1]], name="Bmatrix"),
+					blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
+					destroyGslMatrix("Bmatrix"),
+					sep="\n")
+			}
+			
+			if(hasIntercepts){
+				ret <- paste0(ret, "\n",
+					createGslVector(nrow(params.int[[1]]), "intVector"), "\n",
+					setGslVectorElements(values=values.int[[1]], params=params.int[[1]], name="intVector"), "\n",
+					"\tgsl_vector_add(", outName, ", intVector);", "\n",
+					destroyGslMatrix("intVector"))
+			}
+			
+			ret <- paste(ret, "}\n\n", sep="\n")
+			
+			
+			# Create jacobian function
 			ret <- paste(ret,
-				createGslMatrix(nrow(params.exo), ncol(params.exo), "Bmatrix"),
-				setGslMatrixElements(values=values.exo, params=params.exo, name="Bmatrix"),
-				blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
-				destroyGslMatrix("Bmatrix"),
+				jacHead,
+				setGslMatrixElements(values=values.dyn[[1]], params=params.dyn[[1]], name=jacName),
+				"}\n\n",
 				sep="\n")
 		}
-		
-		ret <- paste(ret, "}\n\n", sep="\n")
-		
-		
-		# Create jacobian function
-		ret <- paste(ret,
-			jacHead,
-			setGslMatrixElements(values=values.dyn, params=params.dyn, name=jacName),
-			"}\n\n",
-			sep="\n")
 		object@c.string <- ret
 		return(object)
 	}
@@ -1366,26 +1391,49 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, covariates, isContinuousTime){
-	values.dyn <- preProcessValues(values.dyn)
-	params.dyn <- preProcessParams(params.dyn)
-	if(!missing(values.exo)){
-		values.exo <- preProcessValues(values.exo)
+prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, params.int, values.int, covariates, isContinuousTime){
+	# Handle numerous cases of missing or non-list arguments
+	# General idea
+	# If they give us a non-list argument, make it a one-element list
+	# If they don't give us params, assume it's all fixed params
+	# If they don't give us values, assume they don't want that part of the model
+	if(!is.list(values.dyn)){
+		values.dyn <- list(values.dyn)
 	}
-	if(!missing(params.exo)){
-		params.exo <- preProcessParams(params.exo)
+	if(missing(params.dyn)){
+		params.dyn <- rep(list(matrix(0, nrow(values.dyn), ncol(values.dyn))), length(values.dyn))
+	}
+	if(!is.list(params.dyn)){
+		params.dyn <- list(params.dyn)
+	}
+	if(missing(values.exo)){
+		values.exo <- list()
+		params.exo <- list()
+	}
+	if(missing(params.exo)){
+		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
+	}
+	if(missing(values.int)){
+		values.int <- list()
+		params.int <- list()
+	}
+	if(missing(params.int)){
+		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
 	}
 	
-	if(missing(params.exo)){
-		params.exo <- matrix(0, 0, 0)
-		values.exo <- matrix(0, 0, 0)
-	}
-	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo))
-	pn <- c(extractParams(params.dyn), extractParams(params.exo))
+	values.dyn <- lapply(values.dyn, preProcessValues)
+	params.dyn <- lapply(params.dyn, preProcessParams)
+	values.exo <- lapply(values.exo, preProcessValues)
+	params.exo <- lapply(params.exo, preProcessParams)
+	values.int <- lapply(values.int, preProcessValues)
+	params.int <- lapply(params.int, preProcessParams)
+	
+	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
+	pn <- c(extractParams(params.dyn), extractParams(params.exo), extractParams(params.int))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
-
-	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, isContinuousTime=isContinuousTime)
+	
+	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, params.int=params.int, values.int=values.int, isContinuousTime=isContinuousTime)
 	return(new("dynrDynamicsMatrix", x))
 }
 
