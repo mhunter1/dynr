@@ -614,7 +614,49 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 		
 		#If numRegimes > 1
 		if(nregime > 1){
+			# Create dynamics (state-transition or drift matrix) with covariate effects
+			ret <- paste(dynHead,
+				createGslMatrix(nrow(params.dyn[[1]]), ncol(params.dyn[[1]]), "Amatrix"),
+				ifelse(hasCovariates, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), ""),
+				ifelse(hasIntercepts, createGslVector(nrow(params.int[[1]]), "intVector"), ""),
+				sep="\n")
 			
+			#Loop through regimes for dynamics
+			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+			for(reg in 1:nregime){
+				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+				ret <- paste(ret,
+					setGslMatrixElements(values=values.dyn[[reg]], params=params.dyn[[reg]], name="Amatrix"),
+					ifelse(hasCovariates, paste0("\t\t\t", setGslMatrixElements(values=values.exo[[reg]], params=params.exo[[reg]], name="Bmatrix")), ""),
+					ifelse(hasIntercepts, paste0("\t\t\t", setGslVectorElements(values=values.int[[reg]], params=params.int[[reg]], name="intVector")), ""),
+					sep="\n")
+				ret <- paste0(ret, "\t\t", "break;", "\n") 
+			}
+			ret <- paste0(ret, "\t", "}\n\n")
+			
+			ret <- paste(ret,
+				blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
+				ifelse(hasCovariates, blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName), ""),
+				ifelse(hasIntercepts, paste0("\tgsl_vector_add(", outName, ", intVector);\n"), ""),
+				destroyGslMatrix("Amatrix"),
+				ifelse(hasCovariates, destroyGslMatrix("Bmatrix"), ""),
+				ifelse(hasIntercepts, destroyGslMatrix("intVector"), ""),
+				"}\n\n", sep="\n")
+			
+			
+			# Create jacobian function
+			ret <- paste(ret, jacHead)
+			#Loop through regimes for jacobian
+			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+			for(reg in 1:nregime){
+				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+				ret <- paste(ret,
+					setGslMatrixElements(values=values.dyn[[reg]], params=params.dyn[[reg]], name=jacName),
+					sep="\n")
+				ret <- paste0(ret, "\t\t", "break;", "\n") 
+			}
+			ret <- paste0(ret, "\t", "}\n\n")
+			ret <- paste(ret, "}\n\n")
 		} else { #Else If numRegimes == 1
 			# Create dynamics (state-transition or drift matrix) with covariate effects
 			ret <- paste(dynHead,
