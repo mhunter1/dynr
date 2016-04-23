@@ -1,5 +1,4 @@
 Package: dynr
-Date: 2016-04-22
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person("Sy-Miin", "Chow", role="aut"),
@@ -25,5 +24,4 @@ Collate:
     'dynrPlot.R'
     'dynrFuncAddress.R'
     'dynrVersion.R'
-Version: 0.02-63
 

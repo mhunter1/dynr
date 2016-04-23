@@ -5,6 +5,7 @@ src/*.o
 src/*.so
 src/*.dll
 # The following list of roxygen built man pages is automatically updated
+man/dynr.cook.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
 man/internalModelPrep.Rd

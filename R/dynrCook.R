@@ -5,50 +5,6 @@
 # L = number of latent variables
 # R = number of regimes
 # T = number of time points
-setClass(Class =  "dynrDebug",
-         representation = representation(
-           fitted.parameters =  "numeric", #Can return
-           transformed.parameters =  "numeric", #
-           standard.errors =  "numeric",
-           hessian =  "matrix",
-           transformed.inv.hessian =  "matrix",
-           conf.intervals = "matrix",
-           exitflag = "numeric", #
-           neg.log.likelihood = "numeric", #
-           eta_regime_t = "array", # LxRxT #
-           error_cov_regime_t  = "array", # LxLxRxT #
-           innov_vec  = "array", # LxRxRxT #
-           inverse_residual_cov = "array", # LxLxRxRxT #
-           #Everything else from this point on
-           pr_t_given_T  = "matrix", # RxT
-           eta_smooth_final = "matrix", # LxT
-           error_cov_smooth_final  = "array", # LxLxT
-           run.times = "numeric"
-         ),
-         contains = "dynrCook"
-)
-
-# Initialize method for the new() function
-setMethod("initialize", "dynrDebug",
-          function(.Object, x){
-            .Object@fitted.parameters <- x$fitted.parameters
-            .Object@transformed.parameters <- x$transformed.parameters
-            .Object@standard.errors <- x$standard.errors
-            .Object@hessian <- x$hessian.matrix
-            .Object@transformed.inv.hessian <- x$transformed.inv.hessian
-            .Object@conf.intervals <- x$conf.intervals
-            .Object@exitflag <- x$exitflag
-            .Object@neg.log.likelihood <- x$neg.log.likelihood
-            .Object@eta_regime_t <- x$eta_regime_t
-            .Object@error_cov_regime_t <- x$error_cov_regime_t
-            .Object@innov_vec <- x$innov_vec
-            .Object@inverse_residual_cov <- x$inverse_residual_cov
-            .Object@pr_t_given_T <- x$pr_t_given_T
-            .Object@eta_smooth_final <- x$eta_smooth_final
-            .Object@error_cov_smooth_final <- x$error_cov_smooth_final
-            return(.Object)
-          }
-)
 
 setClass(Class =  "dynrCook",
          representation = representation(
@@ -86,6 +42,54 @@ setMethod("initialize", "dynrCook",
             return(.Object)
           }
 )
+
+setClass(Class =  "dynrDebug",
+         representation = representation(
+           fitted.parameters =  "numeric", #Can return
+           transformed.parameters =  "numeric", #
+           standard.errors =  "numeric",
+           hessian =  "matrix",
+           transformed.inv.hessian =  "matrix",
+           conf.intervals = "matrix",
+           exitflag = "numeric", #
+           neg.log.likelihood = "numeric", #
+           eta_regime_t = "array", # LxRxT #
+           error_cov_regime_t  = "array", # LxLxRxT #
+           innov_vec  = "array", # LxRxRxT #
+           inverse_residual_cov = "array", # LxLxRxRxT #
+           #Everything else from this point on
+           pr_t_given_T  = "matrix", # RxT
+           eta_smooth_final = "matrix", # LxT
+           error_cov_smooth_final  = "array", # LxLxT
+           run.times = "numeric",
+           param.names = "character"
+         ),
+         contains = "dynrCook"
+)
+
+# Initialize method for the new() function
+setMethod("initialize", "dynrDebug",
+          function(.Object, x){
+            .Object@fitted.parameters <- x$fitted.parameters
+            .Object@transformed.parameters <- x$transformed.parameters
+            .Object@standard.errors <- x$standard.errors
+            .Object@hessian <- x$hessian.matrix
+            .Object@transformed.inv.hessian <- x$transformed.inv.hessian
+            .Object@conf.intervals <- x$conf.intervals
+            .Object@exitflag <- x$exitflag
+            .Object@neg.log.likelihood <- x$neg.log.likelihood
+            .Object@eta_regime_t <- x$eta_regime_t
+            .Object@error_cov_regime_t <- x$error_cov_regime_t
+            .Object@innov_vec <- x$innov_vec
+            .Object@inverse_residual_cov <- x$inverse_residual_cov
+            .Object@pr_t_given_T <- x$pr_t_given_T
+            .Object@eta_smooth_final <- x$eta_smooth_final
+            .Object@error_cov_smooth_final <- x$error_cov_smooth_final
+            return(.Object)
+          }
+)
+
+
 setClass(Class =  "dynrOutall",
          representation = representation(
            fitted.parameters =  "numeric", #Can return
@@ -114,7 +118,8 @@ setClass(Class =  "dynrOutall",
            error_cov_regime_smooth  = "array", # LxLxRxT
            eta_smooth_final = "matrix", # LxT
            error_cov_smooth_final  = "array", # LxLxT
-           run.times = "numeric"
+           run.times = "numeric",
+           param.names = "character"
          ),
          contains = "dynrCook"
 )
@@ -175,10 +180,10 @@ summaryResults<-function(object){
 
 setMethod( f = "summary",  signature = "dynrCook" ,
            definition = summaryResults)
-setMethod( f = "summary",  signature = "dynrDebug" ,
-		   definition = summaryResults)
-setMethod( f = "summary",  signature = "dynrOutall" ,
-		   definition = summaryResults)
+#setMethod( f = "summary",  signature = "dynrDebug" ,
+#		   definition = summaryResults)
+#setMethod( f = "summary",  signature = "dynrOutall" ,
+#		   definition = summaryResults)
 
 display.dynrCook <- function(x){
   str(x)
@@ -219,24 +224,25 @@ logLik.dynrCook <- function(object, ...){
 
 #------------------------------------------------------------------------------
 
-##' Function for "cooking dinner" -- namely, to start the estimation process
+##' Cook a dynr model to estimate its free parameters
 ##' 
-##' @param a dynr model compiled using dynr.model, consisting of recipes for submodels, starting values, parameter names, and C code for each submodel
-##' @param dynr data
-##' @param a cumulative proportion indicating the level of desired confidence intervals for the final parameter estimates (default is .95)
-##' @param (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
-##' @param a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
-##' @param a flag (TRUE/FALSE) indicating whether users want additional dynr output that can be used for diagnostic purposes 
-##' @param a flag (TRUE/FALSE) indicating whether users want all the dynr output and by-products from the estimation procedure
+##' @param dynrModel a dynr model compiled using dynr.model, consisting of recipes for submodels, starting values, parameter names, and C code for each submodel
+##' @param data dynr data
+##' @param conf.level a cumulative proportion indicating the level of desired confidence intervals for the final parameter estimates (default is .95)
+##' @param infile (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
+##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
+##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can be used for diagnostic purposes 
+##' @param outall_flag a flag (TRUE/FALSE) indicating whether users want all the dynr output and by-products from the estimation procedure
 ##' 
 ##' @details
 ##' TO BE COMPLETED: 
+##' for "cooking dinner" -- namely, to start the estimation process
 ##' a description of things output when both debug_flag and outall_flag = FALSE
 ##' a description of things output when both debug_flag = TRUE and outall_flag = FALSE
 ##' a description of things output when both debug_flag = TRUE and outall_flag = TRUE
 ##' 
 ##' @examples
-##' 
+##' fitted.model <- dynr.cook(model, data)
 dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun

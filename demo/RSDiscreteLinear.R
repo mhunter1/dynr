@@ -44,8 +44,8 @@ recMeas <- prep.measurement(
 recNoise <- prep.noise(
 	values.latent=matrix(1, 1, 1),
 	params.latent=matrix('dynNoise', 1, 1),
-	values.observed=matrix(1, 1, 1),
-	params.observed=matrix('measNoise', 1, 1))
+	values.observed=matrix(0, 1, 1),
+	params.observed=matrix('fixed', 1, 1))
 
 
 
@@ -88,10 +88,13 @@ rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initia
 #------------------------------------------------------------------------------
 # Run model, look at results
 
-yum <- dynr.cook(rsmod, dd)
+yum <- dynr.cook(rsmod, dd, outall_flag=TRUE)
 
 
 summary(yum)
+
+#true parametes
+truep <- c(phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, measnoise=0, dynnoise=sqrt(.5))
 
 #------------------------------------------------------------------------------
 # End
