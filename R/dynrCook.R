@@ -180,10 +180,7 @@ summaryResults<-function(object){
 
 setMethod( f = "summary",  signature = "dynrCook" ,
            definition = summaryResults)
-#setMethod( f = "summary",  signature = "dynrDebug" ,
-#		   definition = summaryResults)
-#setMethod( f = "summary",  signature = "dynrOutall" ,
-#		   definition = summaryResults)
+
 
 display.dynrCook <- function(x){
   str(x)
