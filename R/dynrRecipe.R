@@ -175,7 +175,7 @@ dynfmltex<-function(eqregime,isContinuousTime){
   str.right=sapply(eq.char,"[",3)
   neq=length(eqregime)
   mulpatn<-"([[:print:]]*)"
-  sigpatnn<-"([0-9A-Za-z ^*]*)"
+  sigpatn<-"([0-9A-Za-z ^*]*)"
   for (j in 1:neq){
     if (!isContinuousTime){
       for (i in 1:neq){
