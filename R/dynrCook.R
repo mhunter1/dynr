@@ -229,18 +229,17 @@ logLik.dynrCook <- function(object, ...){
 ##' @param infile (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
 ##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
 ##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can be used for diagnostic purposes 
-##' @param outall_flag a flag (TRUE/FALSE) indicating whether users want all the dynr output and by-products from the estimation procedure
 ##' 
 ##' @details
 ##' TO BE COMPLETED: 
 ##' for "cooking dinner" -- namely, to start the estimation process
-##' a description of things output when both debug_flag and outall_flag = FALSE
-##' a description of things output when both debug_flag = TRUE and outall_flag = FALSE
-##' a description of things output when both debug_flag = TRUE and outall_flag = TRUE
+##' a description of things output when debug_flag = FALSE
+##' a description of things output when debug_flag = TRUE
 ##' 
 ##' @examples
 ##' fitted.model <- dynr.cook(model, data)
-dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE, outall_flag=FALSE) {
+dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE) {
+	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 
