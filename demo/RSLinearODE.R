@@ -104,16 +104,23 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans,
                     outfile="RSODEmodelRecipe.c")
-model@lb = c()
+#Can extract model$xstart to see the vector of starting values
+model$xstart; model$param.names
+
+#Use the `@' sign to set upper and lower boundaries for the parameters
+model@ub=c(rep(1.5, 4), 200, 5, 5, rep(30, 6))
+model@lb=c(rep(-20, 4), 50, -10, -10, rep(-30, 6))
+model@dynamics
 
 #cat(writeCcode(model$dynamics)$c.string)
 
 # View specified model in latex
-printex(model)
+printex(model$dynamics)
+printex(dynm)
 
 # Estimate free parameters
 #Need to remove transformation in dynr.cook
-res <- dynr.cook(model, data=data,debug_flag=FALSE)
+res <- dynr.cook(model, data=data)
 
 # Examine results
 summary(res)
@@ -122,7 +129,7 @@ summary(res)
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
 # 4.5, -4, 1,-1,-1, -2)
 
-
+printex(model@dynm)
 
 
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
