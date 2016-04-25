@@ -223,7 +223,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 	if(num_regime==1){
 		names.id.vars <- c("id","time")
 		names.measure.vars <- names.state
-		data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=1))
+		data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=length(states),byrow=TRUE))
 		names(data.plot) <- c(names.id.vars, names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],
@@ -245,7 +245,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 		data.plot$regime<-as.factor(apply(res@pr_t_given_T,2,findRegime))
 		names.id.vars<-c("id","time","endtime","regime")
 		names.measure.vars<-names.state
-		data.plot<-cbind(data.plot,matrix((res@eta_smooth_final[states,]),ncol=1))
+		data.plot<-cbind(data.plot,matrix((res@eta_smooth_final[states,]),ncol=length(states),byrow=TRUE))
 		names(data.plot)<-c(names.id.vars,names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],
