@@ -163,6 +163,11 @@ setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) 
 })
 
 
+setGeneric("printmath", 
+           function(object, observed, latent, covariates,show=TRUE) { 
+  return(standardGeneric("printmath")) 
+})
+
 
 setMethod("printex", "dynrMeasurement",
 	function(object, observed, latent, covariates, show=TRUE){
@@ -194,7 +199,7 @@ dynfmltex<-function(eqregime,isContinuousTime){
   }
   
   for (j in 1:neq){
-    str.left[j]=gsub(paste0(sigpatnn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
+    str.left[j]=gsub(paste0(sigpatn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
   }
   
   return(list(left=str.left,right=str.right))
@@ -205,6 +210,33 @@ setMethod("printex", "dynrDynamicsFormula",
     dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
 		return(invisible(dyn))
 	}
+)
+
+dynfm_math<-function(eqregime,isContinuousTime){
+  eq.char=lapply(eqregime, as.character)
+  str.left=sapply(eq.char,"[",2)
+  str.right=sapply(eq.char,"[",3)
+  neq=length(eqregime)
+  pretty.list = vector("list", neq) 
+  #mulpatn<-"([[:print:]]*)"
+  #sigpatn<-"([0-9A-Za-z ^*]*)"
+  for (j in 1:neq){
+    if (isContinuousTime){
+      str.left[j]=paste0("frac(italic(d)",str.left[j],", italic(dt))")
+    }else{
+      str.left[j]=paste0(str.left[j],"_{t}")      
+    }
+    str.right[j]=gsub(str.left[j],paste0(str.left[j],"_{t-1}"),str.right[j])
+    pretty.list[[j]] = c(paste0(str.left[j]," = ", str.right[j]))
+    }
+  return(pretty.list)
+}
+
+setMethod("printmath", "dynrDynamicsFormula",
+          function(object, observed, latent, covariates, show=TRUE){
+            dyn=lapply(object$formula,dynfm_math,object$isContinuousTime)
+            return(invisible(dyn))
+          }
 )
 
 setMethod("printex", "dynrDynamicsMatrix",
@@ -263,6 +295,9 @@ setGeneric("paramName2Number", function(object, names) {
 	return(standardGeneric("paramName2Number")) 
 })
 
+setGeneric("paramName2NumericNumber", function(object, paramList) { 
+  return(standardGeneric("paramName2NumericNumber")) 
+})
 
 .exchangeNamesAndNumbers <- function(params, names){
 	matrix(match(params, names, nomatch=0), nrow(params), ncol(params))
@@ -280,6 +315,20 @@ setGeneric("paramName2Number", function(object, names) {
     }
     eval(parse(text=string))
 }
+
+.replaceNamesbyNumbers <- function(formula, paramtoPlot){
+  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+  names <-   paste0("param\\[",(1:length(paramtoPlot))-1,"\\]")
+  #names(paramtoPlot)
+  #pattern=gsub("\\{","\\\\\\{",names)
+  #pattern=gsub("\\}","\\\\\\}",pattern)
+  #pattern=gsub("\\\\","\\\\\\\\",pattern)
+  for (i in 1:length(names)){
+  string<-gsub(names[i],paramtoPlot[i], string)
+  }
+  eval(parse(text=string))
+}
+
 
 setMethod("paramName2Number", "dynrMeasurement",
 	function(object, names){
@@ -321,9 +370,18 @@ setMethod("paramName2Number", "dynrDynamicsFormula",
 	function(object, names){
 	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnames, names)
 	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnames, names)
-		return(object)
+	  return(object)
 	}
 )
+
+setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
+          function(object, paramList){
+            object@formula = .replaceNamesbyNumbers(object@formula, paramList)
+            object@jacobian =.replaceNamesbyNumbers(object@jacobian, paramList)
+            return(object)
+          }
+)
+
 
 setMethod("paramName2Number", "dynrDynamicsMatrix",
 	function(object, names){

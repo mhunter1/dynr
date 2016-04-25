@@ -10,7 +10,7 @@
 #------------------------------------------------------------------------------
 # Load packages
 require(dynr)
-
+require(latex2exp)
 
 #------------------------------------------------------------------------------
 # Read in data
@@ -36,7 +36,7 @@ recMeas <- prep.measurement(
 	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
 	params.exo=list(matrix('beta0', 1, 1), matrix('beta1', 1, 1)))
 
-
+p = printex(recMeas)
 
 #--------------------------------------
 # Noise
@@ -63,7 +63,7 @@ recReg <- prep.regimes(
 recIni <- prep.initial(
 	values.inistate=matrix(0, 1, 1),
 	params.inistate=matrix('fixed', 1, 1),
-	values.inicov=matrix(5, 1, 1),
+	values.inicov=matrix(1, 1, 1),
 	params.inicov=matrix('fixed', 1, 1),
 	values.regimep=c(1, 0),
 	params.regimep=c('fixed', 'fixed'))
@@ -77,28 +77,33 @@ recDyn <- prep.matrixDynamics(
 	params.dyn=list(matrix('phi0', 1, 1), matrix('phi1', 1, 1)),
 	isContinuousTime=FALSE)
 
-
 #------------------------------------------------------------------------------
 # Create model
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, outfile="cooked")
 
-
-
 #------------------------------------------------------------------------------
 # Run model, look at results
 
-yum <- dynr.cook(rsmod, dd, outall_flag=TRUE)
+yum <- dynr.cook(rsmod, dd, debug_flag=TRUE)
 
 
 summary(yum)
+p1 = dynr.ggplot(yum, data.dynr=dd, states=1, 
+                 names.regime=c("Deactivated","Activated"),
+                 names.state=c("EMG"),
+                 title="Results from RS-AR model", numSubjDemo=1,
+                 shape.values = c(1),
+                 text=element_text(size=16))
 
-#true parametes
+print(p1)
+#true parameters
 truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, measnoise=0, dynnoise=.5^2, p00=.99, p10=.01)
 
-r1 <- c(2.54, 0)
+rsmod@xstart <- coef(yum)
+r1 <- c(rsmod$xstart[which(rsmod$param.names=="p00")],0)
 exp(r1)/sum(exp(r1)) #first row of transition probability matrix
-r2 <- c(-3.875, 0)
+r2 <- c(rsmod$xstart[which(rsmod$param.names=="p10")],0)
 exp(r2)/sum(exp(r2)) #second row of transition probability matrix
 
 

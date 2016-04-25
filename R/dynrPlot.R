@@ -116,12 +116,25 @@ Mode <- function(y) {
 #)
 
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, data.dynr,model) {
-p1 <- dynr.ggplot(res, data.dynr=data,numSubjDemo=1)
+          function(x, y=NULL, data.dynr,model,...) {
+paramtoPlot = as.list(signif(coef(x)[match(model$param.names,(model$dynamics)$paramnames,nomatch=0)],digits=2))
+names(paramtoPlot) = (model$dynamics)$paramnames
+#Call function to replace parameter names by values in list paramtoPlot
+dynm = paramName2NumericNumber(model$dynamics,paramList=paramtoPlot)
+dyn2=printex(dynm)            
+nregime = length(dyn2)
+exp1 = NULL
+for (r in 1:nregime){
+ne = length(dyn2[[r]])
+for (j in 1:ne){
+exp1 = c(exp1,paste0("$\\frac{",paste(dyn2[[r]]$left[j]),"}{dt} = $", 
+              paste0("$",paste(dyn2[[r]]$right[j]),"$")))
+}
+}
+b = lapply(exp1, function(x) TeX(x,output="expression")) 
 
-num_regime <- dim(res@pr_t_given_T)[1]
+p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)
 highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
-
 p2 <- ggplot(data = highProbR, aes(factor(regime))) +
   geom_bar() +
   scale_fill_brewer(palette = 3) +
@@ -130,31 +143,26 @@ p2 <- ggplot(data = highProbR, aes(factor(regime))) +
   theme(axis.title = element_text(size=14),
         axis.text=element_text(size=12),
         plot.title = element_text(size = 12, 
-        colour = "black", face = "bold"))
+                                  colour = "black", face = "bold"))
 
-#To be modified later once printex is done
-#Use appropriate coef(res) and appropriate param.names in substitute function below
-lm_eqn <- function(df){
-  m <- lm(y ~ x, df);
-  eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
-                   list(a = format(coef(m)[1], digits = 2), 
-                        b = format(coef(m)[2], digits = 2), 
-                        r2 = format(summary(m)$r.squared, digits = 3)))
-  as.character(as.expression(eq));                 
+
+df <- data.frame(x=1:10,y=1:50)
+p3 <- ggplot(df) + theme_void() +xlim(1,10)+ylim(1,50)+
+  annotate(geom="text", x=3, 
+           y=c(50-(0:(nregime-1))*(ne*10)), 
+           label=as.character(paste0("Regime ",1:nregime,":")),
+           color="black",size=4)
+qq <- c(50-(0:(nregime-1))*(ne*10))
+
+for (i in 1:length(b)){
+rnow <- ceiling(i/ne)
+p3<-p3+annotate(geom="text", x=5, 
+                y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)), 
+                label=as.character(b[[i]]),
+         color="black",parse=T,size=4)
 }
-
-df <- data.frame(x = c(1:100))
-df$y <- 2 + 3 * df$x + rnorm(100, sd = 40)
-
-m <- lm(y ~ x, data = df)
-eq <- substitute(italic(y) == a + b~italic(x)*","~~italic(r)^2~"="~r2,
-                 list(a = format(coef(m)[1], digits = 4),
-                              b = format(coef(m)[2], digits = 4),
-                              r2 = format(summary(m)$r.squared, digits = 3)))
-
-dftext <- data.frame(x = 70, y = 50, eq = as.character(as.expression(eq)))
-
-p3 <- ggplot(df, aes(x, y)) + geom_text(aes(label = eq), data = dftext, parse = TRUE)
+#print(p3)
+#num_regime <- dim(res@pr_t_given_T)[1]
 
 multiplot(p1,p2,p3, cols = 1, layout=matrix(c(1,1,2,3), nrow=2, byrow=TRUE))
 
@@ -182,7 +190,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
                         states, names.state, 
                         names.regime,shape.values,
                         idtoPlot=c(),
-                        title="Smoothed State Values", 
+                        title=" ", 
                         ylab="Smoothed State Values", 
                         is.bw=FALSE, 
                         colorPalette="Set2", 
@@ -215,7 +223,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 	if(num_regime==1){
 		names.id.vars <- c("id","time")
 		names.measure.vars <- names.state
-		data.plot <- cbind(data.plot, t(res@eta_smooth_final[states,]))
+		data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=1))
 		names(data.plot) <- c(names.id.vars, names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],
@@ -237,7 +245,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 		data.plot$regime<-as.factor(apply(res@pr_t_given_T,2,findRegime))
 		names.id.vars<-c("id","time","endtime","regime")
 		names.measure.vars<-names.state
-		data.plot<-cbind(data.plot,t(res@eta_smooth_final[states,]))
+		data.plot<-cbind(data.plot,matrix((res@eta_smooth_final[states,]),ncol=1))
 		names(data.plot)<-c(names.id.vars,names.measure.vars)
 		
 		data_long<- melt(data.plot[data.plot$id%in%randid,],

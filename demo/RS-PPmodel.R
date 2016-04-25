@@ -6,6 +6,7 @@
 #   a regime-switching linear ODE
 #------------------------------------------------------------------------------
 
+
 rm(list=ls(all=TRUE))
 require(dynr)
 options(scipen=999)
@@ -71,11 +72,22 @@ formula=list(
   list(prey~ r1*prey - a12*prey*predator,
        predator~ -r2*predator + a21*prey*predator))
 
+jacob=list(
+  list(prey~prey~r1 - a12*predator - 2*a11*prey,
+       prey~predator~ -a12*prey,
+       predator~prey~ a21*predator,
+       predator~predator~-r2 + a21*prey - 2*a22*predator),
+  list(prey~prey~r1 - a12*predator,
+       prey~predator~ -a12*prey,
+       predator~prey~ a21*predator,
+       predator~predator~-r2 + a21*prey))
+
+
 #Starting values are on constrained scale
 dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(r1=3, r2=2, a12 = 1, a21 = 1, 
                                       a11 =.5, a22 = .5),
-                           isContinuousTime=TRUE) #,jacobian=jacob
+                           isContinuousTime=TRUE,jacobian=jacob)
 
 #cat(writeCcode(dynm)$c.string)
 
@@ -106,7 +118,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 #cat(writeCcode(model$dynamics)$c.string)
 
 # View specified model in latex
-printex(model)
+#printex(model)
 
 # Estimate free parameters
 #Need to remove transformation in dynr.cook

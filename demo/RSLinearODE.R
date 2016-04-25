@@ -8,7 +8,8 @@
 
 rm(list=ls(all=TRUE))
 require(dynr)
-options(scipen=999)
+require(latex2exp)
+options(scipen=999,digits=2)
 
 # ---- Read in the data ----
 nT = 500; n = 10; batch = 1
@@ -83,6 +84,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(r1=.1,r2=.1,a12=.1,a21=.1,base=95),
                            isContinuousTime=TRUE) #,jacobian=jacob
 
+dynm$formula
+
 #cat(writeCcode(dynm)$c.string)
 
 trans<-prep.tfun(formula.trans=list(r1~exp(r1), 
@@ -104,19 +107,15 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans,
                     outfile="RSODEmodelRecipe.c")
-#Can extract model$xstart to see the vector of starting values
-model$xstart; model$param.names
+#Extract parameter names to set ub and lb (optional)
+model$param.names
 
 #Use the `@' sign to set upper and lower boundaries for the parameters
 model@ub=c(rep(1.5, 4), 200, 5, 5, rep(30, 6))
 model@lb=c(rep(-20, 4), 50, -10, -10, rep(-30, 6))
-model@dynamics
 
 #cat(writeCcode(model$dynamics)$c.string)
 
-# View specified model in latex
-printex(model$dynamics)
-printex(dynm)
 
 # Estimate free parameters
 #Need to remove transformation in dynr.cook
@@ -128,37 +127,6 @@ summary(res)
 #True values should be
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
 # 4.5, -4, 1,-1,-1, -2)
-
-printex(model@dynm)
-
-
-p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
-            names.regime=c("Exploration","Proximity-seeking"),
-            names.state=c("Mom","Infant"),
-            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
-            shape.values = c(1,2),
-            text=element_text(size=16))
-
-print(p1)
-plot(res,data.dynr = data,model)
-
-
-#par(cex.axis=1.3,cex.lab=1.5,mgp=c(2,.8,0))
-#plot(thedata$y1, res@residuals,type="n",
-#     xlab="y1(t)/dt", ylab=expression(paste("Residuals y1(t)")))
-#grid(5, 7, lwd = 2,lty="solid") # grid lines
-#points(thedata$y1, res@residuals)
-#abline(0,coef(lm(coef(res@residuals~y1))[2],col="red",lty=2,lwd=3)
-##lines(thedata$y1, coef(gall)["dx"]*dxall$dx,lwd=2,col="red",lty=2)
-#lines(loess.smooth(thedata$y1, res@residuals, 
-#                   span = 2/3, degree = 2),
-#      col="green",lwd=3)
-#
-##loessLine(dxall$dx, residuals(gall)+coef(gall)["dx"]*dxall$dx, 
-##          col="green",smoother.args=list(),log.x=FALSE,log.y=FALSE)
-#legend("topright",c("Linear least sqs","Loess"),lty=c(2,1),lwd=c(3,1),col=c("red","green"),
-#       bty="n",cex=1.3)
-#title(main="Component-Plus-Residual Plot: dx(t)/dt",cex.main=1.5) 
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
@@ -172,6 +140,15 @@ logLik(res)
 AIC(res)
 BIC(res)
 
+p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+            names.regime=c("Exploration","Proximity-seeking"),
+            names.state=c("Mom","Infant"),
+            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
+            shape.values = c(1,2),
+            text=element_text(size=16))
+
+print(p1)
+plot(res,data.dynr = data,model=model)
 
 #------------------------------------------------------------------------------
 # End
