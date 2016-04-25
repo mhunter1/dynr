@@ -1,10 +1,10 @@
-#------------------------------------------------------------------------------
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # Author: Sy-Miin Chow
 # Date: 2016-04-14
 # Filename: RSLinearODE.R
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching linear ODE
-#------------------------------------------------------------------------------
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 rm(list=ls(all=TRUE))
 require(dynr)
@@ -84,7 +84,10 @@ dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(r1=.1,r2=.1,a12=.1,a21=.1,base=95),
                            isContinuousTime=TRUE) #,jacobian=jacob
 
-dynm$formula
+dyn <- printex(dynm)
+dynequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
+               " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
+plot(TeX(dynequ))
 
 #cat(writeCcode(dynm)$c.string)
 
@@ -98,8 +101,7 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
                                   a21~log(a21)))
 
 #cat(writeCcode(trans)$c.string)
-#------------------------------------------------------------------------------
-# Cooking materials
+#---- Cooking it up! ----
 
 # Model
 # Put all the recipes together in a Model Specification
@@ -118,8 +120,9 @@ model@lb=c(rep(-20, 4), 50, -10, -10, rep(-30, 6))
 
 
 # Estimate free parameters
-#Need to remove transformation in dynr.cook
 res <- dynr.cook(model, data=data)
+
+#---- Serve it! ----
 
 # Examine results
 summary(res)
@@ -128,18 +131,15 @@ summary(res)
 #c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
 # 4.5, -4, 1,-1,-1, -2)
 
-#------------------------------------------------------------------------------
-# some miscellaneous nice functions
-
 # get the estimated parameters from a cooked model/data combo
 coef(res)
-
 
 # get the log likelihood, AIC, and BIC from a cooked model/data combo
 logLik(res)
 AIC(res)
 BIC(res)
 
+#---- Dynr decor ----
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
             names.regime=c("Exploration","Proximity-seeking"),
             names.state=c("Mom","Infant"),
@@ -150,7 +150,6 @@ p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2),
 print(p1)
 plot(res,data.dynr = data,model=model)
 
-#------------------------------------------------------------------------------
-# End
+#---- End of demo ----
 
 

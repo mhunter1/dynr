@@ -127,8 +127,13 @@ exp1 = NULL
 for (r in 1:nregime){
 ne = length(dyn2[[r]])
 for (j in 1:ne){
+if ((model$dynamics)$isContinuousTime){
 exp1 = c(exp1,paste0("$\\frac{",paste(dyn2[[r]]$left[j]),"}{dt} = $", 
               paste0("$",paste(dyn2[[r]]$right[j]),"$")))
+}else{
+exp1 = c(exp1,paste0("$",paste(dyn2[[r]]$left[j])," = $", 
+                       paste0("$",paste(dyn2[[r]]$right[j]),"$")))
+}
 }
 }
 b = lapply(exp1, function(x) TeX(x,output="expression")) 
