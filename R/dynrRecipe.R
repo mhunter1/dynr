@@ -1454,12 +1454,18 @@ autojacob<-function(formula,n){
 #------------------------------------------------------------------------------
 # "Dynamics" functions
 
-##' The translation function for the linear and nonlinear dynamic functions using formulas
+##' Recipe function for specifying dynamic functions using formulas
 ##' 
-##' @param formula a list of formulas specifying the drift or state-transition equations for the latent variables in continuous or discrete time, respectively
-##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/state-transition
-##' @param isContinuousTime If True, the left hand side of the formulas represent the first-order derivatives of the specified variables; if False, the left hand side of the formulas represent the current state of the specified variable while the same variable on the righ hand side is its previous state.  
-##' @param ... 
+##' @param formula a list of formulas specifying the drift or state-transition 
+##' equations for the latent variables in continuous or discrete time, respectively.
+##' @param startval a named vector of starting values of the parameters in the 
+##' formulas for estimation with parameter names as its name.
+##' @param isContinuousTime if True, the left hand side of the formulas represent 
+##' the first-order derivatives of the specified variables; if False, the left hand 
+##' side of the formulas represent the current state of the specified variable while 
+##' the same variable on the righ hand side is its previous state.  
+##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/
+##' state-transition, which can be missing
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
   if(is.null(names(startval))){
     stop('startval must be a named vector')
@@ -1687,11 +1693,25 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	return(new("dynrInitial", x))
 }
 
-##' Create a dynrTrans object to handle the transformations and inverse transformations of model paramters
+##' Create a dynrTrans object to handle the transformations and inverse 
+##' transformations of model paramters
 ##' 
-##' @param formula.trans a list of formulae for transforming freed parameters other than variance-covariance parameters during the optimization process. These transformation functions may be helpful for transforming parameters that would normally appear on a constrained scale to an unconstrained scale (e.g., parameters that can only take on positive values can be subjected to exponential transformation to ensure positivity.)
-##' @param formula.inv a list of formulae that inverse the transformation on the free parameters and will be used to calculate the starting values of the parameters.
-##' @param transCcode a logical value indicating whether the functions in formula.trans need to be transformed to functions in C. The default for transCcode is TRUE, which means that the formulae will be translated to C functions and utilized during the optimization process. If transCcode = FALSE, the transformations are only performed at the end of the optimization process for standard error calculations but not during the optimization process. 
+##' @param formula.trans a list of formulae for transforming freed parameters 
+##' other than variance-covariance parameters during the optimization process. 
+##' These transformation functions may be helpful for transforming parameters 
+##' that would normally appear on a constrained scale to an unconstrained 
+##' scale (e.g., parameters that can only take on positive values can be 
+##' subjected to exponential transformation to ensure positivity.)
+##' @param formula.inv a list of formulae that inverse the transformation 
+##' on the free parameters and will be used to calculate the starting values 
+##' of the parameters.
+##' @param transCcode a logical value indicating whether the functions in 
+##' formula.trans need to be transformed to functions in C. The default 
+##' for transCcode is TRUE, which means that the formulae will be translated 
+##' to C functions and utilized during the optimization process. 
+##' If transCcode = FALSE, the transformations are only performed at the end 
+##' of the optimization process for standard error calculations but not 
+##' during the optimization process. 
 prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))

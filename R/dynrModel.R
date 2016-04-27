@@ -108,6 +108,25 @@ setMethod("printex", "dynrModel",
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
 
+##' Create a dynrModel object for parameter estimation (cooking dynr) using \code{\link{dynr.cook}}
+##'
+##' @param dynamics a dynrDynamics object prepared with \code{\link{prep.formulaDynamics}} 
+##' or \code{\link{prep.matrixDynamics}}
+##' @param measurement a dynrMeasurement object prepared with \code{\link{prep.loadings}} 
+##' or \code{\link{prep.measurement}}
+##' @param noise a dynrNoise object prepared with \code{\link{prep.noise}}
+##' @param initial a dynrInitial object prepared with \code{\link{prep.initial}}
+##' @param ... additional arguments specifying other dynrRecipe objects. Argument regimes is for 
+##' a dynrRegimes object prepared with \code{\link{prep.regimes}} and argument transform is for 
+##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
+##' @param infile a character string of the name of the input C script of model functions to be compiled 
+##' for parameter estimation. The default is a temporary file name.
+##' @param outfile a character string of the name of the output C script of model functions to be compiled 
+##' for parameter estimation.
+##' 
+##' @examples
+##' model <- dynr.model(dynamics=dynm, measurement=meas,noise=mdcov, initial=initial, 
+##' regimes=regime, transform=trans,outfile="Recipe")
 dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile){
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
