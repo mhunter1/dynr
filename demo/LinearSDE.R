@@ -127,9 +127,12 @@ data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
 # Estimate free parameters
 res <- dynr.cook(model, data)
-
 # Examine results
 summary(res)
+
+#populate transformed estimates to dynrModel
+model<-PopBackModel(model, res@transformed.parameters)
+
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions

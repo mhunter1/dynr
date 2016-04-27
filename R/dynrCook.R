@@ -302,7 +302,9 @@ dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, deb
 	}
 	
 	obj@param.names <- dynrModel$param.names
-	
+	#populate transformed estimates to dynrModel
+	#model<<-PopBackModel(model, obj@transformed.parameters)
+  
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
@@ -406,4 +408,38 @@ dynrExitFlags <- c(
 	'12'='Maximum optimization time reached.',
 	'13'='Increase maxtime or change starting values.')
 
+PopBackMatrix<-function(param.matrix, trans.parameters){
+  param.matrix[which(param.matrix!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[which(param.matrix!=0,arr.ind = TRUE)]]
+  return(param.matrix)
+}
 
+PopBackFormula<- function(formula, paramnames, param.names, trans.paramters){
+  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+  for (i in 1:length(paramnames)){
+    string<-gsub(paste0("param\\[",match(paramnames[i], names, nomatch=0)-1,"\\]"),trans.parameters[match(paramnames[i], names, nomatch=0)], string, perl = TRUE)
+  }
+  eval(parse(text=string))
+}
+
+PopBackModel<-function(dynrModel, trans.parameters){
+  
+  if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
+    model@dynamics@formula<-PopBackFormula(dynrModel@dynamics@formula,dynrModel@dynamics@paramnames,dynrModel@param.names,trans.parameter)
+  }else{
+    dynrModel@dynamics@values.dyn <- lapply(dynrModel@dynamics@params.dyn, PopBack, trans.parameters)
+    dynrModel@dynamics@values.exo <- lapply(dynrModel@dynamics@params.exo, PopBack, trans.parameters)
+    dynrModel@dynamics@values.int <- lapply(dynrModel@dynamics@params.int, PopBack, trans.parameters)
+  }
+  #TODO when params is a list, change to use lapply 
+  dynrModel@measurement@values.load<-lapply(dynrModel@measurement@params.load, PopBack, trans.parameters)
+  dynrModel@measurement@values.exo<-lapply(dynrModel@measurement@params.exo, PopBack, trans.parameters)
+  dynrModel@measurement@values.int<-lapply(dynrModel@measurement@params.int, PopBack, trans.parameters)
+  dynrModel@noise@values.latent<-PopBack(dynrModel@noise@params.latent, trans.parameters)
+  dynrModel@noise@values.observed<-PopBack(dynrModel@noise@params.observed, trans.parameters)
+  dynrModel@initial@values.inistate<-PopBack(dynrModel@initial@params.inistate , trans.parameters) 
+  dynrModel@initial@values.inicov<-PopBack(dynrModel@initial@params.inicov, trans.parameters) 
+  dynrModel@initial@values.regimep<-PopBack(dynrModel@initial@params.regimep, trans.parameters)
+  dynrModel@regimes@values<-PopBack(dynrModel@regimes@params, trans.parameters)
+  
+  return(dynrModel)
+}
