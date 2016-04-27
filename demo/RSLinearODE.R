@@ -58,9 +58,9 @@ regimes <- prep.regimes(
                   "a_{21}","d_{21,1}","d_{21,2}",rep("fixed",3)), 
                 nrow=2, ncol=6,byrow=T), covariates=c('x1', 'x2'))
 
-#measurement and dynamics covariances
+#measurement and dynamic noise covariance structurres
 mdcov <- prep.noise(
-	values.latent=diag(1e-6, 2),
+	values.latent=diag(0, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
 	values.observed=diag(c(10,10)),
 	params.observed=diag(c("sigmasq_e1","sigmasq_e2"),2))
@@ -73,7 +73,7 @@ formula=list(
        eta2~ - a21 * (eta2 - eta1)))
 
 #jacob=list(
-#  list(x1~x1~-r1,x1~x2~0,
+#  list(eta1~eta1~-r1,x1~x2~0,
 #       x2~x1~0, x2~x2~-r2),
 #  list(x1~x1~-a12,x1~x2~a12,
 #       x2~x1~a21, x2~x2~-a21)
