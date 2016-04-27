@@ -408,9 +408,18 @@ dynrExitFlags <- c(
 	'12'='Maximum optimization time reached.',
 	'13'='Increase maxtime or change starting values.')
 
-PopBackMatrix<-function(param.matrix, trans.parameters){
-  param.matrix[which(param.matrix!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[which(param.matrix!=0,arr.ind = TRUE)]]
-  return(param.matrix)
+PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
+  if (class(values.matrix)=="list"){
+    num_regime=length(values.matrix)
+    if (num_regime>0){
+      for (i in num_regime){
+        values.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]]
+      }
+    }
+  }else{
+    values.matrix[which(param.matrix!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[which(param.matrix!=0,arr.ind = TRUE)]]
+  }
+  return(values.matrix)
 }
 
 PopBackFormula<- function(formula, paramnames, param.names, trans.paramters){
@@ -426,20 +435,22 @@ PopBackModel<-function(dynrModel, trans.parameters){
   if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
     model@dynamics@formula<-PopBackFormula(dynrModel@dynamics@formula,dynrModel@dynamics@paramnames,dynrModel@param.names,trans.parameter)
   }else{
-    dynrModel@dynamics@values.dyn <- lapply(dynrModel@dynamics@params.dyn, PopBack, trans.parameters)
-    dynrModel@dynamics@values.exo <- lapply(dynrModel@dynamics@params.exo, PopBack, trans.parameters)
-    dynrModel@dynamics@values.int <- lapply(dynrModel@dynamics@params.int, PopBack, trans.parameters)
+    dynrModel@dynamics@values.dyn <- PopBackMatrix(dynrModel@dynamics@values.dyn, dynrModel@dynamics@params.dyn, trans.parameters)
+    dynrModel@dynamics@values.exo <- PopBackMatrix(dynrModel@dynamics@values.exo, dynrModel@dynamics@params.exo, trans.parameters)
+    dynrModel@dynamics@values.int <- PopBackMatrix(dynrModel@dynamics@values.int, dynrModel@dynamics@params.int, trans.parameters)
   }
-  #TODO when params is a list, change to use lapply 
-  dynrModel@measurement@values.load<-lapply(dynrModel@measurement@params.load, PopBack, trans.parameters)
-  dynrModel@measurement@values.exo<-lapply(dynrModel@measurement@params.exo, PopBack, trans.parameters)
-  dynrModel@measurement@values.int<-lapply(dynrModel@measurement@params.int, PopBack, trans.parameters)
-  dynrModel@noise@values.latent<-PopBack(dynrModel@noise@params.latent, trans.parameters)
-  dynrModel@noise@values.observed<-PopBack(dynrModel@noise@params.observed, trans.parameters)
-  dynrModel@initial@values.inistate<-PopBack(dynrModel@initial@params.inistate , trans.parameters) 
-  dynrModel@initial@values.inicov<-PopBack(dynrModel@initial@params.inicov, trans.parameters) 
-  dynrModel@initial@values.regimep<-PopBack(dynrModel@initial@params.regimep, trans.parameters)
-  dynrModel@regimes@values<-PopBack(dynrModel@regimes@params, trans.parameters)
+  
+    dynrModel@measurement@values.load<-PopBackMatrix(dynrModel@measurement@values.load, dynrModel@measurement@params.load, trans.parameters)
+    dynrModel@measurement@values.exo<-PopBackMatrix(dynrModel@measurement@values.exo, dynrModel@measurement@params.exo, trans.parameters)
+    dynrModel@measurement@values.int<-PopBackMatrix(dynrModel@measurement@values.int, dynrModel@measurement@params.int, trans.parameters)
+  
+  #TODO change if inputs becomes lists later. 
+  dynrModel@noise@values.latent<-PopBackMatrix(dynrModel@noise@values.latent, dynrModel@noise@params.latent, trans.parameters)
+  dynrModel@noise@values.observed<-PopBackMatrix(dynrModel@noise@values.observed, dynrModel@noise@params.observed, trans.parameters)
+  dynrModel@initial@values.inistate<-PopBackMatrix(dynrModel@initial@values.inistate, dynrModel@initial@params.inistate , trans.parameters) 
+  dynrModel@initial@values.inicov<-PopBackMatrix(dynrModel@initial@values.inicov, dynrModel@initial@params.inicov, trans.parameters) 
+  dynrModel@initial@values.regimep<-PopBackMatrix(dynrModel@initial@values.regimep, dynrModel@initial@params.regimep, trans.parameters)
+  dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
   
   return(dynrModel)
 }
