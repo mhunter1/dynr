@@ -520,9 +520,9 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:n){
 	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[1]][[i]])
 	        }
-	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+	        ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
 	      }
 	    }
 	    
@@ -549,10 +549,10 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:length(jacob[[1]])){
 	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("param[NUM_PARAM+",j-1,")"),rhsj[[1]][[i]])
+	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[1]][[i]])
 	        }
 	        
-	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
+	        ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
 	      }
 	    }
 	    
