@@ -496,7 +496,6 @@ setMethod("writeCcode", "dynrDynamicsFormula",
     col=lapply(fmlj,function(x){lapply(x,"[[",2)})
     rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
 	  
-	  #TODO in the continuous case x is stacked at the end of param in function_dF_dx.
 	  #TODO add covariate
 	  
 	  if (object@isContinuousTime){
@@ -530,14 +529,14 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    ret=paste0(ret,"\n\t}")
 	    
 	    #function_dF_dx
-	    ret=paste0(ret,"\n\nvoid function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
+	    ret=paste0(ret,"\n\n/**\n* The dF/dx function\n* The partial derivative of the jacobian of the DE function with respect to the variable x\n* @param param includes at the end the current state estimates in the same order as the states following the model parameters\n*/void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
 	    if (nregime>1){
 	      ret=paste(ret,"switch (regime) {",sep="\n\t")
 	      for (r in 1:nregime){
 	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
 	        for (i in 1:length(jacob[[r]])){
 	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[r]][[i]])
 	          }
 	          
 	          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
@@ -550,7 +549,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:length(jacob[[1]])){
 	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("param[NUM_PARAM+",j-1,")"),rhsj[[1]][[i]])
 	        }
 	        
 	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
