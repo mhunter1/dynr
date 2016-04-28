@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------
 # Author: Sy-Miin Chow
 # Date: 2016-04-14
-# Filename: RSLinearODE.R
+# Filename: RS-PPmodel.R
 # Purpose: An illustrative example of using dynr to fit
-#   a regime-switching linear ODE
+#   a regime-switching predator-prey model
 #------------------------------------------------------------------------------
 
 
@@ -13,7 +13,7 @@ options(scipen=999)
 
 # ---- Read in the data ----
 thedata = read.table(paste0("./data/PPsimData.txt"))
-thedata$V6 <- as.numeric(thedata$V10)
+thedata$V10 <- as.numeric(thedata$V10)
 colnames(thedata) = c("ID","Time",paste0("y",1:6),"x1","x2")
 data <- dynr.data(thedata, id="ID", time="Time",observed=paste0('y', 1:6), 
                   covariates=paste0('x', 1:2))
@@ -31,11 +31,11 @@ meas <- prep.loadings(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-	values.inistate=c(10, 25),
+	values.inistate=c(5, 2),
 	params.inistate=c("fixed", "fixed"),
-	values.inicov=diag(c(9,4)), 
+	values.inicov=diag(c(1,1)), 
 	params.inicov=diag("fixed",2),
-	values.regimep=c(.5, 0),
+	values.regimep=c(.1, 0),
 	params.regimep=c("p0", "fixed")
 )
 
@@ -59,7 +59,7 @@ regimes <- prep.regimes(
 
 #measurement and dynamics covariances
 mdcov <- prep.noise(
-	values.latent=diag(1e-6, 2),
+	values.latent=diag(0, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
 	values.observed=diag(rep(5,6)),
 	params.observed=diag(c(paste0("sigma_e",1:6)),6)
@@ -116,9 +116,12 @@ res <- dynr.cook(model, data=data,debug_flag=FALSE)
 # Examine results
 summary(res)
 
-#True values should be
-#c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
-# 4.5, -4, 1,-1,-1, -2)
+LOpar =  c(-4, 6.5, 1,-1,-1, -2)  
+trueparms <- list(r1=4, r2=3.5, a12 = 2, a21 = 1.5, 
+              a11 = .2, a22 = .1, 
+              Ve1=4,Ve2=4,Ve3=4,Ve4=3,Ve5=3,Ve6=3,
+              LOpar)
+              
 
 
 
