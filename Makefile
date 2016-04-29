@@ -29,6 +29,7 @@ help:
 	@echo ""	
 	@echo "  test               run the test suite"
 	@echo "  torture       run the test suite with gctorture(TRUE)"
+	@echo "  cran-test     build dynr and run CRAN check"
 	@echo ""
 	@echo "BUILDS"
 	@echo ""
@@ -84,4 +85,9 @@ test:
 
 torture:
 	$(REXEC) --vanilla --slave -f $(TESTFILE) --args gctorture
+
+cran-test: srcbuild
+	$(REXEC) CMD check build/dynr_*.tar.gz | tee cran-test.log
+	wc -l dynr.Rcheck/00check.log
+	@if [ $$(wc -l dynr.Rcheck/00check.log | cut -d ' ' -f 1) -gt 297 ]; then echo "CRAN check problems have grown; see cran-check.log" ; false; fi
 
