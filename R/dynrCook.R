@@ -422,10 +422,10 @@ PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
   return(values.matrix)
 }
 
-PopBackFormula<- function(formula, paramnames, param.names, trans.paramters){
+PopBackFormula<- function(formula, paramnames, param.names, trans.parameters){
   string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
   for (i in 1:length(paramnames)){
-    string<-gsub(paste0("param\\[",match(paramnames[i], names, nomatch=0)-1,"\\]"),trans.parameters[match(paramnames[i], names, nomatch=0)], string, perl = TRUE)
+    string<-gsub(paste0("param\\[",match(paramnames[i], param.names, nomatch=0)-1,"\\]"),trans.parameters[match(paramnames[i], param.names, nomatch=0)], string, perl = TRUE)
   }
   eval(parse(text=string))
 }

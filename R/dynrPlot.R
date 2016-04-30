@@ -2,7 +2,6 @@
 # Plotting methods
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
   
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
@@ -117,11 +116,12 @@ Mode <- function(y) {
 
 setMethod("plot", "dynrCook",
           function(x, y=NULL, data.dynr,model,...) {
-paramtoPlot = as.list(signif(coef(x)[match(model$param.names,(model$dynamics)$paramnames,nomatch=0)],digits=2))
-names(paramtoPlot) = (model$dynamics)$paramnames
+#paramtoPlot = as.list(signif(coef(x)[match(model$param.names,(model$dynamics)$paramnames,nomatch=0)],digits=2))
+#names(paramtoPlot) = (model$dynamics)$paramnames
 #Call function to replace parameter names by values in list paramtoPlot
-dynm = paramName2NumericNumber(model$dynamics,paramList=paramtoPlot)
-dyn2=printex(dynm)            
+#dynm2 = paramName2NumericNumber(model$dynamics,paramList=paramtoPlot)
+options(digits=2)
+dyn2=printex(model$dynamics)           
 nregime = length(dyn2)
 exp1 = NULL
 for (r in 1:nregime){
