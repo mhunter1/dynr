@@ -120,7 +120,6 @@ setMethod("plot", "dynrCook",
 #names(paramtoPlot) = (model$dynamics)$paramnames
 #Call function to replace parameter names by values in list paramtoPlot
 #dynm2 = paramName2NumericNumber(model$dynamics,paramList=paramtoPlot)
-options(digits=2)
 dyn2=printex(model$dynamics)           
 nregime = length(dyn2)
 exp1 = NULL
