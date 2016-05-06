@@ -1098,14 +1098,18 @@ preProcessValues <- function(x){
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
+		rowNam <- NULL
+		colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
+		rowNam <- rownames(x)
+		colNam <- colnames(x)
 	}
 	x <- tolower(c(x))
 	sel <- pmatch(x, "freed", duplicates.ok=TRUE)
 	x[sel %in% 1] <- 0
-	x <- matrix(as.numeric(x), numRow, numCol)
+	x <- matrix(as.numeric(x), numRow, numCol, dimnames=list(rowNam, colNam))
 	return(x)
 }
 
@@ -1114,14 +1118,18 @@ preProcessParams <- function(x){
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
+		rowNam <- NULL
+		colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
+		rowNam <- rownames(x)
+		colNam <- colnames(x)
 	}
 	x <- tolower(c(x))
 	sel <- x %in% c("0", "fix", "fixed")
 	x[sel] <- "fixed"
-	x <- matrix(as.character(x), numRow, numCol)
+	x <- matrix(as.character(x), numRow, numCol, dimnames=list(rowNam, colNam))
 	return(x)
 }
 
