@@ -1221,6 +1221,10 @@ prep.loadings <- function(map, params, idvar){
 			}
 		}
 	}
+	rownames(valuesMat) <- allVars
+	rownames(paramsMat) <- allVars
+	colnames(valuesMat) <- names(map)
+	colnames(paramsMat) <- names(map)
 	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat)
 	return(x)
 }
