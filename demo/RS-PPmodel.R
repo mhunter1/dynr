@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
-# Author: Sy-Miin Chow
-# Date: 2016-04-14
+# Author: Lu Ou, Sy-Miin Chow
+# Date: 2016-05-05
 # Filename: RS-PPmodel.R
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching predator-prey model
@@ -12,31 +12,27 @@ require(dynr)
 options(scipen=999)
 
 # ---- Read in the data ----
-thedata = read.table(paste0("./data/PPsimData.txt"))
-thedata$V10 <- as.numeric(thedata$V10)
-colnames(thedata) = c("ID","Time",paste0("y",1:6),"x1","x2")
-data <- dynr.data(thedata, id="ID", time="Time",observed=paste0('y', 1:6), 
-                  covariates=paste0('x', 1:2))
+thedata = read.table(paste0("./data/PPRSsimData.txt"))
+colnames(thedata) = c("time","x","y","id","environment")
+data <- dynr.data(thedata, id="id", time="time",observed=c("x","y"),covariate="environment")
 
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
 meas <- prep.loadings(
   map=list(
-    eta1=paste0('y', 1:3),
-    eta2=paste0('y', 4:6)),
-  params=c("lambda_{21}","lambda_{31}","lambda_{52}","lambda_{62}"))
-
-#cat(writeCcode(meas)$c.string) #Can't write C code yet
+    eta1="x",
+    eta2="y"),
+  params=NULL)
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-	values.inistate=c(5, 2),
-	params.inistate=c("fixed", "fixed"),
-	values.inicov=diag(c(1,1)), 
-	params.inicov=diag("fixed",2),
-	values.regimep=c(.1, 0),
-	params.regimep=c("p0", "fixed")
+  values.inistate=c(3, 1),
+  params.inistate=c("fixed", "fixed"),
+  values.inicov=diag(c(0.01,0.01)), 
+  params.inicov=diag("fixed",2),
+	values.regimep=c(.5, .5),
+	params.regimep=c("fixed", "fixed")
 )
 
 
@@ -46,95 +42,79 @@ initial <- prep.initial(
 # LPM = 
 # lp(p11) ~ 1 + x1 + x2 + ... + xn,   lp(p12) ~ 1 + x1 + x2 + ... + xn
 # lp(p21) ~ 1 + x1 + x2 + ... + xn,   lp(p22) ~ 1 + x1 + x2 + ... + xn
-# Here I am specifying lp(p11) and lp(p21); the remaining elements
-# lp(p12) and lp(p22) are fixed at zero.
+# Here I am specifying lp(p11) and lp(p22); the remaining elements
+# lp(p11) and lp(p21) are fixed at zero.
 
 regimes <- prep.regimes(
-  values=matrix(c(6,.5,-.3,rep(0,3),
-                  -3,-1.5,-1,rep(0,3)), 
-                nrow=2, ncol=6,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-  params=matrix(c("a_{11}","d_{11,1}","d_{11,2}",rep("fixed",3),
-                  "a_{21}","d_{21,1}","d_{21,2}",rep("fixed",3)), 
-                nrow=2, ncol=6,byrow=T), covariates=c('x1', 'x2'))
+  values=matrix(c(0,0,-1,1,
+                  0,0,-1,1),
+                nrow=2, ncol=4,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+  params=matrix(c("fixed","fixed","int","slp",
+                  "fixed","fixed","int","slp"), 
+                nrow=2, ncol=4,byrow=T), 
+  covariates="environment")
 
 #measurement and dynamics covariances
 mdcov <- prep.noise(
-	values.latent=diag(0, 2),
-	params.latent=diag(c("fixed","fixed"), 2),
-	values.observed=diag(rep(5,6)),
-	params.observed=diag(c(paste0("sigma_e",1:6)),6)
+  values.latent=diag(0, 2),
+  params.latent=diag(c("fixed","fixed"), 2),
+  values.observed=diag(rep(0.05,2)),
+  params.observed=diag(c("var_1","var_2"),2)
 )
 
 # dynamics
 formula=list(
-  list(prey~ r1*prey - a12*prey*predator - a11*prey^2,
-       predator~ -r2*predator + a21*prey*predator - a22*predator^2),
   list(prey~ r1*prey - a12*prey*predator,
-       predator~ -r2*predator + a21*prey*predator))
+       predator~ -r2*predator + a21*prey*predator),
+  list(prey~ r1*prey - a1*prey^2 - a12*prey*predator,
+       predator~ a2*predator - r2*predator^2 + a21*prey*predator ))
 
-#Starting values are on constrained scale
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(r1=3, r2=2, a12 = 1, a21 = 1, 
-                                      a11 =.5, a22 = .5),
+                           startval=c(r1=2.1, r2=0.8, a12 = 1.9, a21 = 1.1,
+                                      a1 =1, a2 = 1),
                            isContinuousTime=TRUE)
 
-#cat(writeCcode(dynm)$c.string)
-
+#constraints
 trans<-prep.tfun(formula.trans=list(r1~exp(r1), 
                                     r2~exp(r2),
                                     a12~exp(a12),
                                     a21~exp(a21),
-                                    a11~exp(a11),
-                                    a22~exp(a22)),
+                                    a1~exp(a1),
+                                    a2~exp(a2)),
                  formula.inv=list(r1~log(r1),
                                   r2~log(r2),
                                   a12~log(a12),
                                   a21~log(a21),
-                                  a11~log(a11),
-                                  a22~log(a22)))
+                                  a1~log(a1),
+                                  a2~log(a2))
+                 )
 
-#cat(writeCcode(trans)$c.string)
 #------------------------------------------------------------------------------
 # Cooking materials
 
-# Model
 # Put all the recipes together in a Model Specification
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans,
                     outfile="RSPPmodelRecipe.c")
 
-#cat(writeCcode(model$dynamics)$c.string)
-
-# View specified model in latex
-#printex(model)
-
+model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
+model@lb[model@param.names%in%c("int","slp")]<-c(-10,0)
 # Estimate free parameters
-#Need to remove transformation in dynr.cook
-res <- dynr.cook(model, data=data,debug_flag=FALSE)
+res <- dynr.cook(model, data=data)
 
 # Examine results
 summary(res)
 
-LOpar =  c(-4, 6.5, 1,-1,-1, -2)  
-trueparms <- list(r1=4, r2=3.5, a12 = 2, a21 = 1.5, 
-              a11 = .2, a22 = .1, 
-              Ve1=4,Ve2=4,Ve3=4,Ve4=3,Ve5=3,Ve6=3,
-              LOpar)
-              
-
-
-
-
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
-            names.regime=c("Exploration","Proximity-seeking"),
-            names.state=c("Mom","Infant"),
-            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
+            names.regime=c("Free","Constrained"),
+            names.state=c("Prey","Predator"),
+            title="Results from RS-nonlinear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
             shape.values = c(1,2),
             text=element_text(size=16))
 
 print(p1)
-plot(res,data.dynr = data,model)
+#plot(res,data.dynr = data,model)
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
