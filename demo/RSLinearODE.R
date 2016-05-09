@@ -123,32 +123,29 @@ model@lb=c(rep(-20, 4), 50, -10, -10, rep(-30, 6))
 res <- dynr.cook(model, data=data)
 
 #---- Serve it! ----
+p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+                 names.regime=c("Exploration",
+                                "Proximity-seeking"),
+                 names.state=c("Mom","Infant"),
+                 title="Results from RS-linear ODE model", 
+                 numSubjDemo=2,idtoPlot=c(1,2),
+                 shape.values = c(1,2),
+                 text=element_text(size=16))
 
-# Examine results
+print(p1)
+plot(res,data.dynr = data,model=model)
 summary(res)
-
-#True values should be
-#c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
-# 4.5, -4, 1,-1,-1, -2)
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
+#True values should be
+#c(log(.2), log(.1), log(.3), log(.2),  100, log(9.0), log(9.0), 
+# 4.5, -4, 1,-1,-1, -2)
 
 # get the log likelihood, AIC, and BIC from a cooked model/data combo
 logLik(res)
 AIC(res)
 BIC(res)
-
-#---- Dynr decor ----
-p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
-            names.regime=c("Exploration","Proximity-seeking"),
-            names.state=c("Mom","Infant"),
-            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
-            shape.values = c(1,2),
-            text=element_text(size=16))
-
-print(p1)
-plot(res,data.dynr = data,model=model)
 
 #---- End of demo ----
 
