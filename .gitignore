@@ -5,12 +5,14 @@ src/*.o
 src/*.so
 src/*.dll
 # The following list of roxygen built man pages is automatically updated
+man/coef.dynrCook.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
 man/dynr.model.Rd
 man/internalModelPrep.Rd
+man/logLik.dynrCook.Rd
 man/prep.formulaDynamics.Rd
 man/prep.initial.Rd
 man/prep.loadings.Rd

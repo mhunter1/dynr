@@ -203,11 +203,38 @@ setMethod("show", "dynrCook", function(object) {
 # AIC
 # BIC
 
+##' Extract fitted parameters from a dynrCook Object
+##' 
+##' @param object
+##' @param ... further named arguments, ignored for this method
+##' 
+##' @return A numeric vector of the fitted parameters.
+##' 
+##' @seealso Other S3 methods \code{\link{logLik.dynrCook}}
+##' 
+##' @examples
+##' # Let cookedModel be the output from dynr.cook
+##' coef(cookedModel)
 coef.dynrCook <- function(object, ...){
   object@transformed.parameters
 }
 
 
+##' Extract the log likelihood from a dynrCook Object
+##' 
+##' @param object
+##' @param ... further named arguments, ignored for this method
+##' 
+##' @details
+##' The 'df' attribute for this object is the number of freely estimated parameters. The 'nobs' attribute is the total number of rows of data, adding up the number of time points for each person.
+##' 
+##' @return An object of class \code{logLik}.
+##' 
+##' @seealso Other S3 methods \code{\link{coef.dynrCook}}
+##' 
+##' @examples
+##' # Let cookedModel be the output from dynr.cook
+##' logLik(cookedModel)
 logLik.dynrCook <- function(object, ...){
   ans <- -object@neg.log.likelihood
   attr(ans, "df") <- length(object@fitted.parameters)
@@ -235,6 +262,8 @@ logLik.dynrCook <- function(object, ...){
 ##' for "cooking dinner" -- namely, to start the estimation process
 ##' a description of things output when debug_flag = FALSE
 ##' a description of things output when debug_flag = TRUE
+##' 
+##' @seealso \code{\link{dynr.cook}}
 ##' 
 ##' @examples
 ##' fitted.model <- dynr.cook(model, data)
