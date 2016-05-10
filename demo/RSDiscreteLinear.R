@@ -29,7 +29,10 @@ recMeas <- prep.measurement(
 	values.int=list(matrix(0, 1, 1), matrix(1, 1, 1)),
 	params.int=list(matrix('mu0', 1, 1), matrix('mu1', 1, 1)),
 	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
-	params.exo=list(matrix('beta0', 1, 1), matrix('beta1', 1, 1)))
+	params.exo=list(matrix('beta0', 1, 1), matrix('beta1', 1, 1)),
+	obs.names = c('EMG'),
+	state.names=c('lEMG'),
+	exo.names=c("self"))
 
 p = printex(recMeas)
 
@@ -68,6 +71,8 @@ recDyn <- prep.matrixDynamics(
 #---- (4) Create model and cook it all up ----
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, outfile="cooked")
+
+
 
 yum <- dynr.cook(rsmod, dd, debug_flag=TRUE)
 

@@ -36,7 +36,10 @@ setClass(Class = "dynrMeasurement",
            values.exo = "list",
            params.exo = "list",
            values.int = "list",
-           params.int = "list"),
+           params.int = "list",
+           state.names="character",
+           obs.names="character",
+           exo.names="character"),
          contains = "dynrRecipe"
 )
 
@@ -74,6 +77,7 @@ setClass(Class = "dynrDynamicsMatrix",
            params.exo = "list",
            values.int = "list",
            params.int = "list",
+           covariates = "character",
            isContinuousTime = "logical"
            ),
          contains = "dynrDynamics"
@@ -171,7 +175,19 @@ setGeneric("printmath",
 
 setMethod("printex", "dynrMeasurement",
 	function(object, observed, latent, covariates, show=TRUE){
-		lC <- lapply(object$values.load, .xtableMatrix, show=show)
+	  nregime=length(object$values.load)
+		loadings <- lapply(object$values.load, .xtableMatrix,show=FALSE) #, show=show)
+		state.names <- .xtableMatrix(matrix(object$state.names,ncol=1),show=FALSE)
+		obs.names <- .xtableMatrix(matrix(object$obs.names,ncol=1),show=FALSE)
+		paste0(obs.names,"=",loadings[[1]],state.names)
+		#TODO update for list objects
+
+		##TODO add something better for covariates
+		#lB <- ifelse(nrow(object$values.exo) != 0, .xtableMatrix(object$values.exo, show), "")
+		##TODO add intercepts processing
+		#return(invisible(list(dyn=lA, exo=lB)))
+		
+		
 		return(invisible(list(measurement=lC)))
 	}
 )
@@ -232,12 +248,45 @@ dynfm_math<-function(eqregime,isContinuousTime){
   return(pretty.list)
 }
 
+
 setMethod("printmath", "dynrDynamicsFormula",
           function(object, observed, latent, covariates, show=TRUE){
             dyn=lapply(object$formula,dynfm_math,object$isContinuousTime)
             return(invisible(dyn))
           }
 )
+
+gatherTexEquations<-  function(model, show2=TRUE){
+            model2<-PopBackModel(model, model$param.names)
+            meas_loadings=lapply((model2$measurement)$values.load,.xtableMatrix,show2)
+            meas_int=lapply((model2$measurement)$values.int,.xtableMatrix,show2)
+           meas_exo=lapply((model2$measurement)$values.exo,.xtableMatrix,show2)
+            meas_exo.names=.xtableMatrix(matrix((model2$measurement)$exo.names,ncol=1),show2)
+            meas_noise=lapply(list((model2$noise)$values.observed),.xtableMatrix,show2)  
+            meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,meas_exo=meas_exo,
+                             meas_noise = meas_noise,meas_exo.names=meas_exo.names)
+            if (class(model2$dynamics) == 'dynrDynamicsFormula'){
+            dyn_noise=lapply((model2$noise)$values.latent,.xtableMatrix,show2)  
+            dyn_list = list((model2$dynamics)$formula,dyn_noise=dyn_noise)
+            }else{
+              dyn_tran=lapply((model2$dynamics)$values.dyn,.xtableMatrix,show2)   
+              dyn_int=lapply((model2$dynamics)$values.int,.xtableMatrix,show2)   
+              dyn_exo=lapply((model2$dynamics)$values.exo,.xtableMatrix,show2)   
+              dyn_exo.names=.xtableMatrix(matrix((model2$dynamics)$covariates,ncol=1),show2)
+              dyn_noise=lapply(list((model2$noise)$values.latent),.xtableMatrix,show2)  
+              dyn_list = list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, 
+                              dyn_noise=dyn_noise,dyn_exo.names)  
+            }
+            ini_means=lapply(list((model2$initial)$values.inistate),.xtableMatrix,show2)   
+            ini_cov=lapply(list((model2$initial)$values.inicov),.xtableMatrix,show2)   
+            ini_list=list(ini_means=ini_means,ini_cov=ini_cov)
+            regime=.xtableMatrix((model2$regimes)$values,show2) 
+            regime_exo.names=.xtableMatrix(matrix((model2$regimes)$covariates,ncol=1),show2)
+            regime_list=list(regimeModel=regime,regime_exo.names=regime_exo.names)
+            state.names=.xtableMatrix(matrix((model2$measurement)$state.names,ncol=1),show2)  
+            obs.names=.xtableMatrix(matrix((model2$measurement)$obs.names,ncol=1),show2)  
+            return(list(meas_list=meas_list, dyn_list=dyn_list,ini_list=ini_list,regime_list=regime_list,state.names=state.names,obs.names=obs.names))
+}
 
 setMethod("printex", "dynrDynamicsMatrix",
 	function(object, observed, latent, covariates, show=TRUE){
@@ -1195,7 +1244,7 @@ extractValues <- function(v, p){
 ##' 
 ##' #Two factor model with a cross loading
 ##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-prep.loadings <- function(map, params, idvar){
+prep.loadings <- function(map, params, idvar,exo.names=NULL){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
@@ -1233,7 +1282,7 @@ prep.loadings <- function(map, params, idvar){
 	rownames(paramsMat) <- allVars
 	colnames(valuesMat) <- names(map)
 	colnames(paramsMat) <- names(map)
-	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat)
+	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat,state.names=names(map),obs.names=allVars,exo.names=exo.names)
 	return(x)
 }
 
@@ -1271,8 +1320,11 @@ prep.loadings <- function(map, params, idvar){
 ##' # active for regime 1, and the second latent variable is active for regime 2
 ##' # No free parameters are present.
 ##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
-prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int){
-	if(!is.list(values.load)){
+prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int,
+                             obs.names,state.names,exo.names){
+
+  
+  if(!is.list(values.load)){
 		values.load <- list(values.load)
 	}
 	if(missing(params.load)){
@@ -1288,6 +1340,19 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 	if(missing(params.exo)){
 		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
 	}
+  
+  if(missing(obs.names)){
+    obs.names = paste0('y',1:nrow(values.load[[1]]))
+  }
+  
+  if(missing(state.names)){
+    state.names = paste0('state',1:ncol(values.load[[1]]))
+  }
+  
+  if(missing(exo.names)){
+    exo.names = paste0('x',1:nrow(values.exo[[1]]))
+  }
+  
 	if(missing(values.int)){
 		values.int <- list()
 		params.int <- list()
@@ -1306,7 +1371,8 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 	x <- list(startval=sv, paramnames=pn, values.load=values.load, params.load=params.load,
-		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int)
+		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int,
+		obs.names=obs.names, state.names=state.names,exo.names=exo.names)
 	return(new("dynrMeasurement", x))
 }
 
@@ -1508,7 +1574,8 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, params.int, values.int, covariates, isContinuousTime){
+prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, params.int, values.int, 
+                                covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
 	# General idea
 	# If they give us a non-list argument, make it a one-element list
@@ -1537,7 +1604,9 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	if(missing(params.int)){
 		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
 	}
-	
+  if(missing(covariates)){
+    covariates <- character(0)
+  }
 	values.dyn <- lapply(values.dyn, preProcessValues)
 	params.dyn <- lapply(params.dyn, preProcessParams)
 	values.exo <- lapply(values.exo, preProcessValues)
@@ -1550,7 +1619,7 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 	
-	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, params.int=params.int, values.int=values.int, isContinuousTime=isContinuousTime)
+	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, params.int=params.int, values.int=values.int, isContinuousTime=isContinuousTime,covariates=covariates)
 	return(new("dynrDynamicsMatrix", x))
 }
 

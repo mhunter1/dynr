@@ -30,6 +30,14 @@ meas <- prep.loadings(
 
 #cat(writeCcode(meas)$c.string) #Can't write C code yet
 
+
+matrix2formula(meas$values.load[[1]])
+matrix2formula(meas$params.load[[1]])
+
+measequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
+               " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
+plot(TeX(dynequ))
+
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
 	values.inistate=c(70, 40),
