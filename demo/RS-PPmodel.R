@@ -13,17 +13,18 @@ options(scipen=999)
 
 # ---- Read in the data ----
 thedata = read.table(paste0("./data/PPRSsimData.txt"))
-colnames(thedata) = c("time","x","y","id","environment")
-data <- dynr.data(thedata, id="id", time="time",observed=c("x","y"),covariate="environment")
+colnames(thedata) = c("time","x","y","x1","x2","y1","y2","id","environment")
+data <- dynr.data(thedata, id="id", time="time",observed=c("x1","x2","y1","y2"),covariate="environment")
 
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
 meas <- prep.loadings(
   map=list(
-    eta1="x",
-    eta2="y"),
-  params=NULL)
+    eta1=c("x1","x2"),
+    eta2=c("y1","y2")),
+  params=c("lamx","lamy"),
+  idvar=c("x1","y1"))
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
@@ -58,8 +59,8 @@ regimes <- prep.regimes(
 mdcov <- prep.noise(
   values.latent=diag(0, 2),
   params.latent=diag(c("fixed","fixed"), 2),
-  values.observed=diag(rep(0.05,2)),
-  params.observed=diag(c("var_1","var_2"),2)
+  values.observed=diag(rep(0.5,4)),
+  params.observed=diag(rep("var",4),4)
 )
 
 # dynamics
