@@ -22,11 +22,10 @@ data <- dynr.data(thedata, id="ID", time="Time",observed=paste0('y', 1:2),
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
-meas <- prep.loadings(
-  map=list(
-    eta1=paste0('y', 1),
-    eta2=paste0('y', 2)),
-    params = NULL)
+meas <- prep.measurement(
+  values.load=matrix(1, 1, 1),
+  obs.names = c('y1','y2'),
+  state.names=c('Mom','Baby'))
 
 #cat(writeCcode(meas)$c.string) #Can't write C code yet
 

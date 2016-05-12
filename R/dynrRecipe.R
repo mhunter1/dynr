@@ -162,35 +162,79 @@ setMethod("$", "dynrRecipe",
 #------------------------------------------------------------------------------
 # printex method definitions
 
-setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) { 
+#setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) { 
+#  return(standardGeneric("printex")) 
+#})
+setGeneric("printex", function(object, show=TRUE) { 
 	return(standardGeneric("printex")) 
 })
 
 
-setGeneric("printmath", 
-           function(object, observed, latent, covariates,show=TRUE) { 
-  return(standardGeneric("printmath")) 
-})
-
 
 setMethod("printex", "dynrMeasurement",
-	function(object, observed, latent, covariates, show=TRUE){
-	  nregime=length(object$values.load)
-		loadings <- lapply(object$values.load, .xtableMatrix,show=FALSE) #, show=show)
-		state.names <- .xtableMatrix(matrix(object$state.names,ncol=1),show=FALSE)
-		obs.names <- .xtableMatrix(matrix(object$obs.names,ncol=1),show=FALSE)
-		paste0(obs.names,"=",loadings[[1]],state.names)
-		#TODO update for list objects
-
-		##TODO add something better for covariates
-		#lB <- ifelse(nrow(object$values.exo) != 0, .xtableMatrix(object$values.exo, show), "")
-		##TODO add intercepts processing
-		#return(invisible(list(dyn=lA, exo=lB)))
-		
-		
-		return(invisible(list(measurement=lC)))
-	}
+          function(object, show=TRUE){
+            meas_loadings=lapply((object)$values.load,.xtableMatrix,show)
+            meas_int=lapply((object)$values.int,.xtableMatrix,show)
+            meas_exo=lapply((object)$values.exo,.xtableMatrix,show)
+            meas_exo.names=.xtableMatrix(matrix((object)$exo.names,ncol=1),show)
+            meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
+                             meas_exo=meas_exo,meas_exo.names=meas_exo.names)
+            return(invisible(meas_list))
+          }
 )
+
+
+setMethod("printex", "dynrDynamicsMatrix",
+          function(object, show=TRUE){
+            dyn_tran=lapply((object)$values.dyn,.xtableMatrix,show)   
+            dyn_int=lapply((object)$values.int,.xtableMatrix,show)   
+            dyn_exo=lapply((object)$values.exo,.xtableMatrix,show)   
+            dyn_exo.names=.xtableMatrix(matrix((object)$covariates,ncol=1),show)
+            return(invisible(list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, dyn_exo.names = dyn_exo.names) ))
+          }
+)
+
+setMethod("printex", "dynrRegimes",
+          function(object, show=TRUE){
+            lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
+            return(invisible(list(regimes=lG)))
+          }
+)
+
+
+setMethod("printex", "dynrInitial",
+          function(object, show=TRUE){
+            lx0 <- .xtableMatrix(object$values.inistate, show)
+            lP0 <- .xtableMatrix(object$values.inicov, show)
+            lr0 <- .xtableMatrix(object$values.regimep, show)
+            return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
+          }
+)
+
+
+setMethod("printex", "dynrNoise",
+          function(object, show=TRUE){
+            lQ <- .xtableMatrix(object$values.latent, show)
+            lR <- .xtableMatrix(object$values.observed, show)
+            return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
+          }
+)
+
+setMethod("printex", "dynrDynamicsFormula",
+          function(object, show=TRUE){
+            dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
+            return(invisible(dyn))
+          }
+)
+
+
+
+#setGeneric("printmath", 
+#           function(object, observed, latent, covariates,show=TRUE) { 
+#  return(standardGeneric("printmath")) 
+#})
+
+
 
 dynfmltex<-function(eqregime,isContinuousTime){
   eq.char=lapply(eqregime, as.character)
@@ -221,12 +265,7 @@ dynfmltex<-function(eqregime,isContinuousTime){
   return(list(left=str.left,right=str.right))
 }
 
-setMethod("printex", "dynrDynamicsFormula",
-	function(object, observed, latent, covariates, show=TRUE){
-    dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
-		return(invisible(dyn))
-	}
-)
+
 
 dynfm_math<-function(eqregime,isContinuousTime){
   eq.char=lapply(eqregime, as.character)
@@ -249,81 +288,31 @@ dynfm_math<-function(eqregime,isContinuousTime){
 }
 
 
-setMethod("printmath", "dynrDynamicsFormula",
-          function(object, observed, latent, covariates, show=TRUE){
-            dyn=lapply(object$formula,dynfm_math,object$isContinuousTime)
-            return(invisible(dyn))
-          }
-)
+#setMethod("printmath", "dynrDynamicsFormula",
+#          function(object, observed, latent, covariates, show=TRUE){
+#            dyn=lapply(object$formula,dynfm_math,object$isContinuousTime)
+#            return(invisible(dyn))
+#          }
+#)
 
-gatherTexEquations<-  function(model, show2=TRUE){
-            model2<-PopBackModel(model, model$param.names)
-            meas_loadings=lapply((model2$measurement)$values.load,.xtableMatrix,show2)
-            meas_int=lapply((model2$measurement)$values.int,.xtableMatrix,show2)
-           meas_exo=lapply((model2$measurement)$values.exo,.xtableMatrix,show2)
-            meas_exo.names=.xtableMatrix(matrix((model2$measurement)$exo.names,ncol=1),show2)
-            meas_noise=lapply(list((model2$noise)$values.observed),.xtableMatrix,show2)  
-            meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,meas_exo=meas_exo,
-                             meas_noise = meas_noise,meas_exo.names=meas_exo.names)
-            if (class(model2$dynamics) == 'dynrDynamicsFormula'){
-            dyn_noise=lapply((model2$noise)$values.latent,.xtableMatrix,show2)  
-            dyn_list = list((model2$dynamics)$formula,dyn_noise=dyn_noise)
-            }else{
-              dyn_tran=lapply((model2$dynamics)$values.dyn,.xtableMatrix,show2)   
-              dyn_int=lapply((model2$dynamics)$values.int,.xtableMatrix,show2)   
-              dyn_exo=lapply((model2$dynamics)$values.exo,.xtableMatrix,show2)   
-              dyn_exo.names=.xtableMatrix(matrix((model2$dynamics)$covariates,ncol=1),show2)
-              dyn_noise=lapply(list((model2$noise)$values.latent),.xtableMatrix,show2)  
-              dyn_list = list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, 
-                              dyn_noise=dyn_noise,dyn_exo.names)  
-            }
-            ini_means=lapply(list((model2$initial)$values.inistate),.xtableMatrix,show2)   
-            ini_cov=lapply(list((model2$initial)$values.inicov),.xtableMatrix,show2)   
-            ini_list=list(ini_means=ini_means,ini_cov=ini_cov)
-            regime=.xtableMatrix((model2$regimes)$values,show2) 
-            regime_exo.names=.xtableMatrix(matrix((model2$regimes)$covariates,ncol=1),show2)
-            regime_list=list(regimeModel=regime,regime_exo.names=regime_exo.names)
-            state.names=.xtableMatrix(matrix((model2$measurement)$state.names,ncol=1),show2)  
-            obs.names=.xtableMatrix(matrix((model2$measurement)$obs.names,ncol=1),show2)  
-            return(list(meas_list=meas_list, dyn_list=dyn_list,ini_list=ini_list,regime_list=regime_list,state.names=state.names,obs.names=obs.names))
+#TODO: Incorporate process noise into dynamic formula
+.formulatoTex <- function(object,model){
+  nregime = length(object)
+  exp1 = NULL
+  for (r in 1:nregime){
+    ne = length(object[[r]])
+    for (j in 1:ne){
+      if ((model$dynamics)$isContinuousTime){
+        exp1 = c(exp1,paste0("$\\frac{",paste(object[[r]]$left[j]),"}{dt} = $", 
+                             paste0("$",paste(object[[r]]$right[j]),"$")))
+      }else{
+        exp1 = c(exp1,paste0("$",paste(object[[r]]$left[j])," = $", 
+                             paste0("$",paste(object[[r]]$right[j]),"$")))
+      }
+    }
+  }
+  return(invisible(exp1))
 }
-
-setMethod("printex", "dynrDynamicsMatrix",
-	function(object, observed, latent, covariates, show=TRUE){
-		#TODO update for list objects
-		lA <- .xtableMatrix(object$values.dyn, show)
-		#TODO add something better for covariates
-		lB <- ifelse(nrow(object$values.exo) != 0, .xtableMatrix(object$values.exo, show), "")
-		#TODO add intercepts processing
-		return(invisible(list(dyn=lA, exo=lB)))
-	}
-)
-
-setMethod("printex", "dynrRegimes",
-	function(object, observed, latent, covariates, show=TRUE){
-		lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
-		return(invisible(list(regimes=lG)))
-	}
-)
-
-
-setMethod("printex", "dynrInitial",
-	function(object, observed, latent, covariates, show=TRUE){
-		lx0 <- .xtableMatrix(object$values.inistate, show)
-		lP0 <- .xtableMatrix(object$values.inicov, show)
-		lr0 <- .xtableMatrix(object$values.regimep, show)
-		return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
-	}
-)
-
-
-setMethod("printex", "dynrNoise",
-	function(object, observed, latent, covariates, show=TRUE){
-		lQ <- .xtableMatrix(object$values.latent, show)
-		lR <- .xtableMatrix(object$values.observed, show)
-		return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
-	}
-)
 
 
 .xtableMatrix <- function(m, show){
@@ -334,8 +323,6 @@ setMethod("printex", "dynrNoise",
 	return(out)
 }
 
-#printex(dynrModel)
-#printex(dynrRecipe)
 
 #------------------------------------------------------------------------------
 # paramName2Number method definitions
@@ -1302,6 +1289,9 @@ prep.loadings <- function(map, params, idvar,exo.names=NULL){
 ##' @param params.exo matrix or list of matrices. Params of the covariate effects.
 ##' @param values.int matrix or list of matrices. Values of the intercepts.
 ##' @param params.int matrix or list of matrices. Params of the intercerpts.
+##' @param obs.names  vector of names for the observed variables in the order they appear in the measurement model.
+##' @param state.names  vector of names for the latent variables in the order they appear in the measurement model.
+##' @param exo.names  (optional) vector of names for the exogenous variables in the order they appear in the measurement model.
 ##'
 ##' The values.* arguments give the starting and fixed values for their respective matrices.
 ##' The params.* arguments give the free parameter labels for their respective matrices.
@@ -1338,7 +1328,7 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 		params.exo <- list()
 	}
 	if(missing(params.exo)){
-		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
+		params.exo <- list()
 	}
   
   if(missing(obs.names)){
@@ -1350,7 +1340,7 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
   }
   
   if(missing(exo.names)){
-    exo.names = paste0('x',1:nrow(values.exo[[1]]))
+    exo.names = character(0)
   }
   
 	if(missing(values.int)){
@@ -1568,6 +1558,8 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @param values.dyn the values matrix for the linear dynamics
 ##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)
 ##' @param values.exo the values matrix for the effect of the covariates on the dynamic outcome (see details)
+##' @param params.int the parameters vector for the intercept in the dynamic model (see details)
+##' @param values.int the values vector for the intercept in the dynamic model (see details)
 ##' @param covariates the names or the index numbers of the covariates used for the dynamics
 ##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient. Capitalization is ignored.
 ##' 

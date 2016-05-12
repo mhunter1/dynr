@@ -116,26 +116,9 @@ Mode <- function(y) {
 
 setMethod("plot", "dynrCook",
           function(x, y=NULL, data.dynr,model,...) {
-#paramtoPlot = as.list(signif(coef(x)[match(model$param.names,(model$dynamics)$paramnames,nomatch=0)],digits=2))
-#names(paramtoPlot) = (model$dynamics)$paramnames
-#Call function to replace parameter names by values in list paramtoPlot
-#dynm2 = paramName2NumericNumber(model$dynamics,paramList=paramtoPlot)
 model = PopBackModel(model,signif(res@transformed.parameters,digits=2))
 dyn2=printex(model$dynamics)           
-nregime = length(dyn2)
-exp1 = NULL
-for (r in 1:nregime){
-ne = length(dyn2[[r]])
-for (j in 1:ne){
-if ((model$dynamics)$isContinuousTime){
-exp1 = c(exp1,paste0("$\\frac{",paste(dyn2[[r]]$left[j]),"}{dt} = $", 
-              paste0("$",paste(dyn2[[r]]$right[j]),"$")))
-}else{
-exp1 = c(exp1,paste0("$",paste(dyn2[[r]]$left[j])," = $", 
-                       paste0("$",paste(dyn2[[r]]$right[j]),"$")))
-}
-}
-}
+exp1 <- .formulatoTex(dyn2,model)
 b = lapply(exp1, function(x) TeX(x,output="expression")) 
 
 p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)

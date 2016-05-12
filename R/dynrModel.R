@@ -42,58 +42,93 @@ setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
 
+#TODO: Print RS model and initial condition
 setMethod("printex", "dynrModel",
-	function(object, observed, latent, covariates, show=TRUE){
-		meas <- printex(object$measurement, show=FALSE)
-		dyn <- printex(object$dynamics, show=FALSE)
-		reg <- printex(object$regimes, show=FALSE)
-		noise <- printex(object$noise, show=FALSE)
-		init <- printex(object$initial, show=FALSE)
-		message(' :(  Dagnabbit. This part is not quite working yet.')
-		measTex <- paste("The measurement model is given by\n\\begin{equation}\n",
-			.xtableMatrix(matrix(observed, nrow=length(observed), ncol=1), show=FALSE),
-			" = ",
-			meas$measurement,
-			.xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
-			" + \\vec{r}\n",
-			"\\end{equation}\nwith\n",
-			"\\begin{equation}\n\\text{Cov}(\\vec{r}) = ",
-			noise$measurement.noise,
-			"\\end{equation}\n", sep="")
-		if (class(model$dynamics)=="dynrDynamicsFormula"){
-		  dynequ<-paste0(paste0("\\begin{bmatrix}",paste(dyn[[2]]$left,collapse="\\\\"), "\\end{bmatrix}"),
-		                 " = ",
-		                 paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\\\"), "\\end{bmatrix}"))
-		}else{
-		  dynequ<-paste0(ifelse(object$dynamics$isContinuousTime, "\\frac{d}{dt} ", ""),
-		                 .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE),
-		                 ifelse(object$dynamics$isContinuousTime, "", "_t"),
-		                 " = ",
-		                 dyn$dyn,
-		                 #ifelse(object$dynamics, .xtableMatrix(matrix(latent, nrow=length(latent), ncol=1), show=FALSE), ),
-		                 ifelse(object$dynamics$isContinuousTime, "", "_{t-1}"))
-		  
-		}
-		
-		dynTex <- paste("The dynamic model is given by\n\\begin{equation}\n",dynequ,
-			" + ",
-			"\\vec{q}\n",
-			"\\end{equation}\nwith\n",
-			"\\begin{equation}\n\\text{Cov}(\\vec{q}) = ",
-			noise$dynamic.noise,
-			"\\end{equation}\n", sep="")
-		return(paste(measTex, dynTex, sep="\n"))
-		#
-		# make equations
-		# y = C x + r with
-		# Cov(r) = measurement.noise
-		# Make a matrix of the names of the observed variables for y
-		# Make a matreis of the names of the latent variables for x
-		# C is the meas$measurement factor loadings
-		#
-		# x = dynamics(x) + q with
-		# Cov(q) = dynamic.noise
-	}
+function(object, show=TRUE){
+            model2<-PopBackModel(object, object$param.names)
+            inlist <- list(model2$dynamics, model2$measurement, model2$noise, model2$initial, model2$regimes)
+            outlist <- lapply(inlist, printex,show)
+            
+
+            #Gather dynamic model
+            dynequ="\\begin{eqnarray}\n"
+            if (class(model2$dynamics) == 'dynrDynamicsFormula'){
+              exp1 <- .formulatoTex(outlist[[1]],model2)
+              exp1 <- lapply(exp1,function(x){gsub('$','',x,fixed=TRUE)})
+              for (j in 1:length(exp1)){
+                a = NULL
+                space=ifelse(j<length(exp1),"\\\\","")
+                if (length(exp1)>1){a = paste0("\\text{Regime ",j,":}\\\\\n")}
+                dynequ <- c(dynequ,paste0(a,exp1[j],space,"\n"))
+              }#loop through regimes
+            }else{
+
+              for (j in 1:length(outlist[[1]]$dyn_tran)){
+                a <- NULL
+                space=ifelse(j<length(outlist[[1]]$dyn_tran),"\\\\","")
+                if (length(outlist[[1]]$dyn_tran) > 1) {
+                  a = paste0("\\text{Regime ",j,":}\\\\\n")}
+                
+                if ((model2$dynamics)$isContinuousTime){
+                  b=paste0(.xtableMatrix(matrix(paste0("d",(model2$measurement)$state.names,"(t)"),ncol=1),F))
+                  b1=paste0(.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F))
+                  b2="dt"
+                }else{
+                  exo=NULL
+                  dint=NULL
+                  if (length((model2$dynamics)$covariates) > 0){
+                    exo=paste0("+",outlist[[1]]$dyn_exo[[j]],outlist[[1]]$dyn_exo.names)  
+                  }
+                  if (length((model2$dynamics)$values.int) > 0){
+                    dint=paste0(outlist[[1]]$dyn_int[[j]],"+")  
+                  }
+                  b=.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t+1)"),ncol=1),F)
+                  b1=.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F)
+                  b2=NULL
+                }
+                dynequ<-c(dynequ,paste0(a,b,"=",dint,
+                                          outlist[[1]]$dyn_tran[[j]],b1,b2,
+                                          exo,
+                                          "+ w\\\\",
+                                          "w\\sim N(",
+                                          .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
+                                          ",",outlist[[3]]$dynamic.noise[[1]],")",space,"\n")) #TODO: REPLACE 1 W j AFTER DYNRNOISE BECOMES LIST
+              }#Loops through regimes
+            }#If continous-time loop
+            dynequ=c(dynequ,"\\end{eqnarray}")
+            
+            #Gather measurement model
+            measequ="\\begin{eqnarray}\n"
+            for (j in 1:length((model2$measurement)$values.load)){
+              space=ifelse(j<length((model2$measurement)$values.load),"\\\\","")
+              a <- NULL
+              if (length((model2$measurement)$values.load) > 1) {
+                a = paste0("\\text{Regime ",j,":}\\\\\n")}
+              exom=NULL
+              mint=NULL
+              if (length((model2$measurement)$exo.names) > 0){
+                exom=paste0("+",outlist[[2]]$meas_exo[[j]],outlist[[2]]$meas_exo.names)  
+              }
+              if (length((model2$measurement)$values.int) > 0){
+                mint=paste0(outlist[[2]]$meas_int[[j]])  
+              }
+              measequ<-c(measequ,paste0(a,
+                                        (model2$measurement)$obs.names,"=",mint,
+                                        "+",outlist[[2]]$meas_loadings[[j]],
+                                        b1,exom,
+                                        "+ e\\\\",
+                                        "e\\sim N(",
+                                        .xtableMatrix(matrix(rep(0,length((model2$measurement)$obs.names)),ncol=1),F),
+                                        ",",outlist[[3]]$measurement.noise[[1]],")",space,"\n")) #TODO: REPLACE 1 W j AFTER DYNRNOISE BECOMES LIST
+            }
+            measequ=c(measequ,"\\end{eqnarray}")
+            
+            cat("\nHere is the measurement model:\n")
+            cat(measequ) 
+            cat("\n\nHere is the dynamic model:\n")
+            cat(dynequ)
+            
+          }
 )
 
 

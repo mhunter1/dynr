@@ -9,8 +9,6 @@
 
 #---- (1) Load packages ----
 require(dynr)
-require(latex2exp)
-
 #---- (2) Read in data ----
 # create dynr data object
 
@@ -72,7 +70,7 @@ recDyn <- prep.matrixDynamics(
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, outfile="cooked")
 
-
+printex(rsmod,show=FALSE)
 
 yum <- dynr.cook(rsmod, dd, debug_flag=TRUE)
 
