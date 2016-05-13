@@ -119,9 +119,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 #Extract parameter names to set ub and lb (optional)
 model$param.names
 
-#Use the `@' sign to set upper and lower boundaries for the parameters
-model@ub=c(rep(1.5, 4), 200, 5, 5, rep(30, 6))
-model@lb=c(rep(-20, 4), 50, -10, -10, rep(-30, 6))
+#Use the `$' sign to set upper and lower boundaries for the parameters
+model$ub=c(rep(4.5, 4), 200, 150, 150, rep(30, 6))
+model$lb=c(rep(2.1e-9, 4), 50, 4.5e-5, 4.5e-5, rep(-30, 6))
 
 #cat(writeCcode(model$dynamics)$c.string)
 

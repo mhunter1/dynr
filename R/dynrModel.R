@@ -42,6 +42,21 @@ setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
 
+setReplaceMethod("$", "dynrModel",
+	function(x, name, value){
+		if(name %in% c('xstart', 'ub', 'lb')){
+			# Check that the length is okay
+			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value)
+		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
+			slot(object=x, name=name, check = TRUE) <- value
+		} else {
+			stop(paste0("You can't set the ", name, " slot of a dynrModel.", "  You're not allowed to touch me there."))
+		}
+		return(x)
+	}
+)
+
+
 #TODO: Print RS model and initial condition
 setMethod("printex", "dynrModel",
 function(object, show=TRUE){
@@ -189,7 +204,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
                                  values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl)
     #at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
   }else{
-    inputs$transform<-createRfun(prep.tfun(), param.data, 
+    inputs$transform <- createRfun(prep.tfun(), param.data, 
                                  params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
                                  values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl)
   }
@@ -202,7 +217,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   unique.values <- extractValues(all.values, all.params)
   
   if(length(inputs$transform$formula.inv)>0){
-    unique.values<-inputs$transform$inv.tfun(unique.values)
+    unique.values <- inputs$transform$inv.tfun(unique.values)
   }
   param.data$param.value=unique.values
   
@@ -211,8 +226,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   obj.dynrModel@dim_latent_var <- dim(inputs$noise$params.latent)[1]
   
   obj.dynrModel@xstart <- param.data$param.value
-  obj.dynrModel@ub<-rep(9999,length(obj.dynrModel@xstart))
-  obj.dynrModel@lb<-rep(9999,length(obj.dynrModel@xstart))
+  obj.dynrModel@ub <- rep(9999,length(obj.dynrModel@xstart))
+  obj.dynrModel@lb <- rep(9999,length(obj.dynrModel@xstart))
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
   }

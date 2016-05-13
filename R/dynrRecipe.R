@@ -134,6 +134,7 @@ setClass(Class = "dynrTrans",
            paramnames = "character",#not sure if needed in dynrTrans
            tfun="function",
            inv.tfun="function",
+           inv.tfun.full="function",
            formula.trans="list",
            formula.inv="list",
            transCcode="logical"
@@ -973,9 +974,26 @@ setMethod("createRfun", "dynrTrans",
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\t\n")
               }
+              f.string2 <- f.string
+              #observed
+              if (sum(param.data$ldl.observed)>0){
+                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.observed", values.observed, params.observed, reverse=TRUE),sep="\t\n")
+              }
+              #latent
+              if (sum(param.data$ldl.latent)>0){
+                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.latent", values.latent, params.latent, reverse=TRUE),sep="\t\n")
+              }
+              #inicov
+              if (sum(param.data$ldl.inicov)>0){
+                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov, reverse=TRUE),sep="\t\n")
+              }
+              f.string2<-paste0(f.string2,"\t\nreturn(vec)}")
               f.string<-paste0(f.string,"\t\nreturn(vec)}")
-              eval(parse(text=f.string)) 
               
+              eval(parse(text=f.string2))
+              object@inv.tfun.full <- inv.tf
+              
+              eval(parse(text=f.string)) 
               object@inv.tfun <- inv.tf
             }
             
@@ -1020,7 +1038,7 @@ setMethod("createRfun", "dynrTrans",
             return(object)
           }
 )
-makeldlchar<-function(param.data, ldl.char, values, params){
+makeldlchar<-function(param.data, ldl.char, values, params, reverse=FALSE){
   vec.noise=paste0("vec[",paste0("c(",paste(param.data$param.number[param.data[,ldl.char]],collapse=","),")"),"]")
   param.name=param.data$param.name[param.data[,ldl.char]]
 
@@ -1031,7 +1049,7 @@ makeldlchar<-function(param.data, ldl.char, values, params){
   }
   vec.sub[which(vec.sub=="fixed")]<-as.vector(values)[which(vec.sub=="fixed")]
   
-  char=paste0(vec.noise,"=as.vector(transldl(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(params),")))[",paste0("c(",paste(mat.index,collapse=","),")"),"]")
+  char=paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(params),")))[",paste0("c(",paste(mat.index,collapse=","),")"),"]")
   return(char)
 }
 
