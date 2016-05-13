@@ -1257,7 +1257,7 @@ extractValues <- function(v, p){
 ##' 
 ##' #Two factor model with a cross loading
 ##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-prep.loadings <- function(map, params, idvar, exo.names=NULL){
+prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
