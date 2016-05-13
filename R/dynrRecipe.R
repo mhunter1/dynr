@@ -1268,7 +1268,7 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 	ne <- length(map)
 	
 	if(!all(idvar %in% c(names(map), unlist(map)))){
-		stop("The 'idvar' must all be either in the names of the 'map' argument or parts of the part 'map' argument.")
+		stop("The 'idvar' must all be either in the names of the 'map' argument or parts of the 'map' argument.")
 	}
 	
 	paramsNeeded <- length(unlist(map)) - sum(idvar %in% allVars)
@@ -1395,8 +1395,6 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 # Error covariance matrix
 # N.B. This function produces BOTH the latent and observed error covariance matrices.
 
-# TODO break below into two functions that populate into the same C function
-#  at cook time.-- maybe we do not need this
 
 ##' The translation function for measurement error and process noise covariances
 ##' Output a C function to set up measurement error and process noise covariances and the starting values of the related parameters.
