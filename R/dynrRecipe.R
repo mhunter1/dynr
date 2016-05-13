@@ -1337,10 +1337,8 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' # No free parameters are present.
 ##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
 prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int,
-                             obs.names,state.names,exo.names){
-
-  
-  if(!is.list(values.load)){
+                             obs.names, state.names, exo.names){
+	if(!is.list(values.load)){
 		values.load <- list(values.load)
 	}
 	if(missing(params.load)){
@@ -1356,19 +1354,19 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 	if(missing(params.exo)){
 		params.exo <- list()
 	}
-  
-  if(missing(obs.names)){
-    obs.names = paste0('y',1:nrow(values.load[[1]]))
-  }
-  
-  if(missing(state.names)){
-    state.names = paste0('state',1:ncol(values.load[[1]]))
-  }
-  
-  if(missing(exo.names)){
-    exo.names = character(0)
-  }
-  
+	
+	if(missing(obs.names)){
+	obs.names = paste0('y',1:nrow(values.load[[1]]))
+	}
+	
+	if(missing(state.names)){
+	state.names = paste0('state',1:ncol(values.load[[1]]))
+	}
+	
+	if(missing(exo.names)){
+	exo.names = character(0)
+	}
+	
 	if(missing(values.int)){
 		values.int <- list()
 		params.int <- list()
@@ -1388,7 +1386,7 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 	pn <- extractParams(pn)
 	x <- list(startval=sv, paramnames=pn, values.load=values.load, params.load=params.load,
 		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int,
-		obs.names=obs.names, state.names=state.names,exo.names=exo.names)
+		obs.names=obs.names, state.names=state.names, exo.names=exo.names)
 	return(new("dynrMeasurement", x))
 }
 
