@@ -4,6 +4,11 @@
 src/*.o
 src/*.so
 src/*.dll
+R/dynrVersion.R
+src/Makevars.win
+src-i386/
+src-x64/
+build/
 # The following list of roxygen built man pages is automatically updated
 man/coef.dynrCook.Rd
 man/dynr.cook.Rd
