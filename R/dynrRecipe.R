@@ -1390,14 +1390,6 @@ prep.measurement <- function(values.load, params.load, values.exo, params.exo, v
 	return(new("dynrMeasurement", x))
 }
 
-# Examples
-# a <- prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-# prep.measurement(a@values, a@params)
-#
-# prep.measurement(diag(1, 5), diag(1:5))
-# prep.measurement(matrix(1, 5, 5), diag(1:5))
-# prep.measurement(diag(1, 5), diag(0, 5)) #identity measurement model
-
 
 #------------------------------------------------------------------------------
 # Error covariance matrix
