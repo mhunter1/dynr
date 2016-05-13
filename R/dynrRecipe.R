@@ -1236,10 +1236,18 @@ extractValues <- function(v, p){
 ##' @details
 ##' The default pattern for 'idvar' is to fix the first factor loading for each factor to one.
 ##' The variable names listed in 'idvar' have their factor loadings fixed to one.
+##' However, if the names of the latent variables are used for 'idvar', then all the factor loadings
+##' will be freely estimated and you should fix the factor variances in the noise part of the model (e.g. \code{\link{prep.noise}}).
+##'
+##' This function does not have the full set of features possible in the dynr package. In particular, it does not have
+##' regime-swtiching factor loadings, any intercepts, or any covariates.  For complete functionality use \code{\link{prep.measurement}}.
 ##' 
 ##' @examples
-##' #Single factor model with one latent variable
+##' #Single factor model with one latent variable fixing first loading
 ##' prep.loadings( list(eta1=paste0('y', 1:4)), 4:6)
+##' 
+##' #Single factor model with one latent variable freeing all loadings
+##' prep.loadings( list(eta1=paste0('y', 1:4)), 3:6, idvar='eta1')
 ##' 
 ##' # Two factor model with simple structure
 ##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
@@ -1249,7 +1257,7 @@ extractValues <- function(v, p){
 ##' 
 ##' #Two factor model with a cross loading
 ##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
-prep.loadings <- function(map, params, idvar,exo.names=NULL){
+prep.loadings <- function(map, params, idvar, exo.names=NULL){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
