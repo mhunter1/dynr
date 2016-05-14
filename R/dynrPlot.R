@@ -117,9 +117,6 @@ Mode <- function(y) {
 setMethod("plot", "dynrCook",
           function(x, y=NULL, data.dynr,model,...) {
 model = PopBackModel(model,signif(res@transformed.parameters,digits=2))
-dyn2=printex(model$dynamics)           
-exp1 <- .formulatoTex(dyn2,model)
-b = lapply(exp1, function(x) TeX(x,output="expression")) 
 
 p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)
 highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
@@ -132,6 +129,10 @@ p2 <- ggplot(data = highProbR, aes(factor(regime))) +
         axis.text=element_text(size=12),
         plot.title = element_text(size = 12, 
                                   colour = "black", face = "bold"))
+
+dyn2=printex(model$dynamics)           
+exp1 <- .formulatoTex(dyn2,model)
+b = lapply(exp1, function(x) TeX(x,output="expression")) 
 
 
 df <- data.frame(x=1:10,y=1:50)
