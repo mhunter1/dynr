@@ -441,8 +441,9 @@ PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
   if (class(values.matrix)=="list"){
     num_regime=length(values.matrix)
     if (num_regime>0){
-      for (i in num_regime){
-        values.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]]
+      for (i in 1:num_regime){
+         values.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]<-
+        trans.parameters[param.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]]
       }
     }
   }else{
