@@ -247,7 +247,7 @@ dynfmltex<-function(eqregime,isContinuousTime){
   for (j in 1:neq){
     if (!isContinuousTime){
       for (i in 1:neq){
-        str.right[j]=gsub(str.left[i],paste0(str.left[i],"_{t-1}"),str.right[j])
+        str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],"_{t-1}"),str.right[j])
       }
     }
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
@@ -282,7 +282,7 @@ dynfm_math<-function(eqregime,isContinuousTime){
     }else{
       str.left[j]=paste0(str.left[j],"_{t}")      
     }
-    str.right[j]=gsub(str.left[j],paste0(str.left[j],"_{t-1}"),str.right[j])
+    str.right[j]=gsub(paste0("\\<",str.left[j],"\\>"),paste0(str.left[j],"_{t-1}"),str.right[j])
     pretty.list[[j]] = c(paste0(str.left[j]," = ", str.right[j]))
     }
   return(pretty.list)
@@ -342,13 +342,13 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
     string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-    pattern=gsub("\\{","\\\\\\{",paramnames)
-    pattern=gsub("\\}","\\\\\\}",pattern)
+    #pattern=gsub("\\{","\\\\\\{",paramnames)
+    #pattern=gsub("\\}","\\\\\\}",pattern)
     pattern=gsub("\\\\","\\\\\\\\",pattern)
     
     for (i in 1:length(paramnames)){
       
-      string<-gsub(pattern[i],paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
+      string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
     }
     eval(parse(text=string))
 }
@@ -361,7 +361,7 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
   #pattern=gsub("\\}","\\\\\\}",pattern)
   #pattern=gsub("\\\\","\\\\\\\\",pattern)
   for (i in 1:length(names)){
-  string<-gsub(names[i],paramtoPlot[i], string)
+  string<-gsub(paste0("\\<",names[i],"\\>"),paramtoPlot[i], string)
   }
   eval(parse(text=string))
 }
@@ -545,7 +545,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
 	        for (i in 1:n[r]){
 	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
+	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
 	          }
 	          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
 	        }
@@ -557,7 +557,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:n){
 	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(x,",j-1,")"),rhs[[1]][[i]])
+	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[1]][[i]])
 	        }
 	        ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
 	      }
@@ -573,7 +573,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
 	        for (i in 1:length(jacob[[r]])){
 	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[r]][[i]])
+	            rhsj[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[r]][[i]])
 	          }
 	          
 	          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
@@ -586,7 +586,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:length(jacob[[1]])){
 	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[1]][[i]])
+	          rhsj[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[1]][[i]])
 	        }
 	        
 	        ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
@@ -605,7 +605,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
 	        for (i in 1:n[r]){
 	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
+	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
 	          }
 	          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
 	        }
@@ -617,7 +617,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:n){
 	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
+	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
 	        }
 	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
 	      }
@@ -633,7 +633,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
 	        for (i in 1:length(jacob[[r]])){
 	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(lhs[[r]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+	            rhsj[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
 	          }
 	          
 	          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
@@ -646,7 +646,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:length(jacob[[1]])){
 	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(lhs[[1]][[j]],paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
+	          rhsj[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
 	        }
 	        
 	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
@@ -969,7 +969,7 @@ setMethod("createRfun", "dynrTrans",
               for (j in 1:length(rhs)){
                 #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
                 for (i in 1:length(lhs)){
-                  rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+                  rhs[j]=gsub(paste0("\\<",lhs[i],"\\>"),sub[i],rhs[j])
                 }
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\t\n")
@@ -1008,7 +1008,7 @@ setMethod("createRfun", "dynrTrans",
               for (j in 1:length(rhs)){
                 #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
                 for (i in 1:length(lhs)){
-                  rhs[j]=gsub(lhs[i],sub[i],rhs[j])
+                  rhs[j]=gsub(paste0("\\<",lhs[i],"\\>"),sub[i],rhs[j])
                 }
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\t\n")
