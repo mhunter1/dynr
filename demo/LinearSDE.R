@@ -119,7 +119,8 @@ dynamics <- prep.matrixDynamics(
 # put all the recipes together
 model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, outfile="cooked")
 
-cat(printex(model, observed="y1", latent=c("ksi", "ksiDot")))
+printex(model,show=FALSE,printInit=TRUE,
+        outFile="./demo/LinearSDE.tex")
 
 # Data
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])

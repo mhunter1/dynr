@@ -70,7 +70,10 @@ recDyn <- prep.matrixDynamics(
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, outfile="cooked")
 
-printex(rsmod,show=FALSE)
+printex(rsmod,show=FALSE,printInit=TRUE,printProb=TRUE,
+        outFile="./demo/RSDiscreteLinear.tex")
+#tools::texi2pdf("ModelEqs.tex")
+#system(paste(getOption("pdfviewer"), "formula.pdf"))
 
 yum <- dynr.cook(rsmod, dd, debug_flag=TRUE)
 

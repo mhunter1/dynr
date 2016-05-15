@@ -166,7 +166,7 @@ setMethod("$", "dynrRecipe",
 #setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) { 
 #  return(standardGeneric("printex")) 
 #})
-setGeneric("printex", function(object, show=TRUE) { 
+setGeneric("printex", function(object, show=TRUE,...) { 
 	return(standardGeneric("printex")) 
 })
 
@@ -307,8 +307,8 @@ dynfm_math<-function(eqregime,isContinuousTime){
         exp1 = c(exp1,paste0("$\\frac{",paste(object[[r]]$left[j]),"}{dt} = $", 
                              paste0("$",paste(object[[r]]$right[j]),"$")))
       }else{
-        exp1 = c(exp1,paste0("$",paste(object[[r]]$left[j])," = $", 
-                             paste0("$",paste(object[[r]]$right[j]),"$")))
+        exp1 = c(exp1,paste0("$",paste(object[[r]]$left[j]),"(t+1) = $", 
+                             paste0("$",paste(object[[r]]$right[j]),"(t)$")))
       }
     }
   }

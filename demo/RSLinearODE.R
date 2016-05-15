@@ -123,7 +123,8 @@ model$param.names
 model$ub=c(rep(4.5, 4), 200, 150, 150, rep(30, 6))
 model$lb=c(rep(2.1e-9, 4), 50, 4.5e-5, 4.5e-5, rep(-30, 6))
 
-#cat(writeCcode(model$dynamics)$c.string)
+#Check model by printing out LaTeX code
+printex(model,show=FALSE,printInit = TRUE, printProb==TRUE)
 
 
 # Estimate free parameters
