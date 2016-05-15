@@ -46,7 +46,7 @@ recNoise <- prep.noise(
 
 recReg <- prep.regimes(
 	values=matrix(0, 2, 2),
-	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2))
+	params=matrix(c('a0', 'a1', 'fixed', 'fixed'), 2, 2))
 
 #---- (3d) Initial condition specification ----
 
