@@ -17,19 +17,21 @@ RFILES = $(wildcard R/*.R)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo ""	
+	@echo ""
 	@echo "INSTALL"
-	@echo ""	
+	@echo ""
 	@echo "  install       install dynr"
-	@echo ""	
+	@echo ""
 	@echo "CLEANING"
-	@echo ""	
+	@echo ""
 	@echo "  clean      remove all files from the build directory"
+	@echo ""
 	@echo "TESTING"
 	@echo ""	
 	@echo "  test               run the test suite"
 	@echo "  torture       run the test suite with gctorture(TRUE)"
 	@echo "  cran-test     build dynr and run CRAN check"
+	@echo "  slow-test     run the test suite with gctorture(TRUE)"
 	@echo ""
 	@echo "BUILDS"
 	@echo ""
@@ -85,6 +87,9 @@ test:
 
 torture:
 	$(REXEC) --vanilla --slave -f $(TESTFILE) --args gctorture
+
+slow-test:
+	$(REXEC) --vanilla --slave -f $(TESTFILE) --args slow
 
 cran-test: srcbuild
 	$(REXEC) CMD check build/dynr_*.tar.gz | tee cran-test.log
