@@ -1360,63 +1360,36 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' # active for regime 1, and the second latent variable is active for regime 2
 ##' # No free parameters are present.
 ##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
-prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int,
+prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, params.exo=NULL, values.int=NULL, params.int=NULL,
                              obs.names, state.names, exo.names){
 	# Handle load
-	if(!is.list(values.load)){
-		values.load <- list(values.load)
-	}
-	if(missing(params.load)){
-		params.load <- rep(list(matrix(0, nrow(values.load), ncol(values.load))), length(values.load))
-	}
-	if(!is.list(params.load)){
-		params.load <- list(params.load)
-	}
+	r <- coProcessValuesParams(values.load, params.load)
+	values.load <- r$values
+	params.load <- r$params
 	
 	# Handle exo
-	if(missing(values.exo)){
-		values.exo <- list()
-		params.exo <- list()
-	}
-	if(missing(params.exo)){
-		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
-	}
-	if(!is.list(params.exo)){
-		params.exo <- list(params.exo)
-	}
+	r <- coProcessValuesParams(values.exo, params.exo, missingOK=TRUE)
+	values.exo <- r$values
+	params.exo <- r$params
 	
 	# Handle int
-	if(missing(values.int)){
-		values.int <- list()
-		params.int <- list()
-	}
-	if(missing(params.int)){
-		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
-	}
-	if(!is.list(params.int)){
-		params.int <- list(params.int)
-	}
+	r <- coProcessValuesParams(values.int, params.int, missingOK=TRUE)
+	values.int <- r$values
+	params.int <- r$params
 	
 	
 	if(missing(obs.names)){
-	obs.names = paste0('y',1:nrow(values.load[[1]]))
+		obs.names = paste0('y',1:nrow(values.load[[1]]))
 	}
 	
 	if(missing(state.names)){
-	state.names = paste0('state',1:ncol(values.load[[1]]))
+		state.names = paste0('state',1:ncol(values.load[[1]]))
 	}
 	
 	if(missing(exo.names)){
-	exo.names = character(0)
+		exo.names = character(0)
 	}
 	
-	if(missing(values.int)){
-		values.int <- list()
-		params.int <- list()
-	}
-	if(missing(params.int)){
-		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
-	}
 	values.load <- lapply(values.load, preProcessValues)
 	params.load <- lapply(params.load, preProcessParams)
 	values.exo <- lapply(values.exo, preProcessValues)
