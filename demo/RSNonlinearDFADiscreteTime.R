@@ -8,7 +8,7 @@
 #   with nonlinear vector autoregressive (VAR) relation at the factor level
 #------------------------------------------------------------------------------
 
-rm(list=ls(all=TRUE))
+#rm(list=ls(all=TRUE))
 require(dynr)
 require(latex2exp)
 

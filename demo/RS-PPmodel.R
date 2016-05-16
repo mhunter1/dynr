@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 
 
-rm(list=ls(all=TRUE))
+#rm(list=ls(all=TRUE))
 require(dynr)
 options(scipen=999)
 

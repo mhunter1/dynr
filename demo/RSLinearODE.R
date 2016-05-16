@@ -6,7 +6,7 @@
 #   a regime-switching linear ODE
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-rm(list=ls(all=TRUE))
+#rm(list=ls(all=TRUE))
 require(dynr)
 require(latex2exp)
 options(scipen=999,digits=2)
