@@ -92,9 +92,6 @@ ecov <- prep.noise(
 	values.observed=diag(1.5, 1), params.observed=diag('mnoise', 1)) # uses free parameter 4
 # Look
 ecov
-# ... wait what happened to the values?
-log(c(1e-6, 1))
-log(1.5)
 # dynr takes steps to make sure covariance matrices are positive definite
 
 
@@ -132,7 +129,7 @@ res <- dynr.cook(model, data)
 summary(res)
 
 #populate transformed estimates to dynrModel
-model<-PopBackModel(model, res@transformed.parameters)
+model<-PopBackModel(model, coef(res))
 
 
 #------------------------------------------------------------------------------
