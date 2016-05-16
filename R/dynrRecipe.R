@@ -1189,11 +1189,13 @@ preProcessParams <- function(x){
 
 
 coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
-	if(missingOK){
-		if(is.null(values) || missing(values)){
+	if(is.null(values) || missing(values)){
+		if(missingOK){
 			values <- list()
 			params <- list()
-		} else {stop("values missing and it's not okay.")}
+		} else {
+			stop("values missing and it's not okay.")
+		}
 	}
 	if(!is.list(values)){
 		values <- list(values)
@@ -1596,7 +1598,7 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
 ##' and the derivative of the latent variable vector at the current time point in the continuous time case.
-prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, params.int, values.int, 
+prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
                                 covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
 	# General idea
@@ -1605,39 +1607,19 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	# If they don't give us values, assume they don't want that part of the model
 	
 	# Handle dyn
-	if(!is.list(values.dyn)){
-		values.dyn <- list(values.dyn)
-	}
-	if(missing(params.dyn)){
-		params.dyn <- rep(list(matrix(0, nrow(values.dyn), ncol(values.dyn))), length(values.dyn))
-	}
-	if(!is.list(params.dyn)){
-		params.dyn <- list(params.dyn)
-	}
+	r <- coProcessValuesParams(values.dyn, params.dyn)
+	values.dyn <- r$values
+	params.dyn <- r$params
 	
 	# Handle exo
-	if(missing(values.exo)){
-		values.exo <- list()
-		params.exo <- list()
-	}
-	if(missing(params.exo)){
-		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
-	}
-	if(!is.list(params.int)){
-		params.int <- list(params.int)
-	}
+	r <- coProcessValuesParams(values.exo, params.exo, missingOK=TRUE)
+	values.exo <- r$values
+	params.exo <- r$params
 	
 	# Handle int
-	if(missing(values.int)){
-		values.int <- list()
-		params.int <- list()
-	}
-	if(missing(params.int)){
-		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
-	}
-	if(!is.list(params.int)){
-		params.int <- list(params.int)
-	}
+	r <- coProcessValuesParams(values.int, params.int, missingOK=TRUE)
+	values.int <- r$values
+	params.int <- r$params
 	
 	
 	if(missing(covariates)){
