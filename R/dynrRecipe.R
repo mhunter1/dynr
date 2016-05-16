@@ -1187,6 +1187,30 @@ preProcessParams <- function(x){
 	return(x)
 }
 
+
+coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
+	if(missingOK){
+		if(is.null(values) || missing(values)){
+			values <- list()
+			params <- list()
+		} else {stop("values missing and it's not okay.")}
+	}
+	if(!is.list(values)){
+		values <- list(values)
+	}
+	if(is.null(params) || missing(params)){
+		params <- rep(list(matrix(0, nrow(values[[1]]), ncol(values[[1]]))), length(values))
+	}
+	if(!is.list(params)){
+		params <- list(params)
+	}
+	if(length(values) != length(params)){
+		stop(paste0("Mismatch between values and params.  'values' argument indicates ", length(values), " regimes but 'params' argument indicates ", length(params), " regimes.  Get your mind right."))
+	}
+	return(list(values=values, params=params))
+}
+
+
 extractWhichParams <- function(p){
 	p!="fixed" & !duplicated(p, MARGIN=0) & (p!=0)
 }
@@ -1338,22 +1362,41 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
 prep.measurement <- function(values.load, params.load, values.exo, params.exo, values.int, params.int,
                              obs.names, state.names, exo.names){
+	# Handle load
 	if(!is.list(values.load)){
 		values.load <- list(values.load)
 	}
 	if(missing(params.load)){
-		params.load <- rep(list(matrix(0, nrow(values.load[[1]]), ncol(values.load[[1]]))), length(values.load))
+		params.load <- rep(list(matrix(0, nrow(values.load), ncol(values.load))), length(values.load))
 	}
 	if(!is.list(params.load)){
 		params.load <- list(params.load)
 	}
+	
+	# Handle exo
 	if(missing(values.exo)){
 		values.exo <- list()
 		params.exo <- list()
 	}
 	if(missing(params.exo)){
-		params.exo <- list()
+		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
 	}
+	if(!is.list(params.exo)){
+		params.exo <- list(params.exo)
+	}
+	
+	# Handle int
+	if(missing(values.int)){
+		values.int <- list()
+		params.int <- list()
+	}
+	if(missing(params.int)){
+		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
+	}
+	if(!is.list(params.int)){
+		params.int <- list(params.int)
+	}
+	
 	
 	if(missing(obs.names)){
 	obs.names = paste0('y',1:nrow(values.load[[1]]))
@@ -1575,7 +1618,7 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @param params.int the parameters vector for the intercept in the dynamic model (see details)
 ##' @param values.int the values vector for the intercept in the dynamic model (see details)
 ##' @param covariates the names or the index numbers of the covariates used for the dynamics
-##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model. Either 'discrete' or 'continuous'.  Partial matching is used so 'c' or 'd' is sufficient. Capitalization is ignored.
+##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model.
 ##' 
 ##' @details
 ##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
@@ -1587,6 +1630,8 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	# If they give us a non-list argument, make it a one-element list
 	# If they don't give us params, assume it's all fixed params
 	# If they don't give us values, assume they don't want that part of the model
+	
+	# Handle dyn
 	if(!is.list(values.dyn)){
 		values.dyn <- list(values.dyn)
 	}
@@ -1596,6 +1641,8 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	if(!is.list(params.dyn)){
 		params.dyn <- list(params.dyn)
 	}
+	
+	# Handle exo
 	if(missing(values.exo)){
 		values.exo <- list()
 		params.exo <- list()
@@ -1603,6 +1650,11 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	if(missing(params.exo)){
 		params.exo <- rep(list(matrix(0, nrow(values.exo[[1]]), ncol(values.exo[[1]]))), length(values.exo))
 	}
+	if(!is.list(params.int)){
+		params.int <- list(params.int)
+	}
+	
+	# Handle int
 	if(missing(values.int)){
 		values.int <- list()
 		params.int <- list()
@@ -1610,9 +1662,14 @@ prep.matrixDynamics <- function(params.dyn, values.dyn, params.exo, values.exo, 
 	if(missing(params.int)){
 		params.int <- rep(list(matrix(0, nrow(values.int[[1]]), ncol(values.int[[1]]))), length(values.int))
 	}
-  if(missing(covariates)){
-    covariates <- character(0)
-  }
+	if(!is.list(params.int)){
+		params.int <- list(params.int)
+	}
+	
+	
+	if(missing(covariates)){
+		covariates <- character(0)
+	}
 	values.dyn <- lapply(values.dyn, preProcessValues)
 	params.dyn <- lapply(params.dyn, preProcessParams)
 	values.exo <- lapply(values.exo, preProcessValues)
