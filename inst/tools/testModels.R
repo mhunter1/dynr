@@ -9,10 +9,10 @@ library(dynr)
 
 
 
-directories <- c('inst/models/passing')
+directories <- c('inst/models/passing', 'demo')
 
-if (any(args == 'nightly')) {
-	directories <- c(directories, 'demo', 'inst/models/nightly')
+if (any(args == 'slow')) {
+	directories <- c(directories, 'inst/models/slow')
 }
 if (any(args == 'failing')) {
 	directories <- c('inst/models/failing')
