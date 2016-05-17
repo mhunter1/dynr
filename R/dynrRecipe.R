@@ -1191,6 +1191,11 @@ preProcessParams <- function(x){
 	xl <- tolower(x)
 	sel <- xl %in% c("0", "fix", "fixed")
 	x[sel] <- "fixed"
+	validName <- sapply(x, function(x){x == make.names(x)})
+	if(any(!validName)){
+		msg <- paste0("Whoa nelly! The following are not valid free parameter names: ", paste(x[!validName], collapse=", "), ".\n  Valid names are things that could be variable names in R.  See ?make.names")
+		stop(msg)
+	}
 	x <- matrix(as.character(x), numRow, numCol, dimnames=list(rowNam, colNam))
 	return(x)
 }
