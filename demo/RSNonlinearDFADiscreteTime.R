@@ -35,7 +35,7 @@ meas <- prep.loadings(
   map=list(
     eta1=paste0('y', 1:3),
     eta2=paste0('y', 4:6)),
-  params=c("lambda_{21}","lambda_{31}","lambda_{52}","lambda_{62}"))
+  params=c("lambda_21","lambda_31","lambda_52","lambda_62"))
 
 
 #---- (1b) Initial conditions ----
