@@ -320,8 +320,6 @@ setMethod("printex", "dynrDynamicsFormula",
 )
 
 
-#------End printFormula ----
-
 cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
   eq.char=lapply(eqregime, as.character)
   str.left=sapply(eq.char,"[",2)
@@ -343,8 +341,6 @@ cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-  }
-
       for (i in 1:neq){
       str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],RHStimeIndex),str.right[j])
     }
