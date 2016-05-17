@@ -343,16 +343,16 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
 }
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
-    string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-    #pattern=gsub("\\{","\\\\\\{",paramnames)
-    #pattern=gsub("\\}","\\\\\\}",pattern)
-    pattern=gsub("\\\\","\\\\\\\\",pattern)
-    
-    for (i in 1:length(paramnames)){
-      
-      string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
-    }
-    eval(parse(text=string))
+	string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+	pattern <- paramnames
+	#pattern=gsub("\\{","\\\\\\{",paramnames)
+	#pattern=gsub("\\}","\\\\\\}",pattern)
+	pattern=gsub("\\\\","\\\\\\\\",pattern)
+	
+	for(i in 1:length(paramnames)){
+		string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
+	}
+	eval(parse(text=string))
 }
 
 .replaceNamesbyNumbers <- function(formula, paramtoPlot){
@@ -888,7 +888,7 @@ setMethod("writeCcode", "dynrInitial",
 			ret <- paste0(ret,"\t\t}")
 		}
 		
-		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\n")
+		ret <- paste(ret, setGslMatrixElements(values.inicov, params.inicov, "(error_cov_0)[j]"), sep="\n")
 		ret <- paste(ret, "\t}\n}\n")
 		
 		object@c.string <- ret
