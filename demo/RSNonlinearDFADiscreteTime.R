@@ -10,7 +10,6 @@
 
 #rm(list=ls(all=TRUE))
 require(dynr)
-require(latex2exp)
 
 #---- (0) Read in data ----
 # Data
@@ -67,8 +66,8 @@ mdcov <- prep.noise(
 formula=list(
   list(x1~a1*x1,
        x2~a2*x2),
-  list(x1~a1*x1+c12*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
-       x2~a2*x2+c21*(exp(abs(x1))/(1+exp(abs(x1))))*x1) 
+  list(x1~a1*x1+c12*(exp(abs(x2)))/(1+exp(abs(x2)))*x2,
+       x2~a2*x2+c21*(exp(abs(x1)))/(1+exp(abs(x1)))*x1) 
 )
 
 #For nonlinear functions you need to specify the jacobian
@@ -103,6 +102,8 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, 
                     initial=initial, regimes=regimes, transform=trans, 
                     outfile="RSNonlinearDFA")
+printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,
+        outFile="./demo/RSNonlinearDFADiscreteTime.tex")
 
 res <- dynr.cook(model, data=data, debug_flag=FALSE)
 

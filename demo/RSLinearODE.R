@@ -23,7 +23,7 @@ data <- dynr.data(thedata, id="ID", time="Time",observed=paste0('y', 1:2),
 
 # Measurement (factor loadings)
 meas <- prep.measurement(
-  values.load=matrix(1, 1, 1),
+  values.load=diag(c(1,1)),
   obs.names = c('y1','y2'),
   state.names=c('Mom','Baby'))
 
@@ -124,7 +124,7 @@ model$ub=c(rep(4.5, 4), 200, 150, 150, rep(30, 6))
 model$lb=c(rep(2.1e-9, 4), 50, 4.5e-5, 4.5e-5, rep(-30, 6))
 
 #Check model by printing out LaTeX code
-printex(model,show=FALSE,printInit = TRUE, printProb==TRUE)
+printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,outFile="./demo/RSLinearODE.tex")
 
 
 # Estimate free parameters

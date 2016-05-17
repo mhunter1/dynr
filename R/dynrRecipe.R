@@ -163,14 +163,9 @@ setMethod("$", "dynrRecipe",
 #------------------------------------------------------------------------------
 # printex method definitions
 
-#setGeneric("printex", function(object, observed, latent, covariates, show=TRUE) { 
-#  return(standardGeneric("printex")) 
-#})
 setGeneric("printex", function(object, show=TRUE,...) { 
 	return(standardGeneric("printex")) 
 })
-
-
 
 setMethod("printex", "dynrMeasurement",
           function(object, show=TRUE){
@@ -221,23 +216,113 @@ setMethod("printex", "dynrNoise",
           }
 )
 
+#setMethod("printex", "dynrDynamicsFormula",
+#          function(object, show=TRUE){
+#            dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
+#            return(invisible(dyn))
+#          }
+#)
+
+
+
+setGeneric("printFormula", function(object,...) { 
+  return(standardGeneric("printFormula")) 
+})
+
+setMethod("printFormula", "dynrMeasurement",
+          function(object){
+            nRegime <- length(object$values.load)
+            meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
+            meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
+            meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
+            for (j in 1:nRegime){
+              neq <- length(meas_loadings[[j]])
+              outForm <- meas_loadings
+              for (k in 1:neq){
+            meas_list <- meas_loadings[[j]][[k]]
+            if (length(meas_int)>0){
+            if (length(meas_int[[j]])>0){
+            meas_list <- addFormulas(meas_int[[j]][[k]],meas_list)
+            }}
+            if (length(meas_exo)>0){
+            if (length(meas_exo[[j]])>0){
+            meas_list <- addFormulas(meas_list,meas_exo[[j]][[k]])
+            }}
+            outForm[[j]][[k]] <- meas_list
+            }}
+            return(invisible(outForm))
+          }
+)
+
+#------ new printFormula ----
+setMethod("printFormula", "dynrDynamicsMatrix",
+          function(object){
+            nRegime <- length(object$values.dyn)
+            dyn_tran <- lapply(object$values.dyn,matrix2formula,multbyColnames=T)
+            dyn_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
+            dyn_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
+            for (j in 1:nRegime){
+              neq <- length(dyn_tran[[j]])
+              outForm <- dyn_tran
+              for (k in 1:neq){
+                dyn_list <- dyn_tran[[j]][[k]]
+                if (length(dyn_int)>0){
+                if (length(dyn_int[[j]])>0){
+                  dyn_list <- addFormulas(dyn_int[[j]][[k]],dyn_list)
+                }}
+                if (length(dyn_exo)>0){
+                if (length(dyn_exo[[j]])>0){
+                  dyn_list <- addFormulas(dyn_list,dyn_exo[[j]][[k]])
+                }}
+                outForm[[j]][[k]] <- dyn_list
+              }}
+            return(invisible(outForm))
+          }
+)
+
+setMethod("printex", "dynrRegimes",
+          function(object, show=TRUE){
+            lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
+            return(invisible(list(regimes=lG)))
+          }
+)
+
+
+setMethod("printex", "dynrInitial",
+          function(object, show=TRUE){
+            lx0 <- .xtableMatrix(object$values.inistate, show)
+            lP0 <- .xtableMatrix(object$values.inicov, show)
+            lr0 <- .xtableMatrix(object$values.regimep, show)
+            return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
+          }
+)
+
+
+setMethod("printex", "dynrNoise",
+          function(object, show=TRUE){
+            lQ <- .xtableMatrix(object$values.latent, show)
+            lR <- .xtableMatrix(object$values.observed, show)
+            return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
+          }
+)
+
 setMethod("printex", "dynrDynamicsFormula",
           function(object, show=TRUE){
-            dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
+            if (object$isContinuousTime){
+            LHSpre <- "d(\\1(t))" #for continuous time
+            }else{
+            LHSpre <- "\\1(t+1)" #for discrete time
+            }
+            RHStimeIndex="(t)"
+            dyn=lapply(object$formula,cleanTex,RHStimeIndex,LHSpre)
             return(invisible(dyn))
           }
 )
 
 
+#------End printFormula ----
 
-#setGeneric("printmath", 
-#           function(object, observed, latent, covariates,show=TRUE) { 
-#  return(standardGeneric("printmath")) 
-#})
-
-
-
-dynfmltex<-function(eqregime,isContinuousTime){
+cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
   eq.char=lapply(eqregime, as.character)
   str.left=sapply(eq.char,"[",2)
   str.right=sapply(eq.char,"[",3)
@@ -245,73 +330,71 @@ dynfmltex<-function(eqregime,isContinuousTime){
   mulpatn<-"([[:print:]]*)"
   sigpatn<-"([0-9A-Za-z ^*]*)"
   for (j in 1:neq){
-    if (!isContinuousTime){
-      for (i in 1:neq){
-        str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],"_{t-1}"),str.right[j])
-      }
-    }
-    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
-    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-    str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
-    str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+  #  str.right[j]=gsub("exp","\\\\exp",str.right[j])
+  #  str.right[j]=gsub("log","\\\\log",str.right[j])
+  #  str.right[j]=gsub("\\*","\\\\times",str.right[j])
     str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
     str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
     str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
     str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
     str.right[j]=gsub("\\*", "\\\\times", str.right[j])
+    
+    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+    str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
   }
+
+      for (i in 1:neq){
+      str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],RHStimeIndex),str.right[j])
+    }
+    }
+
   
   for (j in 1:neq){
-    str.left[j]=gsub(paste0(sigpatn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
+    str.left[j]=gsub(paste0(sigpatn),LHSpre,str.left[j])
   }
-  
   return(list(left=str.left,right=str.right))
 }
 
+#dynfmltex<-function(eqregime,isContinuousTime){
+#  eq.char=lapply(eqregime, as.character)
+#  str.left=sapply(eq.char,"[",2)
+#  str.right=sapply(eq.char,"[",3)
+#  neq=length(eqregime)
+#  mulpatn<-"([[:print:]]*)"
+#  sigpatn<-"([0-9A-Za-z ^*]*)"
+#  for (j in 1:neq){
+#    if (!isContinuousTime){
+#      for (i in 1:neq){
+#        str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],"_{t-1}"),str.right[j])
+#      }
+#    }
+#    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+#    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+#    str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
+#    str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
+#    str.right[j]=gsub("exp","\\\\exp",str.right[j])
+#    str.right[j]=gsub("log","\\\\log",str.right[j])
+#    str.right[j]=gsub("\\*","\\\\times",str.right[j])
+#  }
+#  
+#  for (j in 1:neq){
+#    str.left[j]=gsub(paste0(sigpatn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
+#  }
+#  
+#  return(list(left=str.left,right=str.right))
+#}
 
 
-dynfm_math<-function(eqregime,isContinuousTime){
-  eq.char=lapply(eqregime, as.character)
-  str.left=sapply(eq.char,"[",2)
-  str.right=sapply(eq.char,"[",3)
-  neq=length(eqregime)
-  pretty.list = vector("list", neq) 
-  #mulpatn<-"([[:print:]]*)"
-  #sigpatn<-"([0-9A-Za-z ^*]*)"
-  for (j in 1:neq){
-    if (isContinuousTime){
-      str.left[j]=paste0("frac(italic(d)",str.left[j],", italic(dt))")
-    }else{
-      str.left[j]=paste0(str.left[j],"_{t}")      
-    }
-    str.right[j]=gsub(paste0("\\<",str.left[j],"\\>"),paste0(str.left[j],"_{t-1}"),str.right[j])
-    pretty.list[[j]] = c(paste0(str.left[j]," = ", str.right[j]))
-    }
-  return(pretty.list)
-}
-
-
-#setMethod("printmath", "dynrDynamicsFormula",
-#          function(object, observed, latent, covariates, show=TRUE){
-#            dyn=lapply(object$formula,dynfm_math,object$isContinuousTime)
-#            return(invisible(dyn))
-#          }
-#)
-
-#TODO: Incorporate process noise into dynamic formula
-.formulatoTex <- function(object,model){
-  nregime = length(object)
-  exp1 = NULL
+.concaTex <- function(object,LHSpre=NULL,LHSpost=NULL,RHSpre,RHSpost){
+  nregime <- length(object)
+  ne <- length(object[[1]])
+  exp1 <- replicate(nregime,list(vector("list",ne)))
   for (r in 1:nregime){
-    ne = length(object[[r]])
     for (j in 1:ne){
-      if ((model$dynamics)$isContinuousTime){
-        exp1 = c(exp1,paste0("$\\frac{",paste(object[[r]]$left[j]),"}{dt} = $", 
-                             paste0("$",paste(object[[r]]$right[j]),"$")))
-      }else{
-        exp1 = c(exp1,paste0("$",paste(object[[r]]$left[j]),"(t+1) = $", 
-                             paste0("$",paste(object[[r]]$right[j]),"(t)$")))
-      }
+        exp1[[r]][[j]] <- paste0("$",LHSpre,paste(object[[r]]$left[j]),LHSpost, " = ", 
+                             RHSpre,paste(object[[r]]$right[j]),RHSpost,"$")
     }
   }
   return(invisible(exp1))
@@ -1194,7 +1277,6 @@ preProcessParams <- function(x){
 	return(x)
 }
 
-
 coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	if(is.null(values) || missing(values)){
 		if(missingOK){
@@ -1219,6 +1301,12 @@ coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	return(list(values=values, params=params))
 }
 
+
+preProcessNames <- function(x,rnames=character(0),cnames=character(0)){
+  rownames(x) <- rnames
+  if (!length(cnames)==0) colnames(x) <- cnames
+  return(x)
+}
 
 extractWhichParams <- function(p){
 	p!="fixed" & !duplicated(p, MARGIN=0) & (p!=0)
@@ -1405,6 +1493,14 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	params.exo <- lapply(params.exo, preProcessParams)
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
+	
+	values.load <- lapply(values.load, preProcessNames,obs.names,state.names)
+	#params.load <- lapply(params.load, preProcessNames,obs.names,state.names)
+	values.exo <- lapply(values.exo, preProcessNames,obs.names,exo.names)
+	#params.exo <- lapply(params.exo, preProcessNames,obs.names,exo.names)
+	values.int <- lapply(values.int, preProcessNames,obs.names)
+	#params.int <- lapply(params.int, preProcessNames,obs.names)
+	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
 	sv <- extractValues(sv, pn)
@@ -1581,7 +1677,8 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
   if (missing(jacobian)){
     autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
     if (class(autojcb) == "try-error") {
-      stop("Automatic differentiantion is not available. Please provide the jacobian functions.")
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
     }else{
       jacobian=lapply(autojcb,"[[","jacob")
     }
@@ -1638,6 +1735,7 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	params.exo <- lapply(params.exo, preProcessParams)
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
+
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.dyn), extractParams(params.exo), extractParams(params.int))
@@ -1856,7 +1954,7 @@ formula2string<-function(formula.list){
 }
 
 
-matrix2formula <- function(x){
+matrix2formula <- function(x,multbyColnames=TRUE){
 	if(!is.matrix(x)){
 		stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
 	}
@@ -1866,21 +1964,29 @@ matrix2formula <- function(x){
 	if(is.null(colnames(x))){
 		colnames(x) <- paste0('x', 1:ncol(x))
 	}
-	outcomes <- rownames(x)
 	preds <- character(nrow(x))
 	for(i in 1:nrow(x)){
-		preds[i] <- paste(outcomes[i], paste(x[i,], colnames(x), sep='*', collapse=' + '), sep=' ~ ')
+	  if (multbyColnames==FALSE){
+	    preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
+	  }else{
+		  preds[i] <- paste(rownames(x)[i], paste(x[i,], 
+		                       colnames(x), sep='*', collapse=' + '), sep=' ~ ')
+		  } 
 	}
 	if(is.numeric(x)){
 		preds <- gsub('1*', '', preds, fixed=TRUE)
 		preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
-	} #else {
-		#preds <- gsub('1*', '', preds, fixed=TRUE)
-		#preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
-		#preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
-	#}
+	} else {
+		preds <- gsub('1*', '', preds, fixed=TRUE)
+		preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
+		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
+	}
 	form <- lapply(preds, formula, env=.GlobalEnv)
+	#eq.char=lapply(form, as.character)
+	#str.left=sapply(eq.char,"[",2)
+	#str.right=sapply(eq.char,"[",3)
+	#if (bothSides) {return(form)}else{return(str.right)}
 	return(form)
 }
 

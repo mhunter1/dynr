@@ -78,7 +78,9 @@ rownames(tx) <- paste('x', 1:xdim, sep='')
 # this is the factor loadings matrix, Lambda in SEM notation or C in OpenMx notation
 meas <- prep.measurement(
 	values.load=matrix(c(1, 0), 1, 2), # starting values and fixed values
-	params.load=matrix(c('fixed', 'fixed'), 1, 2)) # parameter numbers or indication that parameter is fixed
+	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+	state.names=c("Position","Velocity"),
+	obs.names=c("y1")) # parameter numbers or indication that parameter is fixed
 # Look
 meas
 # no free parameters in the factor loadings
@@ -118,6 +120,11 @@ model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=ini
 
 printex(model,show=FALSE,printInit=TRUE,
         outFile="./demo/LinearSDE.tex")
+TeXed <- printFormula(model,namestoPop = model$param.names)
+#Also can pop= signif(res@transformed.parameters,digits=2))
+
+p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
+
 
 # Data
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])

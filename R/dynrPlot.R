@@ -116,7 +116,6 @@ Mode <- function(y) {
 
 setMethod("plot", "dynrCook",
           function(x, y=NULL, data.dynr,model,...) {
-model = PopBackModel(model,signif(res@transformed.parameters,digits=2))
 
 p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)
 highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
@@ -130,32 +129,45 @@ p2 <- ggplot(data = highProbR, aes(factor(regime))) +
         plot.title = element_text(size = 12, 
                                   colour = "black", face = "bold"))
 
-dyn2=printex(model$dynamics)           
-exp1 <- .formulatoTex(dyn2,model)
-b = lapply(exp1, function(x) TeX(x,output="expression")) 
+b <- printFormula(model,namestoPop = model$param.names)
+                  #= signif(res@transformed.parameters,digits=2))
 
+p3 <-plotFormula(b,model)
 
-df <- data.frame(x=1:10,y=1:50)
-p3 <- ggplot(df) + theme_void() +xlim(1,10)+ylim(1,50)+
-  annotate(geom="text", x=3, 
-           y=c(50-(0:(nregime-1))*(ne*10)), 
-           label=as.character(paste0("Regime ",1:nregime,":")),
-           color="black",size=4)
-qq <- c(50-(0:(nregime-1))*(ne*10))
-
-for (i in 1:length(b)){
-rnow <- ceiling(i/ne)
-p3<-p3+annotate(geom="text", x=5, 
-                y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)), 
-                label=as.character(b[[i]]),
-         color="black",parse=T,size=4)
-}
 #print(p3)
-#num_regime <- dim(res@pr_t_given_T)[1]
 
 multiplot(p1,p2,p3, cols = 1, layout=matrix(c(1,1,2,3), nrow=2, byrow=TRUE))
 
             })
+
+plotFormula <- function(object,model,toPlot="dyn",print=T){
+  nregime <- max(1,nrow((model$regimes)$values))
+  if (toPlot=="dyn") {
+    formula <- object$dynTeX
+    ne <- length((model$measurement)$state.names)
+  }else{
+    formula <- object$measTeX
+    ne <- length((model$measurement)$obs.names)
+    }
+  df <- data.frame(x=1:10,y=1:50)
+  p3 <- ggplot(df) + theme_void() +xlim(1,10)+ylim(1,50)+
+    annotate(geom="text", x=3, 
+             y=c(50-(0:(nregime-1))*(ne*10)), 
+             label=as.character(paste0("Regime ",1:nregime,":")),
+             color="black",size=4)
+  qq <- c(50-(0:(nregime-1))*(ne*10))
+  
+  for (j in 1:nregime){
+    for (k in 1:ne){
+    i <- k+(j-1)*ne
+    rnow <- ceiling(i/ne)
+    p3<-p3+annotate(geom="text", x=5, 
+                    y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)), 
+                    label=as.character(formula[[j]][[k]]),
+                    color="black",parse=T,size=4)
+  }}
+  if (print) print(p3)
+}
 
 
 ##' The ggplot of the smoothed state estimates and the most likely regimes
