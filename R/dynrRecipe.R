@@ -1160,13 +1160,15 @@ preProcessValues <- function(x){
 		rowNam <- rownames(x)
 		colNam <- colnames(x)
 	}
-	x <- tolower(c(x))
-	sel <- pmatch(x, "freed", duplicates.ok=TRUE)
+	x <- c(x)
+	xl <- tolower(x)
+	sel <- pmatch(xl, "freed", duplicates.ok=TRUE)
 	notAnumber <- is.na(sapply(x, function(x){suppressWarnings(try(as.numeric(x), silent=TRUE))}))
 	if(any( pchars <- (is.na(sel) & notAnumber))){
 		msg <- paste0("The following are not numbers or some version of 'freed': ", paste(x[pchars], collapse=', '), "\nEnter numerical starting values for free parameters, and 0 or other meaningful values for fixed parameters.")
 		stop(msg)
 	}
+	# Set starting values to zero for 'free'
 	x[sel %in% 1] <- 0
 	x <- matrix(as.numeric(x), numRow, numCol, dimnames=list(rowNam, colNam))
 	return(x)
@@ -1185,8 +1187,9 @@ preProcessParams <- function(x){
 		rowNam <- rownames(x)
 		colNam <- colnames(x)
 	}
-	x <- tolower(c(x))
-	sel <- x %in% c("0", "fix", "fixed")
+	x <- c(x)
+	xl <- tolower(x)
+	sel <- xl %in% c("0", "fix", "fixed")
 	x[sel] <- "fixed"
 	x <- matrix(as.character(x), numRow, numCol, dimnames=list(rowNam, colNam))
 	return(x)
