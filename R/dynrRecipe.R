@@ -254,9 +254,11 @@ dynfmltex<-function(eqregime,isContinuousTime){
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-    str.right[j]=gsub("exp","\\\\exp",str.right[j])
-    str.right[j]=gsub("log","\\\\log",str.right[j])
-    str.right[j]=gsub("\\*","\\\\times",str.right[j])
+    str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
+    str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
+    str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
+    str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
+    str.right[j]=gsub("\\*", "\\\\times", str.right[j])
   }
   
   for (j in 1:neq){
