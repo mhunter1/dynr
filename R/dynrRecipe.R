@@ -101,11 +101,11 @@ setClass(Class = "dynrInitial",
            c.string =  "character",
            startval = "numeric",
            paramnames = "character",
-           values.inistate = "matrix",
-           params.inistate = "matrix",
-           values.inicov = "matrix",
-           values.inicov.inv.ldl = "matrix",
-           params.inicov = "matrix",
+           values.inistate = "list",
+           params.inistate = "list",
+           values.inicov = "list",
+           values.inicov.inv.ldl = "list",
+           params.inicov = "list",
            values.regimep = "matrix",
            params.regimep = "matrix"),
          contains = "dynrRecipe"
@@ -187,9 +187,9 @@ setMethod("printex", "dynrMeasurement",
 
 setMethod("printex", "dynrDynamicsMatrix",
           function(object, show=TRUE){
-            dyn_tran=lapply((object)$values.dyn,.xtableMatrix,show)   
-            dyn_int=lapply((object)$values.int,.xtableMatrix,show)   
-            dyn_exo=lapply((object)$values.exo,.xtableMatrix,show)   
+            dyn_tran=lapply((object)$values.dyn,.xtableMatrix, show)
+            dyn_int=lapply((object)$values.int,.xtableMatrix, show)
+            dyn_exo=lapply((object)$values.exo,.xtableMatrix, show)
             dyn_exo.names=.xtableMatrix(matrix((object)$covariates,ncol=1),show)
             return(invisible(list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, dyn_exo.names = dyn_exo.names) ))
           }
@@ -205,8 +205,8 @@ setMethod("printex", "dynrRegimes",
 
 setMethod("printex", "dynrInitial",
           function(object, show=TRUE){
-            lx0 <- .xtableMatrix(object$values.inistate, show)
-            lP0 <- .xtableMatrix(object$values.inicov, show)
+            lx0 <- lapply(object$values.inistate, .xtableMatrix, show)
+            lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
             lr0 <- .xtableMatrix(object$values.regimep, show)
             return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
           }
@@ -442,9 +442,9 @@ setMethod("paramName2Number", "dynrRegimes",
 
 setMethod("paramName2Number", "dynrInitial",
 	function(object, names){
-		object@params.inistate <- .exchangeNamesAndNumbers(object$params.inistate, names)
-		object@params.inicov <- .exchangeNamesAndNumbers(object$params.inicov, names)
-		object@params.regimep <- .exchangeNamesAndNumbers(object$params.regimep, names)
+		object@params.inistate <- lapply(object$params.inistate, .exchangeNamesAndNumbers, names=names)
+		object@params.inicov <- lapply(object$params.inicov, .exchangeNamesAndNumbers, names=names)
+		object@params.regimep <- .exchangeNamesAndNumbers(object$params.regimep, names=names)
 		return(object)
 	}
 )
@@ -866,35 +866,28 @@ setMethod("writeCcode", "dynrRegimes",
 
 setMethod("writeCcode", "dynrInitial",
 	function(object){
-		values.inistate <- object$values.inistate
-		params.inistate <- object$params.inistate
-		values.inicov <- object@values.inicov.inv.ldl
-		params.inicov <- object$params.inicov
+		values.inistate <- object$values.inistate[[1]]
+		params.inistate <- object$params.inistate[[1]]
+		values.inicov <- object@values.inicov.inv.ldl[[1]]
+		params.inicov <- object$params.inicov[[1]]
 		values.regimep <- object$values.regimep
 		params.regimep <- object$params.regimep
+		
+		nregime <- max(length(values.inistate), length(values.inicov))
+		
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
 		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
 		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
-		if (sum(values.inistate!=0)!=0){
-		  ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
+		if (!all(values.inistate == 0)){
+			ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
 		}
 		ret <- paste0(ret,"\n\tsize_t j;\n\tfor(j=0;j<num_regime;j++){")
-		if (sum(values.inistate!=0)!=0){
-		  ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
-		  for(i in 1:length(values.inistate)){
-		    if(params.inistate[i] > 0){
-		      ret <- paste(ret,
-		                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-		                   ', param[', params.inistate[i] - 1, ']);\n', sep='')
-		    } else if(values.inistate[i] != 0){
-		      ret <- paste(ret,
-		                   '\t\t\tgsl_vector_set((eta_0)[j],i*dim_latent_var+', i-1,
-		                   ', ', values.inistate[i], ');\n', sep='')
-		    }
-		  }
-		  ret <- paste0(ret,"\t\t}")
+		if (!all(values.inistate == 0)){
+			ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
+			ret <- paste0(ret, setGslVectorElements(values=values.inistate, params=params.inistate, name='(eta_0)[j]', fill="i*dim_latent_var+", depth=3))
+			ret <- paste0(ret,"\t\t}")
 		}
-
+		
 		ret <- paste(ret, setGslMatrixElements(values.inicov,params.inicov, "(error_cov_0)[j]"), sep="\n")
 		ret <- paste(ret, "\t}\n}\n")
 		
@@ -1034,12 +1027,11 @@ setMethod("createRfun", "dynrTrans",
             f.string<-paste0(f.string,"\t\nreturn(vec)}")
             eval(parse(text=f.string))   
             object@tfun <- tf
-              
-			      
             
             return(object)
           }
 )
+
 makeldlchar<-function(param.data, ldl.char, values, params, reverse=FALSE){
   vec.noise=paste0("vec[",paste0("c(",paste(param.data$param.number[param.data[,ldl.char]],collapse=","),")"),"]")
   param.name=param.data$param.name[param.data[,ldl.char]]
@@ -1111,7 +1103,7 @@ transldl <- function(mat){
 ##' @param x a numeric matrix
 ##'
 ##' This is a wrapper function around the \code{\link{chol}} function.
-##' The goal is for factor a square, symmetrix, positive (semi-)definite matrix into the product of a lower triangular matrix, a diagonal matrix, and the transpose of the lower triangular matrix.
+##' The goal is to factor a square, symmetric, positive (semi-)definite matrix into the product of a lower triangular matrix, a diagonal matrix, and the transpose of the lower triangular matrix.
 ##' The value returned is a lower triangular matrix with the elements of D on the diagonal.
 dynr.ldl <- function(x){
 	ret <- t(chol(x))
@@ -1787,13 +1779,23 @@ processFormula<-function(formula.list){
 ##' @param values.regimep a vector of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
 ##' @param params.regimep a vector of the parameter indices of the initial probabilities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
-	values.inistate <- preProcessValues(values.inistate)
-	params.inistate <- preProcessParams(params.inistate)
+	# Handle initial state
+	r <- coProcessValuesParams(values.inistate, params.inistate)
+	values.inistate <- r$values
+	params.inistate <- r$params
 	
-	values.inicov <- preProcessValues(values.inicov)
-	params.inicov <- preProcessParams(params.inicov)
-	values.inicov.inv.ldl <- replaceDiagZero(values.inicov)
-	values.inicov.inv.ldl <- reverseldl(values.inicov.inv.ldl)
+	# Handle initial covariance
+	r <- coProcessValuesParams(values.inicov, params.inicov)
+	values.inicov <- r$values
+	params.inicov <- r$params
+	
+	values.inistate <- lapply(values.inistate, preProcessValues)
+	params.inistate <- lapply(params.inistate, preProcessParams)
+	
+	values.inicov <- lapply(values.inicov, preProcessValues)
+	params.inicov <- lapply(params.inicov, preProcessParams)
+	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
+	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
@@ -1947,17 +1949,17 @@ setGslMatrixElements <- function(values, params, name){
 	return(ret)
 }
 
-setGslVectorElements <- function(values, params, name){
+setGslVectorElements <- function(values, params, name, fill="", depth=1){
   ret <- ""
   numLength <- length(values)
   for(i in 1:numLength){
       if(params[i] > 0){
         ret <- paste(ret,
-                     '\tgsl_vector_set(', name, ', ', i-1,
+                     paste(rep('\t', depth), collapse=""), 'gsl_vector_set(', name, ', ', fill, i-1,
                      ', param[', params[i] - 1, ']);\n', sep='')
       } else if(values[i] != 0){
         ret <- paste(ret,
-                     '\tgsl_vector_set(', name, ', ', i-1,
+                     paste(rep('\t', depth), collapse=""), 'gsl_vector_set(', name, ', ', fill, i-1,
                      ', ', values[i], ');\n', sep='')
       }
     }
