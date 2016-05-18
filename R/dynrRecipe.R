@@ -609,10 +609,10 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
 	  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
 	  
-    fmlj=lapply(jacob,processFormula)
-    row=lapply(fmlj,function(x){lapply(x,"[[",1)})
-    col=lapply(fmlj,function(x){lapply(x,"[[",2)})
-    rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
+	  fmlj=lapply(jacob,processFormula)
+	  row=lapply(fmlj,function(x){lapply(x,"[[",1)})
+	  col=lapply(fmlj,function(x){lapply(x,"[[",2)})
+	  rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
 	  
 	  #TODO add covariate
 	  
