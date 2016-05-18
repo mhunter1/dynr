@@ -86,11 +86,6 @@ dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(r1=.1,r2=.1,a12=.1,a21=.1,base=95),
                            isContinuousTime=TRUE) #,jacobian=jacob
 
-dyn <- printex(dynm)
-dynequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
-               " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
-plot(TeX(dynequ))
-
 #cat(writeCcode(dynm)$c.string)
 
 trans<-prep.tfun(formula.trans=list(r1~exp(r1), 

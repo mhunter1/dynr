@@ -123,7 +123,7 @@ printex(model,show=FALSE,printInit=TRUE,
 TeXed <- printFormula(model,namestoPop = model$param.names)
 #Also can pop= signif(res@transformed.parameters,digits=2))
 
-p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
+p3 <-plotFormula(TeXed,model,toPlot="dyn") #Try also toPlot="dyn"
 
 
 # Data
@@ -134,6 +134,10 @@ data <- dynr.data(simdata, id="id", time="times", observed="y1")
 res <- dynr.cook(model, data)
 # Examine results
 summary(res)
+
+TeXed <- printFormula(model,namestoPop = signif(res@transformed.parameters,digits=2))
+p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
+
 
 #populate transformed estimates to dynrModel
 model<-PopBackModel(model, coef(res))

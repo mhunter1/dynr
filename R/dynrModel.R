@@ -148,7 +148,7 @@ setMethod("printFormula", "dynrModel",
                 for (k in 1:neq){
                   pnLab <- ""
                   space <- ifelse((j*k)<neq*nregime,"\n","")
-                  isProcessNoisek <- ifelse((model2$noise)$values.latent[k]=="0",0,1)
+                  isProcessNoisek <- ifelse(diag((model2$noise)$values.latent)[2]==0,0,1)
                   if ((model2$dynamics)$isContinuousTime && isProcessNoisek){
                     #Continuous-time dynamic model
                     pnLab <- paste0(" + dw",k,"(t)")
@@ -179,7 +179,7 @@ setMethod("printFormula", "dynrModel",
               for (j in 1:nregime){
                 for (k in 1:neq){
                   space <- ifelse((j*k)<neq*nregime,"\n","")
-                  isMeasNoisek <- ifelse((model2$noise)$values.observed[k,k]=="0",0,1)
+                  isMeasNoisek <- ifelse(diag((model2$noise)$values.observed)[k]==0,0,1)
                   if (isMeasNoisek){
                     pnLab <- paste0(" + e",k,"(t)")
                   }else{

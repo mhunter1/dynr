@@ -146,16 +146,20 @@ plotFormula <- function(object,model,toPlot="dyn",print=T){
     nregime <-length(object$dynTeX)
     formula <- object$dynTeX
     ne <- length((model$measurement)$state.names)
+    lab <- "Dynamic model"
   }else{
     nregime <-length(object$measTeX)
     formula <- object$measTeX
     ne <- length((model$measurement)$obs.names)
-    }
+    lab <- "Measurement model"
+  }
+  a <- ifelse(nregime > 1,as.character(paste0("Regime ",1:nregime,": ")),"")
+  a <- paste0(a, lab)
   df <- data.frame(x=1:10,y=1:50)
   p3 <- ggplot2::ggplot(df) + ggplot2::theme_void() +xlim(1,10)+ylim(1,50)+
     annotate(geom="text", x=3, 
              y=c(50-(0:(nregime-1))*(ne*10)), 
-             label=as.character(paste0("Regime ",1:nregime,":")),
+             label=a,
              color="black",size=4)
   qq <- c(50-(0:(nregime-1))*(ne*10))
   
