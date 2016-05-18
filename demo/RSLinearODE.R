@@ -28,9 +28,9 @@ meas <- prep.measurement(
 
 #cat(writeCcode(meas)$c.string) #Can't write C code yet
 
-measequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
-               " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
-plot(TeX(dynequ))
+#measequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
+#               " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
+#plot(TeX(dynequ))
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(

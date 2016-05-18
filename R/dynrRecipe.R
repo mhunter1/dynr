@@ -244,9 +244,9 @@ setMethod("printFormula", "dynrMeasurement",
             meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
             meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
             meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
+            outForm <- meas_loadings
             for (j in 1:nRegime){
               neq <- length(meas_loadings[[j]])
-              outForm <- meas_loadings
               for (k in 1:neq){
             meas_list <- meas_loadings[[j]][[k]]
             if (length(meas_int)>0){
@@ -299,6 +299,9 @@ setMethod("printFormula", "dynrDynamicsFormula",
 
 
 cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
+ # if (is.formula(eqregime)==F){
+#    eqregime <- formula(as.character(eqregime),env=.GlobalEnv)
+#  }
   eq.char=lapply(eqregime, as.character)
   str.left=sapply(eq.char,"[",2)
   str.right=sapply(eq.char,"[",3)

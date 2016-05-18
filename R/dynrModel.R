@@ -170,7 +170,7 @@ setMethod("printFormula", "dynrModel",
                   RHSpre <- ""
                   RHSpost <- ""
 
-              exp1 <-  lapply(outlist[[2]],cleanTex,RHStimeIndex="(t)",LHSpre)
+              exp1 <-  lapply(as.formula(outlist[[2]]),printex,RHStimeIndex="(t)",LHSpre)
               exp1 <- .concaTex(exp1,
                                 RHSpre=RHSpre,RHSpost=RHSpost)
               nregime <- length((model2$measurement)$values.load)#max(1,nrow((model2$regimes)$values))
