@@ -75,6 +75,15 @@ printex(rsmod,show=FALSE,printInit=TRUE,printProb=TRUE,
 #tools::texi2pdf("ModelEqs.tex")
 #system(paste(getOption("pdfviewer"), "formula.pdf"))
 
+TeXed <- printFormula(rsmod,namestoPop = rsmod$param.names)
+#Also can pop= signif(res@transformed.parameters,digits=2))
+
+#See examples of bugs below
+p3 <-plotFormula(TeXed,rsmod,toPlot="dyn") 
+p3 <-plotFormula(TeXed,rsmod,toPlot="meas") #Try also toPlot="dyn"
+
+
+
 yum <- dynr.cook(rsmod, dd, debug_flag=TRUE)
 
 #---- (5) Serve it! ----

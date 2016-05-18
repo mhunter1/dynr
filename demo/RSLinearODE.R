@@ -8,7 +8,6 @@
 
 #rm(list=ls(all=TRUE))
 require(dynr)
-require(latex2exp)
 options(scipen=999,digits=2)
 
 # ---- Read in the data ----
@@ -28,10 +27,6 @@ meas <- prep.measurement(
   state.names=c('Mom','Baby'))
 
 #cat(writeCcode(meas)$c.string) #Can't write C code yet
-
-
-matrix2formula(meas$values.load[[1]])
-matrix2formula(meas$params.load[[1]])
 
 measequ<-paste0(paste0("$\\frac{",paste(dyn[[2]]$left[1],"}{dt}",collapse="\\\\"), "$"),
                " = ",paste0("$",paste(dyn[[2]]$right[1],collapse="\\\\"), "$"))
@@ -61,8 +56,8 @@ regimes <- prep.regimes(
   values=matrix(c(6,.5,-.3,rep(0,3),
                   -3,-1.5,-1,rep(0,3)), 
                 nrow=2, ncol=6,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-  params=matrix(c("a_{11}","d_{11,1}","d_{11,2}",rep("fixed",3),
-                  "a_{21}","d_{21,1}","d_{21,2}",rep("fixed",3)), 
+  params=matrix(c("a_11","d_111","d_112",rep("fixed",3),
+                  "a_21","d_211","d_212",rep("fixed",3)), 
                 nrow=2, ncol=6,byrow=T), covariates=c('x1', 'x2'))
 
 #measurement and dynamic noise covariance structurres
@@ -126,6 +121,12 @@ model$lb=c(rep(2.1e-9, 4), 50, 4.5e-5, 4.5e-5, rep(-30, 6))
 #Check model by printing out LaTeX code
 printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,outFile="./demo/RSLinearODE.tex")
 
+TeXed <- printFormula(model,namestoPop = model$param.names)
+#Also can pop= signif(res@transformed.parameters,digits=2))
+
+#See dyn example for everything gotten substituted away
+p3 <-plotFormula(TeXed,model,toPlot="dyn")
+p3 <-plotFormula(TeXed,model,toPlot="meas")
 
 # Estimate free parameters
 res <- dynr.cook(model, data=data)

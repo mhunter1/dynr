@@ -102,6 +102,14 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, 
                     initial=initial, regimes=regimes, transform=trans, 
                     outfile="RSNonlinearDFA")
+TeXed <- printFormula(model,namestoPop = model$param.names)
+#Also can pop= signif(res@transformed.parameters,digits=2))
+
+#See examples of bugs below
+p3 <-plotFormula(TeXed,model,toPlot="dyn") 
+p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
+
+
 printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,
         outFile="./demo/RSNonlinearDFADiscreteTime.tex")
 

@@ -143,9 +143,11 @@ multiplot(p1,p2,p3, cols = 1, layout=matrix(c(1,1,2,3), nrow=2, byrow=TRUE))
 plotFormula <- function(object,model,toPlot="dyn",print=T){
   nregime <- max(1,nrow((model$regimes)$values))
   if (toPlot=="dyn") {
+    nregime <-length(object$dynTeX)
     formula <- object$dynTeX
     ne <- length((model$measurement)$state.names)
   }else{
+    nregime <-length(object$measTeX)
     formula <- object$measTeX
     ne <- length((model$measurement)$obs.names)
     }

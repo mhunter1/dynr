@@ -88,7 +88,7 @@ vecRegime <- function(object2){
 }  
 
 setMethod("printFormula", "dynrModel",
-          function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, 
+          function(object, printDyn=TRUE, printMeas=TRUE, 
                    printInit=FALSE,printProb=FALSE,
                    outFile="",namestoPop = object$param.names){
             model2<-PopBackModel(object, namestoPop)
@@ -160,41 +160,34 @@ setMethod("printFormula", "dynrModel",
               }#loop through regimes
               
               #Gather measurement model
-              pn <- c((model2$noise)$values.observed)
-              isMeasNoise <- ifelse(length(pn[which(pn=="0")])==
-                                      length((model2$measurement)$obs.names)
-                                    *length((model2$measurement)$obs.names),0,1)
+              #pn <- c((model2$noise)$values.observed)
+              #isMeasNoise <- ifelse(length(pn[which(pn=="0")])==
+              #                        length((model2$measurement)$obs.names)
+              #                      *length((model2$measurement)$obs.names),0,1)
                   LHSpre <- ""
                   LHSpost<-""
                   pnLab <- ""
                   RHSpre <- ""
                   RHSpost <- ""
-                if (isMeasNoise){
-                  pnLab <- "$ + e(t)$"
-                }else{
-                  pnLab <- ""
-                }
-              
+
               exp1 <-  lapply(outlist[[2]],cleanTex,RHStimeIndex="(t)",LHSpre)
               exp1 <- .concaTex(exp1,
                                 RHSpre=RHSpre,RHSpost=RHSpost)
-              nregime <- length(exp1)
+              nregime <- length((model2$measurement)$values.load)#max(1,nrow((model2$regimes)$values))
               neq <- length(obs.names)
               measequ <- replicate(nregime,list(vector("list",neq)))
               for (j in 1:nregime){
-                neq <- length(obs.names)
                 for (k in 1:neq){
-                  pnLab <- ""
                   space <- ifelse((j*k)<neq*nregime,"\n","")
-                  isMeasNoisek <- ifelse((model2$noise)$values.observed[k]=="0",0,1)
+                  isMeasNoisek <- ifelse((model2$noise)$values.observed[k,k]=="0",0,1)
                   if (isMeasNoisek){
                     pnLab <- paste0(" + e",k,"(t)")
+                  }else{
+                    pnLab <- ""
                   }
                   measequ[[j]][[k]] <- TeX(paste0(exp1[[j]][[k]],pnLab,space))
                 }#loop through eqs within regime j
               }#loop through regimes
-              
-              
               
               return(invisible(list(dynTeX=dynequ,measTeX=measequ)))
             
@@ -205,7 +198,7 @@ setMethod("printex", "dynrModel",
 function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printProb=FALSE,outFile=""){
             model2<-PopBackModel(object, object$param.names)
             inlist <- list(model2$dynamics, model2$measurement, model2$noise, model2$initial, model2$regimes)
-            outlist <- lapply(inlist, printex,show)
+            outlist <- lapply(inlist, printex,show=T)
 
             initProb <- outlist[[4]]$initial.probability
             outProb <- NULL

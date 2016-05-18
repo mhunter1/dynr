@@ -254,7 +254,6 @@ setMethod("printFormula", "dynrMeasurement",
           }
 )
 
-#------ new printFormula ----
 setMethod("printFormula", "dynrDynamicsMatrix",
           function(object){
             nRegime <- length(object$values.dyn)
@@ -267,16 +266,24 @@ setMethod("printFormula", "dynrDynamicsMatrix",
               for (k in 1:neq){
                 dyn_list <- dyn_tran[[j]][[k]]
                 if (length(dyn_int)>0){
-                if (length(dyn_int[[j]])>0){
-                  dyn_list <- addFormulas(dyn_int[[j]][[k]],dyn_list)
-                }}
+                  if (length(dyn_int[[j]])>0){
+                    dyn_list <- addFormulas(dyn_int[[j]][[k]],dyn_list)
+                  }}
                 if (length(dyn_exo)>0){
-                if (length(dyn_exo[[j]])>0){
-                  dyn_list <- addFormulas(dyn_list,dyn_exo[[j]][[k]])
-                }}
+                  if (length(dyn_exo[[j]])>0){
+                    dyn_list <- addFormulas(dyn_list,dyn_exo[[j]][[k]])
+                  }}
                 outForm[[j]][[k]] <- dyn_list
               }}
             return(invisible(outForm))
+          }
+)
+
+
+setMethod("printFormula", "dynrDynamicsFormula",
+          function(object){
+          dyn <- printex(object,show=F)
+          return(invisible(dyn))
           }
 )
 
@@ -328,15 +335,14 @@ cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
   mulpatn<-"([[:print:]]*)"
   sigpatn<-"([0-9A-Za-z ^*]*)"
   for (j in 1:neq){
-  #  str.right[j]=gsub("exp","\\\\exp",str.right[j])
-  #  str.right[j]=gsub("log","\\\\log",str.right[j])
-  #  str.right[j]=gsub("\\*","\\\\times",str.right[j])
-    str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
-    str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
-    str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
-    str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
-    str.right[j]=gsub("\\*", "\\\\times", str.right[j])
-    
+    str.right[j]=gsub("exp","\\\\exp",str.right[j])
+    str.right[j]=gsub("log","\\\\log",str.right[j])
+    str.right[j]=gsub("\\*","\\\\times",str.right[j])
+  #  str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
+  #  str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
+  #  str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
+  #  str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
+
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
