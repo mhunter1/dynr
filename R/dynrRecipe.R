@@ -1970,8 +1970,8 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 		preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	} else {
-		preds <- gsub('1*', '', preds, fixed=TRUE)
-		preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
+		preds <- gsub('\\b1\\*', '', preds)
+		preds <- gsub(paste("\\b0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	}
 	form <- lapply(preds, formula, env=.GlobalEnv)
