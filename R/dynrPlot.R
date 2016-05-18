@@ -115,11 +115,14 @@ Mode <- function(y) {
 #)
 
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, data.dynr,model,...) {
+          function(x, y=NULL, data.dynr,model,
+                   toPlot="dyn",textsize=6,spacing=20,...) {
 
 p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)
-highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
-p2 <- ggplot(data = highProbR, aes(factor(regime))) +
+
+if (model$num_regime>1){
+  highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
+  p2 <- ggplot(data = highProbR, aes(factor(regime))) +
   geom_bar() +
   scale_fill_brewer(palette = 3) +
   xlab('Regime') + ylab('Counts') + labs(fill = '') + 
@@ -128,51 +131,92 @@ p2 <- ggplot(data = highProbR, aes(factor(regime))) +
         axis.text=element_text(size=12),
         plot.title = element_text(size = 12, 
                                   colour = "black", face = "bold"))
+}
 
-b <- printFormula(model,namestoPop = model$param.names)
-                  #= signif(res@transformed.parameters,digits=2))
-
-p3 <-plotFormula(b,model)
+b <- printFormula(model,namestoPop =signif(res@transformed.parameters,digits=2))
+p3 <-plotFormula(b,model,toPlot=toPlot,
+                 textsize=textsize,
+                 spacing=spacing,print=F)
 
 #print(p3)
 
+if (model$num_regime > 1){
 multiplot(p1,p2,p3, cols = 1, layout=matrix(c(1,1,2,3), nrow=2, byrow=TRUE))
-
+}else{
+multiplot(p1,p3,  layout=matrix(c(1,1,2,2), nrow=2, byrow=TRUE))
+  }
             })
 
-plotFormula <- function(object,model,toPlot="dyn",print=T){
-  nregime <- max(1,nrow((model$regimes)$values))
-  if (toPlot=="dyn") {
-    nregime <-length(object$dynTeX)
-    formula <- object$dynTeX
-    ne <- length((model$measurement)$state.names)
-    lab <- "Dynamic model"
-  }else{
-    nregime <-length(object$measTeX)
-    formula <- object$measTeX
-    ne <- length((model$measurement)$obs.names)
-    lab <- "Measurement model"
-  }
-  a <- ifelse(nregime > 1,as.character(paste0("Regime ",1:nregime,": ")),"")
-  a <- paste0(a, lab)
-  df <- data.frame(x=1:10,y=1:50)
-  p3 <- ggplot2::ggplot(df) + ggplot2::theme_void() +xlim(1,10)+ylim(1,50)+
-    annotate(geom="text", x=3, 
-             y=c(50-(0:(nregime-1))*(ne*10)), 
-             label=a,
-             color="black",size=4)
-  qq <- c(50-(0:(nregime-1))*(ne*10))
+plotFormula <- function(object,model,
+                        toPlot="dyn",minx=1,maxx=10,
+                        miny=1,maxy=50,spacing=10,
+                        textsize=6,print=T,...){
+  #nregime <- max(1,nrow((model$regimes)$values))
+    nregime_dyn <-length(object$dynTeX)
+    formula_dyn <- object$dynTeX
+    ne_dyn <- length((model$measurement)$state.names)
+    lab_dyn <- "Dynamic model"
+    nregime_obs <-length(object$measTeX)
+    formula_obs <- object$measTeX
+    ne_obs <- length((model$measurement)$obs.names)
+    lab_obs <- "Measurement model"
+    
+  if(nregime_dyn > 1){
+    a_dyn <- as.character(paste0("Regime ",1:nregime_dyn,": "))
+}else{a_dyn <- ""}
+  a_dyn <- paste0(a_dyn, lab_dyn)
   
-  for (j in 1:nregime){
-    for (k in 1:ne){
-    i <- k+(j-1)*ne
-    rnow <- ceiling(i/ne)
-    p3<-p3+annotate(geom="text", x=5, 
-                    y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)), 
-                    label=as.character(formula[[j]][[k]]),
-                    color="black",parse=T,size=4)
+  if(nregime_obs > 1){
+  a_obs <- as.character(paste0("Regime ",1:nregime_obs,": "))
+  }else{a_obs <- ""}
+  a_obs <- paste0(a_obs, lab_obs)
+  
+  minx <- 1; maxx <- 10
+  miny <- 1; maxy <- 50
+  df <- data.frame(x=minx:maxx,y=miny:maxy)
+  p3 <- ggplot2::ggplot(df) + ggplot2::theme_void() +xlim(minx,maxx)+ylim(miny,maxy)
+  maxy2 <- maxy
+  
+  if (toPlot=="dyn" || toPlot=="both"){
+  p3 <- p3 + annotate(geom="text", x=(maxx-minx)/4, 
+             y=c(maxy-(0:(nregime_dyn-1))*(ne_dyn*spacing)), 
+             label=a_dyn,
+             color="black",size=textsize,hjust=.2,...)
+  qq <- c(maxy-(0:(nregime_dyn))*(ne_dyn*spacing))
+  
+  for (j in 1:nregime_dyn){
+    for (k in 1:ne_dyn){
+    #i <- k+(j-1)*ne
+    #rnow <- ceiling(i/ne)
+    p3<-p3+annotate(geom="text", x=(maxx-minx)/4, 
+                    #y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)),
+                    y=qq[j] - k*((abs(diff(qq)[j])/ne_dyn)/3),
+                    label=as.character(formula_dyn[[j]][[k]]),
+                    color="black",parse=T,size=textsize,hjust = 0,...)
   }}
+  maxy2 <- (qq[j] - (abs(diff(qq)[j])/ne_dyn)/2)-spacing
+  }#End of toPlot == dyn or both
+  
+  if (toPlot=="meas" || toPlot=="both"){
+    p3 <- p3 + annotate(geom="text", x=(maxx-minx)/4, 
+               y=c(maxy2-(0:(nregime_obs-1))*(ne_obs*spacing)), 
+               label=a_obs,
+               color="black",size=textsize,hjust=.2,...)
+
+    qq <- c(maxy2-(0:(nregime_obs))*(ne_obs*spacing))
+    
+    for (j in 1:nregime_obs){
+      for (k in 1:ne_obs){
+        #i <- k+(j-1)*ne_obs
+        #rnow <- ceiling(i/ne)
+        p3<-p3+annotate(geom="text", x=(maxx-minx)/4, 
+                        #y=qq[rnow]-6*(i-ifelse(rnow>1,rnow,0)),
+                        y=qq[j] - k*((abs(diff(qq)[j])/ne_obs)/2),
+                        label=as.character(formula_obs[[j]][[k]]),
+                        color="black",parse=T,size=textsize,hjust = 0,...)
+      }}}#End of toPlot == meas or both
   if (print) print(p3)
+  return(invisible(p3))
 }
 
 

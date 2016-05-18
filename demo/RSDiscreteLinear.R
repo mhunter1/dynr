@@ -79,8 +79,11 @@ TeXed <- printFormula(rsmod,namestoPop = rsmod$param.names)
 #Also can pop= signif(res@transformed.parameters,digits=2))
 
 #See examples of bugs below
-p3 <-plotFormula(TeXed,rsmod,toPlot="dyn") 
-p3 <-plotFormula(TeXed,rsmod,toPlot="meas") #Try also toPlot="dyn"
+p3 <-plotFormula(TeXed,rsmod,toPlot="dyn")
+print(p3)
+p3 <-plotFormula(TeXed,rsmod,toPlot="meas")
+p3 <-plotFormula(TeXed,rsmod,toPlot="both",
+                 textsize=5) 
 
 
 

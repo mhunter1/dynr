@@ -123,8 +123,7 @@ printex(model,show=FALSE,printInit=TRUE,
 TeXed <- printFormula(model,namestoPop = model$param.names)
 #Also can pop= signif(res@transformed.parameters,digits=2))
 
-p3 <-plotFormula(TeXed,model,toPlot="dyn") #Try also toPlot="dyn"
-
+p3 <-plotFormula(TeXed,model,toPlot="both",spacing=15) 
 
 # Data
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
@@ -136,25 +135,18 @@ res <- dynr.cook(model, data)
 summary(res)
 
 TeXed <- printFormula(model,namestoPop = signif(res@transformed.parameters,digits=2))
-p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
-
+p3 <-plotFormula(TeXed,model,toPlot="both") 
 
 #populate transformed estimates to dynrModel
-model<-PopBackModel(model, coef(res))
-
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
-# print recipes in forms that will look nice in LaTeX
-printex(meas)
-
-printex(ecov)
-
+plot(res,data.dynr = data,model=model,
+     textsize=6,toPlot="both")
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
-
 
 # get the log likelihood, AIC, and BIC from a cooked model/data combo
 logLik(res)

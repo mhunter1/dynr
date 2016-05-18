@@ -122,6 +122,7 @@ TeXed <- printFormula(model,namestoPop = model$param.names)
 #See dyn example for everything gotten substituted away
 p3 <-plotFormula(TeXed,model,toPlot="dyn")
 p3 <-plotFormula(TeXed,model,toPlot="meas")
+plotFormula(TeXed,model,toPlot="both")
 
 # Estimate free parameters
 res <- dynr.cook(model, data=data)
