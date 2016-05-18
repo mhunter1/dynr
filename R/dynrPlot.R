@@ -152,7 +152,7 @@ plotFormula <- function(object,model,toPlot="dyn",print=T){
     ne <- length((model$measurement)$obs.names)
     }
   df <- data.frame(x=1:10,y=1:50)
-  p3 <- ggplot(df) + theme_void() +xlim(1,10)+ylim(1,50)+
+  p3 <- ggplot2::ggplot(df) + ggplot2::theme_void() +xlim(1,10)+ylim(1,50)+
     annotate(geom="text", x=3, 
              y=c(50-(0:(nregime-1))*(ne*10)), 
              label=as.character(paste0("Regime ",1:nregime,":")),
