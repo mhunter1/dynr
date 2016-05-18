@@ -164,10 +164,10 @@ setGeneric("printex", function(object, show=TRUE,...) {
 
 setMethod("printex", "dynrMeasurement",
           function(object, show=TRUE){
-            meas_loadings=lapply((object)$values.load,.xtableMatrix,show)
-            meas_int=lapply((object)$values.int,.xtableMatrix,show)
-            meas_exo=lapply((object)$values.exo,.xtableMatrix,show)
-            meas_exo.names=.xtableMatrix(matrix((object)$exo.names,ncol=1),show)
+            meas_loadings=lapply(object$values.load, .xtableMatrix, show)
+            meas_int=lapply(object$values.int, .xtableMatrix, show)
+            meas_exo=lapply(object$values.exo, .xtableMatrix, show)
+            meas_exo.names=.xtableMatrix(matrix(object$exo.names,ncol=1), show)
             meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
                              meas_exo=meas_exo,meas_exo.names=meas_exo.names)
             return(invisible(meas_list))
