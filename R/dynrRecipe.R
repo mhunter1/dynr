@@ -219,6 +219,20 @@ setMethod("printex", "dynrNoise",
 #)
 
 
+setMethod("printex", "dynrDynamicsFormula",
+          function(object, show=TRUE){
+            if (object$isContinuousTime){
+            LHSpre <- "d(\\1(t))" #for continuous time
+            }else{
+            LHSpre <- "\\1(t+1)" #for discrete time
+            }
+            RHStimeIndex="(t)"
+            dyn=lapply(object$formula,cleanTex,RHStimeIndex,LHSpre)
+            return(invisible(dyn))
+          }
+)
+
+
 
 setGeneric("printFormula", function(object,...) { 
   return(standardGeneric("printFormula")) 
@@ -282,44 +296,6 @@ setMethod("printFormula", "dynrDynamicsFormula",
           }
 )
 
-setMethod("printex", "dynrRegimes",
-          function(object, show=TRUE){
-            lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
-            return(invisible(list(regimes=lG)))
-          }
-)
-
-
-setMethod("printex", "dynrInitial",
-          function(object, show=TRUE){
-            lx0 <- .xtableMatrix(object$values.inistate, show)
-            lP0 <- .xtableMatrix(object$values.inicov, show)
-            lr0 <- .xtableMatrix(object$values.regimep, show)
-            return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
-          }
-)
-
-
-setMethod("printex", "dynrNoise",
-          function(object, show=TRUE){
-            lQ <- .xtableMatrix(object$values.latent, show)
-            lR <- .xtableMatrix(object$values.observed, show)
-            return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
-          }
-)
-
-setMethod("printex", "dynrDynamicsFormula",
-          function(object, show=TRUE){
-            if (object$isContinuousTime){
-            LHSpre <- "d(\\1(t))" #for continuous time
-            }else{
-            LHSpre <- "\\1(t+1)" #for discrete time
-            }
-            RHStimeIndex="(t)"
-            dyn=lapply(object$formula,cleanTex,RHStimeIndex,LHSpre)
-            return(invisible(dyn))
-          }
-)
 
 
 cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
