@@ -945,31 +945,51 @@ setMethod("writeCcode", "dynrRegimes",
 
 setMethod("writeCcode", "dynrInitial",
 	function(object){
-		values.inistate <- object$values.inistate[[1]]
-		params.inistate <- object$params.inistate[[1]]
-		values.inicov <- object@values.inicov.inv.ldl[[1]]
-		params.inicov <- object$params.inicov[[1]]
+		values.inistate <- object$values.inistate
+		params.inistate <- object$params.inistate
+		values.inicov <- object@values.inicov.inv.ldl
+		params.inicov <- object$params.inicov
 		values.regimep <- object$values.regimep
 		params.regimep <- object$params.regimep
 		
 		nregime <- max(length(values.inistate), length(values.inicov))
+		someStatesNotZero <- sapply(values.inistate, function(x){!all(x == 0)})
 		
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
 		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
 		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
-		if (!all(values.inistate == 0)){
+		if (any(someStatesNotZero)){
 			ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
 		}
-		ret <- paste0(ret,"\n\tsize_t j;\n\tfor(j=0;j<num_regime;j++){")
-		if (!all(values.inistate == 0)){
-			ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
-			ret <- paste0(ret, setGslVectorElements(values=values.inistate, params=params.inistate, name='(eta_0)[j]', fill="i*dim_latent_var+", depth=3))
-			ret <- paste0(ret,"\t\t}")
+		ret <- paste0(ret,"\n\tsize_t j;\n")
+		
+		if(nregime > 1){
+			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+			for(reg in 1:nregime){
+				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+				ret <- paste0(ret, "\t\t\tfor(j=0;j<num_regime;j++){")
+				if (any(someStatesNotZero[reg])){
+					ret <- paste0(ret,"\n\t\t\t\tfor(i=0;i<num_sbj;i++){\n")
+					ret <- paste0(ret, setGslVectorElements(values=values.inistate[[reg]], params=params.inistate[[reg]], name='(eta_0)[j]', fill="i*dim_latent_var+", depth=5))
+					ret <- paste0(ret,"\t\t\t\t}") # close i loop
+				}
+				ret <- paste(ret, setGslMatrixElements(values.inicov[[reg]], params.inicov[[reg]], "(error_cov_0)[j]", depth=4), sep="\n")
+				ret <- paste0(ret, "\t\t\t}") # close j loop
+				ret <- paste0(ret, "\t\t", "break;", "\n")
+			}
+			ret <- paste0(ret, "\t", "}\n\n") # close case switch
+		} else{
+			ret <- paste0(ret, "\tfor(j=0;j<num_regime;j++){")
+			if (any(someStatesNotZero)){
+				ret <- paste0(ret,"\n\t\tfor(i=0;i<num_sbj;i++){\n")
+				ret <- paste0(ret, setGslVectorElements(values=values.inistate[[1]], params=params.inistate[[1]], name='(eta_0)[j]', fill="i*dim_latent_var+", depth=3))
+				ret <- paste0(ret,"\t\t}") # close i loop
+			}
+			ret <- paste(ret, setGslMatrixElements(values.inicov[[1]], params.inicov[[1]], "(error_cov_0)[j]"), sep="\n")
+			ret <- paste0(ret, "\t}") # close j loop
 		}
 		
-		ret <- paste(ret, setGslMatrixElements(values.inicov, params.inicov, "(error_cov_0)[j]"), sep="\n")
-		ret <- paste(ret, "\t}\n}\n")
-		
+		ret <- paste0(ret, "\n}\n") #Close function definition
 		object@c.string <- ret
 		
 		return(object)
