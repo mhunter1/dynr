@@ -4,11 +4,6 @@
 
 # TODO add check that there is no cross loading on one of the ID variables
 
-# TODO add assignment of first loading to 1 in C
-# TODO rename function to more like fastLoadings
-# TODO create new mid-level function (for which this is a wrapper) that takes three
-#  matrices (parameter staring values, free-fixed, and parameter numbers)
-
 # TODO output the starting values for the parameters 
 # TODO add documentation
 
