@@ -99,6 +99,12 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     regimes=regimes, transform=trans,
                     outfile="RSPPmodelRecipe.c")
 
+printex(model,show=FALSE,printInit=TRUE,
+        outFile="demo/RS-PP.tex")
+TeXed <- printFormula(model,namestoPop = model$param.names)
+#Also can pop= signif(res@transformed.parameters,digits=2))
+
+p3 <-plotFormula(TeXed,model,toPlot="both",spacing=15) 
 model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
 model@lb[model@param.names%in%c("int","slp")]<-c(-10,0)
 # Estimate free parameters
@@ -106,6 +112,9 @@ res <- dynr.cook(model, data=data)
 
 # Examine results
 summary(res)
+
+TeXed <- printFormula(model,namestoPop = signif(res@transformed.parameters,digits=2))
+p3 <-plotFormula(TeXed,model,toPlot="both") 
 
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
             names.regime=c("Free","Constrained"),
@@ -116,7 +125,8 @@ p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2),
 
 print(p1)
 #plot(res,data.dynr = data,model)
-
+plot(res,data.dynr = data,model=model,
+     textsize=6,toPlot="both")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
