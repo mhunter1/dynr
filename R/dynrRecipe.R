@@ -408,7 +408,7 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
 	pattern=gsub("\\\\","\\\\\\\\",pattern)
 	
 	for(i in 1:length(paramnames)){
-		string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string, perl = TRUE)
+		string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string)
 	}
 	eval(parse(text=string))
 }
