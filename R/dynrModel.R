@@ -86,12 +86,15 @@ vecRegime <- function(object2){
   }#End of loop through regime
   return(Prlist)
 }  
-
+#TODO No need to provide users with printFormula(); Call it inside of plotFormula()
 setMethod("printFormula", "dynrModel",
           function(object, printDyn=TRUE, printMeas=TRUE, 
                    printInit=FALSE,printProb=FALSE,
                    outFile="",namestoPop = object$param.names){
+            #TODO reorganize the equations
+            
             model2<-PopBackModel(object, namestoPop)
+            
             state.names <- (model2$measurement)$state.names
             obs.names <- (model2$measurement)$obs.names
             if (class(model2$dynamics)=="dynrDynamicsMatrix"){
@@ -100,17 +103,18 @@ setMethod("printFormula", "dynrModel",
               model2@dynamics@values.exo <- lapply((model2$dynamics)$values.exo, preProcessNames,state.names,exo.names)
               model2@dynamics@values.int <- lapply((model2$dynamics)$values.int, preProcessNames,state.names)
             }#End of dynDynamicMatrix
+            
             #inlist <- list(model2$dynamics, model2$measurement, model2$noise, model2$initial, model2$regimes)
             inlist <- list(model2$dynamics, model2$measurement)
             outlist <- lapply(inlist, printFormula)
             
-           #Gather dynamic model
-          #Determine whether model is deterministic or stochastic
+            #Gather dynamic model
+            #Determine whether model is deterministic or stochastic
             pn <- c((model2$noise)$values.latent)
             isProcessNoise <- ifelse(length(pn[which(pn=="0")])==
-                                       length((model2$measurement)$state.names)
-                                     *length((model2$measurement)$state.names),0,1)
-             
+                                       length((model2$measurement)$state.names)*length((model2$measurement)$state.names),
+                                     0,1)
+            
             # Modify state names on the LHS based on continuous- vs
             #discrete-time models
             if ((model2$dynamics)$isContinuousTime){
@@ -137,69 +141,72 @@ setMethod("printFormula", "dynrModel",
               }
             }#End discrete-time dynamic model
             
-              exp1 <-  lapply(outlist[[1]],cleanTex,RHStimeIndex="(t)",LHSpre)
-              exp1 <- .concaTex(exp1,
-                                RHSpre=RHSpre,RHSpost=RHSpost)
-              nregime <- length(exp1)
+            exp1 <-  lapply(outlist[[1]], cleanTex, RHStimeIndex="(t)", LHSpre)
+            exp1 <- .concaTex(exp1, RHSpre=RHSpre, RHSpost=RHSpost)
+            nregime <- length(exp1)
+            neq <- length(state.names)
+            dynequ <- replicate(nregime,list(vector("list",neq)))
+            for (j in 1:nregime){
               neq <- length(state.names)
-              dynequ <- replicate(nregime,list(vector("list",neq)))
-              for (j in 1:nregime){
-                neq <- length(state.names)
-                for (k in 1:neq){
+              for (k in 1:neq){
+                pnLab <- ""
+                space <- ifelse((j*k)<neq*nregime,"\n","")
+                isProcessNoisek <- ifelse(diag((model2$noise)$values.latent)[2]==0,0,1)
+                if ((model2$dynamics)$isContinuousTime && isProcessNoisek){
+                  #Continuous-time dynamic model
+                  pnLab <- paste0(" + dw",k,"(t)")
+                }else if(isProcessNoise){#Discrete-time dynamic model
+                  pnLab <- paste0(" + w",k,"(t)")
+                }#End discrete-time dynamic model
+                dynequ[[j]][[k]] <- TeX(paste0(exp1[[j]][[k]],pnLab,space))
+              }#loop through eqs within regime j
+            }#loop through regimes
+            
+            #Gather measurement model
+            #pn <- c((model2$noise)$values.observed)
+            #isMeasNoise <- ifelse(length(pn[which(pn=="0")])==
+            #                        length((model2$measurement)$obs.names)
+            #                      *length((model2$measurement)$obs.names),0,1)
+            LHSpre <- ""
+            LHSpost<-""
+            pnLab <- ""
+            RHSpre <- ""
+            RHSpost <- ""
+            
+            exp1 <- lapply(as.formula(outlist[[2]]), printex, RHStimeIndex="(t)", LHSpre)
+            exp1 <- .concaTex(exp1, RHSpre=RHSpre, RHSpost=RHSpost)
+            nregime <- length((model2$measurement)$values.load)#max(1,nrow((model2$regimes)$values))
+            neq <- length(obs.names)
+            measequ <- replicate(nregime,list(vector("list",neq)))
+            for (j in 1:nregime){
+              for (k in 1:neq){
+                space <- ifelse((j*k)<neq*nregime,"\n","")
+                isMeasNoisek <- ifelse(diag((model2$noise)$values.observed)[k]==0,0,1)
+                if (isMeasNoisek){
+                  pnLab <- paste0(" + e",k,"(t)")
+                }else{
                   pnLab <- ""
-                  space <- ifelse((j*k)<neq*nregime,"\n","")
-                  isProcessNoisek <- ifelse(diag((model2$noise)$values.latent)[2]==0,0,1)
-                  if ((model2$dynamics)$isContinuousTime && isProcessNoisek){
-                    #Continuous-time dynamic model
-                    pnLab <- paste0(" + dw",k,"(t)")
-                  }else if(isProcessNoise){#Discrete-time dynamic model
-                    pnLab <- paste0(" + w",k,"(t)")
-                  }#End discrete-time dynamic model
-                  dynequ[[j]][[k]] <- TeX(paste0(exp1[[j]][[k]],pnLab,space))
-                }#loop through eqs within regime j
-              }#loop through regimes
-              
-              #Gather measurement model
-              #pn <- c((model2$noise)$values.observed)
-              #isMeasNoise <- ifelse(length(pn[which(pn=="0")])==
-              #                        length((model2$measurement)$obs.names)
-              #                      *length((model2$measurement)$obs.names),0,1)
-                  LHSpre <- ""
-                  LHSpost<-""
-                  pnLab <- ""
-                  RHSpre <- ""
-                  RHSpost <- ""
-
-              exp1 <-  lapply(as.formula(outlist[[2]]),printex,RHStimeIndex="(t)",LHSpre)
-              exp1 <- .concaTex(exp1,
-                                RHSpre=RHSpre,RHSpost=RHSpost)
-              nregime <- length((model2$measurement)$values.load)#max(1,nrow((model2$regimes)$values))
-              neq <- length(obs.names)
-              measequ <- replicate(nregime,list(vector("list",neq)))
-              for (j in 1:nregime){
-                for (k in 1:neq){
-                  space <- ifelse((j*k)<neq*nregime,"\n","")
-                  isMeasNoisek <- ifelse(diag((model2$noise)$values.observed)[k]==0,0,1)
-                  if (isMeasNoisek){
-                    pnLab <- paste0(" + e",k,"(t)")
-                  }else{
-                    pnLab <- ""
-                  }
-                  measequ[[j]][[k]] <- TeX(paste0(exp1[[j]][[k]],pnLab,space))
-                }#loop through eqs within regime j
-              }#loop through regimes
-              
-              return(invisible(list(dynTeX=dynequ,measTeX=measequ)))
+                }
+                measequ[[j]][[k]] <- TeX(paste0(exp1[[j]][[k]],pnLab,space))
+              }#loop through eqs within regime j
+            }#loop through regimes
+            
+            return(invisible(list(dynTeX=dynequ,measTeX=measequ)))
             
           })         
 
 
 setMethod("printex", "dynrModel",
-function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printProb=FALSE,outFile=""){
+          function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printProb=FALSE,outFile=""){
+            #TODO Align the equations
+            #TODO Add an argument indicating which of the model@param.names, model@xstart, or res@transformed.parameters is used for PopBackModel() 
             model2<-PopBackModel(object, object$param.names)
+
+            #TODO The parts of dynrModel to be processed depends on the print* options
             inlist <- list(model2$dynamics, model2$measurement, model2$noise, model2$initial, model2$regimes)
             outlist <- lapply(inlist, printex,show=T)
-
+            
+            #initial regime probabilities
             initProb <- outlist[[4]]$initial.probability
             outProb <- NULL
             if (length((model2$initial)$values.regimep)>1){
@@ -207,65 +214,70 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
               outProb <- paste0("\\\\\n\\text{Initial regime probabilities = }\\\\\n",
                                 initProb)
             }
-              if (length(outlist[[4]]$initial.state) > 1){              
+            
+            #initial condition of latent variables
+            if (length(outlist[[4]]$initial.state) > 1){              
               for (j in 1:length(outlist[[4]]$initial.state)){
-              space <-ifelse(j<length(outlist[[4]]$initial.state),"\\\\\n","")
-              a <- paste0("\\text{Initial conditions for the state/latent variables\nin regime ",j,":}\\\\\n")  
-              initmu <- outlist[[4]]$initial.state[[j]]
-              initcov <- outlist[[4]]$initial.covariance[[j]]
-              initCond=c(paste0(a,.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(1)"),ncol=1),F), "\\sim N \\Big(",
-                                initmu,", ",
-                                initcov,"\\Big)",space,"\n"))
-            }#End of loop through j
-}else{
-  a <- c("\\text{Initial conditions for the state/latent variables:}\\\\\n")
-  space <- ""
-  initmu <- outlist[[4]]$initial.state
-  initcov <- outlist[[4]]$initial.covariance
-  initCond=paste0(a,.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(1)"),ncol=1),F), "\\sim N \\Big(",
-                    initmu,", ",
-                    initcov,"\\Big)",space,"\n")
-  }#End of check if the initial condition specification is regime-specific
+                space <-ifelse(j<length(outlist[[4]]$initial.state),"\\\\\n","")
+                a <- paste0("\\text{Initial conditions for the state/latent variables\nin regime ",j,":}\\\\\n")  
+                initmu <- outlist[[4]]$initial.state[[j]]
+                initcov <- outlist[[4]]$initial.covariance[[j]]
+                initCond=c(paste0(a,.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(1)"),ncol=1),F), "\\sim N \\Big(",
+                                  initmu,", ",
+                                  initcov,"\\Big)",space,"\n"))
+              }#End of loop through j
+            }else{
+              a <- c("\\text{Initial conditions for the state/latent variables:}\\\\\n")
+              space <- ""
+              initmu <- outlist[[4]]$initial.state
+              initcov <- outlist[[4]]$initial.covariance
+              initCond=paste0(a,.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(1)"),ncol=1),F), "\\sim N \\Big(",
+                              initmu,", ",
+                              initcov,"\\Big)",space,"\n")
+            }#End of check if the initial condition specification is regime-specific
             initequ=paste0("\\begin{align*}\n",
                            initCond,outProb,
                            "\\end{align*}")
             
+            #dynamic and measurement noise
             lw <- length(outlist[[3]]$dynamic.noise)
             #Determine whether model is deterministic or stochastic
             pn <- c((model2$noise)$values.latent)
             isProcessNoise <- ifelse(length(pn[which(pn=="0")])==
                                        length((model2$measurement)$state.names)
                                      *length((model2$measurement)$state.names),0,1)
+            
             pn <- c((model2$noise)$values.observed)
             isMeasNoise <- ifelse(length(pn[which(pn=="0")])==
-                                       length((model2$measurement)$obs.names)
-                                     *length((model2$measurement)$obs.names),0,1)
+                                    length((model2$measurement)$obs.names)
+                                  *length((model2$measurement)$obs.names),0,1)
             
             if (lw ==1){
               processNoise <- outlist[[3]]$dynamic.noise
             }
+            
             lmeas <- length(outlist[[3]]$measurement.noise)
             if (lmeas ==1){
               measNoise <- outlist[[3]]$measurement.noise
             }
             
-            #Gather dynamic model
+            #Dynamic Model
             # Modify state names on the LHS based on continuous- vs
             #discrete-time models
             if ((model2$dynamics)$isContinuousTime){
               #Continuous-time dynamic model
               LHS <- paste0(.xtableMatrix(matrix(paste0("d",(model2$measurement)$state.names,"(t)"),ncol=1),F))
               state <- paste0(.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F))
-
+              
               if (isProcessNoise){
-              RHSpre <- "\\Big("
-              RHSpost <- "\\Big)dt"
-              LHSpre <- ""
-              LHSpost <- ""
-              pnLab <- " + dw(t)"
-              pNoisePre <- paste0("\\\\\ndw(t) \\sim N\\Big(",
-              .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
-              ",")
+                RHSpre <- "\\Big("
+                RHSpost <- "\\Big)dt"
+                LHSpre <- ""
+                LHSpost <- ""
+                pnLab <- " + dw(t)"
+                pNoisePre <- paste0("\\\\\ndw(t) \\sim N\\Big(",
+                                    .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
+                                    ",")
               }else{
                 LHSpre <- "\\frac{"
                 LHSpost<-"}{dt}"
@@ -288,7 +300,7 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
                 pNoisePre <- ""
               }
             }#End discrete-time dynamic model
- 
+            
             dynequ="\\begin{align*}\n"
             if (class(model2$dynamics) == 'dynrDynamicsFormula'){
               exp1 <- .concaTex(outlist[[1]],
@@ -300,14 +312,14 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
                 neq <- length((model2$dynamics)$formula[[j]])
                 a <- paste0("\\text{Regime ",j,":}\\\\\n")
                 for (k in 1:neq){
-                space <- ifelse((j*k)<neq*length((model2$dynamics)$formula),"\\\\\n","")
-                if ((model2$dynamics)$isContinuousTime && isProcessNoise){
-                  #Continuous-time dynamic model
-                  pnLab <- paste0(" + dw",k,"(t)")
-                }else if(isProcessNoise){#Discrete-time dynamic model
-                  pnLab <- paste0(" + w",k,"(t)")
-                }#End discrete-time dynamic model
-                dynequ <- c(dynequ,paste0(a,exp1[[j]][[k]],pnLab,space))
+                  space <- ifelse((j*k)<neq*length((model2$dynamics)$formula),"\\\\\n","")
+                  if ((model2$dynamics)$isContinuousTime && isProcessNoise){
+                    #Continuous-time dynamic model
+                    pnLab <- paste0(" + dw",k,"(t)")
+                  }else if(isProcessNoise){#Discrete-time dynamic model
+                    pnLab <- paste0(" + w",k,"(t)")
+                  }#End discrete-time dynamic model
+                  dynequ <- c(dynequ,paste0(a,exp1[[j]][[k]],pnLab,space))
                   a <- NULL
                 }#loop through eqs within regime j
                 if (isProcessNoise){
@@ -315,34 +327,34 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
                 dynequ <- c(dynequ,space)                          
               }#loop through regimes
               #state <- .xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F)
-              }else{ #DynamicMatrix specification
-                a <- NULL; space = ""
-                  for (j in 1:length(outlist[[1]]$dyn_tran)){
-                    if (length(outlist[[1]]$dyn_tran) > 1) {
+            }else{ #DynamicMatrix specification
+              a <- NULL; space = ""
+              for (j in 1:length(outlist[[1]]$dyn_tran)){
+                if (length(outlist[[1]]$dyn_tran) > 1) {
                   space<- ifelse(j<length(outlist[[1]]$dyn_tran),"\\\\\n","")
                   if(lw>1){processNoise <- outlist[[3]]$dynamic.noise[[j]]}
                   a <- paste0("\\text{Regime ",j,":}\\\\\n")
-                    }#End of text edits required only for multiple-regime models
-                  exo <- NULL
-                  dint <- NULL
-                  if (length((model2$dynamics)$covariates) > 0){
-                    exo <- paste0("+",outlist[[1]]$dyn_exo[[j]],outlist[[1]]$dyn_exo.names)  
-                  }#End covariate if
-                  if (length((model2$dynamics)$values.int) > 0){
-                    dint <- paste0(outlist[[1]]$dyn_int[[j]],"+")  
-                  }#End int if
+                }#End of text edits required only for multiple-regime models
+                exo <- NULL
+                dint <- NULL
+                if (length((model2$dynamics)$covariates) > 0){
+                  exo <- paste0("+",outlist[[1]]$dyn_exo[[j]],outlist[[1]]$dyn_exo.names)  
+                }#End covariate if
+                if (length((model2$dynamics)$values.int) > 0){
+                  dint <- paste0(outlist[[1]]$dyn_int[[j]],"+")  
+                }#End int if
                 dynequ<-c(dynequ,paste0(a,LHS,"=",dint,
                                         RHSpre,outlist[[1]]$dyn_tran[[j]],state,RHSpost,
-                                          exo,pnLab,"\\\\\n"))
+                                        exo,pnLab,"\\\\\n"))
                 if (isProcessNoise){
                   dynequ <- c(dynequ,
                               paste0(pNoisePre,processNoise,"\\Big)"))}
                 dynequ <- c(dynequ,space)  
-                }#Loops through regimes
+              }#Loops through regimes
             }#End of formula vs. linear dynamic matrix specification
             dynequ <- c(dynequ,"\\end{align*}")
             
-            #Gather measurement model
+            #Measurement model
             measequ="\\begin{align*}\n"
             obs <- .xtableMatrix(matrix(paste0((model2$measurement)$obs.names,"(t)"),ncol=1),F)
             
@@ -352,7 +364,7 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
               if (length((model2$measurement)$values.load) > 1) {
                 a <-  paste0("\\text{Regime ",j,":}\\\\\n")
                 if (lmeas > 1) measNoise <- outlist[[3]]$measurement.noise[[j]]
-                }
+              }
               exom <- NULL
               mint <- NULL
               if (length((model2$measurement)$exo.names) > 0){
@@ -362,50 +374,54 @@ function(object, show=TRUE,printDyn=TRUE, printMeas=TRUE, printInit=FALSE,printP
                 mint <- paste0(outlist[[2]]$meas_int[[j]]," + ")  
               }
               measequ <- c(measequ,paste0(a,obs," = ",mint,
-                                        outlist[[2]]$meas_loadings[[j]],
-                                        state,exom))
+                                          outlist[[2]]$meas_loadings[[j]],
+                                          state,exom))
               if (isMeasNoise){
-              measequ <- c(measequ,paste0("+ e\\\\\n",
-                                        "e\\sim N\\Big(",
-                                        .xtableMatrix(matrix(rep(0,length((model2$measurement)$obs.names)),ncol=1),F),
-                                        ",",measNoise,"\\Big)"))
+                measequ <- c(measequ,paste0("+ e\\\\\n",
+                                            "e\\sim N\\Big(",
+                                            .xtableMatrix(matrix(rep(0,length((model2$measurement)$obs.names)),ncol=1),F),
+                                            ",",measNoise,"\\Big)"))
               }#end of (isMeasNoise check)
               measequ=c(measequ,space)
             }#end of loop through regimes
             measequ=c(measequ,"\\end{align*}")
             
-            #Gather regime-switching model
+            #Regime-switching model
             if (length((model2$initial)$values.regimep)>1 &&
                 printProb==TRUE){
               Prlist <- implode(vecRegime(model2$regimes),sep="\\\\\n")
               #Only print initial RS probabilities if > 1 regime
-               RSequ=paste0("\\begin{align*}\n",
+              RSequ=paste0("\\begin{align*}\n",
                            Prlist,"\n\\end{align*}\n")
             }
             
+            #Print out the latex code
             if (!outFile==""){
-            cat(paste0("\\documentclass[fleqn]{article}\n
-                        \\usepackage{amsmath}\n
-                       \\setlength{\\mathindent}{0pt}\n\n
-                       \\begin{document}\n"),
-                file=outFile,append=FALSE)
+              cat(paste0("\\documentclass[fleqn]{article}\n
+                         \\usepackage{amsmath}\n
+                         \\setlength{\\mathindent}{0pt}\n\n
+                         \\begin{document}\n"),
+                  file=outFile,append=FALSE)
             }
             
             if (printMeas==TRUE){
-            cat("\nHere is the measurement model:\n",file=outFile,append=TRUE)
-            cat(measequ,file=outFile,append=TRUE)}
-            if (printDyn==TRUE){cat("\n\nHere is the dynamic model:\n",file=outFile,append=TRUE)
-            cat(dynequ,file=outFile,append=TRUE)}
-            if (printInit==TRUE){cat("\n\nInitial conditions for the model:\n",file=outFile,append=TRUE)
-            cat(initequ,file=outFile,append=TRUE)}
-            if (printProb==TRUE){cat("\n\nRegime-switching probabilities:\n",file=outFile,append=TRUE)
+              cat("\nHere is the measurement model:\n",file=outFile,append=TRUE)
+              cat(measequ,file=outFile,append=TRUE)}
+            if (printDyn==TRUE){
+              cat("\n\nHere is the dynamic model:\n",file=outFile,append=TRUE)
+              cat(dynequ,file=outFile,append=TRUE)}
+            if (printInit==TRUE){
+              cat("\n\nInitial conditions for the model:\n",file=outFile,append=TRUE)
+              cat(initequ,file=outFile,append=TRUE)}
+            if (printProb==TRUE){
+              cat("\n\nRegime-switching probabilities:\n",file=outFile,append=TRUE)
               cat(RSequ,file=outFile,append=TRUE)}
             if (!outFile==""){
               cat(paste0("\\end{document}\n"),
                   file=outFile,append=TRUE)
             }
-          }
-)
+            
+          })
 
 # modeling is what happens to recipes.
 # The alpha version of this file just takes a bunch of recipes and puts
