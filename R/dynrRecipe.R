@@ -1985,15 +1985,16 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 	return(form)
 }
 
-## Examples
-#meas <- prep.loadings(
+# # Examples
+# meas <- prep.loadings(
 #  map=list(
 #    eta1=paste0('y', 1:3),
 #    eta2=paste0('y', 4:6)),
-#    params = c(1:4))
-#matrix2formula(meas$values.load[[1]])
-#matrix2formula(meas$params.load[[1]])
-#lapply(matrix2formula(meas$values.load))
+#    params = paste0("lambda",c(1:4)))
+# matrix2formula(meas$values.load[[1]])
+# matrix2formula(meas$params.load[[1]])
+# lapply(meas$values.load,matrix2formula)
+# #TODO check if fixed in formula/tex is substituted by fixed values.
 
 addFormulas <- function(f1, f2){
 	charf1 <- as.character(f1)
