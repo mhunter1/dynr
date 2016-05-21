@@ -271,26 +271,18 @@ setMethod("printex", "dynrModel",
               state <- paste0(.xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F))
               
               if (isProcessNoise){
-                RHSpre <- "\\Big("
-                RHSpost <- "\\Big)dt"
-                LHSpre <- ""
-                LHSpost <- ""
                 pnLab <- " + dw(t)"
                 pNoisePre <- paste0("\\\\\ndw(t) \\sim N\\Big(",
                                     .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
                                     ",")
               }else{
-                LHSpre <- "\\frac{"
-                LHSpost<-"}{dt}"
                 pnLab <- ""
-                RHSpre <- ""
-                RHSpost <- ""
                 pNoisePre <- ""
               }
             }else{#Discrete-time dynamic model
               LHS <- .xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t+1)"),ncol=1),F)
               state <- .xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F)
-              LHSpre=""; LHSpost=""; RHSpre <- ""; RHSpost <- ""
+              
               if (isProcessNoise){
                 pnLab <- " + w(t)"
                 pNoisePre <- paste0("\\\\\nw(t) \\sim N\\Big(",
@@ -304,14 +296,11 @@ setMethod("printex", "dynrModel",
             
             dynequ="\\begin{align*}\n"
             if (class(model2$dynamics) == 'dynrDynamicsFormula'){
-              exp1 <- .concaTex(outlist[[1]],
-                                LHSpre=LHSpre,LHSpost=LHSpost,
-                                RHSpre=RHSpre,RHSpost=RHSpost)
-              exp1 <- lapply(exp1,function(x){gsub('$','',x,fixed=TRUE)})
+              exp1 <- printex(model2$dynamics)
               for (j in 1:length((model2$dynamics)$formula)){
                 if(lw>1){processNoise <- outlist[[3]]$dynamic.noise[[j]]}
                 neq <- length((model2$dynamics)$formula[[j]])
-                a <- paste0("\\text{Regime ",j,":}\\\\\n")
+                a <- paste0("\\text{Regime ",j,":}&\\\\\n")
                 for (k in 1:neq){
                   space <- ifelse((j*k)<neq*length((model2$dynamics)$formula),"\\\\\n","")
                   if ((model2$dynamics)$isContinuousTime && isProcessNoise){
@@ -320,7 +309,7 @@ setMethod("printex", "dynrModel",
                   }else if(isProcessNoise){#Discrete-time dynamic model
                     pnLab <- paste0(" + w",k,"(t)")
                   }#End discrete-time dynamic model
-                  dynequ <- c(dynequ,paste0(a,exp1[[j]][[k]],pnLab,space))
+                  dynequ <- c(dynequ,paste0(a,"&",exp1[[j]][k],pnLab,space))
                   a <- NULL
                 }#loop through eqs within regime j
                 if (isProcessNoise){

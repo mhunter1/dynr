@@ -216,19 +216,21 @@ setMethod("printex", "dynrDynamicsFormula",
             if (object$isContinuousTime){
             LHSvarPre <- "d("
             LHSvarPost <- "(t))"
+            RHSeqPre <- "\\Big("
+            RHSeqPost <- "\\Big)dt"
             }else{
             LHSvarPre <- ""
             LHSvarPost <- "(t+1)"
+            RHSeqPre <- ""
+            RHSeqPost <- ""
             }
             RHSvarPost="(t)"
             dyn=lapply(object$formula, formula2tex, 
                        LHSvarPre = LHSvarPre, LHSvarPost = LHSvarPost, RHSvarPre = "", RHSvarPost = RHSvarPost, 
-                       LHSeqPre = "$", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "$")
+                       LHSeqPre = "", LHSeqPost = "", RHSeqPre = RHSeqPre, RHSeqPost = RHSeqPost)
             return(invisible(dyn))
           }
 )
-
-
 
 setGeneric("printFormula", function(object,...) { 
   return(standardGeneric("printFormula")) 
@@ -327,8 +329,9 @@ formula2tex<-function(list_formulae,
     str.left[j]=gsub(paste0(sigpatn),paste0(LHSvarPre,"\\1",LHSvarPost),str.left[j])
   }
   
-  return(invisible(list(left=str.left,right=str.right,
-              equation=paste0(LHSeqPre, str.left, LHSeqPost," = ", RHSeqPre, str.right, RHSeqPost))))
+  return(invisible(#list(left=str.left,right=str.right,equation=
+    paste0(LHSeqPre, str.left, LHSeqPost," = ", RHSeqPre, str.right, RHSeqPost))
+    )#)
 }
 
 .xtableMatrix <- function(m, show){
