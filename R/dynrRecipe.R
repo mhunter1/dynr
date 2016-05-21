@@ -211,23 +211,19 @@ setMethod("printex", "dynrNoise",
           }
 )
 
-#setMethod("printex", "dynrDynamicsFormula",
-#          function(object, show=TRUE){
-#            dyn=lapply(object$formula,dynfmltex,object$isContinuousTime)
-#            return(invisible(dyn))
-#          }
-#)
-
-
 setMethod("printex", "dynrDynamicsFormula",
           function(object, show=TRUE){
             if (object$isContinuousTime){
-            LHSpre <- "d(\\1(t))" #for continuous time
+            LHSvarPre <- "d("
+            LHSvarPost <- "(t))"
             }else{
-            LHSpre <- "\\1(t+1)" #for discrete time
+            LHSvarPre <- ""
+            LHSvarPost <- "(t+1)"
             }
-            RHStimeIndex="(t)"
-            dyn=lapply(object$formula,cleanTex,RHStimeIndex,LHSpre)
+            RHSvarPost="(t)"
+            dyn=lapply(object$formula, formula2tex, 
+                       LHSvarPre = LHSvarPre, LHSvarPost = LHSvarPost, RHSvarPre = "", RHSvarPost = RHSvarPost, 
+                       LHSeqPre = "$", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "$")
             return(invisible(dyn))
           }
 )
@@ -296,85 +292,44 @@ setMethod("printFormula", "dynrDynamicsFormula",
           }
 )
 
-
-
-cleanTex<-function(eqregime,RHStimeIndex="(t)",LHSpre=NULL){
- # if (is.formula(eqregime)==F){
-#    eqregime <- formula(as.character(eqregime),env=.GlobalEnv)
-#  }
-  eq.char=lapply(eqregime, as.character)
+#This function transforms a list of formulae to lists of latex code.
+#returns a list of left, right, and equation latex code, each a vector.
+formula2tex<-function(list_formulae, 
+                      LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "", 
+                      LHSeqPre = "$", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "$"){
+  eq.char=lapply(list_formulae, as.character)
   str.left=sapply(eq.char,"[",2)
   str.right=sapply(eq.char,"[",3)
-  neq=length(eqregime)
+  neq=length(list_formulae)
   mulpatn<-"([[:print:]]*)"
-  sigpatn<-"([0-9A-Za-z ^*]*)"
+  sigpatn<-"([0-9A-Za-z_. ^*]*)"
   for (j in 1:neq){
-    str.right[j]=gsub("exp","\\\\exp",str.right[j])
-    str.right[j]=gsub("log","\\\\log",str.right[j])
-    str.right[j]=gsub("\\*","\\\\times",str.right[j])
-  #  str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
-  #  str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
-  #  str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
-  #  str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
+    #The order of gsub matters.
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
     str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-      for (i in 1:neq){
-      str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],RHStimeIndex),str.right[j])
-    }
-    }
-
+    str.right[j]=gsub("\\bexp\\(", "\\\\exp\\(", str.right[j])
+    str.right[j]=gsub("\\blog\\(", "\\\\log\\(", str.right[j])
+    str.right[j]=gsub("\\bsin\\(", "\\\\sin\\(", str.right[j])
+    str.right[j]=gsub("\\bcos\\(", "\\\\cos\\(", str.right[j])
+    str.right[j]=gsub("\\*","\\\\times",str.right[j])
+  }
   
+  #Modify the presentation of the variables on RHS
   for (j in 1:neq){
-    str.left[j]=gsub(paste0(sigpatn),LHSpre,str.left[j])
-  }
-  return(list(left=str.left,right=str.right))
-}
-
-#dynfmltex<-function(eqregime,isContinuousTime){
-#  eq.char=lapply(eqregime, as.character)
-#  str.left=sapply(eq.char,"[",2)
-#  str.right=sapply(eq.char,"[",3)
-#  neq=length(eqregime)
-#  mulpatn<-"([[:print:]]*)"
-#  sigpatn<-"([0-9A-Za-z ^*]*)"
-#  for (j in 1:neq){
-#    if (!isContinuousTime){
-#      for (i in 1:neq){
-#        str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(str.left[i],"_{t-1}"),str.right[j])
-#      }
-#    }
-#    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
-#    str.right[j]=gsub(paste0("\\(",mulpatn,"\\)/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-#    str.right[j]=gsub(paste0(sigpatn,"/\\(",mulpatn,"\\)"),"\\\\frac{\\1}{\\2}",str.right[j])
-#    str.right[j]=gsub(paste0(sigpatn,"/",sigpatn),"\\\\frac{\\1}{\\2}",str.right[j])
-#    str.right[j]=gsub("exp","\\\\exp",str.right[j])
-#    str.right[j]=gsub("log","\\\\log",str.right[j])
-#    str.right[j]=gsub("\\*","\\\\times",str.right[j])
-#  }
-#  
-#  for (j in 1:neq){
-#    str.left[j]=gsub(paste0(sigpatn),ifelse(isContinuousTime,"d(\\1)","\\1_t"),str.left[j])
-#  }
-#  
-#  return(list(left=str.left,right=str.right))
-#}
-
-
-.concaTex <- function(object,LHSpre=NULL,LHSpost=NULL,RHSpre,RHSpost){
-  nregime <- length(object)
-  ne <- length(object[[1]])
-  exp1 <- replicate(nregime,list(vector("list",ne)))
-  for (r in 1:nregime){
-    for (j in 1:ne){
-        exp1[[r]][[j]] <- paste0("$",LHSpre,paste(object[[r]]$left[j]),LHSpost, " = ", 
-                             RHSpre,paste(object[[r]]$right[j]),RHSpost,"$")
+    for (i in 1:neq){
+      str.right[j]=gsub(paste0("\\<",str.left[i],"\\>"),paste0(RHSvarPre,str.left[i],RHSvarPost),str.right[j])
     }
   }
-  return(invisible(exp1))
+  #Modify the presentation of the variables on LHS
+  for (j in 1:neq){
+    str.left[j]=gsub(paste0(sigpatn),paste0(LHSvarPre,"\\1",LHSvarPost),str.left[j])
+  }
+  
+  return(invisible(list(left=str.left,right=str.right,
+              equation=paste0(LHSeqPre, str.left, LHSeqPost," = ", RHSeqPre, str.right, RHSeqPost))))
 }
-
 
 .xtableMatrix <- function(m, show){
 	x <- xtable::xtable(m, align=rep("", ncol(m)+1))
