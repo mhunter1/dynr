@@ -163,26 +163,66 @@ setGeneric("printex", function(object, show=TRUE,...) {
 })
 
 setMethod("printex", "dynrMeasurement",
-          function(object, show=TRUE){
-            meas_loadings=lapply(object$values.load, .xtableMatrix, show)
-            meas_int=lapply(object$values.int, .xtableMatrix, show)
-            meas_exo=lapply(object$values.exo, .xtableMatrix, show)
-            meas_exo.names=.xtableMatrix(matrix(object$exo.names,ncol=1), show)
-            meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
-                             meas_exo=meas_exo,meas_exo.names=meas_exo.names)
-            return(invisible(meas_list))
+          function(object, show=TRUE, AsMatrix=TRUE){
+            if (AsMatrix){
+              meas_loadings=lapply(object$values.load, .xtableMatrix, show)
+              meas_int=lapply(object$values.int, .xtableMatrix, show)
+              meas_exo=lapply(object$values.exo, .xtableMatrix, show)
+              meas_exo.names=.xtableMatrix(matrix(object$exo.names,ncol=1), show)
+              meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
+                               meas_exo=meas_exo,meas_exo.names=meas_exo.names)
+              return(invisible(meas_list))
+            }else{#not to use matrix
+              #Matrix to Formula
+              meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
+              meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
+              meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
+              meas_fml <- addLLFormulas(list_list_formulae = meas_loadings, 
+                                        VecNamesToAdd = c("meas_int","meas_exo"))
+              #Formula to LaTex
+              meas_tex=lapply(meas_fml, formula2tex, 
+                              LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "", 
+                              LHSeqPre = "", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "")
+              return(meas_tex)
+            }
+            
           }
 )
 
-
 setMethod("printex", "dynrDynamicsMatrix",
-          function(object, show=TRUE){
-            dyn_tran=lapply((object)$values.dyn,.xtableMatrix, show)
-            dyn_int=lapply((object)$values.int,.xtableMatrix, show)
-            dyn_exo=lapply((object)$values.exo,.xtableMatrix, show)
-            dyn_exo.names=.xtableMatrix(matrix((object)$covariates,ncol=1),show)
-            return(invisible(list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, dyn_exo.names = dyn_exo.names) ))
-          }
+          function(object, show=TRUE, AsMatrix=TRUE){
+            if (AsMatrix){
+              dyn_tran=lapply((object)$values.dyn,.xtableMatrix, show)
+              dyn_int=lapply((object)$values.int,.xtableMatrix, show)
+              dyn_exo=lapply((object)$values.exo,.xtableMatrix, show)
+              dyn_exo.names=.xtableMatrix(matrix((object)$covariates,ncol=1),show)
+              return(invisible(list(dyn_tran = dyn_tran, dyn_int = dyn_int, dyn_exo = dyn_exo, dyn_exo.names = dyn_exo.names) ))
+            }else{#not to use matrix
+              #Matrix to Formula
+              dyn_tran <- lapply(object$values.dyn,matrix2formula,multbyColnames=T)
+              dyn_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
+              dyn_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
+              dyn_fml <- addLLFormulas(list_list_formulae = dyn_tran, 
+                                       VecNamesToAdd = c("dyn_int","dyn_exo"))
+              #Formula to LaTex
+              if (object$isContinuousTime){
+                LHSvarPre <- "d("
+                LHSvarPost <- "(t))"
+                RHSeqPre <- "\\Big("
+                RHSeqPost <- "\\Big)dt"
+              }else{
+                LHSvarPre <- ""
+                LHSvarPost <- "(t+1)"
+                RHSeqPre <- ""
+                RHSeqPost <- ""
+              }
+              RHSvarPost="(t)"
+              dyn_tex=lapply(dyn_fml, formula2tex, 
+                             LHSvarPre = LHSvarPre, LHSvarPost = LHSvarPost, RHSvarPre = "", RHSvarPost = RHSvarPost, 
+                             LHSeqPre = "", LHSeqPost = "", RHSeqPre = RHSeqPre, RHSeqPost = RHSeqPost)
+              return(dyn_tex)
+            }
+          }    
 )
 
 setMethod("printex", "dynrRegimes",
@@ -228,71 +268,10 @@ setMethod("printex", "dynrDynamicsFormula",
             dyn=lapply(object$formula, formula2tex, 
                        LHSvarPre = LHSvarPre, LHSvarPost = LHSvarPost, RHSvarPre = "", RHSvarPost = RHSvarPost, 
                        LHSeqPre = "", LHSeqPost = "", RHSeqPre = RHSeqPre, RHSeqPost = RHSeqPost)
-            return(invisible(dyn))
+            return(dyn)
           }
 )
 
-setGeneric("printFormula", function(object,...) { 
-  return(standardGeneric("printFormula")) 
-})
-
-setMethod("printFormula", "dynrMeasurement",
-          function(object){
-            nRegime <- length(object$values.load)
-            meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
-            meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
-            meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
-            outForm <- meas_loadings
-            for (j in 1:nRegime){
-              neq <- length(meas_loadings[[j]])
-              for (k in 1:neq){
-            meas_list <- meas_loadings[[j]][[k]]
-            if (length(meas_int)>0){
-            if (length(meas_int[[j]])>0){
-            meas_list <- addFormulas(meas_int[[j]][[k]],meas_list)
-            }}
-            if (length(meas_exo)>0){
-            if (length(meas_exo[[j]])>0){
-            meas_list <- addFormulas(meas_list,meas_exo[[j]][[k]])
-            }}
-            outForm[[j]][[k]] <- meas_list
-            }}
-            return(invisible(outForm))
-          }
-)
-
-setMethod("printFormula", "dynrDynamicsMatrix",
-          function(object){
-            nRegime <- length(object$values.dyn)
-            dyn_tran <- lapply(object$values.dyn,matrix2formula,multbyColnames=T)
-            dyn_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
-            dyn_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
-            for (j in 1:nRegime){
-              neq <- length(dyn_tran[[j]])
-              outForm <- dyn_tran
-              for (k in 1:neq){
-                dyn_list <- dyn_tran[[j]][[k]]
-                if (length(dyn_int)>0){
-                  if (length(dyn_int[[j]])>0){
-                    dyn_list <- addFormulas(dyn_int[[j]][[k]],dyn_list)
-                  }}
-                if (length(dyn_exo)>0){
-                  if (length(dyn_exo[[j]])>0){
-                    dyn_list <- addFormulas(dyn_list,dyn_exo[[j]][[k]])
-                  }}
-                outForm[[j]][[k]] <- dyn_list
-              }}
-            return(invisible(outForm))
-          }
-)
-
-
-setMethod("printFormula", "dynrDynamicsFormula",
-          function(object){
-          dyn <- printex(object,show=F)
-          return(invisible(dyn))
-          }
-)
 
 #This function transforms a list of formulae to lists of latex code.
 #returns a list of left, right, and equation latex code, each a vector.
@@ -1974,6 +1953,25 @@ addFormulas <- function(f1, f2){
 #addFormulas(f1, f2)
 #addFormulas(f2, f1)
 
+addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
+  nRegime <- length(list_list_formulae)
+  for (j in 1:nRegime){
+    neq <- length(list_list_formulae[[j]])
+    for (k in 1:neq){
+      AddedFml <- list_list_formulae[[j]][[k]]
+      for (l in 1:length(VecNamesToAdd)){
+        list_list_formulae_add=eval(parse(text=VecNamesToAdd[l]))
+        if (length(list_list_formulae_add)>0){
+          if (length(list_list_formulae_add[[j]])>0){
+            AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]],AddedFml)
+          }
+        }
+      }
+      list_list_formulae[[j]][[k]] <- AddedFml
+    }
+  }
+  return(list_list_formulae)
+}
 
 #------------------------------------------------------------------------------
 prep.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
