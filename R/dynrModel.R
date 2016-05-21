@@ -86,11 +86,12 @@ vecRegime <- function(object2){
   }#End of loop through regime
   return(Prlist)
 }  
+#TODO Fix bugs in the printFormula
 #TODO No need to provide users with printFormula(); Call it inside of plotFormula()
 setMethod("printFormula", "dynrModel",
           function(object, printDyn=TRUE, printMeas=TRUE, 
-                   printInit=FALSE,printProb=FALSE,
-                   outFile="",namestoPop = object$param.names){
+                   printInit=FALSE, printProb=FALSE,
+                   outFile="", namestoPop = object$param.names){
             #TODO reorganize the equations
             
             model2<-PopBackModel(object, namestoPop)
@@ -172,7 +173,7 @@ setMethod("printFormula", "dynrModel",
             pnLab <- ""
             RHSpre <- ""
             RHSpost <- ""
-            
+            #There is a bug here.
             exp1 <- lapply(as.formula(outlist[[2]]), printex, RHStimeIndex="(t)", LHSpre)
             exp1 <- .concaTex(exp1, RHSpre=RHSpre, RHSpost=RHSpost)
             nregime <- length((model2$measurement)$values.load)#max(1,nrow((model2$regimes)$values))

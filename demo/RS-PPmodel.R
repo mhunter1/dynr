@@ -101,6 +101,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 printex(model,show=FALSE,printInit=TRUE,
         outFile="demo/RS-PP.tex")
+tools::texi2pdf("demo/RS-PP.tex")
+system(paste(getOption("pdfviewer"), "RS-PP.pdf"))
+
 TeXed <- printFormula(model,namestoPop = model$param.names)
 #Also can pop= signif(res@transformed.parameters,digits=2))
 
