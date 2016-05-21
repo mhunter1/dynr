@@ -158,7 +158,7 @@ setMethod("$", "dynrRecipe",
 #------------------------------------------------------------------------------
 # printex method definitions
 
-setGeneric("printex", function(object, show=TRUE,...) { 
+setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
 	return(standardGeneric("printex")) 
 })
 
@@ -226,7 +226,7 @@ setMethod("printex", "dynrDynamicsMatrix",
 )
 
 setMethod("printex", "dynrRegimes",
-          function(object, show=TRUE){
+          function(object, show=TRUE, AsMatrix=TRUE){
             lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
             return(invisible(list(regimes=lG)))
           }
@@ -234,7 +234,7 @@ setMethod("printex", "dynrRegimes",
 
 
 setMethod("printex", "dynrInitial",
-          function(object, show=TRUE){
+          function(object, show=TRUE, AsMatrix=TRUE){
             lx0 <- lapply(object$values.inistate, .xtableMatrix, show)
             lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
             lr0 <- .xtableMatrix(object$values.regimep, show)
@@ -244,7 +244,7 @@ setMethod("printex", "dynrInitial",
 
 
 setMethod("printex", "dynrNoise",
-          function(object, show=TRUE){
+          function(object, show=TRUE, AsMatrix=TRUE){
             lQ <- .xtableMatrix(object$values.latent, show)
             lR <- .xtableMatrix(object$values.observed, show)
             return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
@@ -252,12 +252,12 @@ setMethod("printex", "dynrNoise",
 )
 
 setMethod("printex", "dynrDynamicsFormula",
-          function(object, show=TRUE){
+          function(object, show=TRUE, AsMatrix=TRUE){
             if (object$isContinuousTime){
             LHSvarPre <- "d("
             LHSvarPost <- "(t))"
-            RHSeqPre <- "\\Big("
-            RHSeqPost <- "\\Big)dt"
+            RHSeqPre <- "("
+            RHSeqPost <- ")dt"
             }else{
             LHSvarPre <- ""
             LHSvarPost <- "(t+1)"
@@ -271,7 +271,6 @@ setMethod("printex", "dynrDynamicsFormula",
             return(dyn)
           }
 )
-
 
 #This function transforms a list of formulae to lists of latex code.
 #returns a list of left, right, and equation latex code, each a vector.
