@@ -1,4 +1,10 @@
+import(methods)
 exportPattern("^[[:alpha:]]+")
-exportPattern("^[^\\.]")
+#exportPattern("^dynr.+")
+#exportPattern("^prep.+")
+#exportPattern("^[^\\.]")
+#S3method(logLik, dynrCook)
+#S3method(coef, dynrCook)
+#S3method(summary, dynrCook)
 useDynLib(dynr, .registration=TRUE)
 

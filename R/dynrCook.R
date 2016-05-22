@@ -219,6 +219,10 @@ coef.dynrCook <- function(object, ...){
   object@transformed.parameters
 }
 
+#`coef<-.dynrCook` <- function(object, value){
+#	object <- PopBackModel(object, value)
+#	return(object)
+#}
 
 ##' Extract the log likelihood from a dynrCook Object
 ##' 
