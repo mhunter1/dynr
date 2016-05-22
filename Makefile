@@ -13,7 +13,7 @@ RDOCUMENTS = man
 RDATA = data
 
 # file types
-RFILES = $(wildcard R/*.R)
+#RFILES = $(wildcard R/*.R)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
