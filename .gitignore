@@ -26,3 +26,4 @@ man/prep.measurement.Rd
 man/prep.noise.Rd
 man/prep.regimes.Rd
 man/prep.tfun.Rd
+man/vcov.dynrCook.Rd

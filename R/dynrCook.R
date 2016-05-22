@@ -250,6 +250,20 @@ logLik.dynrCook <- function(object, ...){
 # N.B. AIC() and BIC() are implicitly defined in terms
 #  of logLik().
 
+##' Extract the Variance-Covariance Matrix of a dynrCook object
+##' 
+##' @param object The dynrCook object for which the variance-covariance matrix is desired
+##' @param ... further named arguments, ignored by this method
+##' 
+##' @details
+##' This is the inverse Hessian of the transformed parameters.
+vcov.dynrCook <- function(object, ...){
+	nm <- names(coef(object))
+	rt <- object@transformed.inv.hessian
+	dimnames(rt) <- list(nm, nm)
+	return(rt)
+}
+
 #------------------------------------------------------------------------------
 
 ##' Cook a dynr model to estimate its free parameters
@@ -326,6 +340,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 		#Print a message. Hessian matrix at convergence contains non-finite values or is
 		#non-positive definite. ?
 	}
+	names(output2$transformed.parameters) <- dynrModel$param.names
 	if (outall_flag){
 		obj <- new("dynrOutall", output2)
 	}else if(debug_flag){
