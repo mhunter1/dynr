@@ -153,9 +153,18 @@ plotdf<-function(vec_tex){
 }
 
 plotFormula <- function(dynrModel,textsize=6){
+  state.names <- (dynrModel$measurement)$state.names
+  obs.names <- (dynrModel$measurement)$obs.names
+  exo.names <- (dynrModel$dynamics)$covariates
+  dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)
+  dynrModel@dynamics@values.exo <- lapply((dynrModel$dynamics)$values.exo, preProcessNames,state.names,exo.names)
+  dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
+  
   #Dynamic model
-  dyn.df<-data.frame(text="'Dynamic Model'",x=0)
-  nRegime=length(dynrModel@dynamics@formula)
+  dyn.df<-data.frame(text="'Dynamic Model without Noise'",x=0)
+  nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
+                 length(dynrModel@dynamics@formula),
+                 length(dynrModel@dynamics@values.dyn))
   dyn_tex=printex(dynrModel@dynamics,AsMatrix=FALSE)
   nEq <- length(dyn_tex[[1]])
   for (i in 1:nRegime){
@@ -166,7 +175,7 @@ plotFormula <- function(dynrModel,textsize=6){
   }
   
   #Measurement model
-  meas.df<-data.frame(text="'Measurement Model'",x=0)
+  meas.df<-data.frame(text="'Measurement Model without Noise'",x=0)
   nRegime=length(dynrModel@measurement@values.load)
   meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
   nEq <- length(meas_tex[[1]])
@@ -182,7 +191,7 @@ plotFormula <- function(dynrModel,textsize=6){
   
   fig<-ggplot2::ggplot(plot.df, aes(x=x, y=y, label=text))+
     ggplot2::geom_text(parse=TRUE,size=textsize)+
-    ggplot2::theme_void()
+    ggplot2::theme_void()+ylim(min(plot.df$y)-1, max(plot.df$y)+1)
   
   return(fig)
 }

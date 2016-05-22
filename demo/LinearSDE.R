@@ -118,12 +118,10 @@ dynamics <- prep.matrixDynamics(
 # put all the recipes together
 model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, outfile="cooked")
 
-printex(model,show=FALSE,printInit=TRUE,
+printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="./demo/LinearSDE.tex")
-TeXed <- printFormula(model,namestoPop = model$param.names)
-#Also can pop= signif(res@transformed.parameters,digits=2))
-
-p3 <-plotFormula(TeXed,model,toPlot="both",spacing=15) 
+tools::texi2pdf("demo/LinearSDE.tex")
+system(paste(getOption("pdfviewer"), "LinearSDE.pdf"))
 
 # Data
 simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
@@ -134,10 +132,7 @@ res <- dynr.cook(model, data)
 # Examine results
 summary(res)
 
-TeXed <- printFormula(model,namestoPop = signif(res@transformed.parameters,digits=2))
-p3 <-plotFormula(TeXed,model,toPlot="both") 
-
-#populate transformed estimates to dynrModel
+plotFormula(model)
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions

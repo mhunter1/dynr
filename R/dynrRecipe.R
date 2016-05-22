@@ -208,8 +208,8 @@ setMethod("printex", "dynrDynamicsMatrix",
               if (object$isContinuousTime){
                 LHSvarPre <- "d("
                 LHSvarPost <- "(t))"
-                RHSeqPre <- "\\Big("
-                RHSeqPost <- "\\Big)dt"
+                RHSeqPre <- "("
+                RHSeqPost <- ")dt"
               }else{
                 LHSvarPre <- ""
                 LHSvarPost <- "(t+1)"
@@ -1905,12 +1905,12 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 		  } 
 	}
 	if(is.numeric(x)){
-		preds <- gsub('1*', '', preds, fixed=TRUE)
-		preds <- gsub(paste("0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
+		preds <- gsub(' 1\\*', ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), ' ', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	} else {
-		preds <- gsub('\\b1\\*', '', preds)
-		preds <- gsub(paste("\\b0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), '', preds)
+		preds <- gsub(' 1\\*', ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), ' ', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	}
 	form <- lapply(preds, formula, env=.GlobalEnv)
@@ -1959,7 +1959,7 @@ addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
     for (k in 1:neq){
       AddedFml <- list_list_formulae[[j]][[k]]
       for (l in 1:length(VecNamesToAdd)){
-        list_list_formulae_add=eval(parse(text=VecNamesToAdd[l]))
+        list_list_formulae_add=get(VecNamesToAdd[l], parent.frame())#eval(parse(text=VecNamesToAdd[l]),environment())
         if (length(list_list_formulae_add)>0){
           if (length(list_list_formulae_add[[j]])>0){
             AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]],AddedFml)
