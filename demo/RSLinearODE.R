@@ -105,6 +105,7 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, 
                     regimes=regimes, transform=trans,
+                    data=data,
                     outfile="RSODEmodelRecipe.c")
 #Extract parameter names to set ub and lb (optional)
 model$param.names
@@ -125,7 +126,7 @@ p3 <-plotFormula(TeXed,model,toPlot="meas")
 plotFormula(TeXed,model,toPlot="both")
 
 # Estimate free parameters
-res <- dynr.cook(model, data=data)
+res <- dynr.cook(model)
 
 #---- Serve it! ----
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 

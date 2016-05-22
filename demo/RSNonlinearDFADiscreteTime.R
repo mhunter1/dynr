@@ -101,6 +101,7 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 # Put all the recipes together in a Model Specification
 model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, 
                     initial=initial, regimes=regimes, transform=trans, 
+                    data=data, 
                     outfile="RSNonlinearDFA")
 TeXed <- printFormula(model,namestoPop = model$param.names)
 #Also can pop= signif(res@transformed.parameters,digits=2))
@@ -113,7 +114,7 @@ p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
 printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,
         outFile="./demo/RSNonlinearDFADiscreteTime.tex")
 
-res <- dynr.cook(model, data=data, debug_flag=FALSE)
+res <- dynr.cook(model, debug_flag=FALSE)
 
 #---- Examine and "serve" the results
 summary(res)

@@ -62,12 +62,12 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
 
 # Put all the recipes together in a Model Specification
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, 
-                    transform=trans,
+                    noise=mdcov, initial=initial,
+                    transform=trans, data=data,
                     outfile="PPmodelRecipe.c")
 
 # Estimate free parameters
-res <- dynr.cook(dynrModel=model, data=data)
+res <- dynr.cook(dynrModel=model)
 
 # Examine results
 summary(res)

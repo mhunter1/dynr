@@ -68,7 +68,7 @@ recDyn <- prep.matrixDynamics(
 
 #---- (4) Create model and cook it all up ----
 
-rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, outfile="cooked")
+rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="cooked")
 
 printex(rsmod,show=FALSE,printInit=TRUE,printProb=TRUE,
         outFile="./demo/RSDiscreteLinear.tex")

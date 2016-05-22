@@ -113,22 +113,22 @@ dynamics <- prep.matrixDynamics(
 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2), #uses parameters 1 and 2
 	isContinuousTime=TRUE)
 
+# Data
+simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
+data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
 # Prepare for cooking
 # put all the recipes together
-model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, outfile="cooked")
+model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, data=data, outfile="cooked")
 
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="./demo/LinearSDE.tex")
 tools::texi2pdf("demo/LinearSDE.tex")
 system(paste(getOption("pdfviewer"), "LinearSDE.pdf"))
 
-# Data
-simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
-data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
 # Estimate free parameters
-res <- dynr.cook(model, data)
+res <- dynr.cook(model)
 # Examine results
 summary(res)
 

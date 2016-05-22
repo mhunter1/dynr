@@ -95,8 +95,9 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
 
 # Put all the recipes together in a Model Specification
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, 
+                    noise=mdcov, initial=initial,
                     regimes=regimes, transform=trans,
+                    data=data,
                     outfile="RSPPmodelRecipe.c")
 
 printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
@@ -107,7 +108,7 @@ system(paste(getOption("pdfviewer"), "RS-PP.pdf"))
 model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
 model@lb[model@param.names%in%c("int","slp")]<-c(-10,0)
 # Estimate free parameters
-res <- dynr.cook(model, data=data)
+res <- dynr.cook(model)
 
 # Examine results
 summary(res)
