@@ -1986,7 +1986,7 @@ prep.dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be
 #------------------------------------------------------------------------------
 # Utility functions for writing GSL code
 
-setGslMatrixElements <- function(values, params, name){
+setGslMatrixElements <- function(values, params, name, depth=1){
 	ret <- ""
 	numRow <- nrow(values)
 	numCol <- ncol(values)
@@ -1994,11 +1994,11 @@ setGslMatrixElements <- function(values, params, name){
 		for(i in 1:numRow){
 			if(params[i, j] > 0){
 				ret <- paste(ret,
-					'\tgsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
 					', param[', params[i, j] - 1, ']);\n', sep='')
 			} else if(values[i, j] != 0){
 				ret <- paste(ret,
-					'\tgsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
 					', ', values[i, j], ');\n', sep='')
 			}
 		}
