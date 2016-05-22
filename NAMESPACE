@@ -10,6 +10,5 @@ export(printex)
 export(writeCcode)
 S3method(logLik, dynrCook)
 S3method(coef, dynrCook)
-S3method(summary, dynrCook)
 useDynLib(dynr, .registration=TRUE)
 
