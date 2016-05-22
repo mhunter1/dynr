@@ -9,6 +9,7 @@ setClass(Class =  "dynrModel",
            initial = "dynrInitial",
            regimes= "dynrRegimes",
            transform="dynrTrans",
+           data="list",
            num_regime="integer",
            dim_latent_var="integer",
            infile="character",
@@ -332,6 +333,7 @@ setMethod("printex", "dynrModel",
 ##' or \code{\link{prep.measurement}}
 ##' @param noise a dynrNoise object prepared with \code{\link{prep.noise}}
 ##' @param initial a dynrInitial object prepared with \code{\link{prep.initial}}
+##' @param data a dynrData object made with \code{\link{dynr.data}}
 ##' @param ... additional arguments specifying other dynrRecipe objects. Argument regimes is for 
 ##' a dynrRegimes object prepared with \code{\link{prep.regimes}} and argument transform is for 
 ##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
@@ -343,7 +345,7 @@ setMethod("printex", "dynrModel",
 ##' @examples
 ##' model <- dynr.model(dynamics=dynm, measurement=meas,noise=mdcov, initial=initial, 
 ##' regimes=regime, transform=trans,outfile="Recipe")
-dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfile(), outfile){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=tempfile(), outfile){
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
@@ -388,7 +390,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, ..., infile=tempfi
   param.data$param.value=unique.values
   
   #initiate a dynrModel object
-  obj.dynrModel <- new("dynrModel", c(list(infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+  obj.dynrModel <- new("dynrModel", c(list(data=data, infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
   obj.dynrModel@dim_latent_var <- dim(inputs$noise$params.latent)[1]
   
   obj.dynrModel@xstart <- param.data$param.value

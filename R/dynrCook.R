@@ -255,7 +255,6 @@ logLik.dynrCook <- function(object, ...){
 ##' Cook a dynr model to estimate its free parameters
 ##' 
 ##' @param dynrModel a dynr model compiled using dynr.model, consisting of recipes for submodels, starting values, parameter names, and C code for each submodel
-##' @param data dynr data
 ##' @param conf.level a cumulative proportion indicating the level of desired confidence intervals for the final parameter estimates (default is .95)
 ##' @param infile (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
 ##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
@@ -271,10 +270,11 @@ logLik.dynrCook <- function(object, ...){
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model, data)
-dynr.cook <- function(dynrModel, data, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE) {
 	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
+	data <- dynrModel$data
 
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(

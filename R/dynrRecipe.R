@@ -1606,6 +1606,10 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
   if(is.null(names(startval))){
     stop('startval must be a named vector')
   }
+  # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
+  if(is.list(formula) && plyr::is.formula(formula[[1]])){
+    formula <- list(formula)
+  }
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
   if (missing(jacobian)){
     autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
