@@ -1,0 +1,9 @@
+demoLinearSDE	                        Linear Stochastic Differential Equation
+demoNonlinearDiscrete	                Nonlinear discrete-time
+demoRSNonlinearDiscrete	                Regime-switching nonlinear discrete-time
+LinearSDE	                            Linear Harmonic Oscillator
+PPmodel	                                Predator-Prey Model
+RSDiscreteLinear	                    Regime-switching linear discrete-time
+RSLinearODE	                            Regime-switching linear differential equation
+RSNonlinearDFADiscreteTime	            Nonlinear dynamic factor analysis
+RS-PPmodel	                            Regime-switching predator-prey model
