@@ -205,7 +205,7 @@ setMethod("show", "dynrCook", function(object) {
 
 ##' Extract fitted parameters from a dynrCook Object
 ##' 
-##' @param object
+##' @param object The dynrCook object for which the coefficients are desired
 ##' @param ... further named arguments, ignored for this method
 ##' 
 ##' @return A numeric vector of the fitted parameters.
@@ -226,7 +226,7 @@ coef.dynrCook <- function(object, ...){
 
 ##' Extract the log likelihood from a dynrCook Object
 ##' 
-##' @param object
+##' @param object The dynrCook object for which the log likelihood is desired
 ##' @param ... further named arguments, ignored for this method
 ##' 
 ##' @details
