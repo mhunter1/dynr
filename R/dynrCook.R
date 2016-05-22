@@ -214,7 +214,7 @@ setMethod("show", "dynrCook", function(object) {
 ##' 
 ##' @examples
 ##' # Let cookedModel be the output from dynr.cook
-##' coef(cookedModel)
+##' #coef(cookedModel)
 coef.dynrCook <- function(object, ...){
   object@transformed.parameters
 }
