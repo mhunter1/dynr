@@ -889,7 +889,7 @@ setMethod("writeCcode", "dynrInitial",
 					ret <- paste0(ret,"\t\t\t\t}") # close i loop
 				}
 				ret <- paste(ret, setGslMatrixElements(values.inicov[[reg]], params.inicov[[reg]], "(error_cov_0)[j]", depth=4), sep="\n")
-				ret <- paste0(ret, "\t\t\t}") # close j loop
+				ret <- paste0(ret, "\t\t\t}\n") # close j loop
 				ret <- paste0(ret, "\t\t", "break;", "\n")
 			}
 			ret <- paste0(ret, "\t", "}\n\n") # close case switch
@@ -1823,6 +1823,10 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	r <- coProcessValuesParams(values.inicov, params.inicov)
 	values.inicov <- r$values
 	params.inicov <- r$params
+	
+	if(length(values.inistate) != length(values.inicov)){
+		stop('Initial state and covariance imply a different number of regimes.')
+	}
 	
 	values.inistate <- lapply(values.inistate, preProcessValues)
 	params.inistate <- lapply(params.inistate, preProcessParams)

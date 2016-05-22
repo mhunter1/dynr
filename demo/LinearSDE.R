@@ -106,6 +106,12 @@ initial <- prep.initial(
 	values.inicov=diag(1, 2),
 	params.inicov=diag('fixed', 2)) #initial covariance is fixed to a diagonal matrix of 1s.
 
+#initial <- prep.initial(
+#	values.inistate=list(c(0, 1), c(0, 1)),
+#	params.inistate=list(c('inipos', 'fixed'), c('fixed', 'inivel')), #initial position is free parameter 5, initial slope is fixed at 1
+#	values.inicov=list(diag(1, 2), diag(1, 2)),
+#	params.inicov=list(diag('fixed', 2), diag('fixed', 2))) #initial covariance is fixed to a diagonal matrix of 1s.
+
 
 # define the differential equation
 dynamics <- prep.matrixDynamics(
