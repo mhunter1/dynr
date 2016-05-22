@@ -1,4 +1,4 @@
-import(methods)
+#import(methods)
 exportPattern("^[[:alpha:]]+")
 #exportPattern("^dynr.+")
 #exportPattern("^prep.+")
