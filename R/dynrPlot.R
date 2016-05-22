@@ -115,14 +115,13 @@ Mode <- function(y) {
 #)
 
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, data.dynr,model,
-                   toPlot="dyn",textsize=6,spacing=20,...) {
+          function(x, y=NULL, data.dynr, dynrModel, textsize=6,...) {
             
   #The first panel is the ggplot
   p1 <- dynr.ggplot(res, data.dynr=data.dynr,numSubjDemo=1,...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
-  if (model$num_regime>1){
+  if (dynrModel$num_regime>1){
     highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
     p2 <- ggplot2::ggplot(data = highProbR, ggplot2::aes(factor(regime))) +
       geom_bar() +
@@ -135,10 +134,10 @@ setMethod("plot", "dynrCook",
   }
   
   #The third panel plots the model formulae
-  p3 <-plotFormula(model,textsize=textsize)
+  p3 <-plotFormula(dynrModel, ParameterAs=round(x@transformed.parameters,2), textsize=textsize)
 
   #Organize the panels using the multiplot function
-  if (model$num_regime > 1){
+  if (dynrModel$num_regime > 1){
     multiplot(p1, p2, p3, cols = 1, layout=matrix(c(1,1,2,3), nrow=2, byrow=TRUE))
   }else{
     multiplot(p1, p3, layout=matrix(c(1,1,2,2), nrow=2, byrow=TRUE))
@@ -152,7 +151,10 @@ plotdf<-function(vec_tex){
   return(dataframe)
 }
 
-plotFormula <- function(dynrModel,textsize=6){
+plotFormula <- function(dynrModel, ParameterAs, textsize=6){
+  
+  dynrModel<-PopBackModel(dynrModel, ParameterAs)
+  
   state.names <- (dynrModel$measurement)$state.names
   obs.names <- (dynrModel$measurement)$obs.names
   exo.names <- (dynrModel$dynamics)$covariates
