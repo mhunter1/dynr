@@ -153,7 +153,7 @@ plotdf<-function(vec_tex){
 
 plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   
-  dynrModel<-PopBackModel(dynrModel, ParameterAs)
+  dynrModel <- PopBackModel(dynrModel, ParameterAs)
   
   state.names <- (dynrModel$measurement)$state.names
   obs.names <- (dynrModel$measurement)$obs.names
@@ -163,7 +163,7 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
   
   #Dynamic model
-  dyn.df<-data.frame(text="'Dynamic Model without Noise'",x=0)
+  dyn.df <- data.frame(text="'Dynamic Model without Noise'",x=0)
   nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
                  length(dynrModel@dynamics@formula),
                  length(dynrModel@dynamics@values.dyn))
@@ -171,9 +171,9 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   nEq <- length(dyn_tex[[1]])
   for (i in 1:nRegime){
     if (nRegime>1){
-      dyn.df<-rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
+      dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
     }
-    dyn.df<-rbind(dyn.df,plotdf(dyn_tex[[i]]))
+    dyn.df <- rbind(dyn.df,plotdf(dyn_tex[[i]]))
   }
   
   #Measurement model
@@ -191,9 +191,11 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   plot.df=rbind(dyn.df,meas.df)
   plot.df$y=seq(dim(plot.df)[1],1,by=-1)
   
-  fig<-ggplot2::ggplot(plot.df, aes(x=x, y=y, label=text))+
+  x <- NULL
+  y <- NULL
+  fig<-ggplot2::ggplot(plot.df, ggplot2::aes(x=x, y=y, label=text))+
     ggplot2::geom_text(parse=TRUE,size=textsize)+
-    ggplot2::theme_void()+ylim(min(plot.df$y)-1, max(plot.df$y)+1)
+    ggplot2::theme_void() + ggplot2::ylim(min(plot.df$y)-1, max(plot.df$y)+1)
   
   return(fig)
 }
@@ -259,7 +261,8 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 			id.vars=names.id.vars,
 			measure.vars=names.measure.vars,
 			value.name="value")
-    
+		value <- NULL
+		variable <- NULL
 		partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable)) + 
 		  ggplot2::geom_line(size=1) +
 		  ggplot2::geom_point(size=4, ggplot2::aes(shape=variable)) +
@@ -282,6 +285,8 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 			measure.vars=names.measure.vars,
 			value.name="value")
     #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
+	endtime <- NULL
+	regime <- NULL
     partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
 		  ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
 		  ggplot2::geom_line(size=1, ggplot2::aes(color=variable)) +
