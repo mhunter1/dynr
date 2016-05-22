@@ -94,5 +94,5 @@ slow-test:
 cran-test: srcbuild
 	$(REXEC) CMD check build/dynr_*.tar.gz | tee cran-test.log
 	wc -l dynr.Rcheck/00check.log
-	@if [ $$(wc -l dynr.Rcheck/00check.log | cut -d ' ' -f 1) -gt 297 ]; then echo "CRAN check problems have grown; see cran-check.log" ; false; fi
+	@if [ $$(wc -l dynr.Rcheck/00check.log | cut -d ' ' -f 1) -gt 155 ]; then echo "CRAN check problems have grown; see cran-check.log" ; false; fi
 
