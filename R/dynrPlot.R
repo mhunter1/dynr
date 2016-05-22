@@ -124,10 +124,10 @@ setMethod("plot", "dynrCook",
   if (dynrModel$num_regime>1){
     highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
     p2 <- ggplot2::ggplot(data = highProbR, ggplot2::aes(factor(regime))) +
-      geom_bar() +
+      ggplot2::geom_bar() +
       ggplot2::scale_fill_brewer(palette = 3) +
-      xlab('Regime') + ylab('Counts') + ggplot2::labs(fill = '') + 
-      ggtitle('Counts by most probable regime') +
+      ggplot2::xlab('Regime') + ggplot2::ylab('Counts') + ggplot2::labs(fill = '') + 
+      ggplot2::ggtitle('Counts by most probable regime') +
       ggplot2::theme(axis.title = ggplot2::element_text(size=14),
                      axis.text=ggplot2::element_text(size=12),
                      plot.title = ggplot2::element_text(size = 12, colour = "black", face = "bold"))
