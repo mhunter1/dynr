@@ -1284,6 +1284,7 @@ extractValues <- function(v, p){
 ##' @param map list giving how the latent variables map onto the observed variables
 ##' @param params parameter numbers
 ##' @param idvar Names of the variables used to identify the factors
+##' @param exo.names names of the exogenous covariates
 ##' 
 ##' @details
 ##' The default pattern for 'idvar' is to fix the first factor loading for each factor to one.
@@ -1522,7 +1523,8 @@ replaceDiagZero <- function(x){
 ##' Recipe function for creating Regime Switching
 ##' 
 ##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
-##' @param param matrix of the same size as values giving the free parameters
+##' @param params matrix of the same size as values giving the free parameters
+##' @param covariates names of the covariate variables
 ##' 
 ##' @details
 ##' Note that the ROW sums for the transition probability matrix must be one.

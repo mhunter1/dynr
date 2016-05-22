@@ -46,10 +46,14 @@ default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10,
 #' @param xstart The starting values for parameter estimation.
 #' @param ub The upper bounds of the estimated parameters.
 #' @param lb The lower bounds of the estimated parameters.
-#' @param isDiscreteTime A binary flag indicating whether the model is a discrete-time model (0 = no; 1 = yes)
 #' @param options A list of NLopt estimation options. By default, xtol_rel=1e-7, stopval=-9999, ftol_rel=-1, ftol_abs=-1, maxeval=as.integer(-1), and maxtime=-1.
+#' @param isContinuousTime A binary flag indicating whether the model is a continuous-time model (FALSE/0 = no; TRUE/1 = yes)
+#' @param infile Input file name
+#' @param outfile Output file name
+#' @param compileLib Whether to compile the libary anew
+#' @param verbose Logical flag for verbose output
 #' @return A list of model statements to be passed to dynr.cook().
-internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime,infile, outfile,compileLib,verbose){
+internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose){
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrep function must be a list.")
 	}

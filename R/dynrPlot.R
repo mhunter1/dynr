@@ -209,6 +209,7 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
 ##' @param names.state The names of the states to be plotted, which can be missing.
 ##' @param names.regime The names of the regimes to be plotted, which can be missing.
 ##' @param shape.values A vector of values that correspond to the shapes of the points, which can be missing. See the R documentation on pch for details on possible shapes.
+##' @param idtoPlot Values of the ID variable to plot
 ##' @param title A title of the plot.
 ##' @param ylab The label of the y axis.
 ##' @param is.bw Is plot in black and white?
