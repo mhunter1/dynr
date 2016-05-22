@@ -132,13 +132,12 @@ res <- dynr.cook(model, data)
 # Examine results
 summary(res)
 
-plotFormula(model)
+plotFormula(model, round(res@transformed.parameters,2))
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
-plot(res,data.dynr = data,model=model,
-     textsize=6,toPlot="both")
+plot(res,data.dynr = data, dynrModel=model, textsize=6)
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
