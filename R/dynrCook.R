@@ -182,7 +182,7 @@ setMethod( f = "summary",  signature = "dynrCook" ,
            definition = summaryResults)
 
 
-display.dynrCook <- function(x){
+display.dynrCook <- function(x, ...){
   str(x)
   invisible(x)
 }
