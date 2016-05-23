@@ -12,8 +12,8 @@ require(dynr)
 #---- (2) Read in data ----
 # create dynr data object
 
-data(EMG)
-dd <- dynr.data(EMG, id='ID', time='t', observed='EMG', covariates='self')
+data(EMGsim)
+dd <- dynr.data(EMGsim, id='ID', time='t', observed='EMG', covariates='self')
 
 
 #---- (3) Specify recipes for all model pieces ----

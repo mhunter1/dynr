@@ -13,8 +13,8 @@ require(dynr)
 
 #---- (0) Read in data ----
 # Data
-data(NLVARsim)
-data <- dynr.data(NLVARsim, id="id", time="time",observed=colnames(NLVARsim)[c(3:8)])
+data(NonlinearDFAsim)
+data <- dynr.data(NonlinearDFAsim, id="id", time="time",observed=colnames(NLVARsim)[c(3:8)])
 
 #--- (1) Prepare the recipes ----
 
