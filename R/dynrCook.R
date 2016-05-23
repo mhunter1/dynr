@@ -322,7 +322,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	cat('Original exit flag: ', output$exitflag, '\n')
 	output$exitflag <- output$exitflag + ifelse(output$exitflag<0, 6, 0) + ifelse(output$exitflag>0, 5, 0)
 	cat('Modified exit flag: ', output$exitflag, '\n')
-	cat(dynrExitFlags[output$exitflag], '\n')
+	cat(.ExitFlags[output$exitflag], '\n')
 	
 	diagH = diag(output$hessian.matrix)
 	diagH[diagH==0] = 10e-14
@@ -441,7 +441,7 @@ is.positive.definite <- function(x){
 	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
 }
 
-dynrExitFlags <- c(
+.ExitFlags <- c(
 	'1'='Optimization halted because of a forced termination.',
 	'2'='Optimization halted because of roundoff errors.',
 	'3'='Optimization failed. Ran out of memory.',
