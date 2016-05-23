@@ -16,8 +16,11 @@ man/dynr.data.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
 man/dynr.model.Rd
+man/EMG.Rd
 man/internalModelPrep.Rd
 man/logLik.dynrCook.Rd
+man/NLVARsim.Rd
+man/PPsim.Rd
 man/prep.formulaDynamics.Rd
 man/prep.initial.Rd
 man/prep.loadings.Rd
@@ -26,4 +29,5 @@ man/prep.measurement.Rd
 man/prep.noise.Rd
 man/prep.regimes.Rd
 man/prep.tfun.Rd
+man/RSPPsim.Rd
 man/vcov.dynrCook.Rd
