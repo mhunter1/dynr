@@ -169,13 +169,11 @@ summaryResults<-function(object){
              neg2LL = -2*logLik(object)
              AIC = AIC(object)
              BIC = BIC(object)
-             colnames(d) = c("Names","Parameters","SE","t-value","CI.lower","CI.upper")
-             cat("****************************SUMMARY******************************\n")
+             colnames(d) = c("names","parameters","s.e.","t-value","ci.lower","ci.upper")
              print(d)
              cat(paste0("\n-2 log-likelihood value at convergence = ", signif(neg2LL,2)))
              cat(paste0("\nAIC = ", signif(AIC,2)))
              cat(paste0("\nBIC = ", signif(BIC,2)))
-             cat("\n*************************END OF SUMMARY**************************\n")
            }
 
 setMethod( f = "summary",  signature = "dynrCook" ,
