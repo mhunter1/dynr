@@ -1,15 +1,12 @@
 #------------------------------------------------------------------------------
 # Author: Lu Ou, Sy-Miin Chow
 # Date: 2016-05-02
-# Filename: PPmodel.R
+# Filename: NonlinearODE.R
 # Purpose: An illustrative example of using dynr to fit
 #   the predator-prey model
 #------------------------------------------------------------------------------
 
-
-#rm(list=ls(all=TRUE))
 require(dynr)
-options(scipen=999)
 
 # ---- Read in the data ----
 data(PPsim)
@@ -26,9 +23,9 @@ meas <- prep.loadings(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-	values.inistate=c(3, 2),
+	values.inistate=c(3, 1),
 	params.inistate=c("fixed", "fixed"),
-	values.inicov=diag(c(0.05,0.05)), 
+	values.inicov=diag(c(0.01,0.01)), 
 	params.inicov=diag("fixed",2)
 )
 
@@ -36,7 +33,7 @@ initial <- prep.initial(
 mdcov <- prep.noise(
 	values.latent=diag(0, 2),
 	params.latent=diag(c("fixed","fixed"), 2),
-	values.observed=diag(rep(0.02,2)),
+	values.observed=diag(rep(0.3,2)),
 	params.observed=diag(c("var_1","var_2"),2)
 )
 
@@ -65,12 +62,17 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     transform=trans, data=data,
                     outfile="PPmodelRecipe.c")
 
+printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
+        outFile="./demo/NonlinearODE.tex")
+tools::texi2pdf("demo/NonlinearODE.tex")
+system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
+
 # Estimate free parameters
 res <- dynr.cook(dynrModel=model)
 
 # Examine results
 summary(res)
-
+#plot(res,dynrModel=model)
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
             names.regime=c("Exploration","Proximity-seeking"),
             names.state=c("Mom","Infant"),
@@ -93,5 +95,6 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
+#save(model,res,file="NonlinearODE.RData")
 
 

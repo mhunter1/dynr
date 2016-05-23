@@ -172,8 +172,10 @@ setMethod("printex", "dynrModel",
                 exp1 <- printex(model2$dynamics)
                 for (j in 1:length((model2$dynamics)$formula)){
                   if(lw>1){processNoise <- outlist[[3]]$dynamic.noise[[j]]}
+                  if (length((model2$dynamics)$formula)>1){
+                    a <- paste0("\\text{Regime ",j,":}&\\\\\n")
+                  }else{a <- ""}
                   neq <- length((model2$dynamics)$formula[[j]])
-                  a <- paste0("\\text{Regime ",j,":}&\\\\\n")
                   for (k in 1:neq){
                     space <- ifelse(((j*k)<neq*length((model2$dynamics)$formula))|isProcessNoise,",\\\\\n","")
                     if ((model2$dynamics)$isContinuousTime && isProcessNoise){
