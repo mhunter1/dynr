@@ -72,18 +72,8 @@ jacob=list(
        x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
 
 dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
-dyn=printex(dynm)
-dynequ<-paste0(paste0("\\begin{bmatrix}\n",paste(dyn[[2]]$left,collapse="\\\\"), "\\end{bmatrix}\n"),
-               " = ",
-               paste0("\\begin{bmatrix}",paste(dyn[[2]]$right,collapse="\\\\"), "\\end{bmatrix}"))
-
-#write(paste0("\\documentclass{article}\n\\usepackage{amsmath}\n\\begin{document}\n\\begin{equation}\n",dynequ,"\\end{equation}\n\\end{document}\n"),"formula.tex")
-#tools::texi2pdf("formula.tex")
-#system(paste(getOption("pdfviewer"), "formula.pdf"))
 
 trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+exp(p22))), formula.inv=list(p11~log(p11/(1-p11)),p22~log(p22/(1-p22))), transCcode=FALSE)
-
-#cat(writeCcode(trans)$c.string)
 
 #----(2) Put together the model and cook it! ----
 
@@ -92,18 +82,13 @@ model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov,
                     initial=initial, regimes=regimes, transform=trans, 
                     data=data, 
                     outfile="RSNonlinearDFA")
-TeXed <- printFormula(model,namestoPop = model$param.names)
-#Also can pop= signif(res@transformed.parameters,digits=2))
 
-#See examples of bugs below
-p3 <-plotFormula(TeXed,model,toPlot="dyn") 
-p3 <-plotFormula(TeXed,model,toPlot="meas") #Try also toPlot="dyn"
+printex(model,ParameterAs=model$param.names,printInit=TRUE, printRS=TRUE,
+        outFile="./demo/RSNonlinearDiscrete.tex")
+tools::texi2pdf("demo/RSNonlinearDiscrete.tex")
+system(paste(getOption("pdfviewer"), "RSNonlinearDiscrete.pdf"))
 
-
-printex(model,show=FALSE,printInit = TRUE, printProb=TRUE,
-        outFile="./demo/RSNonlinearDFADiscreteTime.tex")
-
-res <- dynr.cook(model, debug_flag=FALSE)
+res <- dynr.cook(model)
 
 #---- Examine and "serve" the results
 summary(res)
@@ -133,8 +118,8 @@ p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2),
                  shape.values = c(1,2),
                  text=element_text(size=16))
 
-print(p1)
-plot(res,data.dynr = data,model=model)
+#save(model,res,file="RSNonlinearDiscrete.RData")
+#plot(res,dynrModel=model)
 
 
 #---- Done ----

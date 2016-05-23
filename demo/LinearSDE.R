@@ -164,6 +164,7 @@ data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=true
 sm <- data.frame(t(res@eta_smooth_final))
 cor(sm, t(tx)[-1,])
 
+#save(model,res,file="LinearSDE.RData")
 
 #------------------------------------------------------------------------------
 # End

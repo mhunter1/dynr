@@ -101,7 +101,7 @@ setMethod("printex", "dynrModel",
               #initial condition of latent variables
               if (length(outlist[[4]]$initial.state) > 1){              
                 for (j in 1:length(outlist[[4]]$initial.state)){
-                  space <-ifelse(j<length(outlist[[4]]$initial.state),"\\\\\n","")
+                  space <-ifelse(j<length(outlist[[4]]$initial.state),",\\\\\n","")
                   a <- paste0("\\text{Regime ",j,":}&\\\\\n")  
                   initmu <- outlist[[4]]$initial.state[[j]]
                   initcov <- outlist[[4]]$initial.covariance[[j]]
@@ -145,7 +145,7 @@ setMethod("printex", "dynrModel",
                 
                 if (isProcessNoise){
                   pnLab <- " + dw(t),"
-                  pNoisePre <- paste0("\\indent dw(t) \\sim N\\Big(",
+                  pNoisePre <- paste0("&dw(t) \\sim N\\Big(",
                                       .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
                                       ",")
                 }else{#No Measurement Noise
@@ -158,7 +158,7 @@ setMethod("printex", "dynrModel",
                 
                 if (isProcessNoise){
                   pnLab <- " + w(t),"
-                  pNoisePre <- paste0("\\indent w(t) \\sim N\\Big(",
+                  pNoisePre <- paste0("&w(t) \\sim N\\Big(",
                                       .xtableMatrix(matrix(rep(0,length((model2$measurement)$state.names)),ncol=1),F),
                                       ",")
                 }else{
@@ -175,7 +175,7 @@ setMethod("printex", "dynrModel",
                   neq <- length((model2$dynamics)$formula[[j]])
                   a <- paste0("\\text{Regime ",j,":}&\\\\\n")
                   for (k in 1:neq){
-                    space <- ifelse((j*k)<neq*length((model2$dynamics)$formula),"\\\\\n","")
+                    space <- ifelse(((j*k)<neq*length((model2$dynamics)$formula))|isProcessNoise,",\\\\\n","")
                     if ((model2$dynamics)$isContinuousTime && isProcessNoise){
                       #TODO deal with noise properly
                       #Continuous-time dynamic model
@@ -187,17 +187,17 @@ setMethod("printex", "dynrModel",
                     a <- NULL
                   }#loop through eqs within regime j
                   if (isProcessNoise){
-                    dynequ <- paste0(dynequ,paste0(pNoisePre,processNoise,"\\Big)\\\\n"))}
+                    dynequ <- paste0(dynequ,paste0(pNoisePre,processNoise,"\\Big)",ifelse(j==length((model2$dynamics)$formula),"\n","\\\\\n")))}
                 }#loop through regimes
                 #state <- .xtableMatrix(matrix(paste0((model2$measurement)$state.names,"(t)"),ncol=1),F)
               }else{ #DynamicMatrix specification
 
                 a <- NULL; space = ""
                 for (j in 1:length(outlist[[1]]$dyn_tran)){
+                  space<- ifelse((j<length(outlist[[1]]$dyn_tran))|isProcessNoise,"\\\\","")
                   if (length(outlist[[1]]$dyn_tran) > 1) {
-                    space<- ifelse(j<length(outlist[[1]]$dyn_tran),"\\\\\n","")
                     if(lw>1){processNoise <- outlist[[3]]$dynamic.noise[[j]]}
-                    a <- paste0("\\text{Regime ",j,":}&\\\\\n")
+                    a <- paste0("\\text{Regime ",j,":}&\\\\")
                   }#End of text edits required only for multiple-regime models
                   exo <- NULL
                   dint <- NULL
@@ -214,14 +214,13 @@ setMethod("printex", "dynrModel",
                     RHSeqPre <- ""
                     RHSeqPost <- ""
                   }
-                  dynequ<-paste0(dynequ,paste0(a,"&",LHS,"=",dint,
+                  dynequ<-paste0(dynequ,a,"&",LHS,"=",dint,
                                                RHSeqPre,outlist[[1]]$dyn_tran[[j]],state,RHSeqPost,
-                                               exo,pnLab))
+                                               exo,pnLab,space)
                   if (isProcessNoise){
                     dynequ <- paste0(dynequ,
-                                paste0(pNoisePre,processNoise,"\\Big)"))
+                                paste0(pNoisePre,processNoise,"\\Big)",ifelse(j==length(outlist[[1]]$dyn_tran),"\n","\\\\\n")))
                   }
-                  dynequ <- paste0(dynequ,space)  
                 }#Loops through regimes
               }#End of formula vs. linear dynamic matrix specification
               dynequ <- paste0(dynequ,"\\end{align*}")
@@ -264,7 +263,7 @@ setMethod("printex", "dynrModel",
                                             state,exom))
                 if (isMeasNoise){
                   measequ <- paste0(measequ,paste0("+ \\epsilon,",
-                                              "\\indent\\epsilon\\sim N\\Big(",
+                                              "\\\\&\\epsilon\\sim N\\Big(",
                                               .xtableMatrix(matrix(rep(0,length((model2$measurement)$obs.names)),ncol=1),F),
                                               ",",measNoise,"\\Big)"))
                 }#end of (isMeasNoise check)
