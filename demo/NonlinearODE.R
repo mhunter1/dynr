@@ -73,12 +73,12 @@ res <- dynr.cook(dynrModel=model)
 # Examine results
 summary(res)
 #plot(res,dynrModel=model)
-p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
-            names.regime=c("Exploration","Proximity-seeking"),
-            names.state=c("Mom","Infant"),
-            title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
-            shape.values = c(1,2),
-            text=element_text(size=16))
+# p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+#             names.regime=c("Exploration","Proximity-seeking"),
+#             names.state=c("Mom","Infant"),
+#             title="Results from RS-linear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
+#             shape.values = c(1,2),
+#             text=element_text(size=16))
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
