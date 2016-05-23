@@ -316,7 +316,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call(dynrBackend, model, data, debug_flag, outall_flag, PACKAGE = "dynr")
+	output <- .Call(.Backend, model, data, debug_flag, outall_flag, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')

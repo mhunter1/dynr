@@ -17,13 +17,13 @@ static R_NativePrimitiveArgType main_R_t[] = {
 };
 
 static R_CMethodDef cMethods[] = {
-   {"dynrBackendC", (DL_FUNC) &main_R, 4, main_R_t},
+   {".BackendC", (DL_FUNC) &main_R, 4, main_R_t},
    {NULL, NULL, 0}
 };
 
 
 static R_CallMethodDef callMethods[] = {
-	{"dynrBackend", (DL_FUNC) main_R, 4},
+	{".Backend", (DL_FUNC) main_R, 4},
 	{NULL, NULL, 0}
 };
 
