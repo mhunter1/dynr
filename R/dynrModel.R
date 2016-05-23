@@ -412,7 +412,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
 #   }
   glom <- paste(includes, .cfunctions, body, sep="\n\n")
   if (obj.dynrModel@dynamics@isContinuousTime){
-    glom <- paste(glom, prep.dP_dt, sep="\n\n")
+    glom <- paste(glom, dP_dt, sep="\n\n")
   }
   cat(glom, file=obj.dynrModel@outfile)
   
