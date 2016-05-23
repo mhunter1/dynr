@@ -13,10 +13,7 @@ require(dynr)
 # create dynr data object
 
 data(EMG)
-ds <- EMG
-ds$ID <- rep(1, nrow(EMG))
-ds$t <- 1:nrow(EMG)
-dd <- dynr.data(ds, id='ID', time='t', observed='EMG', covariates='self')
+dd <- dynr.data(EMG, id='ID', time='t', observed='EMG', covariates='self')
 
 
 #---- (3) Specify recipes for all model pieces ----
