@@ -11,11 +11,8 @@ require(dynr)
 options(scipen=999,digits=2)
 
 # ---- Read in the data ----
-nT = 500; n = 10; batch = 1
-thedata = read.table(paste0("./data/New2CovT",nT,"n",n,"batch",batch,"ODEsimData.txt"))
-thedata$V6 <- as.numeric(thedata$V6)
-colnames(thedata) = c("ID","Time","y1","y2","x1","x2")
-data <- dynr.data(thedata, id="ID", time="Time",observed=paste0('y', 1:2), 
+data(LODEsim)
+data <- dynr.data(LODEsim, id="id", time="time",observed=paste0('y', 1:2), 
                   covariates=paste0('x', 1:2))
 
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
