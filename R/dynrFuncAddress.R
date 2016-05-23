@@ -1,11 +1,11 @@
 #--------------------------------------------------
-# dynr.funcaddresses
+# .C2funcaddresses
 # Purpose: 
 # takes in a C file or C scripts 
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-dynr.funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
+.C2funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
 
   #-------Set some variables: This function may later be extended----------
   language="C"

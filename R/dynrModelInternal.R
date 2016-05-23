@@ -72,7 +72,7 @@ internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, option
 	}
 	
 	#returns a list of addresses of the compiled model functions
-	func_address=dynr.funcaddress(isContinuousTime=isContinuousTime,infile=infile,outfile=outfile,verbose=verbose, compileLib=compileLib)
+	func_address=.C2funcaddress(isContinuousTime=isContinuousTime,infile=infile,outfile=outfile,verbose=verbose, compileLib=compileLib)
 	return(list(num_regime=as.integer(num_regime), dim_latent_var=as.integer(dim_latent_var), xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.integer(length(xstart)),func_address=func_address, options=options))
 }
 

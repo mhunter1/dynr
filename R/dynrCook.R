@@ -312,7 +312,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	    if(missing(infile)){
 	      stop("Cannot compile your functions because 'infile' argument is missing.")
 	    }
-	    model$func_address=dynr.funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
+	    model$func_address=.C2funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
 	}
 	gc()
 	backendStart <- Sys.time()
