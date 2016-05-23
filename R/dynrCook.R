@@ -172,9 +172,9 @@ summaryResults<-function(object){
              colnames(d) = c("Names","Parameters","SE","t-value","CI.lower","CI.upper")
              cat("****************************SUMMARY******************************\n")
              print(d)
-             cat(paste0("\n-2 log-likelihood value at convergence = ", round(neg2LL,2)))
-             cat(paste0("\nAIC = ", round(AIC,2)))
-             cat(paste0("\nBIC = ", round(BIC,2)))
+             cat(paste0("\n-2 log-likelihood value at convergence = ", signif(neg2LL,2)))
+             cat(paste0("\nAIC = ", signif(AIC,2)))
+             cat(paste0("\nBIC = ", signif(BIC,2)))
              cat("\n*************************END OF SUMMARY**************************\n")
            }
 

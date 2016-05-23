@@ -138,7 +138,7 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-plotFormula(model, round(res@transformed.parameters,2))
+plotFormula(model, signif(res@transformed.parameters,2))
 
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
