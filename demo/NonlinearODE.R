@@ -17,8 +17,8 @@ data <- dynr.data(PPsim, id="id", time="time",observed=c("x","y"))
 # Measurement (factor loadings)
 meas <- prep.loadings(
   map=list(
-    eta1="x",
-    eta2="y"),
+    prey="x",
+    predator="y"),
   params=NULL)
 
 # Initial conditions on the latent state and covariance
