@@ -1,51 +1,59 @@
-##' EMG change to a description like Prices of 50,000 round cut diamonds
+##' Simulated single-subject time series to capture features of facial electromyography data
 ##' 
-##' A dataset containing the prices and other attributes of almost 54,000
-##'  diamonds. The variables are as follows:
+##' A dataset simulated using an autoregressive model of order (AR(1)) with
+##' regime-specific AR weight, intercept, and slope for a covariate. This model
+##' is a special case of Model 1 in Yang and Chow (2010) in which the moving average
+##' coefficient is set to zero.
+##'  
+##'  Reference:
+##'  Yang, M-S. & Chow, S-M. (2010). Using state-space models with regime switching to 
+##'  represent the dynamics of facial electromyography (EMG) data. Psychometrika, 74(4), 744-771
+##'
+##' The variables are as follows:
 ##' 
 ##' \itemize{
-##'   \item id. XXXX
-##'   \item carat. weight of the diamond (0.2--5.01)
-##'   \item cut. quality of the cut (Fair, Good, Very Good, Premium, Ideal)
-##'   \item colour. diamond colour, from J (worst) to D (best)
-##'   \item clarity. a measurement of how clear the diamond is (I1 (worst), SI1, SI2, VS1, VS2, VVS1, VVS2, IF (best))
-##'   \item x. length in mm (0--10.74)
-##'   \item y. width in mm (0--58.9)
-##'   \item z. depth in mm (0--31.8)
-##'   \item depth. total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)
-##'   \item table. width of top of diamond relative to widest point (43--95)
+##'   \item id. ID of the participant (= 1 in this case, over 500 time points)
+##'   \item EMG. Hypothetical observed facial electromyograhy data
+##'   \item self. Covariate - the individual's concurrent self-reports
+##'   \item truestate. The true score of the individual's EMG at each time point
+##'   \item trueregime. The true underlying regime for the individual at each time point
 ##' }
 ##' 
 ##' @docType data
 ##' @keywords datasets
-##' @name EMG
-##' @usage data(EMG)
-##' @format A data frame with 53940 rows and 10 variables
+##' @name SimEMGData
+##' @usage data(SimEMGData)
+##' @format A data frame with 500 rows and 6 variables
 NULL
 
-##' NLVARsim change to a description like Prices of 50,000 round cut diamonds
+##' Simulated multi-subject time series based on a dynamic factor analysis model with nonlinear relations at the latent level
 ##' 
-##' A dataset containing the prices and other attributes of almost 54,000
-##'  diamonds. The variables are as follows:
+##' A dataset simulated using a discrete-time nonlinear dynamic factor analysis model
+##' with 6 observed indicators for identifying two latent factors: individuals'
+##' positive and negative emotions. Proposed by Chow and Zhang (2013), the model was inspired 
+##' by models of affects and it posits that the two latent factors follow a vector autoregressive
+##' process of order 1 (VAR(1)) with parameters that vary between two possible regimes:
+##' (1) an “independent” regime in which the lagged influences between positive and negative
+##' emotions are zero; (2) a “high-activation” regime to capture instances
+##' on which the lagged influences between PA and NA intensify when an individual’s previous 
+##' levels of positive and negative emotions were unusually high or low (see Model 2 in Chow & Zhang).
+##'  
+##'  Reference:
+##'  Chow, S-M, & Zhang, G. (2013). Regime-switching nonlinear dynamic factor analysis 
+##'  models. Psychometrika, 78(4), 740-768.
 ##' 
 ##' \itemize{
-##'   \item price. price in US dollars (\$326--\$18,823)
-##'   \item carat. weight of the diamond (0.2--5.01)
-##'   \item cut. quality of the cut (Fair, Good, Very Good, Premium, Ideal)
-##'   \item colour. diamond colour, from J (worst) to D (best)
-##'   \item clarity. a measurement of how clear the diamond is (I1 (worst), SI1, SI2, VS1, VS2, VVS1, VVS2, IF (best))
-##'   \item x. length in mm (0--10.74)
-##'   \item y. width in mm (0--58.9)
-##'   \item z. depth in mm (0--31.8)
-##'   \item depth. total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)
-##'   \item table. width of top of diamond relative to widest point (43--95)
+##'   \item id. ID of the participant (1 to 10)
+##'   \item time. Time index (300 time points from each subject)
+##'   \item y1-y3. Observed indicators for positive emotion
+##'   \item y4-y6. Observed indicators for negative emotion
 ##' }
 ##' 
 ##' @docType data
 ##' @keywords datasets
-##' @name NLVARsim
-##' @usage data(NLVARsim)
-##' @format A data frame with 53940 rows and 10 variables
+##' @name NonlinearDFAdata
+##' @usage data(NonlinearDFAdata)
+##' @format A data frame with 3000 rows and 8 variables
 NULL
 
 ##' PPsim change to Prices of 50,000 round cut diamonds
