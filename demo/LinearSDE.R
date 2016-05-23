@@ -143,7 +143,7 @@ plotFormula(model, signif(res@transformed.parameters,2))
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
-plot(res, data.dynr = data, dynrModel=model, textsize=6)
+plot(res, dynrModel=model, textsize=6)
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
