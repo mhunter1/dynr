@@ -1,6 +1,15 @@
 # 
 # dynr model CLASS
 # 
+##' The dynrModel Class
+##' 
+##' @aliases
+##' $,dynrModel-method
+##' $<-,dynrModel-method
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{dynr.model}} instead.
 setClass(Class =  "dynrModel",
          representation = representation(
            dynamics =  "dynrDynamics",
@@ -327,7 +336,7 @@ setMethod("printex", "dynrModel",
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
 
 ##' Create a dynrModel object for parameter estimation (cooking dynr) using \code{\link{dynr.cook}}
-##'
+##' 
 ##' @param dynamics a dynrDynamics object prepared with \code{\link{prep.formulaDynamics}} 
 ##' or \code{\link{prep.matrixDynamics}}
 ##' @param measurement a dynrMeasurement object prepared with \code{\link{prep.loadings}} 

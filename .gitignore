@@ -17,6 +17,7 @@ man/dynr.data.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
 man/dynr.model.Rd
+man/dynrModel-class.Rd
 man/EMGsim.Rd
 man/internalModelPrep.Rd
 man/logLik.dynrCook.Rd
