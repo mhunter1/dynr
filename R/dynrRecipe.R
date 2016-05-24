@@ -11,7 +11,15 @@
 #------------------------------------------------------------------------------
 # Create dynrRecipe object class
 
-##DONE##
+##' The dynrRecipe Class
+##' 
+##' @aliases
+##' $,dynrRecipe-method
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' The following are all subclasses of this class: \code{\link{dynrMeasurement}}, \code{\link{dynrDynamics}}, \code{\link{dynrRegimes}}, \code{\link{dynrInitial}}, \code{\link{dynrNoise}}, and \code{\link{dynrTrans}}.  Recipes are the things that go into a \code{\link{dynrModel}} using \code{\link{dynr.model}}.
+##' Use \code{\link{dynr.model}} instead.
 setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
@@ -20,7 +28,11 @@ setClass(Class =  "dynrRecipe",
          )
 )
 
-##DONE##
+##' The dynrMeasurement Class
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{prep.measurement}} or \code{\link{prep.loadings}} instead.
 setClass(Class = "dynrMeasurement",
          representation = representation(
            c.string =  "character",
@@ -38,7 +50,15 @@ setClass(Class = "dynrMeasurement",
          contains = "dynrRecipe"
 )
 
-##DONE##
+##' The dynrModel Class
+##' 
+##' @aliases
+##' dynrDynamicsFormula
+##' dynrDynamicsMatrix
+##' 
+##' @details
+##' This is an internal class structure.  The classes \code{dynrDynamicsFormula} and \code{dynrDynamicsMatrix} are subclasses of this.  However, you should not use it directly.
+##' Use \code{\link{prep.matrixDynamics}} or \code{\link{prep.formulaDynamics}} instead.
 setClass(Class = "dynrDynamics",
          representation = representation(
            c.string =  "character",
@@ -78,7 +98,11 @@ setClass(Class = "dynrDynamicsMatrix",
          contains = "dynrDynamics"
 )
 
-##DONE##
+##' The dynrRegimes Class
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{prep.regimes}} instead.
 setClass(Class = "dynrRegimes",
          representation = representation(
            c.string =  "character",
@@ -90,7 +114,11 @@ setClass(Class = "dynrRegimes",
          contains = "dynrRecipe"
 )
 
-##DONE##
+##' The dynrInitial Class
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{prep.initial}} instead.
 setClass(Class = "dynrInitial",
          representation = representation(
            c.string =  "character",
@@ -107,7 +135,11 @@ setClass(Class = "dynrInitial",
 )
 
 
-##DONE##
+##' The dynrNoise Class
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{prep.noise}} instead.
 setClass(Class = "dynrNoise",
          representation = representation(
            c.string =  "character",
@@ -122,6 +154,11 @@ setClass(Class = "dynrNoise",
          contains = "dynrRecipe"
 )
 
+##' The dynrTrans Class
+##' 
+##' @details
+##' This is an internal class structure.  You should not use it directly.
+##' Use \code{\link{prep.tfun}} instead.
 setClass(Class = "dynrTrans",
          representation = representation(
            c.string =  "character",
