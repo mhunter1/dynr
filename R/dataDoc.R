@@ -33,9 +33,9 @@ NULL
 ##' positive and negative emotions. Proposed by Chow and Zhang (2013), the model was inspired 
 ##' by models of affects and it posits that the two latent factors follow a vector autoregressive
 ##' process of order 1 (VAR(1)) with parameters that vary between two possible regimes:
-##' (1) an “independent” regime in which the lagged influences between positive and negative
-##' emotions are zero; (2) a “high-activation” regime to capture instances
-##' on which the lagged influences between PA and NA intensify when an individual’s previous 
+##' (1) an "independent" regime in which the lagged influences between positive and negative
+##' emotions are zero; (2) a "high-activation" regime to capture instances
+##' on which the lagged influences between PA and NA intensify when an individual's previous 
 ##' levels of positive and negative emotions were unusually high or low (see Model 2 in Chow & Zhang).
 ##'  
 ##'  Reference:
