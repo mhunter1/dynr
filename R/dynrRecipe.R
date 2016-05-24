@@ -536,7 +536,12 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  col=lapply(fmlj,function(x){lapply(x,"[[",2)})
 	  rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
 	  
-	  #TODO add covariate
+	  for (i in 1:length(covariates)){
+	    selected <- covariates[i]
+	    get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected)-1,")")
+	    rhs <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhs), function(x){eval(parse(text=x))})
+	    rhsj <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhsj), function(x){eval(parse(text=x))})
+	  }
 	  
 	  if (object@isContinuousTime){
 	    #function_dx_dt
