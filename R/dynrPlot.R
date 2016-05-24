@@ -114,8 +114,18 @@ Mode <- function(y) {
 #        }
 #)
 
+##' Plot method for dynrCook objects
+##' 
+##' @param x dynrCook object
+##' @param y ignored
+##' @param dynrModel model object
+##' @param textsize numeric. Font size used in the plot.
+##' @param ... Further named arguments
+##' 
+##' @details
+##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, dynrModel, textsize=6,...) {
+          function(x, y=NULL, dynrModel, textsize=6, ...) {
   y <- NULL
   #The first panel is the ggplot
   p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1,...)
@@ -135,7 +145,7 @@ setMethod("plot", "dynrCook",
   }
   
   #The third panel plots the model formulae
-  p3 <-plotFormula(dynrModel, ParameterAs=signif(x@transformed.parameters,2), textsize=textsize)
+  p3 <- plotFormula(dynrModel, ParameterAs=signif(x@transformed.parameters,2), textsize=textsize)
 
   #Organize the panels using the multiplot function
   if (dynrModel$num_regime > 1){
@@ -146,12 +156,20 @@ setMethod("plot", "dynrCook",
 
   })
 
-plotdf<-function(vec_tex){
+plotdf <- function(vec_tex){
   dataframe=data.frame(text=sapply(paste0("$",vec_tex,"$"),function(x){as.character(latex2exp::TeX(x))}))
   dataframe$x<-0
   return(dataframe)
 }
 
+##' Plot the formula from a model
+##' 
+##' @param dynrModel The model object to plot
+##' @param ParameterAs The parameter values to plot
+##' @param textsize The text size use in the plot
+##' 
+##' @details
+##' This function typesets a set of formulas that represent the model.
 plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   
   dynrModel <- PopBackModel(dynrModel, ParameterAs)
