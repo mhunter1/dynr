@@ -18,8 +18,8 @@
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.
-##' The following are all subclasses of this class: \code{\link{dynrMeasurement}}, \code{\link{dynrDynamics}}, \code{\link{dynrRegimes}}, \code{\link{dynrInitial}}, \code{\link{dynrNoise}}, and \code{\link{dynrTrans}}.  Recipes are the things that go into a \code{\link{dynrModel}} using \code{\link{dynr.model}}.
-##' Use \code{\link{dynr.model}} instead.
+##' The following are all subclasses of this class: \code{\link{dynrMeasurement-class}}, \code{\link{dynrDynamics-class}}, \code{\link{dynrRegimes-class}}, \code{\link{dynrInitial-class}}, \code{\link{dynrNoise-class}}, and \code{\link{dynrTrans-class}}.  Recipes are the things that go into a \code{\link{dynrModel-class}} using \code{\link{dynr.model}}.
+##' Use the recipe prep functions (\code{\link{prep.measurement}}, \code{\link{prep.formulaDynamics}}, \code{\link{prep.matrixDynamics}}, \code{\link{prep.regimes}}, \code{\link{prep.initial}}, \code{\link{prep.noise}}, or \code{\link{prep.tfun}}) to create these classes instead.
 setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
@@ -50,14 +50,14 @@ setClass(Class = "dynrMeasurement",
          contains = "dynrRecipe"
 )
 
-##' The dynrModel Class
+##' The dynrDynamics Class
 ##' 
 ##' @aliases
-##' dynrDynamicsFormula
-##' dynrDynamicsMatrix
+##' dynrDynamicsFormula-class
+##' dynrDynamicsMatrix-class
 ##' 
 ##' @details
-##' This is an internal class structure.  The classes \code{dynrDynamicsFormula} and \code{dynrDynamicsMatrix} are subclasses of this.  However, you should not use it directly.
+##' This is an internal class structure.  The classes \code{dynrDynamicsFormula-class} and \code{dynrDynamicsMatrix-class} are subclasses of this.  However, you should not use it directly.
 ##' Use \code{\link{prep.matrixDynamics}} or \code{\link{prep.formulaDynamics}} instead.
 setClass(Class = "dynrDynamics",
          representation = representation(

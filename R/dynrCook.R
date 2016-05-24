@@ -9,8 +9,8 @@
 ##' The dynrCook Class
 ##' 
 ##' @aliases
-##' dynrOutall
-##' dynrDebug
+##' dynrOutall-class
+##' dynrDebug-class
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.
