@@ -1702,8 +1702,8 @@ autojacob<-function(formula,n){
 ##' 
 ##' @examples
 ##' #Not run: 
-##' #Demo example in NonlinearDFADiscreteTime.r with user-supplied analytic 
-##' jacobian functions:
+##' #For a full demo example that uses user-supplied analytic jacobian functions see:
+##' #demo(RSNonlinearDiscrete, package="dynr")
 ##' 
 ##' formula=list(x1~param[4]*x1+param[6]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
 ##' x2~param[5]*x2+param[7]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
@@ -1713,8 +1713,9 @@ autojacob<-function(formula,n){
 ##'            x2~x1~param[7]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
 ##'
 ##'
-##' #Not run: demo example in NonlinearODE.r with automatic jacobian functions
-##' 
+##' #For a full demo example that uses automatic jacobian functions see:
+##' #demo(RSNonlinearODE , package="dynr")
+##' ##' 
 ##' #formula=list(list(prey~ r1*prey - a12*prey*predator,
 ##' #                  predator~ -r2*predator + a21*prey*predator))
 ##' #dynm<-prep.formulaDynamics(formula=formula,

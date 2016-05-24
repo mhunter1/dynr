@@ -72,20 +72,19 @@ implode <- function(..., sep='') {
 
 
 vecRegime <- function(object){
-  #object <- model$regimes
   numRegimes <- nrow(object$values)
-  values <- object$values[which(object$params!=0)]
-  params <- object$params[which(object$params!=0)]
   covariates <- object$covariates
   numCovariates <- length(covariates)
   
   Prlist <- list()
   for (j in 1:numRegimes){
-  colIndex <- which(object$values[j,]!=0)
+  values <- object$values[j,which(object$values[j,]!=0)]
+  params <- object$params[j,which(object$values[j,]!=0)]
+  colIndex <- which(params==params)    #which(object$values[j,]!="0")
   colIndexSet <- ceiling((colIndex)/(numCovariates+1))
   for (q in unique(colIndexSet)){
   colIndex2 <- which(colIndexSet==q)
-  a <- diag(matrix(outer(matrix(object$values[j,colIndex2],ncol=numCovariates+1), 
+  a <- diag(matrix(outer(matrix(values[colIndex2],ncol=numCovariates+1), 
            matrix(c(1,object$covariates),ncol=1),
            FUN=paste,sep="*"),ncol=numCovariates+1))
   namesLO = paste0("&\\frac{Pr(p",j,q,")}{1-Pr(p",j,q,")}")
