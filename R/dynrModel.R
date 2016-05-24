@@ -356,6 +356,22 @@ setMethod("printex", "dynrModel",
 ##' model <- dynr.model(dynamics=dynm, measurement=meas,noise=mdcov, initial=initial, 
 ##' regimes=regime, transform=trans,outfile="Recipe")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=tempfile(), outfile){
+  #check the order of the names 
+  if (class(dynamics) == "dynrDynamicsFormula"){
+    states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
+    if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
+      states.dyn=states.dyn[[1]]
+    }else{
+      stop("Formulas should be specified in the same order for different regimes.")
+    }
+  }
+  if (!all(measurement@obs.names == data$observed.names)){
+    stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
+  }
+  if (!all(measurement@state.names == states.dyn)){
+    stop("The state.names slot of the 'dynrMeasurement' object hould match the order of the dynamic formulas specified.")
+  }
+  
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
