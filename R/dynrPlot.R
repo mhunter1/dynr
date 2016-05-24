@@ -118,11 +118,12 @@ setMethod("plot", "dynrCook",
           function(x, y=NULL, dynrModel, textsize=6,...) {
             
   #The first panel is the ggplot
-  p1 <- dynr.ggplot(res, data.dynr=dynrModel@data, numSubjDemo=1,...)
+  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1,...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
   if (dynrModel$num_regime>1){
-    highProbR <- data.frame(regime=apply(res@pr_t_given_T,2,which.max))
+    regime <- NULL
+    highProbR <- data.frame(regime=apply(x@pr_t_given_T,2,which.max))
     p2 <- ggplot2::ggplot(data = highProbR, ggplot2::aes(factor(regime))) +
       ggplot2::geom_bar() +
       ggplot2::scale_fill_brewer(palette = 3) +

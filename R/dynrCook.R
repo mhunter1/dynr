@@ -186,7 +186,7 @@ display.dynrCook <- function(x, ...){
 }
 
 setMethod("print", "dynrCook", function(x, ...) { 
-  display.dynrCook(object) 
+  display.dynrCook(x) 
 })
 
 setMethod("show", "dynrCook", function(object) { 
