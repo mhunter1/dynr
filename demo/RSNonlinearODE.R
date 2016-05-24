@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # Author: Lu Ou, Sy-Miin Chow
-# Date: 2016-05-05
-# Filename: RS-PPmodel.R
+# Date: 2016-05-24
+# Filename: RSNonlinearODE.R
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching predator-prey model
 #------------------------------------------------------------------------------
@@ -60,29 +60,29 @@ mdcov <- prep.noise(
 
 # dynamics
 formula=list(
-  list(prey~ r1*prey - a12*prey*predator,
-       predator~ -r2*predator + a21*prey*predator),
-  list(prey~ r1*prey - a1*prey^2 - a12*prey*predator,
-       predator~ a2*predator - r2*predator^2 + a21*prey*predator ))
+  list(prey~ a*prey - b*prey*predator,
+       predator~ -c*predator + d*prey*predator),
+  list(prey~ a*prey - e*prey^2 - b*prey*predator,
+       predator~ f*predator - c*predator^2 + d*prey*predator ))
 
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(r1=2.1, r2=0.8, a12 = 1.9, a21 = 1.1,
-                                      a1 =1, a2 = 1),
+                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1,
+                                      e = 1, f = 1),
                            isContinuousTime=TRUE)
 
 #constraints
-trans<-prep.tfun(formula.trans=list(r1~exp(r1), 
-                                    r2~exp(r2),
-                                    a12~exp(a12),
-                                    a21~exp(a21),
-                                    a1~exp(a1),
-                                    a2~exp(a2)),
-                 formula.inv=list(r1~log(r1),
-                                  r2~log(r2),
-                                  a12~log(a12),
-                                  a21~log(a21),
-                                  a1~log(a1),
-                                  a2~log(a2))
+trans<-prep.tfun(formula.trans=list(a~exp(a), 
+                                    b~exp(b),
+                                    c~exp(c),
+                                    d~exp(d),
+                                    e~exp(e),
+                                    f~exp(f)),
+                 formula.inv=list(a~log(a),
+                                  b~log(b),
+                                  c~log(c),
+                                  d~log(d),
+                                  e~log(e),
+                                  f~log(f))
                  )
 
 #------------------------------------------------------------------------------
@@ -93,11 +93,11 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial,
                     regimes=regimes, transform=trans,
                     data=data,
-                    outfile="RSPPmodelRecipe.c")
+                    outfile="RSNonlinearODE.c")
 
 printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
-        outFile="demo/RSNonlinearODE.tex")
-tools::texi2pdf("demo/RSNonlinearODE.tex")
+        outFile="RSNonlinearODE.tex")
+tools::texi2pdf("RSNonlinearODE.tex")
 system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
 
 model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
@@ -108,16 +108,19 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-#plotFormula(model, ParameterAs=signif(res@transformed.parameters,2)) 
+plotFormula(model, ParameterAs=signif(res@transformed.parameters,2)) 
+ggsave("RSNonlinearODEPlotFml.pdf")
 
-p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+dynr.ggplot(res, data.dynr=data, states=c(1:2), 
             names.regime=c("Free","Constrained"),
             names.state=c("Prey","Predator"),
             title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             shape.values = c(1,2),
             text=element_text(size=16))
+ggsave("RSNonlinearODEggPlot.pdf")
 
-#plot(res,data.dynr = data,model)
+plot(res, dynrModel = model)
+ggsave("RSNonlinearODEPlot.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 

@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------
 # Author: Michael D. Hunter
-# Date: 2016-02-25
+# Date: 2016-05-24
 # Filename: LinearSDE.R
-# Purpose: Translate LinearSDE.R into the user-spec for the same model
-#  in dynr.
+# Purpose: An illustrative example of using dynr to fit
+#   a linear stochastic differential equation model
 #------------------------------------------------------------------------------
 
 #rm(list=ls(all=TRUE))
@@ -125,11 +125,11 @@ data <- dynr.data(simdata, id="id", time="times", observed="y1")
 
 # Prepare for cooking
 # put all the recipes together
-model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, data=data, outfile="cooked")
+model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, data=data, outfile="LinearSDE.c")
 
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
-        outFile="./demo/LinearSDE.tex")
-tools::texi2pdf("demo/LinearSDE.tex")
+        outFile="LinearSDE.tex")
+tools::texi2pdf("LinearSDE.tex")
 system(paste(getOption("pdfviewer"), "LinearSDE.pdf"))
 
 
@@ -139,11 +139,12 @@ res <- dynr.cook(model)
 summary(res)
 
 plotFormula(model, signif(res@transformed.parameters,2))
-
+ggsave("LinearSDEPlotFml.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
 plot(res, dynrModel=model, textsize=6)
+ggsave("LinearSDEPlot.pdf")
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
@@ -164,8 +165,6 @@ data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=true
 sm <- data.frame(t(res@eta_smooth_final))
 cor(sm, t(tx)[-1,])
 
-#save(model,res,file="LinearSDE.RData")
-
 #------------------------------------------------------------------------------
 # End
-
+save(model,res,file="LinearSDE.RData")

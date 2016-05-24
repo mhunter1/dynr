@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 # Author: Lu Ou, Sy-Miin Chow
-# Date: 2016-05-02
+# Date: 2016-05-24
 # Filename: NonlinearODE.R
 # Purpose: An illustrative example of using dynr to fit
 #   the predator-prey model
@@ -38,20 +38,20 @@ mdcov <- prep.noise(
 )
 
 # dynamics
-formula=list(list(prey~ r1*prey - a12*prey*predator,
-             predator~ -r2*predator + a21*prey*predator))
+formula=list(list(prey~ a*prey - b*prey*predator,
+             predator~ -c*predator + d*prey*predator))
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(r1=2.1, r2=0.8, a12 = 1.9, a21 = 1.1),
+                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
                            isContinuousTime=TRUE)
 #constraints
-trans<-prep.tfun(formula.trans=list(r1~exp(r1), 
-                                    r2~exp(r2),
-                                    a12~exp(a12),
-                                    a21~exp(a21)),
-                 formula.inv=list(r1~log(r1),
-                                  r2~log(r2),
-                                  a12~log(a12),
-                                  a21~log(a21)))
+trans<-prep.tfun(formula.trans=list(a~exp(a), 
+                                    b~exp(b),
+                                    c~exp(c),
+                                    d~exp(d)),
+                 formula.inv=list(a~log(a),
+                                  b~log(b),
+                                  c~log(c),
+                                  d~log(d)))
 
 #------------------------------------------------------------------------------
 # Cooking materials
@@ -60,11 +60,11 @@ trans<-prep.tfun(formula.trans=list(r1~exp(r1),
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial,
                     transform=trans, data=data,
-                    outfile="PPmodelRecipe.c")
+                    outfile="NonlinearODE.c")
 
 printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
-        outFile="./demo/NonlinearODE.tex")
-tools::texi2pdf("demo/NonlinearODE.tex")
+        outFile="NonlinearODE.tex")
+tools::texi2pdf("NonlinearODE.tex")
 system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
 
 # Estimate free parameters
@@ -72,8 +72,9 @@ res <- dynr.cook(dynrModel=model)
 
 # Examine results
 summary(res)
-plot(res,dynrModel=model)
 
+plot(res,dynrModel=model)
+ggsave("NonlinearODEPlot.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -89,6 +90,6 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-#save(model,res,file="NonlinearODE.RData")
+save(model,res,file="NonlinearODE.RData")
 
 

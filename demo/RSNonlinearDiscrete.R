@@ -1,8 +1,7 @@
 #------------------------------------------------------------------------------
 # Author: Lu Ou
-# Date: 2016-04-13
-# Last modified 4/25/16 by Sy-Miin Chow
-# Filename: RSNonlinearDFADiscreteTime.R
+# Date: 2016-05-24
+# Filename: RSNonlinearDiscrete.R
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching nonlinear dynamic factor analysis (discrete-time) model 
 #   with nonlinear vector autoregressive (VAR) relation at the factor level
@@ -14,15 +13,15 @@ require(dynr)
 #---- (0) Read in data ----
 # Data
 data(NonlinearDFAsim)
-data <- dynr.data(NonlinearDFAsim, id="id", time="time",observed=colnames(NLVARsim)[c(3:8)])
+data <- dynr.data(NonlinearDFAsim, id="id", time="time",observed=colnames(NonlinearDFAsim)[c(3:8)])
 
 #--- (1) Prepare the recipes ----
 
 #---- (1a) Measurement (factor loadings) -----
 meas <- prep.loadings(
   map=list(
-    eta1=paste0('y', 1:3),
-    eta2=paste0('y', 4:6)),
+    x1=paste0('y', 1:3),
+    x2=paste0('y', 4:6)),
   params=c("lambda_21","lambda_31","lambda_52","lambda_62"))
 
 
@@ -32,7 +31,7 @@ initial <- prep.initial(
 	params.inistate=c("fixed", "fixed"),
 	values.inicov=diag(1, 2), 
 	params.inicov=diag("fixed", 2),
-	values.regimep=c(.8824, 1-.8824),
+	values.regimep=c(.8, .2),
 	params.regimep=c("fixed", "fixed")
 )
 
@@ -81,11 +80,11 @@ trans<-prep.tfun(formula.trans=list(p11~exp(p11)/(1+exp(p11)), p22~exp(p22)/(1+e
 model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, 
                     initial=initial, regimes=regimes, transform=trans, 
                     data=data, 
-                    outfile="RSNonlinearDFA")
+                    outfile="RSNonlinearDiscrete")
 
 printex(model,ParameterAs=model$param.names,printInit=TRUE, printRS=TRUE,
-        outFile="./demo/RSNonlinearDiscrete.tex")
-tools::texi2pdf("demo/RSNonlinearDiscrete.tex")
+        outFile="RSNonlinearDiscrete.tex")
+tools::texi2pdf("RSNonlinearDiscrete.tex")
 system(paste(getOption("pdfviewer"), "RSNonlinearDiscrete.pdf"))
 
 res <- dynr.cook(model)
@@ -111,17 +110,16 @@ truepar <- c(
   0.98,0.85)
 data.frame(name=res@param.names , true=truepar, estim=coef(res))
 
-p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
-                 names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
-                 names.state=c("PE","NE"),
-                 title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
-                 shape.values = c(1,2),
-                 text=element_text(size=16))
-
-#save(model,res,file="RSNonlinearDiscrete.RData")
-#plot(res,dynrModel=model)
-
+dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+            names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
+            names.state=c("PE","NE"),
+            title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
+            shape.values = c(1,2),
+            text=element_text(size=16))
+ggsave("RSNonlinearDiscreteggPlot.pdf")
+plot(res, dynrModel=model)
+ggsave("RSNonlinearDiscretePlot.pdf")
 
 #---- Done ----
-
+save(model,res,file="RSNonlinearDiscrete.RData")
 

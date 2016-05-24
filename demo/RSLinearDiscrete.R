@@ -1,7 +1,7 @@
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # Author: Michael D. Hunter
-# Date: 2016-04-22
-# Filename: RSDiscreteLinear.R
+# Date: 2016-05-24
+# Filename: RSLinearDiscrete.R
 # Purpose: Show regime-switching 
 # measurement and dynamics in linear discrete time model
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -63,11 +63,11 @@ recDyn <- prep.matrixDynamics(
 
 #---- (4) Create model and cook it all up ----
 
-rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="cooked")
+rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 
 printex(rsmod, ParameterAs=rsmod$param.names, printInit=TRUE,printRS=TRUE,
-        outFile="demo/RSLinearDiscrete.tex")
-tools::texi2pdf("demo/RSLinearDiscrete.tex")
+        outFile="RSLinearDiscrete.tex")
+tools::texi2pdf("RSLinearDiscrete.tex")
 system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
 
 yum <- dynr.cook(rsmod)
@@ -75,12 +75,6 @@ yum <- dynr.cook(rsmod)
 #---- (5) Serve it! ----
 
 summary(yum)
-dynr.ggplot(yum, data.dynr=dd, states=1, 
-            names.regime=c("Deactivated","Activated"),
-            names.state=c("EMG"),
-            title="Results from RS-AR model", numSubjDemo=1,
-            shape.values = c(1),
-            text=element_text(size=16))
 
 #true parameters
 truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, dynnoise=.5^2, p00=.99, p10=.01)
@@ -90,5 +84,14 @@ exp(r1)/sum(exp(r1)) #first row of transition probability matrix
 r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
 exp(r2)/sum(exp(r2)) #second row of transition probability matrix
 
+dynr.ggplot(yum, data.dynr=dd, states=1, 
+            names.regime=c("Deactivated","Activated"),
+            names.state=c("EMG"),
+            title="Results from RS-AR model", numSubjDemo=1,
+            shape.values = c(1),
+            text=element_text(size=16))
+ggsave("RSLinearDiscreteggPlot.pdf")
+plot(yum, dynrModel = rsmod)
+ggsave("RSLinearDiscretePlot.pdf")
 #---- End of demo ---- 
-save(r)
+save(rsmod,yum,file="RSLinearDiscrete.RData")
