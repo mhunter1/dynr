@@ -146,7 +146,7 @@ setMethod("plot", "dynrCook",
   })
 
 plotdf<-function(vec_tex){
-  dataframe=data.frame(text=sapply(paste0("$",vec_tex,"$"),function(x){as.character(TeX(x))}))
+  dataframe=data.frame(text=sapply(paste0("$",vec_tex,"$"),function(x){as.character(latex2exp::TeX(x))}))
   dataframe$x<-0
   return(dataframe)
 }
