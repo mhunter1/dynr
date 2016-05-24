@@ -195,6 +195,22 @@ setMethod("$", "dynrRecipe",
 #------------------------------------------------------------------------------
 # printex method definitions
 
+##' The printex Method
+##' 
+##' @aliases
+##' printex,dynrModel-method
+##' printex,dynrCook-method
+##' printex,dynrMeasurement-method
+##' printex,dynrDynamicsFormula-method
+##' printex,dynrDynamicsMatrix-method
+##' printex,dynrNoise-method
+##' printex,dynrInitial-method
+##' printex,dynrRegimes-method
+##' 
+##' @details
+##' This is a general way of getting a LaTeX string for recipes, models, and cooked models.  It is a great way to check that you specified
+##' the model or recipe you think you did before estimating its free parameters (cooking).  After the model is cooked, you can use it to get
+##' LaTeX code with the estimated parameters in it.
 setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
 	return(standardGeneric("printex")) 
 })
