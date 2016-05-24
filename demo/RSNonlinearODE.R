@@ -6,24 +6,20 @@
 #   a regime-switching predator-prey model
 #------------------------------------------------------------------------------
 
-
-#rm(list=ls(all=TRUE))
 require(dynr)
-options(scipen=999)
 
 # ---- Read in the data ----
 data(RSPPsim)
-data <- dynr.data(thedata, id="id", time="time",observed=c("x1","x2","y1","y2"),covariate="environment")
+data <- dynr.data(RSPPsim, id="id", time="time",observed=c("x","y"),covariate="cond")
 
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
 meas <- prep.loadings(
   map=list(
-    eta1=c("x1","x2"),
-    eta2=c("y1","y2")),
-  params=c("lamx","lamy"),
-  idvar=c("x1","y1"))
+    prey=c("x"),
+    predator=c("y")),
+  params=NULL)
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
@@ -52,14 +48,14 @@ regimes <- prep.regimes(
   params=matrix(c("fixed","fixed","int","slp",
                   "fixed","fixed","int","slp"), 
                 nrow=2, ncol=4,byrow=T), 
-  covariates="environment")
+  covariates="cond")
 
 #measurement and dynamics covariances
 mdcov <- prep.noise(
   values.latent=diag(0, 2),
   params.latent=diag(c("fixed","fixed"), 2),
-  values.observed=diag(rep(0.5,4)),
-  params.observed=diag(rep("var",4),4)
+  values.observed=diag(rep(0.5,2)),
+  params.observed=diag(rep("var",2),2)
 )
 
 # dynamics
@@ -100,9 +96,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     outfile="RSPPmodelRecipe.c")
 
 printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
-        outFile="demo/RS-PP.tex")
-tools::texi2pdf("demo/RS-PP.tex")
-system(paste(getOption("pdfviewer"), "RS-PP.pdf"))
+        outFile="demo/RSNonlinearODE.tex")
+tools::texi2pdf("demo/RSNonlinearODE.tex")
+system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
 
 model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
 model@lb[model@param.names%in%c("int","slp")]<-c(-10,0)
@@ -112,19 +108,16 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-p3 <-plotFormula(model,toPlot="both") 
+#plotFormula(model, ParameterAs=signif(res@transformed.parameters,2)) 
 
 p1 = dynr.ggplot(res, data.dynr=data, states=c(1:2), 
             names.regime=c("Free","Constrained"),
             names.state=c("Prey","Predator"),
-            title="Results from RS-nonlinear ODE model", numSubjDemo=2,idtoPlot=c(1,2),
+            title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             shape.values = c(1,2),
             text=element_text(size=16))
 
-print(p1)
 #plot(res,data.dynr = data,model)
-plot(res,data.dynr = data,model=model,
-     textsize=6,toPlot="both")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 

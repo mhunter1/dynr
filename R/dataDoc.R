@@ -56,7 +56,7 @@ NULL
 ##' @format A data frame with 3000 rows and 8 variables
 NULL
 
-##' Simulated multi-system time series data based on a predator-and-prey model
+##' Simulated time series data for multiple eco-systems based on a predator-and-prey model
 ##' 
 ##' A dataset simulated using a continuous-time nonlinear predator-and-prey model
 ##' with 2 observed indicators for identifying two latent factors. The variables are as follows:
@@ -64,38 +64,39 @@ NULL
 ##' \itemize{
 ##'   \item id. ID of the systems (1 to 20)
 ##'   \item time. Time index (50 time points for each system)
-##'   \item x. Observed indicator for the number of preys
-##'   \item y. Observed indicator for the number of predators
+##'   \item prey. The true population of the prey species
+##'   \item predator. The true population of the predator species
+##'   \item x. Observed indicator for the population of the prey species
+##'   \item y. Observed indicator for the population of the predator species
 ##' }
 ##' 
 ##' @docType data
 ##' @keywords datasets
 ##' @name PPsim
 ##' @usage data(PPsim)
-##' @format A data frame with 1000 rows and 4 variables
+##' @format A data frame with 1000 rows and 6 variables
 NULL
 
-##' RSPPsim change to Prices of 50,000 round cut diamonds
+##' Simulated time series data for multiple eco-systems based on a regime-switching predator-and-prey model
 ##' 
-##' A dataset containing the prices and other attributes of almost 54,000
-##'  diamonds. The variables are as follows:
+##' A dataset simulated using a regime-switching continuous-time nonlinear predator-and-prey model
+##' with 2 observed indicators for identifying two latent factors. The variables are as follows:
 ##' 
 ##' \itemize{
-##'   \item price. price in US dollars (\$326--\$18,823)
-##'   \item carat. weight of the diamond (0.2--5.01)
-##'   \item cut. quality of the cut (Fair, Good, Very Good, Premium, Ideal)
-##'   \item colour. diamond colour, from J (worst) to D (best)
-##'   \item clarity. a measurement of how clear the diamond is (I1 (worst), SI1, SI2, VS1, VS2, VVS1, VVS2, IF (best))
-##'   \item x. length in mm (0--10.74)
-##'   \item y. width in mm (0--58.9)
-##'   \item z. depth in mm (0--31.8)
-##'   \item depth. total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)
-##'   \item table. width of top of diamond relative to widest point (43--95)
+##'   \item id. ID of the systems (1 to 20)
+##'   \item time. Time index (300 time points for each system)
+##'   \item prey. The true population of the prey species
+##'   \item predator. The true population of the predator species
+##'   \item x. Observed indicator for the population of the prey species
+##'   \item y. Observed indicator for the population of the predator species
+##'   \item cond. A time-varying covariate indicating the conditions of the respective eco-system across time which 
+##'   affects the regime-switching transition matrix
+##'   \item regime. The true regime indicators across time (1 and 2).
 ##' }
 ##' 
 ##' @docType data
 ##' @keywords datasets
 ##' @name RSPPsim
 ##' @usage data(RSPPsim)
-##' @format A data frame with 53940 rows and 10 variables
+##' @format A data frame with 6000 rows and 8 variables
 NULL

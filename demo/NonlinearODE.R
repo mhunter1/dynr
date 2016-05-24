@@ -62,7 +62,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     transform=trans, data=data,
                     outfile="PPmodelRecipe.c")
 
-printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
+printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="./demo/NonlinearODE.tex")
 tools::texi2pdf("demo/NonlinearODE.tex")
 system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
