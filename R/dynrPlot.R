@@ -125,7 +125,7 @@ Mode <- function(y) {
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, dynrModel, textsize=6, ...) {
+          function(x, y=NULL, dynrModel, textsize=4, ...) {
   y <- NULL
   #The first panel is the ggplot
   p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1,...)
@@ -170,7 +170,7 @@ plotdf <- function(vec_tex){
 ##' 
 ##' @details
 ##' This function typesets a set of formulas that represent the model.
-plotFormula <- function(dynrModel, ParameterAs, textsize=6){
+plotFormula <- function(dynrModel, ParameterAs, textsize=4){
   
   dynrModel <- PopBackModel(dynrModel, ParameterAs)
   
@@ -209,13 +209,13 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   }
   
   plot.df=rbind(dyn.df,meas.df)
-  plot.df$y=seq(dim(plot.df)[1],1,by=-1)
+  plot.df$y=seq((dim(plot.df)[1]-1)*5+1, 1, by=-5)
   
   x <- NULL
   y <- NULL
   fig<-ggplot2::ggplot(plot.df, ggplot2::aes(x=x, y=y, label=text))+
     ggplot2::geom_text(parse=TRUE,size=textsize)+
-    ggplot2::theme_void() + ggplot2::ylim(min(plot.df$y)-1, max(plot.df$y)+1)
+    ggplot2::theme_void() + ggplot2::ylim(min(plot.df$y)-5, max(plot.df$y)+5)
   
   return(fig)
 }
