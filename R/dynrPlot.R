@@ -155,12 +155,13 @@ plotFormula <- function(dynrModel, ParameterAs, textsize=6){
   
   dynrModel <- PopBackModel(dynrModel, ParameterAs)
   
-  state.names <- (dynrModel$measurement)$state.names
-  obs.names <- (dynrModel$measurement)$obs.names
-  exo.names <- (dynrModel$dynamics)$covariates
-  dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)
-  dynrModel@dynamics@values.exo <- lapply((dynrModel$dynamics)$values.exo, preProcessNames,state.names,exo.names)
-  dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
+  if (class(dynrModel$dynamics) == "dynrDynamicsMatrix"){
+    state.names <- (dynrModel$measurement)$state.names
+    exo.names <- (dynrModel$dynamics)$covariates
+    dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)
+    dynrModel@dynamics@values.exo <- lapply((dynrModel$dynamics)$values.exo, preProcessNames,state.names,exo.names)
+    dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
+  }
   
   #Dynamic model
   dyn.df <- data.frame(text="'Dynamic Model without Noise'",x=0)
