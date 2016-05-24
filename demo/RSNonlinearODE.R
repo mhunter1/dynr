@@ -120,7 +120,6 @@ dynr.ggplot(res, data.dynr=data, states=c(1:2),
 ggsave("RSNonlinearODEggPlot.pdf")
 
 plot(res, dynrModel = model)
-ggsave("RSNonlinearODEPlot.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -136,5 +135,5 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="RSNonlinearODE.RData")
+#save(model,res,file="RSNonlinearODE.RData")
 

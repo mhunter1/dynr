@@ -91,7 +91,6 @@ dynr.ggplot(yum, data.dynr=dd, states=1,
             shape.values = c(1),
             text=element_text(size=16))
 ggsave("RSLinearDiscreteggPlot.pdf")
-plot(yum, dynrModel = rsmod)
-ggsave("RSLinearDiscretePlot.pdf")
+plot(yum, dynrModel = rsmod, textsize = 5)
 #---- End of demo ---- 
-save(rsmod,yum,file="RSLinearDiscrete.RData")
+#save(rsmod,yum,file="RSLinearDiscrete.RData")

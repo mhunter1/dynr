@@ -118,8 +118,7 @@ dynr.ggplot(res, data.dynr=data, states=c(1:2),
             text=element_text(size=16))
 ggsave("RSNonlinearDiscreteggPlot.pdf")
 plot(res, dynrModel=model)
-ggsave("RSNonlinearDiscretePlot.pdf")
 
 #---- Done ----
-save(model,res,file="RSNonlinearDiscrete.RData")
+#save(model,res,file="RSNonlinearDiscrete.RData")
 

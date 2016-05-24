@@ -74,7 +74,6 @@ res <- dynr.cook(dynrModel=model)
 summary(res)
 
 plot(res,dynrModel=model)
-ggsave("NonlinearODEPlot.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -90,6 +89,6 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="NonlinearODE.RData")
+#save(model,res,file="NonlinearODE.RData")
 
 

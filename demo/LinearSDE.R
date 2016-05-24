@@ -144,7 +144,6 @@ ggsave("LinearSDEPlotFml.pdf")
 # some miscellaneous nice functions
 
 plot(res, dynrModel=model, textsize=6)
-ggsave("LinearSDEPlot.pdf")
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
@@ -167,4 +166,4 @@ cor(sm, t(tx)[-1,])
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="LinearSDE.RData")
+#save(model,res,file="LinearSDE.RData")
