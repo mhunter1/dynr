@@ -465,14 +465,15 @@ setMethod("paramName2Number", "dynrTrans",
 #------------------------------------------------------------------------------
 # writeCcode method definitions
 
-setGeneric("writeCcode", function(object, show=TRUE) { 
-	return(standardGeneric("writeCcode")) 
-})
+setGeneric("writeCcode", 
+           function(object, covariates, show=TRUE) { 
+             return(standardGeneric("writeCcode")) 
+           })
 
 
 
 setMethod("writeCcode", "dynrMeasurement",
-	function(object){
+	function(object, covariates){
 		values.load <- object$values.load
 		params.load <- object$params.load
 		values.exo <- object$values.exo
@@ -483,7 +484,10 @@ setMethod("writeCcode", "dynrMeasurement",
 		hasIntercepts <- length(values.int) > 0
 		nregime <- length(values.load)
 		ret <- "void function_measurement(size_t t, size_t regime, double *param, const gsl_vector *eta, const gsl_vector *co_variate, gsl_matrix *Ht, gsl_vector *y){\n\n"
-		if(hasCovariates){ret <- paste(ret, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), sep="\n\t")}#create covariates matrix
+		if(hasCovariates){
+		  ret <- paste0(ret, gslcovariate.front(object@exo.names, covariates))
+		  ret <- paste(ret, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), sep="\n\t")
+		  }#create covariates matrix
 		if(hasIntercepts){ret <- paste(ret, createGslVector(nrow(params.int[[1]]), "intVector"), sep="\n\t")}#create intercepts vector
 		if(nregime > 1) {
 			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
@@ -503,7 +507,10 @@ setMethod("writeCcode", "dynrMeasurement",
 			if(hasIntercepts){paste(ret, setGslVectorElements(values.int[[1]], params.int[[1]], "intVector"), sep="\n")}#set intercepts vector
 		}
 		ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);\n")
-		if(hasCovariates){ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Bmatrix, co_variate, 1.0, y);\n", destroyGslMatrix("Bmatrix"))}#multiply, add, and destroy covariates matrix
+		if(hasCovariates){
+		  ret <- paste(ret, "\n\tgsl_blas_dgemv(CblasNoTrans, 1.0, Bmatrix, covariate_local, 1.0, y);\n", destroyGslMatrix("Bmatrix"))
+		  ret <- paste0(ret, destroyGslVector("covariate_local"))
+		  }#multiply, add, and destroy covariates matrix
 		if(hasIntercepts){ret <- paste(ret, "\n\tgsl_vector_add(y, intVector);\n", destroyGslVector("intVector"))}#add and destroy intercepts vector
 		ret <- paste(ret, "\n}\n\n")
 		object@c.string <- ret
@@ -514,7 +521,7 @@ setMethod("writeCcode", "dynrMeasurement",
 
 # not sure what to do here yet
 setMethod("writeCcode", "dynrDynamicsFormula",
-	function(object){
+	function(object, covariates){
 	  formula <- object$formula
 	  jacob <- object$jacobian
 	  nregime=length(formula)
@@ -666,7 +673,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 # cat(writeCcode(dynam)$c.string)
 
 setMethod("writeCcode", "dynrDynamicsMatrix",
-	function(object){
+	function(object, covariates){
 		isContinuousTime <- object$isContinuousTime
 		params.dyn <- object$params.dyn
 		values.dyn <- object$values.dyn
@@ -707,7 +714,9 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 			# Create dynamics (state-transition or drift matrix) with covariate effects
 			ret <- paste(dynHead,
 				createGslMatrix(nrow(params.dyn[[1]]), ncol(params.dyn[[1]]), "Amatrix"),
-				ifelse(hasCovariates, createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"), ""),
+				ifelse(hasCovariates, 
+				       paste0(gslcovariate.front(object@covariates, covariates), createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix")),
+				       ""),
 				ifelse(hasIntercepts, createGslVector(nrow(params.int[[1]]), "intVector"), ""),
 				sep="\n")
 			
@@ -726,10 +735,10 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 			
 			ret <- paste(ret,
 				blasMV(FALSE, "1.0", "Amatrix", inName, "0.0", outName),
-				ifelse(hasCovariates, blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName), ""),
+				ifelse(hasCovariates, blasMV(FALSE, "1.0", "Bmatrix", "covariate_local", "1.0", outName), ""),
 				ifelse(hasIntercepts, paste0("\tgsl_vector_add(", outName, ", intVector);\n"), ""),
 				destroyGslMatrix("Amatrix"),
-				ifelse(hasCovariates, destroyGslMatrix("Bmatrix"), ""),
+				ifelse(hasCovariates, paste0(destroyGslMatrix("Bmatrix"), destroyGslVector("covariate_local")), ""),
 				ifelse(hasIntercepts, destroyGslMatrix("intVector"), ""),
 				"}\n\n", sep="\n")
 			
@@ -758,10 +767,12 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 			
 			if(hasCovariates){
 				ret <- paste(ret,
+				  gslcovariate.front(object@covariates, covariates),
 					createGslMatrix(nrow(params.exo[[1]]), ncol(params.exo[[1]]), "Bmatrix"),
 					setGslMatrixElements(values=values.exo[[1]], params=params.exo[[1]], name="Bmatrix"),
-					blasMV(FALSE, "1.0", "Bmatrix", "co_variate", "1.0", outName),
+					blasMV(FALSE, "1.0", "Bmatrix", "covariate_local", "1.0", outName),
 					destroyGslMatrix("Bmatrix"),
+					destroyGslVector("covariate_local"),
 					sep="\n")
 			}
 			
@@ -790,11 +801,11 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 
 
 setMethod("writeCcode", "dynrRegimes",
-	function(object){
+	function(object, covariates){
 		values <- object$values
 		params <- object$params
-		covariates <- object$covariates
-		numCovariates <- length(covariates)
+		covariates_local <- object$covariates
+		numCovariates <- length(covariates_local)
 		numRegimes <- nrow(values)
 		
 		#Restructure values matrix for row-wise
@@ -806,18 +817,19 @@ setMethod("writeCcode", "dynrRegimes",
 		}
 		
 		ret <- "void function_regime_switch(size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat){"
-		if(prod(nrow(values), nrow(params), length(covariates)) != 0){
+		if(prod(nrow(values), nrow(params), numCovariates) != 0){
 			ret <- paste(ret,
-				createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
-				createGslVector(numRegimes, "Pvector"),
-				createGslVector(numRegimes, "Presult"),
-				sep="\n")
+			             gslcovariate.front(covariates_local, covariates),
+			             createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
+			             createGslVector(numRegimes, "Pvector"),
+			             createGslVector(numRegimes, "Presult"),
+			             sep="\n")
 			for(reg in 1L:numRegimes){
 				selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
 				ret <- paste(ret,
 					setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
 					setGslMatrixElements(values=values[selRows, -1, drop=FALSE], params=params[selRows, -1, drop=FALSE], name="Gmatrix"),
-					blasMV(FALSE, "1.0", "Gmatrix", "co_variate", "1.0", "Pvector"),
+					blasMV(FALSE, "1.0", "Gmatrix", "covariate_local", "1.0", "Pvector"),
 					"\tmathfunction_softmax(Pvector, Presult);",
 					gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
 					"\tgsl_vector_set_zero(Pvector);",
@@ -828,8 +840,9 @@ setMethod("writeCcode", "dynrRegimes",
 				destroyGslMatrix("Gmatrix"),
 				destroyGslVector("Pvector"),
 				destroyGslVector("Presult"),
+				destroyGslVector("covariate_local"),
 				sep="\n")
-		} else if(nrow(values) != 0 && nrow(params) != 0 && length(covariates) == 0){
+		} else if(nrow(values) != 0 && nrow(params) != 0 && numCovariates == 0){
 			# same as above processing, but without the Gmatrix for the covariates
 			ret <- paste(ret,
 				createGslVector(numRegimes, "Pvector"),
@@ -859,7 +872,7 @@ setMethod("writeCcode", "dynrRegimes",
 
 
 setMethod("writeCcode", "dynrInitial",
-	function(object){
+	function(object, covariates){
 		values.inistate <- object$values.inistate
 		params.inistate <- object$params.inistate
 		values.inicov <- object@values.inicov.inv.ldl
@@ -912,7 +925,7 @@ setMethod("writeCcode", "dynrInitial",
 )
 
 setMethod("writeCcode", "dynrNoise",
-	function(object){
+	function(object, covariates){
 		params.latent <- object$params.latent
 		params.observed <- object$params.observed
 		#Note: should we mutate these other slots of the object or leave them alone?
@@ -932,7 +945,7 @@ setMethod("writeCcode", "dynrNoise",
 )
 
 setMethod("writeCcode", "dynrTrans",
-          function(object){
+          function(object, covariates){
             #function_transform
             ret="/**\n * This function modifies some of the parameters so that it satisfies the model constraint.\n * Do not include parameters in noise_cov matrices \n */\nvoid function_transform(double *param){"
             n=length(object$formula.trans)
@@ -2085,3 +2098,12 @@ gslVector2Column <- function(matrix, index, vector, which){
 	}
 }
 
+gslcovariate.front<-function(selected, covariates){
+  ret <- createGslVector(length(selected), "covariate_local")
+  for (i in 1:length(selected)){
+    get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected[i])-1,")")
+    set <- paste0("\tgsl_vector_set(covariate_local, ", i-1,", ", get,");\n")
+    ret <- paste0(ret, set)
+  }
+  return(ret)
+}

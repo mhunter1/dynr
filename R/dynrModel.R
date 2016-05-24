@@ -390,7 +390,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
   # writeCcode on each recipe
-  inputs <- sapply(inputs, writeCcode) 
+  inputs <- sapply(inputs, writeCcode, data$covariate.names) 
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
@@ -417,6 +417,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
     body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
   }
   body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
+  for (i in 1:length(data$covariate.names)){
+    selected <- data$covariate.names[i]
+    get <- paste0("gsl_vector_get(co_variate, ", which(data$covariate.names == selected)-1,")")
+    body <- gsub(paste0("\\<",data$covariate.names[i],"\\>"), get, body)
+  }
 #   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
 #     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
 #   }
