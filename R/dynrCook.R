@@ -355,7 +355,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
 	frontendTime <- totalTime-backendTime
-	obj@run.times <- c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime)
+	obj@run.times <- as.numeric(c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime))
 	cat('Total Time:', totalTime, '\n')
 	cat('Backend Time:', backendTime, '\n')
 	rm(output2)
