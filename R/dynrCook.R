@@ -187,6 +187,8 @@ summaryResults<-function(object){
 
 ##' Get the summary of a dynrCook object
 ##' 
+##' @param object The dynrCook object for which the summary is desired.
+##' 
 ##' @details
 ##' The summary gives information on the free parameters estimated: names, parameter values, numerical Hessian-based standard errors, t-values (values divided by standard errors), and standard-error based confidence intervals.  Additionally, the likelihood, AIC, and BIC are provided.
 setMethod( f = "summary",  signature = "dynrCook" ,

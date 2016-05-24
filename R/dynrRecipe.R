@@ -207,10 +207,17 @@ setMethod("$", "dynrRecipe",
 ##' printex,dynrInitial-method
 ##' printex,dynrRegimes-method
 ##' 
+##' @param object The dynr object (recipe, model, cooked, model)
+##' @param show logical. Whether or not to show the result in the console.
+##' @param AsMatrix logical. Whether to put the object in matrix form.
+##' @param ... Further named arguments, passed to internal method.
+##' 
 ##' @details
 ##' This is a general way of getting a LaTeX string for recipes, models, and cooked models.  It is a great way to check that you specified
 ##' the model or recipe you think you did before estimating its free parameters (cooking).  After the model is cooked, you can use it to get
 ##' LaTeX code with the estimated parameters in it.
+##' 
+##' Further arguments for the \code{dynrModel} method are with their defaults are \code{ParameterAs}, \code{printDyn=TRUE}, \code{printMeas=TRUE}, \code{printInit=FALSE}, \code{printRS=FALSE}, and \code{outFile}.
 setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
 	return(standardGeneric("printex")) 
 })
