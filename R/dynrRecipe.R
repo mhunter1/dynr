@@ -1704,23 +1704,23 @@ autojacob<-function(formula,n){
 ##' #Not run: 
 ##' #For a full demo example that uses user-supplied analytic jacobian functions see:
 ##' #demo(RSNonlinearDiscrete, package="dynr")
+##' formula=list(list(x1~a1*x1,x2~a2*x2),list(x1~a1*x1+c12*(exp(abs(x2)))/(1+exp(abs(x2)))*x2,
+##'     x2~a2*x2+c21*(exp(abs(x1)))/(1+exp(abs(x1)))*x1))
+##' jacob=list(
+##'   list(x1~x1~a1,
+##'       x2~x2~a2),
+##'   list(x1~x1~a1,
+##'       x1~x2~c12*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
+##'       x2~x2~a2,
+##'       x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
+##' dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
 ##' 
-##' formula=list(x1~param[4]*x1+param[6]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
-##' x2~param[5]*x2+param[7]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
-##' jacob=list(x1~x1~param[4],
-##'            x1~x2~param[6]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
-##'            x2~x2~param[5],
-##'            x2~x1~param[7]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
-##'
-##'
 ##' #For a full demo example that uses automatic jacobian functions see:
 ##' #demo(RSNonlinearODE , package="dynr")
-##' ##' 
-##' #formula=list(list(prey~ r1*prey - a12*prey*predator,
-##' #                  predator~ -r2*predator + a21*prey*predator))
-##' #dynm<-prep.formulaDynamics(formula=formula,
-##' #                           startval=c(r1=2.1, r2=0.8, a12 = 1.9, a21 = 1.1),
-##' #                           isContinuousTime=TRUE)
+##' formula=list(prey~ a*prey - b*prey*predator, predator~ -c*predator + d*prey*predator)
+##' dynm<-prep.formulaDynamics(formula=formula,
+##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
+##'                           isContinuousTime=TRUE)
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
   if(is.null(names(startval))){
     stop('startval must be a named vector')
