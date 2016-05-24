@@ -1141,13 +1141,27 @@ reverseldl<-function(values){
 # Some usefull helper functions
 #
 
+##' Create a diagonal matrix from a character vector
+##' @aliases diag.character diag
+##' 
+##' @param x Character vector used to create the matrix
+##' @param nrow Numeric. Number of rows for the resulting matrix.
+##' @param ncol Numeric. Number of columns for the resulting matrix.
+##' 
+##' @details
+##' The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
+##' as for the \code{\link{diag}} function in the base package.  Off-diagonal entries
+##' are filled with "0".
+##' 
+##' @examples
+##' diag(letters[1:3])
 # a new method for diag with character input
 setMethod("diag", "character", #diag.character <-
 	function(x=1, nrow, ncol){
 		n <- length(x)
 		if(!missing(nrow)) n <- nrow
 		if(missing(ncol)) ncol <- n
-		r <- matrix("0", nrow, ncol)
+		r <- matrix("0", n, ncol)
 		diag(r) <- x
 		return(r)
 	}

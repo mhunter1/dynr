@@ -11,6 +11,7 @@ src-x64/
 build/
 # The following list of roxygen built man pages is automatically updated
 man/coef.dynrCook.Rd
+man/diag-character-method.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.ggplot.Rd
