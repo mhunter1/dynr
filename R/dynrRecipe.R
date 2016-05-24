@@ -1456,12 +1456,13 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 
 ##' Prepare the measurement recipe
 ##'
-##' @param values.load matrix or list of matrices. Values of the factor loadings.
-##' @param params.load matrix or list of matrices. Params of the factor loadings.
-##' @param values.exo matrix or list of matrices. Values of the covariate effects.
-##' @param params.exo matrix or list of matrices. Params of the covariate effects.
-##' @param values.int matrix or list of matrices. Values of the intercepts.
-##' @param params.int matrix or list of matrices. Params of the intercerpts.
+##' @param values.load matrix of starting or fixed values for factor loadings. 
+##' For models with regime-specific factor loadings provide a list of matrices of factor loadings.
+##' @param params.load matrix or list of matrices. Contains parameter names of the factor loadings. 
+##' @param values.exo matrix or list of matrices. Contains starting/fixed values of the covariate regression slopes.
+##' @param params.exo matrix or list of matrices. Parameter names of the covariate regression slopes.
+##' @param values.int vector of intercept values specified as matrix or list of matrices. Contains starting/fixed values of the intercepts.
+##' @param params.int vector of names for intercept parameters specified as a matrix or list of matrices. 
 ##' @param obs.names  vector of names for the observed variables in the order they appear in the measurement model.
 ##' @param state.names  vector of names for the latent variables in the order they appear in the measurement model.
 ##' @param exo.names  (optional) vector of names for the exogenous variables in the order they appear in the measurement model.
@@ -1543,13 +1544,15 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 # N.B. This function produces BOTH the latent and observed error covariance matrices.
 
 
-##' The translation function for measurement error and process noise covariances
-##' Output a C function to set up measurement error and process noise covariances and the starting values of the related parameters.
+##' Recipe function for specifying the measurement error and process noise covariance structures
 ##' 
-##' @param values.latent a positive definite matrix of the starting or fixed values of the process noise covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
-##' @param params.latent a matrix of the parameter indices of the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
-##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
-##' @param params.observed a matrix of the parameter indices of the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.latent a positive definite matrix of the starting or fixed values of the process noise covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
+##' @param params.latent a matrix of parameter names that appear in the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. 
+##' @param params.observed a matrix of parameter names that appear in the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' 
+##' @examples 
+##' prep.noise(values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)), values.observed=diag(1.5,1), params.observed=diag(4, 1))
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	values.latent <- preProcessValues(values.latent)
 	params.latent <- preProcessParams(params.latent)
@@ -1568,10 +1571,6 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed, values.latent.inv.ldl=values.latent.inv.ldl, values.observed.inv.ldl=values.observed.inv.ldl)
 	return(new("dynrNoise", x))
 }
-
-# Examples
-#prep.noise(values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)),
-#	values.observed=diag(1.5,1), params.observed=diag(4, 1))
 
 
 replaceDiagZero <- function(x){
@@ -1614,14 +1613,16 @@ replaceDiagZero <- function(x){
 #       cbind( softmax(LPM[,1]), softmax(LPM[,2]), ..., softmax(LPM[,k]) )
 # for k regimes
 
-##' Recipe function for creating Regime Switching
+##' Recipe function for creating regime switching (Markov transition) functions
 ##' 
-##' @param values matrix giving the values. Should have Number of Regimes rows and Number of Regimes time Number of Covariates columns
-##' @param params matrix of the same size as values giving the free parameters
-##' @param covariates names of the covariate variables
+##' @param values matrix giving the values. Should have (number of Regimes) rows and (number of regimes x number of covariates) columns
+##' @param params matrix of the same size as "values" consisting of the names of the parameters
+##' @param a vector of the names of the covariates to be used in the regime-switching functions
 ##' 
 ##' @details
-##' Note that the ROW sums for the transition probability matrix must be one.
+##' Note that each row of the transition probability matrix must sum to one. To accomplish this
+##' fix at least one transition log odd parameter in each row of "values" (including its intercept 
+##' and the regression slopes of all covariates) to 0.
 ##' 
 ##' @examples
 ##' #Regime-switching with no covariates (self-transition ID)
@@ -1694,8 +1695,31 @@ autojacob<-function(formula,n){
 ##' the first-order derivatives of the specified variables; if False, the left hand 
 ##' side of the formulas represent the current state of the specified variable while 
 ##' the same variable on the righ hand side is its previous state.  
-##' @param jacobian a list of formulas specifying the jacobian matrices of the drift/
-##' state-transition, which can be missing
+##' @param (optional) jacobian a list of formulas specifying the analytic jacobian matrices 
+##' containing the analytic differentiation function of the dynamic functions with respect to
+##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
+##' procedure to compute the jacobian functions.
+##' 
+##' @examples
+##' #Not run: 
+##' #Demo example in NonlinearDFADiscreteTime.r with user-supplied analytic 
+##' jacobian functions:
+##' 
+##' formula=list(x1~param[4]*x1+param[6]*(exp(abs(x2))/(1+exp(abs(x2))))*x2,
+##' x2~param[5]*x2+param[7]*(exp(abs(x1))/(1+exp(abs(x1))))*x1)
+##' jacob=list(x1~x1~param[4],
+##'            x1~x2~param[6]*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/pow(1+exp(abs(x2)),2)),
+##'            x2~x2~param[5],
+##'            x2~x1~param[7]*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/pow(1+exp(abs(x1)),2)))
+##'
+##'
+##' #Not run: demo example in NonlinearODE.r with automatic jacobian functions
+##' 
+##' #formula=list(list(prey~ r1*prey - a12*prey*predator,
+##' #                  predator~ -r2*predator + a21*prey*predator))
+##' #dynm<-prep.formulaDynamics(formula=formula,
+##' #                           startval=c(r1=2.1, r2=0.8, a12 = 1.9, a21 = 1.1),
+##' #                           isContinuousTime=TRUE)
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
   if(is.null(names(startval))){
     stop('startval must be a named vector')
@@ -1721,18 +1745,20 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 
 ##' Recipe function for creating Linear Dynamcis using matrices
 ##' 
-##' @param params.dyn the parameters matrix for the linear dynamics
-##' @param values.dyn the values matrix for the linear dynamics
-##' @param params.exo the parameters matrix for the effect of the covariates on the dynamic outcome (see details)
-##' @param values.exo the values matrix for the effect of the covariates on the dynamic outcome (see details)
-##' @param params.int the parameters vector for the intercept in the dynamic model (see details)
-##' @param values.int the values vector for the intercept in the dynamic model (see details)
-##' @param covariates the names or the index numbers of the covariates used for the dynamics
+##' @param params.dyn the matrix of parameter names for the transition matrix in the 
+##' specified linear dynamic model
+##' @param values.dyn the matrix of starting/fixed values for the transition matrix in the 
+##' specified linear dynamic model
+##' @param params.exo the matrix of parameter names for the regression slopes of covariates on the latent variables (see details)
+##' @param values.exo matrix of starting/fixed values for the regression slopes of covariates on the latent variables (see details)
+##' @param params.int vector of names for intercept parameters in the dynamic model specified as a matrix or list of matrices. 
+##' @param values.int vector of intercept values in the dynamic model specified as matrix or list of matrices. Contains starting/fixed values of the intercepts.
+##' @param covariates the names or the index numbers of the covariates used in the dynamic model
 ##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model.
 ##' 
 ##' @details
-##' The dynamic outcome is the latent variable vector at the next time point in the discrete time case,
-##' and the derivative of the latent variable vector at the current time point in the continuous time case.
+##' The right-hand-side of the dynamic model consists of a vector of latent variables for the next time point in the discrete time case,
+##' and the vector of derivatives for the latent variables at the current time point in the continuous time case.
 prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
                                 covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
@@ -1898,15 +1924,23 @@ processFormula<-function(formula.list){
 # string that is composed of C code.
 
 
-##' The translation function for initial conditions
-##' Output a C function to set up initial conditions (i.e., intial state vector, initial error covariance matrix, and initial probabilities of being in each regime) and the starting values of the related parameters.
+##' Recipe function for preparing the initial conditions for the model. 
 ##' 
 ##' @param values.inistate a vector of the starting or fixed values of the initial state vector
-##' @param params.inistate a vector of the parameter indices of the initial state vector. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
-##' @param values.inicov a positive definite matrix of the starting or fixed values of the initial error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. If theorectically an element is of value 0, please adjust it to some small number (e.g., 0.000001).
-##' @param params.inicov a matrix of the parameter indices of the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param params.inistate a vector of the parameter names that appear in the initial state vector. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param values.inicov a positive definite matrix of the starting or fixed values of the initial error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
+##' @param params.inicov a matrix of the parameter names that appear in the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' @param values.regimep a vector of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
-##' @param params.regimep a vector of the parameter indices of the initial probabilities of being in each regime. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param params.regimep a vector of the parameter indices of the initial probabilities of 
+##' being in each regime. If an element is 0, the corresponding element is fixed at the value 
+##' specified in the "values" vector; Otherwise, the corresponding element is to be estimated 
+##' with the starting value specified in the values vector.
+##' 
+##' @details
+##' The initial condition model includes specifications for the intial state vector, 
+##' initial error covariance matrix, initial probabilities of 
+##' being in each regime and all associated parameter specifications.
+##' 
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
 	# Handle initial state
 	r <- coProcessValuesParams(values.inistate, params.inistate)
