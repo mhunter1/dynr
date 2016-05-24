@@ -983,6 +983,8 @@ setMethod("createRfun", "dynrTrans",
           function(object, param.data, params.observed, params.latent, params.inicov,
                    values.observed, values.latent, values.inicov){
             #inv.tfun
+            inv.tf <- NULL
+            tf <- NULL
             if (length(object@formula.inv)==0){
               #TODO If formula.inv is missing, point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
               #inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
