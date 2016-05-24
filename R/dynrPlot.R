@@ -116,7 +116,7 @@ Mode <- function(y) {
 
 setMethod("plot", "dynrCook",
           function(x, y=NULL, dynrModel, textsize=6,...) {
-            
+  y <- NULL
   #The first panel is the ggplot
   p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1,...)
 
