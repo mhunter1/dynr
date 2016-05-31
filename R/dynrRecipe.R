@@ -1479,14 +1479,14 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
 ##' 
 ##' @examples
-##' prep.measurement(diag(1, 5), diag(1:5))
-##' prep.measurement(matrix(1, 5, 5), diag(1:5))
+##' prep.measurement(diag(1, 5), diag("lambda", 5))
+##' prep.measurement(matrix(1, 5, 5), diag(paste0("lambda_", 1:5)))
 ##' prep.measurement(diag(1, 5), diag(0, 5)) #identity measurement model
 ##' 
 ##' #Regime-switching measurement model where the first latent variable is
 ##' # active for regime 1, and the second latent variable is active for regime 2
 ##' # No free parameters are present.
-##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0,1), 1, 2)))
+##' prep.measurement(values.load=list(matrix(c(1,0), 1, 2), matrix(c(0, 1), 1, 2)))
 prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, params.exo=NULL, values.int=NULL, params.int=NULL,
                              obs.names, state.names, exo.names){
 	# Handle load
@@ -1555,7 +1555,7 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 ##' @param params.observed a matrix of parameter names that appear in the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
 ##' 
 ##' @examples 
-##' prep.noise(values.latent=diag(c('Free', 1)), params.latent=diag(c('fixed', 3)), values.observed=diag(1.5,1), params.observed=diag(4, 1))
+##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	values.latent <- preProcessValues(values.latent)
 	params.latent <- preProcessParams(params.latent)
