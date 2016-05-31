@@ -1391,19 +1391,22 @@ extractValues <- function(v, p){
 ##' 
 ##' @examples
 ##' #Single factor model with one latent variable fixing first loading
-##' prep.loadings( list(eta1=paste0('y', 1:4)), 4:6)
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_",2:4))
+##'
+##' #Single factor model with one latent variable fixing the fourth loading
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_",1:3), idvar='y4')
 ##' 
 ##' #Single factor model with one latent variable freeing all loadings
-##' prep.loadings( list(eta1=paste0('y', 1:4)), 3:6, idvar='eta1')
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 1:4), idvar='eta1')
 ##' 
 ##' # Two factor model with simple structure
-##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), c(4:6, 1:2))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), paste0("lambda_", c(2:4, 6:7)))
 ##' 
 ##' #Two factor model with repeated use of a free parameter
-##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), c(4:6, 1:2, 4))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), paste0("lambda_", c(2:4, 6:7, 4)))
 ##' 
 ##' #Two factor model with a cross loading
-##' prep.loadings( list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), c(4:6, 1:2))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), paste0("lambda_", c("21", "31", "41", "22", "62")))
 prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
