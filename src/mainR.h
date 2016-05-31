@@ -1,6 +1,6 @@
 
 #include <math.h>/*sqrt(double)*/
-#include <stdio.h>
+/*#include <stdio.h>*/
 #include <string.h>
 #include "nlopt.h"
 #include "math_function.h"
@@ -15,13 +15,15 @@
 #include <gsl/gsl_matrix.h>
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
+#include "estimation.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
+#include <Rdefines.h>
 
 SEXP getListElement(SEXP list, const char *str);
 
-SEXP main_R(SEXP model_list,SEXP data_list);
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in);
 
 
 

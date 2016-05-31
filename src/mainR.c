@@ -21,7 +21,7 @@ Note
 */
 
 #include <math.h>/*sqrt(double)*/
-#include <stdio.h>
+/*#include <stdio.h>*/
 #include <string.h>
 #include "nlopt.h"
 #include "math_function.h"
@@ -41,9 +41,7 @@ Note
 #include <Rinternals.h>
 #include <Rmath.h>
 #include <Rdefines.h>
-
-
-
+#include "print_function.h"
 
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
@@ -61,15 +59,17 @@ SEXP getListElement(SEXP list, const char *str)
 /**
  * The gateway function for the R interface
  * @param model_list is a list in R of all model specifications.
- * @param paramvec is a vector in R of the parameter starting values
- * @param ubvec is a vector in R of the upper bounds of search region
- * @param lbvec is a vecotr in R of the lower bounds of the search region
+ * @param data_list is a list in R of the outputs prepared by dynr.data()
+ * @param debug_flag_in a flag for returning a longer list of outputs for debugging purposes
+ * @param outall_flag_in a flag for returning all possible outputs
+ * @param verbose_flag_in a flag of whether or not to print debugging statements before and during estimation.
  */
-SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in)
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in)
 {
     size_t index,index_col,index_row;
     bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
 	bool outall_flag=*LOGICAL(PROTECT(outall_flag_in));
+	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
     /** =======================Interface : Start to Set up the data and the model========================= **/
 
     static Data_and_Model data_model;
@@ -78,32 +78,32 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	/*number of subjects*/
 	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
 	data_model.pc.num_sbj=(size_t) *INTEGER(num_sbj_sexp);
-	printf("num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
+	DYNRPRINT(verbose_flag, "num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
 	
 	/*number of function parameters*/
 	SEXP num_func_param_sexp = PROTECT(getListElement(model_list, "num_func_param"));
 	data_model.pc.num_func_param=(size_t) *INTEGER(num_func_param_sexp);
-	printf("num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
+	DYNRPRINT(verbose_flag, "num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
 	
 	/*number of latent variables*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
 	data_model.pc.dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
-	printf("dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
+	DYNRPRINT(verbose_flag, "dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
 	
 	/*number of observed variables*/
 	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
 	data_model.pc.dim_obs_var=(size_t) *INTEGER(dim_obs_var_sexp);
-	printf("dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
+	DYNRPRINT(verbose_flag, "dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
 	
 	/*number of covariates*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
 	data_model.pc.dim_co_variate=(size_t) *INTEGER(dim_co_variate_sexp);
-	printf("dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
+	DYNRPRINT(verbose_flag, "dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
 	
 	/*number of regimes*/
 	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
 	data_model.pc.num_regime=(size_t) *INTEGER(num_regime_sexp);
-	printf("num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
+	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
 
     /*function specifications*/
     SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
@@ -129,7 +129,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	/*whether a continuous-time model is used*/
 	SEXP isContinuousTime_sexp = PROTECT(getListElement(model_list, "isContinuousTime"));
 	data_model.pc.isContinuousTime=*LOGICAL(isContinuousTime_sexp);
-	printf("isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
+	DYNRPRINT(verbose_flag, "isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
 	
     if (data_model.pc.isContinuousTime){
 		SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
@@ -169,10 +169,10 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     for(index=0;index<=data_model.pc.num_sbj;index++){
         data_model.pc.index_sbj[index]= ptr_index_int[index];
     }
-    printf("index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);
+    /*DYNRPRINT(verbose_flag, "index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);*/
 
     data_model.pc.total_obs=*(data_model.pc.index_sbj+data_model.pc.num_sbj);/*total observations for all subjects*/
-    printf("total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
+    DYNRPRINT(verbose_flag, "total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
 
     /** read in the data**/
 	/*observed data*/
@@ -194,8 +194,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     for(index=0;index<data_model.pc.dim_obs_var;index++){
         sprintf(str_number, "%lu", (long unsigned int) index+1);
         sprintf(str_name, "%s", "obs");
-        /*printf("The str_number is %s\n",str_number);
-        printf("The str_name length is %lu\n",strlen(str_name));*/
+        /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
+        DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
         ptr_index=REAL(PROTECT(getListElement(observed_sexp, strncat(str_name, str_number, strlen(str_number)))));
         for(t=0; t<data_model.pc.total_obs; t++){
             gsl_vector_set(data_model.y[t],index, ptr_index[t]);
@@ -215,8 +215,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
         for(index=0;index<data_model.pc.dim_co_variate;index++){
             sprintf(str_number, "%lu", (long unsigned int) index+1);
             sprintf(str_name, "%s", "covar");
-            /*printf("The str_number is %s\n",str_number);
-            printf("The str_name length is %lu\n",strlen(str_name));*/
+            /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
+            DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
 	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
             for(t=0; t<data_model.pc.total_obs; t++){
                 gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
@@ -235,12 +235,12 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     data_model.y_time=(double *)malloc(data_model.pc.total_obs*sizeof(double));
         memcpy(data_model.y_time,REAL(PROTECT(getListElement(data_list, "time"))),data_model.pc.total_obs*sizeof(double));
 
-    /*printf("In main_R:\n");
+    /*DYNRPRINT(verbose_flag, "In main_R:\n");
     print_vector(data_model.y[0]);
-    printf("\n");
+    DYNRPRINT(verbose_flag, "\n");
     print_vector(data_model.co_variate[0]);
-    printf("\n");
-    printf("y_time_1 is %lf\n",data_model.y_time[0]);
+    DYNRPRINT(verbose_flag, "\n");
+    DYNRPRINT(verbose_flag, "y_time_1 is %lf\n",data_model.y_time[0]);
     */
 
     /** Optimization options **/
@@ -262,25 +262,25 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 
     double params[data_model.pc.num_func_param];
     	memcpy(params,REAL(PROTECT(getListElement(model_list, "xstart"))),sizeof(params));
-    /*printf("Array paramvec allocated.\n");*/
+    /*DYNRPRINT(verbose_flag, "Array paramvec allocated.\n");*/
     /*print_array(params,data_model.pc.num_func_param);*/
-    /*printf("\n");*/
+    /*DYNRPRINT(verbose_flag, "\n");*/
     double fittedpar[data_model.pc.num_func_param];
     	memcpy(fittedpar, params,sizeof(params));
-    printf("Array paramvec copied.\n");
-    print_array(fittedpar,data_model.pc.num_func_param);
-    printf("\n");
+    /*DYNRPRINT(verbose_flag, "Array params copied.\n");*/
+    /*print_array(fittedpar,data_model.pc.num_func_param);*/
+    /*DYNRPRINT(verbose_flag, "\n");*/
     double ub[data_model.pc.num_func_param];
     double lb[data_model.pc.num_func_param];
     memcpy(ub,REAL(PROTECT(getListElement(model_list, "ub"))),sizeof(ub));
     memcpy(lb,REAL(PROTECT(getListElement(model_list, "lb"))),sizeof(lb));
     int h;
-    /*printf("ub value h %f\n", ub[1]);*/
+    /*DYNRPRINT(verbose_flag, "ub value h %f\n", ub[1]);*/
     for (h=0; h < data_model.pc.num_func_param; h++){
       if (ub[h]==9999){ub[h]=HUGE_VAL;}
       if (lb[h]==9999){lb[h]=-HUGE_VAL;}
     }
-    /*printf("Arrays allocated.\n");*/
+    /*DYNRPRINT(verbose_flag, "Arrays allocated.\n");*/
     /*double ub[6] = {4, 4, 4, 4, 4, 4};
     double lb[6] = {-4,-4,-4,-4,-12, -12}; */
     /*double params[]={log(1),log(2),0,0,-10,-10};*//* some initial guess*/
@@ -298,7 +298,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
 
 
-	/*printf("Optimization done.\n");*/
+	/*DYNRPRINT(verbose_flag, "Optimization done.\n");*/
     /** =================Optimization: done======================**/
 
     /** =================Extended Kim Filter and Smoother: start======================**/
@@ -522,7 +522,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	    model_constraint_init(&(data_model.pc), &pi);
 
 	    /*print_matrix(par.y_noise_cov);
-	    printf("\n");*/
+	    DYNRPRINT(verbose_flag, "\n");*/
 
         double neg_log_like=EKimFilter(data_model.y, data_model.co_variate, data_model.y_time, &(data_model.pc), &pi, &par,
 	    eta_regime_j_t,error_cov_regime_j_t,eta_regime_jk_pred,error_cov_regime_jk_pred,eta_regime_jk_t_plus_1,error_cov_regime_jk_t_plus_1,
@@ -535,7 +535,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     /** =================Extended Kim Filter and Smoother: done======================**/
 
     /** =================Interface: SEXP Output====================== **/
-	printf("Creating and allocating R output ... \n");
+	DYNRPRINT(verbose_flag, "Creating and allocating R output ... \n");
 	SEXP res_list;
 	SEXP res_names;
 	if (outall_flag){
@@ -552,17 +552,17 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 
     SEXP exitflag=PROTECT(allocVector(INTSXP,1));
     *INTEGER(exitflag)=status;
-    printf("exitflag created and copied.\n");
+    DYNRPRINT(verbose_flag, "exitflag created and copied.\n");
     SEXP negloglike=PROTECT(allocVector(REALSXP,1));
     *REAL(negloglike)=neg_log_like;/*should be the same as minf*/
-    printf("negloglike created and copied.\n");
+    DYNRPRINT(verbose_flag, "negloglike created and copied.\n");
     SEXP fittedout=PROTECT(allocVector(REALSXP, data_model.pc.num_func_param));
-	/*printf("fittedout created.\n");*/
+	/*DYNRPRINT(verbose_flag, "fittedout created.\n");*/
 	memcpy(REAL(fittedout),fittedpar,sizeof(fittedpar));
-	/*printf("fittedout copied.\n");
+	/*DYNRPRINT(verbose_flag, "fittedout copied.\n");
 	print_array(REAL(fittedout),data_model.pc.num_func_param);
-	printf("\n");*/
-	printf("fittedout created and copied.\n");
+	DYNRPRINT(verbose_flag, "\n");*/
+	DYNRPRINT(verbose_flag, "fittedout created and copied.\n");
 
     SEXP hessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
          ptr_index=REAL(hessian);
@@ -575,7 +575,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
              }
          }
-    printf("hessian created and copied.\n");
+    DYNRPRINT(verbose_flag, "hessian created and copied.\n");
     /*eta_regime_t: input and output of filter & input of smooth: eta^k_it|t*/
     /*error_cov_regime_t:input and output of filter & input of smooth: error_cov^k_it|t*/
     /*eta_regime_regime_t_pred: output of filter and input of smooth: eta^regime_jk_it|t-1*/
@@ -603,7 +603,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	             index++;
 	         }
 	     }
-	     printf("eta_smooth_final created and copied.\n");
+	     DYNRPRINT(verbose_flag, "eta_smooth_final created and copied.\n");
 
 	     SEXP dims_error_cov_smooth_final=PROTECT(allocVector(INTSXP,3));
 	     memcpy(INTEGER(dims_error_cov_smooth_final), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
@@ -618,7 +618,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	             }
 	         }
 	     }
-	     printf("error_cov_smooth_final created and copied.\n");
+	     DYNRPRINT(verbose_flag, "error_cov_smooth_final created and copied.\n");
 
 		 SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
 		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -631,7 +631,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 				 index++;
 			 }
 		 }
-		 printf("pr_t_given_T created and copied.\n");
+		 DYNRPRINT(verbose_flag, "pr_t_given_T created and copied.\n");
 
 	     SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
 	     SET_VECTOR_ELT(res_list, 0, exitflag);
@@ -665,7 +665,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	 	         }
 	 	     }
 	 	 }
-	 	printf("eta_regime_t created and copied.\n");
+	 	DYNRPRINT(verbose_flag, "eta_regime_t created and copied.\n");
 
 	     SEXP dims_error_cov_regime_t=PROTECT(allocVector(INTSXP,4));
 	     memcpy(INTEGER(dims_error_cov_regime_t), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -682,7 +682,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	             }
 	         }
 	     }
-	     printf("error_cov_regime_t created and copied.\n");
+	     DYNRPRINT(verbose_flag, "error_cov_regime_t created and copied.\n");
 
 	     SEXP dims_innov_vec=PROTECT(allocVector(INTSXP,4));
 	     memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -699,7 +699,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	             }
 	         }
 	     }
-	     printf("innov_vec created and copied.\n");
+	     DYNRPRINT(verbose_flag, "innov_vec created and copied.\n");
 
 	     SEXP dims_inverse_residual_cov=PROTECT(allocVector(INTSXP,5));
 	     memcpy(INTEGER(dims_inverse_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
@@ -718,7 +718,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	             }
 	         }
 	     }
-	     printf("inverse_residual_cov created and copied.\n");
+	     DYNRPRINT(verbose_flag, "inverse_residual_cov created and copied.\n");
 	     SET_STRING_ELT(res_names, 7, mkChar("eta_regime_t"));
 	     SET_VECTOR_ELT(res_list, 7, eta_regime_t);
 	     SET_STRING_ELT(res_names, 8, mkChar("error_cov_regime_t"));
@@ -744,7 +744,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
 	              }
 	          }
-	          printf("invhessian created and copied.\n");
+	          DYNRPRINT(verbose_flag, "invhessian created and copied.\n");
 
     SEXP dims_pr_t_given_t=PROTECT(allocVector(INTSXP,2));
     memcpy(INTEGER(dims_pr_t_given_t), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
@@ -757,7 +757,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             index++;
         }
     }
-    printf("pr_t_given_t created and copied.\n");
+    DYNRPRINT(verbose_flag, "pr_t_given_t created and copied.\n");
 
 
     SEXP dims_pr_t_given_t_less_1=PROTECT(allocVector(INTSXP,2));
@@ -771,7 +771,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             index++;
         }
     }
-    printf("pr_t_given_t_less_1 created and copied.\n");
+    DYNRPRINT(verbose_flag, "pr_t_given_t_less_1 created and copied.\n");
 
 
     SEXP dims_transprob_given_T=PROTECT(allocVector(INTSXP,3));
@@ -787,7 +787,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             }
         }
     }
-    printf("transprob_given_T created and copied.\n");
+    DYNRPRINT(verbose_flag, "transprob_given_T created and copied.\n");
 
     SEXP dims_eta_regime_smooth=PROTECT(allocVector(INTSXP,3));
     memcpy(INTEGER(dims_eta_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.total_obs}),3*sizeof(int));
@@ -802,7 +802,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             }
         }
     }
-    printf("eta_regime_smooth created and copied.\n");
+    DYNRPRINT(verbose_flag, "eta_regime_smooth created and copied.\n");
 
     SEXP dims_error_cov_regime_smooth=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_error_cov_regime_smooth), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.total_obs}),4*sizeof(int));
@@ -819,7 +819,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             }
         }
     }
-    printf("error_cov_regime_smooth created and copied.\n");
+    DYNRPRINT(verbose_flag, "error_cov_regime_smooth created and copied.\n");
 
 	
     SEXP dims_eta_regime_regime_t_pred=PROTECT(allocVector(INTSXP,4));
@@ -838,35 +838,38 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             }
         }
     }
-    printf("eta_regime_regime_t_pred created and copied.\n");
+    DYNRPRINT(verbose_flag, "eta_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
-    printf("SEXP dimension created and protected.\n");    
+    /*DYNRPRINT(verbose_flag, "SEXP dimension created and protected.\n");*/    
     memcpy(INTEGER(dims_error_cov_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
-    printf("dimension intergers copied.\n");    
-    printf("dim_latent_var is %lu, num_regime is %lu, total_obs is %lu\n", data_model.pc.dim_latent_var, data_model.pc.num_regime,data_model.pc.total_obs);
-    printf("dimensions are %d %d %d %d %d\n", INTEGER(dims_error_cov_regime_regime_t_pred)[0], INTEGER(dims_error_cov_regime_regime_t_pred)[1],INTEGER(dims_error_cov_regime_regime_t_pred)[2],INTEGER(dims_error_cov_regime_regime_t_pred)[3],INTEGER(dims_error_cov_regime_regime_t_pred)[4]);   
-    SEXP error_cov_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_pred));
-    printf("SEXP array created and protected.\n");
-    index=0;
+    /*DYNRPRINT(verbose_flag, "dimension intergers copied.\n");    
+    DYNRPRINT(verbose_flag, "dim_latent_var is %lu, num_regime is %lu, total_obs is %lu\n", data_model.pc.dim_latent_var, data_model.pc.num_regime,data_model.pc.total_obs);
+    DYNRPRINT(verbose_flag, "dimensions are %d %d %d %d %d\n", INTEGER(dims_error_cov_regime_regime_t_pred)[0], INTEGER(dims_error_cov_regime_regime_t_pred)[1],INTEGER(dims_error_cov_regime_regime_t_pred)[2],INTEGER(dims_error_cov_regime_regime_t_pred)[3],INTEGER(dims_error_cov_regime_regime_t_pred)[4]);   
+    */
+	SEXP error_cov_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_pred));
+    /*DYNRPRINT(verbose_flag, "SEXP array created and protected.\n");
+    */
+	index=0;
     ptr_index=REAL(error_cov_regime_regime_t_pred);
-    printf("Pointer address assigned.\n");
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+    /*DYNRPRINT(verbose_flag, "Pointer address assigned.\n");
+    */
+	for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
         for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
             for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
                 for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
                     for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
 			ptr_index[index]=gsl_matrix_get(error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k],index_row, index_col);
-                       /* printf("the %lu element error_cov_regime_jk_pred %lu %lu %lu %lu %lu is %f\n",index, index_sbj_t,regime_j,regime_k,index_row,index_col, elementvalue);
+                       /* DYNRPRINT(verbose_flag, "the %lu element error_cov_regime_jk_pred %lu %lu %lu %lu %lu is %f\n",index, index_sbj_t,regime_j,regime_k,index_row,index_col, elementvalue);
 */
-			/*printf("the element is copied.\n");*/
+			/*DYNRPRINT(verbose_flag, "the element is copied.\n");*/
 			index++;
                     }
                 }
            }
         }
     }
-        printf("error_cov_regime_regime_t_pred created and copied.\n");
+        DYNRPRINT(verbose_flag, "error_cov_regime_regime_t_pred created and copied.\n");
 
     SEXP dims_eta_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,4));
     memcpy(INTEGER(dims_eta_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
@@ -885,13 +888,15 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
         }
     }
 
-    printf("eta_regime_regime_t_plus_1 created and copied.\n");
+    DYNRPRINT(verbose_flag, "eta_regime_regime_t_plus_1 created and copied.\n");
 
     SEXP dims_error_cov_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,5));
-    printf("SEXP dimension created and protected.\n");
+    /*DYNRPRINT(verbose_flag, "SEXP dimension created and protected.\n");
+	*/
     memcpy(INTEGER(dims_error_cov_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime, data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
     SEXP error_cov_regime_regime_t_plus_1 = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_plus_1));
-    printf("SEXP array created and protected.\n");
+    /*DYNRPRINT(verbose_flag, "SEXP array created and protected.\n");
+	*/
     index=0;
     ptr_index=REAL(error_cov_regime_regime_t_plus_1);
 
@@ -907,7 +912,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
             }
         }
     }
-    printf("error_cov_regime_regime_t_plus_1 created and copied.\n");
+    DYNRPRINT(verbose_flag, "error_cov_regime_regime_t_plus_1 created and copied.\n");
 
 	    SET_STRING_ELT(res_names, 11, mkChar("inverse.hessian.matrix"));
 	    SET_VECTOR_ELT(res_list, 11, invhessian);
@@ -936,27 +941,27 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 
     setAttrib(res_list, R_NamesSymbol, res_names);
 
-    printf("R return list completed.\n");
+    DYNRPRINT(verbose_flag, "R return list completed.\n");
     /** =================Interface: Output done====================== **/
 
     /** =================Free Allocated space====================== **/
-	printf("Freeing objects before return ... \n");
+	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
 		if (outall_flag){
-			UNPROTECT(88-17);
+			UNPROTECT(89-17);
 		}else if (debug_flag){
-			UNPROTECT(88-17-19);
+			UNPROTECT(89-17-19);
 		}else{
-			UNPROTECT(88-17-19-8);
+			UNPROTECT(89-17-19-8);
 		}
 
 	}else{
 		if (outall_flag){
-			UNPROTECT(88-17-1);
+			UNPROTECT(89-17-1);
 		}else if (debug_flag){
-			UNPROTECT(88-17-19-1);
+			UNPROTECT(89-17-19-1);
 		}else{
-			UNPROTECT(88-17-19-8-1);
+			UNPROTECT(89-17-19-8-1);
 		}
 	}/*unprotect objects: find all PROTECT in the script, then -2*2Cancel-6ENDUNP-4outputflag-2/3CTflag -1 comment=-17*/
 
