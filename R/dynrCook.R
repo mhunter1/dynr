@@ -251,7 +251,7 @@ coef.dynrCook <- function(object, ...){
 ##' 
 ##' @examples
 ##' # Let cookedModel be the output from dynr.cook
-##' logLik(cookedModel)
+##' #logLik(cookedModel)
 logLik.dynrCook <- function(object, ...){
   ans <- -object@neg.log.likelihood
   attr(ans, "df") <- length(object@fitted.parameters)
@@ -296,7 +296,7 @@ vcov.dynrCook <- function(object, ...){
 ##' @seealso \code{\link{dynr.cook}}
 ##' 
 ##' @examples
-##' #fitted.model <- dynr.cook(model, data)
+##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE) {
 	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
 	frontendStart <- Sys.time()
