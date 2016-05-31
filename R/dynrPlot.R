@@ -145,7 +145,7 @@ setMethod("plot", "dynrCook",
   }
   
   #The third panel plots the model formulae
-  p3 <- plotFormula(dynrModel, ParameterAs=signif(x@transformed.parameters,2), textsize=textsize)
+  p3 <- plotFormula(dynrModel, ParameterAs=sprintf("%.2f", x@transformed.parameters), textsize=textsize)
 
   #Organize the panels using the multiplot function
   if (dynrModel$num_regime > 1){

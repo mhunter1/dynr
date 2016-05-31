@@ -108,7 +108,7 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-plotFormula(model, ParameterAs=signif(res@transformed.parameters,2)) 
+plotFormula(model, ParameterAs=sprintf("%.2f", res@transformed.parameters)) 
 ggsave("RSNonlinearODEPlotFml.pdf")
 
 dynr.ggplot(res, data.dynr=data, states=c(1:2), 

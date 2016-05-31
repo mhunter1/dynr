@@ -138,7 +138,7 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-plotFormula(model, signif(res@transformed.parameters,2))
+plotFormula(model, sprintf("%.2f", res@transformed.parameters))
 ggsave("LinearSDEPlotFml.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions

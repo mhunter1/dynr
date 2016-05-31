@@ -180,9 +180,9 @@ summaryResults<-function(object){
              BIC = BIC(object)
              colnames(d) = c("names","parameters","s.e.","t-value","ci.lower","ci.upper")
              print(d)
-             cat(paste0("\n-2 log-likelihood value at convergence = ", signif(neg2LL,2)))
-             cat(paste0("\nAIC = ", signif(AIC,2)))
-             cat(paste0("\nBIC = ", signif(BIC,2)))
+             cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.2f", neg2LL)))
+             cat(paste0("\nAIC = ", sprintf("%.2f", AIC)))
+             cat(paste0("\nBIC = ", sprintf("%.2f", BIC)))
            }
 
 ##' Get the summary of a dynrCook object
