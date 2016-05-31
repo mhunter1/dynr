@@ -352,8 +352,9 @@ setMethod("printex", "dynrModel",
 ##' for parameter estimation.
 ##' 
 ##' @examples
-##' model <- dynr.model(dynamics=dynm, measurement=meas,noise=mdcov, initial=initial, 
-##' regimes=regime, transform=trans,outfile="Recipe")
+##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
+##' #For a full demo example, see:
+##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=tempfile(), outfile){
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
