@@ -36,10 +36,11 @@ Note
 #include <gsl/gsl_matrix.h>
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
+#include "print_function.h"
 
 int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,double *minf,double *fittedpar,gsl_matrix *Hessian_mat,gsl_matrix *inv_Hessian_mat,double *xtol_rel, double *stopval, double *ftol_rel, double *ftol_abs, int *maxeval, double *maxtime)
 {
-    printf("Optimize function called.\n");
+    MYPRINT("Optimization function called.\n");
     nlopt_opt opt;
     /*opt = nlopt_create(NLOPT_LD_MMA, 2); */
     opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
@@ -56,23 +57,23 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     nlopt_set_ftol_abs(opt, * ftol_abs);
     nlopt_set_maxeval(opt, * maxeval);
     nlopt_set_maxtime(opt, * maxtime);
-    /*printf("Set maxeval option to %d\n", * maxeval);
-    printf("Set maxtime option to %f\n", * maxtime);*/
-    /*printf("Set ftol_rel to  %f\n", *ftol_rel);*/
+    /*MYPRINT("Set maxeval option to %d\n", * maxeval);
+    MYPRINT("Set maxtime option to %f\n", * maxtime);*/
+    /*MYPRINT("Set ftol_rel to  %f\n", *ftol_rel);*/
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
     if ( status< 0) {
-		printf("nlopt failed!\n");
+		MYPRINT("nlopt failed!\n");
     }else{
-		printf("Starting Hessian calculation ...\n");
+		MYPRINT("Starting Hessian calculation ...\n");
 		hessianRichardson(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat); /*information matrix*/
-		printf("Finished Hessian calculation.\n");
+		MYPRINT("Finished Hessian calculation.\n");
 		/* mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat); */ /*variance*/
 	}
 	
 	nlopt_destroy(opt);
 	
-	/*printf("Done.\n");*/
+	/*MYPRINT("Done.\n");*/
 	return status;
 }
 

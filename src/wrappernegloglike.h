@@ -14,5 +14,6 @@
 #include <gsl/gsl_linalg.h>
 #include <time.h>
 #include "model.h"
+#include "print_function.h"
 double function_neg_log_like(const double *params, void *data);
 #endif

@@ -19,6 +19,7 @@
 #include "adaodesolver.h"
 #include <R.h>
 #include <Rinternals.h>
+#include "print_function.h"
 /******************************************************************************
 * extended kalman filter (EKF)
 * *

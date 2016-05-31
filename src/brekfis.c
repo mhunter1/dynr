@@ -27,7 +27,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <time.h>
-
+#include "print_function.h"
 
 /**
  * This method implements a one-step brekfis

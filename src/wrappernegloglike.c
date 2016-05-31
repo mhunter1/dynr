@@ -20,8 +20,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <time.h>
-
-
+#include "print_function.h"
 
 double function_neg_log_like(const double *params, void *data){
     double neg_log_like;
@@ -30,17 +29,17 @@ double function_neg_log_like(const double *params, void *data){
     /** model configuration **/
     Data_and_Model data_model=*((Data_and_Model *)data);/*dereference the void pointer*/
     
-    /*printf("In function_neg_log_like:\n");
+    /*MYPRINT("In function_neg_log_like:\n");
     print_vector(data_model.y[0]);
-    printf("\n"); 
+    MYPRINT("\n"); 
     print_vector(data_model.y[1]);
-    printf("\n");
+    MYPRINT("\n");
     print_vector(data_model.co_variate[0]);
-    printf("\n");
+    MYPRINT("\n");
     print_vector(data_model.co_variate[1]);
-    printf("\n");
-    printf("y_time_1 is %lf\n",data_model.y_time[0]);
-    printf("y_time_2 is %lf\n",data_model.y_time[1]);
+    MYPRINT("\n");
+    MYPRINT("y_time_1 is %lf\n",data_model.y_time[0]);
+    MYPRINT("y_time_2 is %lf\n",data_model.y_time[1]);
     exit(0);*/
 
     /** initialize regime parameter**/
@@ -69,8 +68,6 @@ double function_neg_log_like(const double *params, void *data){
     }
     
     print_array(par.func_param,data_model.pc.num_func_param);
-    printf("\n");
-
 
     data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
 
@@ -87,9 +84,7 @@ double function_neg_log_like(const double *params, void *data){
     
     
     neg_log_like=brekfis(data_model.y, data_model.co_variate, data_model.pc.total_obs,data_model.y_time, &data_model.pc, &pi, &par);
-    printf("%lf",neg_log_like);
-    printf("\n");
-
+    MYPRINT("%lf\n",neg_log_like);
 
     /** free allocated space **/
 

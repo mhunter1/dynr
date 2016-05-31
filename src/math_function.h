@@ -67,24 +67,6 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat);
 double mathfunction_mat_trace(const gsl_matrix *mat);
 
 /**
- * print the given vector's value to the console
- */
-void print_vector(const gsl_vector *y);
-
-/**
- * print given array to the console
- * format is [v1, ..., vn]
- */
-void print_array(const double *v, int n);
-
-/**
- * print the given matrix;
- */
-void print_matrix(const gsl_matrix *mat);
-
-void print_buffer(const void *buffer, size_t len);
-
-/**
  * This method computes C=A*B or C=A'*B or C=A*B' or C=A'*B'
  * @param mat_a the matrix of A
  * @param mat_b the matrix of B
@@ -122,28 +104,6 @@ void mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec);
 
 void mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat);
 
-
-/**
- * generate a random number ranges from 0 to 1
- */
-double drand();
-
-/**
- * generate a random number satisfies standard normal distribution.
- */
-double random_std_normal();
-
-/**
- * generate a random number satisfies any normal distribution
- */
-double random_normal(double mu, double sigma);
-
-/**
- * generate a vector of random numbers satisfies given normal distribution with zero mean.
- */
-void white_noise(const gsl_vector *sigma, gsl_vector *noise);
-
-void random_pos_id_mat(gsl_matrix *mat);
 /**
  * This function scales vector A and store the result in B
  * @param vec_a vector A

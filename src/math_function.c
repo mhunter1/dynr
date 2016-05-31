@@ -10,6 +10,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 #include "math_function.h"
+#include "print_function.h"
 
 /**
  * This method computes the log-likelihood of a multivariate normal distribution.
@@ -19,7 +20,7 @@
  * @return the negative log-likelihood
  */
 double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss,double det){
-    /*printf("x(0)=%f\n", gsl_vector_get(x, 0));*/
+    /*MYPRINT("x(0)=%f\n", gsl_vector_get(x, 0));*/
     double result=0;
 	
 	/*handling missing data*/
@@ -45,14 +46,14 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 		  	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, temp, invtemp, 0.0, inv_cov_mat_small);
 			end = clock();
 			time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-			printf("time spent: %lf\n",time_spent);
+			MYPRINT("time spent: %lf\n",time_spent);
 			print_matrix(inv_cov_matrix);
-			printf("det=: %lf\n",det);
+			MYPRINT("det=: %lf\n",det);
 			det=mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
 			print_matrix(inv_cov_mat_small);
-			printf("det=: %lf\n",det);
+			MYPRINT("det=: %lf\n",det);
 			print_matrix(cov_mat_small);
-			printf("\n");
+			MYPRINT("\n");
 			gsl_matrix_free(temp);
 			gsl_matrix_free(invtemp);
 			*/
@@ -91,7 +92,7 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 	    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
 	    gsl_blas_ddot(x, y, &mu);
 	    /*if(mu!=mu){
-	     printf("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
+	     MYPRINT("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
 	     }*/
 	    result+=mu/2.0;
     
@@ -103,13 +104,13 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
     /*if(1){
      for(ri=0; ri<inv_cov_matrix->size1; ri++){
      for(ci=0; ci<inv_cov_matrix->size2; ci++)
-     printf("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
-     printf("\n");
+     MYPRINT("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
+     MYPRINT("\n");
      }
-     printf("x: ( ");
+     MYPRINT("x: ( ");
      for(ci=0; ci<x->size; ci++)
-     printf("%.3f ", gsl_vector_get(x, ci));
-     printf(")\n");
+     MYPRINT("%.3f ", gsl_vector_get(x, ci));
+     MYPRINT(")\n");
      }*/
     /*result=isfinite(result)?result:1e-4;*/
     return result;
@@ -123,14 +124,14 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	gsl_set_error_handler_off();
 	if(mat->size1 != mat->size2 || mat->size1 != inv_mat->size1 || inv_mat->size1 != inv_mat->size2){
-		printf("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
+		MYPRINT("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
 	}
 	gsl_matrix_memcpy(inv_mat, mat);
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
 	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
-		/* printf("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
+		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
 		gsl_matrix_set_all(inv_mat, 10000.0);
 		det = 0.0;
 	}
@@ -149,14 +150,14 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
 double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	gsl_set_error_handler_off();
 	if(mat->size1 != mat->size2 || mat->size1 != inv_mat->size1 || inv_mat->size1 != inv_mat->size2){
-		printf("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
+		MYPRINT("Matrix for inversion is not square or not equal in size to inverse matrix.\n");
 	}
 	gsl_matrix_memcpy(inv_mat, mat);
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
 	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
-		/* printf("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
+		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
 		gsl_matrix_set_all(inv_mat, 10000.0);
 		det = 0.0;
 	}
@@ -178,54 +179,6 @@ double mathfunction_cholesky_det(const gsl_matrix *mat){
 	}
 	d*=d;
 	return d;
-}
-
-
-/**
- * print the given vector's value to the console
- * format (v1, v2, ... )
- */
-void print_vector(const gsl_vector *y){
-    if(y==NULL){
-        printf("( NULL )");
-        return;
-    }
-    size_t index;
-    if(y->size<=0)
-        return;
-    printf("(%.3f",gsl_vector_get(y, 0));
-    for(index=1; index<y->size; index++)
-        printf(", %.3f", gsl_vector_get(y, index));
-    printf(")");
-}
-
-/**
- * print given array to the console
- * format is [v1, ..., vn]
- */
-void print_array(const double *v, int n){
-    size_t index;
-    if(n<=0)
-        return;
-    printf("[%.3f", v[0]);
-    for(index=1; index<n; index++)
-        printf(", %.3f", v[index]);
-    printf("]");
-}
-
-/**
- * print the given matrix;
- */
-void print_matrix(const gsl_matrix *mat){
-    size_t ri, ci;
-    if(mat->size1<=0 || mat->size2<=0)
-        return;
-    for(ri=0; ri<mat->size1; ri++){
-        printf("  %.7f", gsl_matrix_get(mat, ri, 0));
-        for(ci=1; ci<mat->size2; ci++)
-            printf(", %.7f", gsl_matrix_get(mat, ri, ci));
-        printf("\n");
-    }
 }
 
 /**
@@ -302,7 +255,7 @@ void mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){
 
     	for (j=i+1;j<nx;j++){
                 gsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));
-    	    /*printf("%lu",i+j+nx-1);}*/
+    	    /*MYPRINT("%lu",i+j+nx-1);}*/
     	}
     }
 }
@@ -327,51 +280,6 @@ void mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){
     	}
     }
 }
-/**
- * generate a random number ranges from 0 to 1
- */
-double drand(){
-    return (rand()+1.0)/(RAND_MAX+1.0);
-}
-
-/**
- * generate a random number satisfies standard normal distribution.
- */
-double random_std_normal()
-{
-  return sqrt(-2*log(drand())) * cos(2*M_PI*drand());
-}
-
-/**
- * generate a random number satisfies any normal distribution
- */
-double random_normal(double mu, double sigma){
-    return random_std_normal()*sigma+mu;
-}
-
-/**
- * generate a vector of random numbers satisfies given normal distribution with zero mean.
- */
-void white_noise(const gsl_vector *sigma, gsl_vector *noise){
-    size_t index;
-    for(index=0; index<sigma->size; index++)
-        gsl_vector_set(noise, index, random_normal(0, gsl_vector_get(sigma, index)));
-}
-
-void random_pos_id_mat(gsl_matrix *mat){
-    size_t row_index;
-
-    gsl_matrix_set_zero(mat);
-    for(row_index=0; row_index<mat->size1; row_index++){
-        gsl_matrix_set(mat, row_index, row_index, abs(random_std_normal()));
-        /*for(col_index=row_index+1; col_index<mat->size2; col_index++){
-            v=abs(random_std_normal());
-            gsl_matrix_set(mat, row_index, col_index, v);
-            gsl_matrix_set(mat, col_index, row_index, v);
-        }*/
-    }
-}
-
 /**
  * This function scales vector A and store the result in B
  * @param vec_a vector A
@@ -459,10 +367,10 @@ double mathfunction_normalize_log_vector(gsl_vector *log_v){
     size_t col_index;
     
     gsl_vector_minmax(log_v, &min_v, &max_v); /* find a bug for this function, returns minv as -nan*/
-    /*printf("%f\n", min_v);*/
+    /*MYPRINT("%f\n", min_v);*/
     if(min_v!=min_v){ /* sometimes the returned min_v is nan. But recall this function will solve the problem*/
         gsl_vector_minmax(log_v, &min_v, &max_v);
-        /*printf("%f\n", min_v);*/
+        /*MYPRINT("%f\n", min_v);*/
     }
     /*max_v=gsl_vector_get(log_v, 0);
      min_v=max_v;
@@ -480,7 +388,7 @@ double mathfunction_normalize_log_vector(gsl_vector *log_v){
     for(col_index=0; col_index<log_v->size; col_index++){
         temp_value2=gsl_vector_get(log_v, col_index);
         temp_value=exp(temp_value2);
-        /*printf("%f\n",temp_value);*/
+        /*MYPRINT("%f\n",temp_value);*/
         sum+=temp_value;
         gsl_vector_set(log_v, col_index, temp_value);
     }
@@ -502,7 +410,7 @@ double mathfunction_matrix_normalize(gsl_matrix *v){
         for(col_index=0; col_index<v->size2; col_index++)
             sum+=gsl_matrix_get(v, row_index, col_index);
     }
-    /*printf("%f",sum);*/
+    /*MYPRINT("%f",sum);*/
     gsl_matrix_scale(v, 1.0/sum);
     return sum;
 }
