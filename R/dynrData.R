@@ -42,11 +42,8 @@
 ##' @param covariates a vector of character strings of the names of the covariates in the data, which can be missing.
 ##' 
 ##' @examples
-##' data(EMG)
-##' ds <- EMG
-##' ds$ID <- rep(1, nrow(EMG))
-##' ds$t <- 1:nrow(EMG)
-##' dd <- dynr.data(ds, id='ID', time='t', observed='EMG', covariates='self')
+##' data(EMGsim)
+##' dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
 dynr.data <- function(dataframe, id, time, observed, covariates){
 	ids <- unique(dataframe[ , id])
 	tstart <- c(
