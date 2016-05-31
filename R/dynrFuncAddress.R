@@ -29,7 +29,6 @@
   
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )
-  print(isContinuousTime)
   if (isContinuousTime){
   res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
            f_dx_dt=getNativeSymbolInfo("function_dx_dt", DLL)$address,
