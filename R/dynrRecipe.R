@@ -2048,11 +2048,11 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 	}
 	if(is.numeric(x)){
 		preds <- gsub(' 1\\*', ' ', preds)
-		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	} else {
 		preds <- gsub(' 1\\*', ' ', preds)
-		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+ ", sep=""), ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
 		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
 	}
 	form <- lapply(preds, formula, env=.GlobalEnv)
