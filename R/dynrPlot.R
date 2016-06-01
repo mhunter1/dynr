@@ -128,7 +128,7 @@ setMethod("plot", "dynrCook",
           function(x, y=NULL, dynrModel, textsize=4, ...) {
   y <- NULL
   #The first panel is the ggplot
-  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1,...)
+  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=model@measurement@state.names, ...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
   if (dynrModel$num_regime>1){
