@@ -117,6 +117,8 @@ dynr.ggplot(res, data.dynr=data, states=c(1:2),
             shape.values = c(1,2),
             text=element_text(size=16))
 ggsave("RSNonlinearDiscreteggPlot.pdf")
+
+plotFormula(dynrModel=model, ParameterAs=model@param.names, printDyn=TRUE, printMeas=TRUE)
 plot(res, dynrModel=model)
 
 #---- Done ----
