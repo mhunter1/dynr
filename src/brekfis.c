@@ -148,20 +148,20 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
                 model_constraint_par(config, param);
 
-                /*printf("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
-                printf("\n");
-                printf("regime_switch_matrix:\n");
+                /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
+                MYPRINT("\n");
+                MYPRINT("regime_switch_matrix:\n");
                 print_matrix(param->regime_switch_mat);
-                printf("\n");
-                printf("parameters:\n");
+                MYPRINT("\n");
+                MYPRINT("parameters:\n");
                 print_array(param->func_param,config->num_func_param);
-                printf("\n");
-                printf("measurement error:\n");
+                MYPRINT("\n");
+                MYPRINT("measurement error:\n");
                 print_matrix(param->y_noise_cov);
-                printf("\n");
-                printf("process noise: \n");
+                MYPRINT("\n");
+                MYPRINT("process noise: \n");
                 print_matrix(param->eta_noise_cov);
-                printf("\n");*/
+                MYPRINT("\n");*/
 
 
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
@@ -171,12 +171,12 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	        gsl_vector_set(eta_j_t[regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
             	        }
             	        gsl_matrix_memcpy(error_cov_j_t[regime_j], (init->error_cov_0)[regime_j]);
-            	        /*printf("eta_S_at_a_previous_time_point:\n");
+            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_j_t[regime_j]);
-            	        printf("\n");
-            	        printf("error_cov_at_a_previous_time_point:\n");
+            	        MYPRINT("\n");
+            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
             	        print_matrix(error_cov_j_t[regime_j]);
-            	        printf("\n");*/
+            	        MYPRINT("\n");*/
 
 
                     innov_determinant=ext_kalmanfilter_updateonly(t, regime_k,
@@ -187,29 +187,29 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                         config->func_measure,
                         eta_jk_t_plus_1[regime_j][regime_k], error_cov_jk_t_plus_1[regime_j][regime_k], innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k]);/*inverse*/
 
-                        /*printf("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        printf("\n");
-                        printf("eta_jk:\n");
+                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+                        MYPRINT("\n");
+                        MYPRINT("eta_jk:\n");
                         print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-                        printf("\n");
-                        printf("error_cov_jk:\n");
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk:\n");
                         print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-                        printf("\n");
-                        printf("innov_vector:\n");
+                        MYPRINT("\n");
+                        MYPRINT("innov_vector:\n");
                         print_vector(innov_v[regime_j][regime_k]);
-                        printf("\n");
-                        printf("inverse of the residual covariance:\n");
+                        MYPRINT("\n");
+                        MYPRINT("inverse of the residual covariance:\n");
                         print_matrix(residual_cov[regime_j][regime_k]);
-                        printf("\n");*/
+                        MYPRINT("\n");*/
 
 
                    }else{
-            	        /*printf("eta_S_at_a_previous_time_point:\n");
+            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_j_t[regime_j]);
-            	        printf("\n");
-            	        printf("error_cov_at_a_previous_time_point:\n");
+            	        MYPRINT("\n");
+            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
             	        print_matrix(error_cov_j_t[regime_j]);
-            	        printf("\n");*/
+            	        MYPRINT("\n");*/
 
                     innov_determinant=ext_kalmanfilter(t, regime_k,
                         eta_j_t[regime_j], error_cov_j_t[regime_j],
@@ -226,20 +226,20 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                         eta_jk_t_plus_1[regime_j][regime_k], error_cov_jk_t_plus_1[regime_j][regime_k], innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k]);/*inverse*/
 
 
-                        /*printf("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        printf("\n");
-                        printf("eta_jk:\n");
+                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+                        MYPRINT("\n");
+                        MYPRINT("eta_jk:\n");
                         print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-                        printf("\n");
-                        printf("error_cov_jk:\n");
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk:\n");
                         print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-                        printf("\n");
-                        printf("innov_vector:\n");
+                        MYPRINT("\n");
+                        MYPRINT("innov_vector:\n");
                         print_vector(innov_v[regime_j][regime_k]);
-                        printf("\n");
-                        printf("inverse of the residual covariance:\n");
+                        MYPRINT("\n");
+                        MYPRINT("inverse of the residual covariance:\n");
                         print_matrix(residual_cov[regime_j][regime_k]);
-                        printf("\n");*/
+                        MYPRINT("\n");*/
 
 
                    }
@@ -260,9 +260,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                    /** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
                    tran_prob_jk=gsl_vector_get(pr_t, regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
 
-                   /*printf("prob_regime:\n");
+                   /*MYPRINT("prob_regime:\n");
                    print_vector(pr_t);
-                   printf("\n");*/
+                   MYPRINT("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
                    neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss,innov_determinant);
@@ -271,10 +271,10 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
                     p=isfinite(exp(-neg_log_p))&&exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
                     
-                   /*printf("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
-                   printf("before exponential %lf\n",neg_log_p);
-                   printf("oringinal %lf\n",exp(-neg_log_p));
-                   printf("adjusted %lf\n",p);*/
+                   /*MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
+                   MYPRINT("before exponential %lf\n",neg_log_p);
+                   MYPRINT("oringinal %lf\n",exp(-neg_log_p));
+                   MYPRINT("adjusted %lf\n",p);*/
 
                    /** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
 
@@ -296,15 +296,15 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             /*individual ÐLL is now divided by each individualÕs number of occasions. This helps speed convergence and ensure that each individualÕs data get weighted equally regardless of T_i.*/
 
 
-            /*printf("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
+            /*MYPRINT("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
             print_matrix(like_jk);
-            printf("\n");
+            MYPRINT("\n");
 
-            printf("negative log likelihood at time %lu:\n",t);
-            printf("%lf",-log_like);
-            printf("\n");
+            MYPRINT("negative log likelihood at time %lu:\n",t);
+            MYPRINT("%lf",-log_like);
+            MYPRINT("\n");
 
-            printf("Pr(S_it=k|Y_it) oringinal and adjusted:\n");*/
+            MYPRINT("Pr(S_it=k|Y_it) oringinal and adjusted:\n");*/
 
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
                     sum_overj=0;
@@ -316,7 +316,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	    /** step 2.4: sum transition probability to obtain pr_t**/
             	    gsl_vector_set(pr_t, regime_k, sum_overj);/*write pr_t_plus_1 into pr_t*/
 
-            	    /*printf("%lf ",sum_overj);*/
+            	    /*MYPRINT("%lf ",sum_overj);*/
 
             	}/*end of k*/
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
@@ -326,9 +326,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	    		}	
 			
 
-	    /*printf("\n");
+	    /*MYPRINT("\n");
 	    print_vector(pr_t);
-	    printf("\n");*/
+	    MYPRINT("\n");*/
 			
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
                     gsl_vector_set_zero(eta_j_t[regime_k]);/*here, corresponds to eta_k_t in the paper*/
@@ -342,7 +342,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	    	    gsl_blas_daxpy(gsl_matrix_get(like_jk, regime_j, regime_k), eta_jk_t_plus_1[regime_j][regime_k], eta_j_t[regime_k]); /*sum over j through loop*/
 
             	    	    /*if(regime_k==1){
-            	    	    printf("Here!");
+            	    	    MYPRINT("Here!");
             	    	    print_vector(eta_j_t[regime_k]);}*/
             	    }
             	}/*end of k*/
@@ -350,9 +350,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
             	    gsl_vector_scale(eta_j_t[regime_k], 1.0/gsl_vector_get(pr_t,regime_k));
 
-            	    /*printf("eta collapsed estimate in regime %lu:\n",regime_k);
+            	    /*MYPRINT("eta collapsed estimate in regime %lu:\n",regime_k);
             	    print_vector(eta_j_t[regime_k]);
-            	    printf("\n");*/
+            	    MYPRINT("\n");*/
 
             	    /** step 3.2: collapse the covariance matrix to get error_cov_k **/
             	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -372,17 +372,17 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                     }/*end of j*/
                     gsl_matrix_scale(error_cov_j_t[regime_k], 1.0/gsl_vector_get(pr_t,regime_k));
 
-                    /*printf("error_cov collapsed estimate in regime %lu:\n",regime_k);
+                    /*MYPRINT("error_cov collapsed estimate in regime %lu:\n",regime_k);
             	    print_matrix(error_cov_j_t[regime_k]);
-            	    printf("\n");*/
+            	    MYPRINT("\n");*/
             }/*end of k*/
 
 
 
 	   /*fprintf(pr_file,"%lu %lu %lf %lf\n",sbj,t,gsl_vector_get(pr_t,0),gsl_vector_get(pr_t,1));*/
-	   /*printf("Pr_St|t:\n");
+	   /*MYPRINT("Pr_St|t:\n");
            print_vector(pr_t);
-           printf("\n");*/
+           MYPRINT("\n");*/
 
         }/*end of t*/
 
@@ -683,20 +683,20 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
                 model_constraint_par(config, param);
 
-                /*printf("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
-                printf("\n");
-                printf("regime_switch_matrix:\n");
+                /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
+                MYPRINT("\n");
+                MYPRINT("regime_switch_matrix:\n");
                 print_matrix(param->regime_switch_mat);
-                printf("\n");
-                printf("parameters:\n");
+                MYPRINT("\n");
+                MYPRINT("parameters:\n");
                 print_array(param->func_param,config->num_func_param);
-                printf("\n");
-                printf("measurement error:\n");
+                MYPRINT("\n");
+                MYPRINT("measurement error:\n");
                 print_matrix(param->y_noise_cov);
-                printf("\n");
-                printf("process noise: \n");
+                MYPRINT("\n");
+                MYPRINT("process noise: \n");
                 print_matrix(param->eta_noise_cov);
-                printf("\n");*/
+                MYPRINT("\n");*/
 
 
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
@@ -706,12 +706,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	        gsl_vector_set(eta_regime_j_t[t][regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
             	        }
             	        gsl_matrix_memcpy(error_cov_regime_j_t[t][regime_j], (init->error_cov_0)[regime_j]);
-            	        /*printf("eta_S_at_a_previous_time_point:\n");
+            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_regime_j_t[t][regime_j]);
-            	        printf("\n");
-            	        printf("error_cov_at_a_previous_time_point:\n");
+            	        MYPRINT("\n");
+            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
             	        print_matrix(error_cov_regime_j_t[t][regime_j]);
-            	        printf("\n");*/
+            	        MYPRINT("\n");*/
 
 
                     innov_determinant=ext_kalmanfilter_updateonly_smoother(t, regime_k,
@@ -724,29 +724,29 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k],
                         innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
 
-                        /*printf("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        printf("\n");
-                        printf("eta_jk:\n");
+                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+                        MYPRINT("\n");
+                        MYPRINT("eta_jk:\n");
                         print_vector(eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("error_cov_jk:\n");
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk:\n");
                         print_matrix(error_cov_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("innov_v[t]ector:\n");
+                        MYPRINT("\n");
+                        MYPRINT("innov_v[t]ector:\n");
                         print_vector(innov_v[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("inverse of the residual covariance:\n");
+                        MYPRINT("\n");
+                        MYPRINT("inverse of the residual covariance:\n");
                         print_matrix(inv_residual_cov[t][regime_j][regime_k]);
-                        printf("\n");*/
+                        MYPRINT("\n");*/
 
 
                    }else{
-            	        /*printf("eta_S_at_a_previous_time_point:\n");
+            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_regime_j_t[t][regime_j]);
-            	        printf("\n");
-            	        printf("error_cov_at_a_previous_time_point:\n");
+            	        MYPRINT("\n");
+            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
             	        print_matrix(error_cov_regime_j_t[t][regime_j]);
-            	        printf("\n");*/
+            	        MYPRINT("\n");*/
 
                     innov_determinant=ext_kalmanfilter_smoother(t, regime_k,
                         eta_regime_j_t[t-1][regime_j], error_cov_regime_j_t[t-1][regime_j],
@@ -764,20 +764,20 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
 
 
-                        /*printf("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        printf("\n");
-                        printf("eta_jk:\n");
+                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+                        MYPRINT("\n");
+                        MYPRINT("eta_jk:\n");
                         print_vector(eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("error_cov_jk:\n");
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk:\n");
                         print_matrix(error_cov_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("innov_vector:\n");
+                        MYPRINT("\n");
+                        MYPRINT("innov_vector:\n");
                         print_vector(innov_v[t][regime_j][regime_k]);
-                        printf("\n");
-                        printf("inverse of the residual covariance:\n");
+                        MYPRINT("\n");
+                        MYPRINT("inverse of the residual covariance:\n");
                         print_matrix(inv_residual_cov[t][regime_j][regime_k]);
-                        printf("\n");*/
+                        MYPRINT("\n");*/
 
 
                    }
@@ -802,18 +802,18 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    tran_prob_jk=gsl_vector_get(pr_t[t-1], regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
                    }
                    gsl_vector_set(pr_t_given_t_minus_1[t],regime_k,gsl_vector_get(pr_t_given_t_minus_1[t],regime_k)+tran_prob_jk);
-                   /*printf("prob_regime:\n");
+                   /*MYPRINT("prob_regime:\n");
                    print_vector(pr_t[t]);
-                   printf("\n");*/
+                   MYPRINT("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
                    neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], y_non_miss, innov_determinant);
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
                     p=exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
 
-                   /*printf("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
-                   printf("oringinal %lf\n",exp(-neg_log_p));
-                   printf("adjusted %lf\n",p);*/
+                   /*MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
+                   MYPRINT("oringinal %lf\n",exp(-neg_log_p));
+                   MYPRINT("adjusted %lf\n",p);*/
 
                    /** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
 
@@ -829,15 +829,15 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
             log_like+=log(mathfunction_matrix_normalize(like_jk));/*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
 
-            /*printf("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
+            /*MYPRINT("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
             print_matrix(like_jk);
-            printf("\n");
+            MYPRINT("\n");
 
-            printf("negative log likelihood at time %lu:\n",t);
-            printf("%lf",-log_like);
-            printf("\n");
+            MYPRINT("negative log likelihood at time %lu:\n",t);
+            MYPRINT("%lf",-log_like);
+            MYPRINT("\n");
 
-            printf("Pr(S_it=k|Y_it) oringinal and adjusted:\n");*/
+            MYPRINT("Pr(S_it=k|Y_it) oringinal and adjusted:\n");*/
 
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
                     sum_overj=0;
@@ -849,7 +849,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	    /** step 2.4: sum transition probability to obtain pr_t[t]**/
             	    gsl_vector_set(pr_t[t], regime_k, sum_overj);/*pr_t_plus_1*/
 
-            	    /*printf("%lf ",sum_overj);*/
+            	    /*MYPRINT("%lf ",sum_overj);*/
             }/*end of k*/
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
 	    	if(gsl_vector_min(pr_t[t])==0){
@@ -865,12 +865,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 				gsl_vector_memcpy(pr_t_given_t_minus_1[t],pr_t[t]);*/
 			
 
-			/*printf("\n");
-			printf("miss_case: %lu\n",miss_case);
-			printf("log_like: %f\n",log_like);
+			/*MYPRINT("\n");
+			MYPRINT("miss_case: %lu\n",miss_case);
+			MYPRINT("log_like: %f\n",log_like);
 			print_vector(pr_t[t]);
 			print_matrix(like_jk);
-			printf("\n");*/
+			MYPRINT("\n");*/
 			
 	        for(regime_k=0; regime_k<config->num_regime; regime_k++){
 	                    gsl_vector_set_zero(eta_regime_j_t[t][regime_k]);/*here, corresponds to eta_k_t in the paper*/
@@ -884,7 +884,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	            	    	    gsl_blas_daxpy(gsl_matrix_get(like_jk, regime_j, regime_k), eta_regime_jk_t_plus_1[t][regime_j][regime_k], eta_regime_j_t[t][regime_k]); /*sum over j through loop*/
 
 	            	    	    /*if(regime_k==1){
-	            	    	    printf("Here!");
+	            	    	    MYPRINT("Here!");
 	            	    	    print_vector(eta_regime_j_t[t][regime_k]);}*/
 	            	    }
 	        }/*end of k*/
@@ -892,9 +892,9 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
             	    gsl_vector_scale(eta_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
 
-            	    /*printf("eta collapsed estimate in regime %lu:\n",regime_k);
+            	    /*MYPRINT("eta collapsed estimate in regime %lu:\n",regime_k);
             	    print_vector(eta_regime_j_t[t][regime_k]);
-            	    printf("\n");*/
+            	    MYPRINT("\n");*/
 
             	    /** step 3.2: collapse the covariance matrix to get error_cov_k **/
             	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -914,17 +914,17 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                     }/*end of j*/
                     gsl_matrix_scale(error_cov_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
 
-                    /*printf("error_cov collapsed estimate in regime %lu:\n",regime_k);
+                    /*MYPRINT("error_cov collapsed estimate in regime %lu:\n",regime_k);
             	    print_matrix(error_cov_regime_j_t[t][regime_k]);
-            	    printf("\n");*/
+            	    MYPRINT("\n");*/
             }/*end of k*/
 
 
 
 	   /*fprintf(pr_file,"%lu %lu %lf %lf\n",sbj,t,gsl_vector_get(pr_t[t],0),gsl_vector_get(pr_t[t],1));*/
-	   /*printf("Pr_St|t:\n");
+	   /*MYPRINT("Pr_St|t:\n");
            print_vector(pr_t[t]);
-           printf("\n");*/
+           MYPRINT("\n");*/
 
         }/*end of t*/
 
@@ -1048,8 +1048,8 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                 sum_overk=0;
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
 
-                    /*printf("sbj %lu t %lu from regime %lu to regime %lu\n",sbj,t,regime_j,regime_k);
-                    printf("\n");*/
+                    /*MYPRINT("sbj %lu t %lu from regime %lu to regime %lu\n",sbj,t,regime_j,regime_k);
+                    MYPRINT("\n");*/
 
 
 
@@ -1072,13 +1072,13 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     gsl_matrix_set_zero(inv_P_jk_pred);
                     gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_regime_j_t[t][regime_j], Jacob_dyn_x, 0.0, pb); /* compute P*B'*/
 
-                    /*printf("sbj %lu t-1 %lu \n",sbj,t);
+                    /*MYPRINT("sbj %lu t-1 %lu \n",sbj,t);
                     print_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k]);
-                    printf("\n");*/
+                    MYPRINT("\n");*/
                     mathfunction_inv_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k], inv_P_jk_pred);/*obtain the inverse matrix*/
                     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, pb, inv_P_jk_pred, 0.0, P_tilde_regime_jk); /* compute P*B*Pjk^{-1}*/
                     /*print_matrix(P_tilde_regime_jk);
-                    printf("\n");*/
+                    MYPRINT("\n");*/
 
                     /*eta_regime_jk_T*/
                     /* compute eta_regime_j_t[t+1][regime_k] - eta_regime_jk_pred[t+1][regime_j][regime_k]*/
@@ -1122,13 +1122,13 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
                     /*if(t==998){
                     print_matrix(Jacob_dyn_x);
-                    printf("\n");
+                    MYPRINT("\n");
                     print_matrix(P_tilde_regime_jk);
-                    printf("\n");
+                    MYPRINT("\n");
                     print_matrix(eta_regime_jk_T);
-                    printf("\n");
+                    MYPRINT("\n");
                     print_matrix(error_cov_regime_jk_T);
-                    printf("\n");
+                    MYPRINT("\n");
                     }*/
 
                }/*end of to regime k*/

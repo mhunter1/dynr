@@ -21,7 +21,7 @@ Note
 */
 
 #include <math.h>/*sqrt(double)*/
-#include <stdio.h>
+/*#include <stdio.h>*/
 #include <string.h>
 #include "nlopt.h"
 #include "math_function.h"

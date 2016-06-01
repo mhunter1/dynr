@@ -1,7 +1,7 @@
 #ifndef ADAODESOLVER_H_INCLUDED
 #define ADAODESOLVER_H_INCLUDED
 
-#include <stdio.h>/* standard i/o, printf */
+/*#include <stdio.h>*//* standard i/o, printf */
 #include <string.h> /*srting functions*/
 #include <stdlib.h>
 #include "math_function.h"

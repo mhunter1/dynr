@@ -1,6 +1,6 @@
 
 #include <stdlib.h>
-#include <stdio.h>
+/*#include <stdio.h>*/
 #include <time.h>
 #include <math.h>
 
@@ -43,7 +43,7 @@ void function_jacob_dynam_rk4(const double tstart, const double tend, size_t reg
         for (i=0;i<num_func_param;i++)
             params_aug[i]=param[i];
 
-        /*printf("xstart:");
+        /*MYPRINT("xstart:");
         print_vector(xstart);*/
 
 	double delta=tend-tstart;
@@ -80,7 +80,7 @@ void function_jacob_dynam_rk4(const double tstart, const double tend, size_t reg
 	gsl_matrix_set_identity(Jx);
 	gsl_matrix_add(Jx,k1);
 
-	/*printf("xend:");
+	/*MYPRINT("xend:");
 	print_vector(x_tend);*/
 	gsl_matrix_free(k1);
 	gsl_matrix_free(k2);

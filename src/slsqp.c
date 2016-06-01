@@ -2539,12 +2539,12 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 	  */
 	  if ((mode == -1 && !nlopt_isinf(minor.fval)) || !nlopt_isfinite(cur.par[0])) {
 		  estimate_copy(&cur, &minor);
-		  //printf("best minor %f %f feasible %d\n",
+		  //MYPRINT("best minor %f %f feasible %d\n",
 		  //minor.fval, minor.infeasibility, minor.feasible);
 
 		  if (!constrained || (constrained && minor.feasible)) {
 			  if (!nlopt_isinf(major.fval)) {
-				  //printf("check major %f %f\n", minor.fval, minor.infeasibility);
+				  //MYPRINT("check major %f %f\n", minor.fval, minor.infeasibility);
 				  if (nlopt_stop_ftol(stop, minor.fval, major.fval))
 					  ret = NLOPT_FTOL_REACHED;
 				  else if (nlopt_stop_x(stop, minor.par, major.par))
@@ -2672,7 +2672,7 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 	  if (mode != -1 && nlopt_isfinite(cur.fval) && nlopt_isfinite(cur.infeasibility) &&
 	      !(cur.fval >= minor.fval && cur.infeasibility >= minor.infeasibility)) {
 
-		  //printf("best eval so far %f %f feasible %d\n", cur.fval, cur.infeasibility, cur.feasible);
+		  //MYPRINT("best eval so far %f %f feasible %d\n", cur.fval, cur.infeasibility, cur.feasible);
 		  estimate_copy(&minor, &cur);
 		  makingProgress = 1;
 	  }

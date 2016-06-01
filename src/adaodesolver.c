@@ -11,7 +11,7 @@
 * Error handling:*
 * Notes:*
 ********************************************************/
-#include <stdio.h>/* standard i/o, printf */
+/*#include <stdio.h>*//* standard i/o, printf */
 #include <string.h> /*srting functions*/
 #include <stdlib.h>
 #include "math_function.h"
@@ -307,10 +307,10 @@ void adaptive_ode_kf(const double tstart, const double tend,
     	gsl_vector_set(global_error_norm,0,0);
 
         while((gsl_vector_get(t,l)<tend)&&(gsl_vector_get(global_error_norm,l)<=100*global_error_limit)){
-            /*printf("%f ",gsl_vector_get(t,l));
-            printf("%f ",gsl_vector_get(tau,l));
-            printf("%lu",l);
-            printf("\n");*/
+            /*MYPRINT("%f ",gsl_vector_get(t,l));
+            MYPRINT("%f ",gsl_vector_get(tau,l));
+            MYPRINT("%lu",l);
+            MYPRINT("\n");*/
 
             gsl_vector_set(t,l+1,gsl_vector_get(t,l)+gsl_vector_get(tau,l));
             for(index=0; index<np; index++)
@@ -461,7 +461,7 @@ void rk4_odesolver(const double tstart, const double tend, size_t regime, const 
         gsl_vector *x2=gsl_vector_alloc(np);
         gsl_vector *x3=gsl_vector_alloc(np);
         
-        /*printf("xstart:");
+        /*MYPRINT("xstart:");
         print_vector(xstart);*/
 
 	double delta=tend-tstart;
@@ -489,7 +489,7 @@ void rk4_odesolver(const double tstart, const double tend, size_t regime, const 
 	gsl_vector_memcpy(x_tend, xstart);
 	gsl_vector_add(x_tend, k1);
 	
-	/*printf("xend:");
+	/*MYPRINT("xend:");
 	print_vector(x_tend);*/
 	gsl_vector_free(k1);
 	gsl_vector_free(k2);
