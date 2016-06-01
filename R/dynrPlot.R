@@ -165,50 +165,64 @@ plotdf <- function(vec_tex){
 ##' Plot the formula from a model
 ##' 
 ##' @param dynrModel The model object to plot
-##' @param ParameterAs The parameter values to plot
+##' @param ParameterAs The parameter values or names to plot
+##' @param printDyn A logical value indicating whether or not to plot the dynamic model
+##' @param printMeas A logical value indicating whether or not to plot the measurement model
 ##' @param textsize The text size use in the plot
 ##' 
 ##' @details
 ##' This function typesets a set of formulas that represent the model.
-plotFormula <- function(dynrModel, ParameterAs, textsize=4){
+plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, textsize=4){
   
   dynrModel <- PopBackModel(dynrModel, ParameterAs)
-  
-  if (class(dynrModel$dynamics) == "dynrDynamicsMatrix"){
-    state.names <- (dynrModel$measurement)$state.names
-    exo.names <- (dynrModel$dynamics)$covariates
-    dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)
-    dynrModel@dynamics@values.exo <- lapply((dynrModel$dynamics)$values.exo, preProcessNames,state.names,exo.names)
-    dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
-  }
-  
+
   #Dynamic model
-  dyn.df <- data.frame(text="'Dynamic Model without Noise'",x=0)
-  nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
-                 length(dynrModel@dynamics@formula),
-                 length(dynrModel@dynamics@values.dyn))
-  dyn_tex=printex(dynrModel@dynamics,AsMatrix=FALSE)
-  nEq <- length(dyn_tex[[1]])
-  for (i in 1:nRegime){
-    if (nRegime>1){
-      dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
+  if (printDyn){  
+    if (class(dynrModel$dynamics) == "dynrDynamicsMatrix"){
+      state.names <- (dynrModel$measurement)$state.names
+      exo.names <- (dynrModel$dynamics)$covariates
+      dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)
+      dynrModel@dynamics@values.exo <- lapply((dynrModel$dynamics)$values.exo, preProcessNames,state.names,exo.names)
+      dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
     }
-    dyn.df <- rbind(dyn.df,plotdf(dyn_tex[[i]]))
+
+    dyn.df <- data.frame(text="'Dynamic Model without Noise'",x=0)
+    nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
+                   length(dynrModel@dynamics@formula),
+                   length(dynrModel@dynamics@values.dyn))
+    dyn_tex=printex(dynrModel@dynamics,AsMatrix=FALSE)
+    nEq <- length(dyn_tex[[1]])
+    for (i in 1:nRegime){
+      if (nRegime>1){
+        dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
+      }
+      dyn.df <- rbind(dyn.df,plotdf(dyn_tex[[i]]))
+    }
   }
   
   #Measurement model
-  meas.df<-data.frame(text="'Measurement Model without Noise'",x=0)
-  nRegime=length(dynrModel@measurement@values.load)
-  meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
-  nEq <- length(meas_tex[[1]])
-  for (i in 1:nRegime){
-    if (nRegime>1){
-      meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
+  if (printMeas){
+    meas.df<-data.frame(text="'Measurement Model without Noise'",x=0)
+    nRegime=length(dynrModel@measurement@values.load)
+    meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
+    nEq <- length(meas_tex[[1]])
+    for (i in 1:nRegime){
+      if (nRegime>1){
+        meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
+      }
+      meas.df<-rbind(meas.df,plotdf(meas_tex[[i]]))
     }
-    meas.df<-rbind(meas.df,plotdf(meas_tex[[i]]))
   }
   
-  plot.df=rbind(dyn.df,meas.df)
+  if (printDyn&printMeas){
+    plot.df=rbind(dyn.df,meas.df)
+  }else if (printDyn){
+    plot.df=dyn.df
+  }else if (printMeas){
+    plot.df=meas.df
+  }else{
+    stop("There needs to be something to plot.")
+  }
   plot.df$y=seq((dim(plot.df)[1]-1)*5+1, 1, by=-5)
   
   x <- NULL
