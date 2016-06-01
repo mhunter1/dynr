@@ -1634,18 +1634,18 @@ replaceDiagZero <- function(x){
 ##' 
 ##' @details
 ##' Note that each row of the transition probability matrix must sum to one. To accomplish this
-##' fix at least one transition log odd parameter in each row of "values" (including its intercept 
+##' fix at least one transition log odds parameter in each row of "values" (including its intercept 
 ##' and the regression slopes of all covariates) to 0.
 ##' 
 ##' @examples
 ##' #Regime-switching with no covariates (self-transition ID)
-##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 1, 2, 3, 0, 4, 5, 6, 0), 3, 3))
+##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 'p1', 'p2', 'p3', 0, 'p4', 'p5', 'p6', 0), 3, 3))
 ##' 
 ##' #Regime switching with no covariates (second regime ID)
-##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), 3, 3))
+##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c('p1', 'p2', 'p3', 0, 0, 0, 'p4', 'p5', 'p6'), 3, 3))
 ##' 
 ##' #2 regimes with three covariates
-##' b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(8:23), 2, 8), covariates=c('x1', 'x2', 'x3'))
+##' b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(paste0('p', 8:15), rep(0, 8)), 2, 8), covariates=c('x1', 'x2', 'x3'))
 prep.regimes <- function(values, params, covariates){
 	if(!missing(values)){
 		values <- preProcessValues(values)
@@ -1662,15 +1662,15 @@ prep.regimes <- function(values, params, covariates){
 	}
 	
 	if(!all(dim(values))==all(dim(params))) {
-	  stop('The dimensions of values and matrix must match.')
-	}else if(!ncol(values)== nrow(values)*(length(covariates)+1)){
+	  stop('The dimensions of values and params matrices must match.')
+	}else if(!ncol(values )== nrow(values)*(length(covariates)+1)){
 	  stop(paste0("The matrix values should have ",nrow(values)*(length(covariates)+1), " columns."))
 	}
 	
 	sv <- extractValues(values, params)
 	pn <- extractParams(params)
 	
-	if(length(sv) > nrow(values)*(length(covariates)+1)){
+	if(length(sv) > nrow(values)*(nrow(values)-1)*(length(covariates)+1)){
 		stop("Regime transition probability parameters not uniquely identified.\nFix all parameters in at least one cell of each row of the \ntransition probability matrix to be zero.")
 	}
 	x <- list(startval=sv, paramnames=pn, values=values, params=params, covariates=covariates)
