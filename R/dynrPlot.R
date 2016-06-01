@@ -119,13 +119,15 @@ Mode <- function(y) {
 ##' @param x dynrCook object
 ##' @param y ignored
 ##' @param dynrModel model object
+##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
+##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
 ##' @param textsize numeric. Font size used in the plot.
 ##' @param ... Further named arguments
 ##' 
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, dynrModel, textsize=4, ...) {
+          function(x, y=NULL, dynrModel, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   y <- NULL
   #The first panel is the ggplot
   p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=model@measurement@state.names, ...)
@@ -145,7 +147,7 @@ setMethod("plot", "dynrCook",
   }
   
   #The third panel plots the model formulae
-  p3 <- plotFormula(dynrModel, ParameterAs=sprintf("%.2f", x@transformed.parameters), textsize=textsize)
+  p3 <- plotFormula(dynrModel, ParameterAs=sprintf("%.2f", x@transformed.parameters), printDyn=printDyn, printMeas=printMeas, textsize=textsize)
 
   #Organize the panels using the multiplot function
   if (dynrModel$num_regime > 1){
@@ -166,8 +168,8 @@ plotdf <- function(vec_tex){
 ##' 
 ##' @param dynrModel The model object to plot
 ##' @param ParameterAs The parameter values or names to plot
-##' @param printDyn A logical value indicating whether or not to plot the dynamic model
-##' @param printMeas A logical value indicating whether or not to plot the measurement model
+##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
+##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
 ##' @param textsize The text size use in the plot
 ##' 
 ##' @details
