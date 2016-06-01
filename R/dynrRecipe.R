@@ -145,12 +145,12 @@ setClass(Class = "dynrNoise",
            c.string =  "character",
            startval = "numeric",
            paramnames = "character",
-           values.latent = "matrix",
-           params.latent = "matrix",
-           values.observed = "matrix",
-           params.observed = "matrix",
-           values.latent.inv.ldl = "matrix",
-           values.observed.inv.ldl = "matrix"),#TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
+           values.latent = "list",
+           params.latent = "list",
+           values.observed = "list",
+           params.observed = "list",
+           values.latent.inv.ldl = "list",
+           values.observed.inv.ldl = "list"),#TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
          contains = "dynrRecipe"
 )
 
@@ -305,8 +305,8 @@ setMethod("printex", "dynrInitial",
 
 setMethod("printex", "dynrNoise",
           function(object, show=TRUE, AsMatrix=TRUE){
-            lQ <- .xtableMatrix(object$values.latent, show)
-            lR <- .xtableMatrix(object$values.observed, show)
+            lQ <- lapply(object$values.latent, .xtableMatrix, show=show)
+            lR <- lapply(object$values.observed, .xtableMatrix, show=show)
             return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
           }
 )
@@ -506,8 +506,8 @@ setMethod("paramName2Number", "dynrInitial",
 
 setMethod("paramName2Number", "dynrNoise",
 	function(object, names){
-		object@params.latent <- .exchangeNamesAndNumbers(object$params.latent, names)
-		object@params.observed <- .exchangeNamesAndNumbers(object$params.observed, names)
+		object@params.latent <- lapply(object$params.latent, .exchangeNamesAndNumbers, names=names)
+		object@params.observed <- lapply(object$params.observed, .exchangeNamesAndNumbers, names=names)
 		return(object)
 	}
 )
@@ -991,20 +991,19 @@ setMethod("writeCcode", "dynrInitial",
 
 setMethod("writeCcode", "dynrNoise",
 	function(object, covariates){
-		params.latent <- object$params.latent
-		params.observed <- object$params.observed
+		params.latent <- object$params.latent[[1]]
+		params.observed <- object$params.observed[[1]]
 		#Note: should we mutate these other slots of the object or leave them alone?
-		values.latent <- object@values.latent.inv.ldl
-		values.observed <- object@values.observed.inv.ldl
+		values.latent <- object@values.latent.inv.ldl[[1]]
+		values.observed <- object@values.observed.inv.ldl[[1]]
 		
 		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
 		ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
 		ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
 		ret <- paste(ret, "\n}\n\n")
-
+		
 		object@c.string <- ret
 		
-
 		return(object)
 	}
 )
@@ -1126,6 +1125,7 @@ setMethod("createRfun", "dynrTrans",
           }
 )
 
+# TODO Lu, make this function handle lists for values and params
 makeldlchar<-function(param.data, ldl.char, values, params, reverse=FALSE){
   vec.noise=paste0("vec[",paste0("c(",paste(param.data$param.number[param.data[,ldl.char]],collapse=","),")"),"]")
   param.name=param.data$param.name[param.data[,ldl.char]]
@@ -1557,15 +1557,25 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 ##' @examples 
 ##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
-	values.latent <- preProcessValues(values.latent)
-	params.latent <- preProcessParams(params.latent)
-	values.observed <- preProcessValues(values.observed)
-	params.observed <- preProcessParams(params.observed)
+	# Handle latent covariance
+	r <- coProcessValuesParams(values.latent, params.latent)
+	values.latent <- r$values
+	params.latent <- r$params
 	
-	values.latent.inv.ldl <- replaceDiagZero(values.latent)
-	values.latent.inv.ldl <- reverseldl(values.latent.inv.ldl)
-	values.observed.inv.ldl <- replaceDiagZero(values.observed)
-	values.observed.inv.ldl <- reverseldl(values.observed.inv.ldl)
+	# Handle observed covariance
+	r <- coProcessValuesParams(values.observed, params.observed)
+	values.observed <- r$values
+	params.observed <- r$params
+	
+	values.latent <- lapply(values.latent, preProcessValues)
+	params.latent <- lapply(params.latent, preProcessParams)
+	values.observed <- lapply(values.observed, preProcessValues)
+	params.observed <- lapply(params.observed, preProcessParams)
+	
+	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
+	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
+	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
+	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
 	
 	sv <- c(extractValues(values.latent.inv.ldl, params.latent), extractValues(values.observed.inv.ldl, params.observed))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))

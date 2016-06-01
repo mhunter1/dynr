@@ -417,7 +417,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(data=data, infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-  obj.dynrModel@dim_latent_var <- dim(inputs$noise$params.latent)[1]
+  obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
   
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub <- rep(9999,length(obj.dynrModel@xstart))
