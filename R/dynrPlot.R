@@ -186,7 +186,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
     }
 
-    dyn.df <- data.frame(text="'Dynamic Model without Noise'",x=0)
+    dyn.df <- data.frame(text="'Dynamic Model'",x=0)
     nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
                    length(dynrModel@dynamics@formula),
                    length(dynrModel@dynamics@values.dyn))
@@ -196,13 +196,16 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       if (nRegime>1){
         dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
       }
-      dyn.df <- rbind(dyn.df,plotdf(dyn_tex[[i]]))
+      #TODO modify when noise becomes a list
+      noise_tex <- paste0(" + ", ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), "w_{",1:nEq, "}(t)")
+      noise_tex[which(diag(dynrModel@noise@values.latent)==0)] <- ""
+      dyn.df <- rbind(dyn.df,plotdf(paste0(dyn_tex[[i]], noise_tex)))
     }
   }
   
   #Measurement model
   if (printMeas){
-    meas.df<-data.frame(text="'Measurement Model without Noise'",x=0)
+    meas.df<-data.frame(text="'Measurement Model'",x=0)
     nRegime=length(dynrModel@measurement@values.load)
     meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
     nEq <- length(meas_tex[[1]])
@@ -210,7 +213,10 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       if (nRegime>1){
         meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
       }
-      meas.df<-rbind(meas.df,plotdf(meas_tex[[i]]))
+      #TODO modify when noise becomes a list
+      noise_tex <- paste0(" + ", "\\epsilon_{", 1:nEq, "}")
+      noise_tex[which(diag(dynrModel@noise@values.observed)==0)] <- ""
+      meas.df<-rbind(meas.df,plotdf(paste0(meas_tex[[i]], noise_tex)))
     }
   }
   
