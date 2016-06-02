@@ -3,15 +3,24 @@ Date: @DATE@
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person(c("Michael", "D."), "Hunter", role="aut"),
-	person("Sy-Miin", "Chow", role="aut"))
+    person("Sy-Miin", "Chow", role="aut"))
 Author: Lu Ou [aut, cre],
-	Michael Hunter [aut],
-	Sy-Miin Chow [aut]
+    Michael Hunter [aut],
+    Sy-Miin Chow [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
-Depends: R (>= 3.0.0), numDeriv, ggplot2, reshape2, plyr, xtable, latex2exp, grid
+Depends: R (>= 3.0.0), methods, numDeriv, ggplot2, reshape2, plyr, xtable, latex2exp, grid
 Suggests: testthat, roxygen2 (>= 3.1)
-Description: More about what it does (maybe more than one line)
-License: Apache License (== 2.0) GPL (>= 2)
+Description: Dynamic modeling of all kinds in R. These incluse models of processes in 
+    discrete time or continuous time.  They also include processes that are linear
+    or nonlinear. Latent variables can be continuous (e.g. state space models) or 
+    discrete (e.g. regime-switching models). The general approach involves maximum
+    likelihood estimation of single- and multi-subject models of latent time series
+    with the extended Kalman filter and Kim filter. The user provides recipes and
+    data which are combined into a model that is then cooked to obtain free parameter
+    estimates.
+SystemRequirements: GNU make
+NeedsCompilation: yes
+License: Apache License (== 2.0)
 LazyLoad: yes
 LazyData: yes
 Collate:
