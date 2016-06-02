@@ -1,5 +1,8 @@
 #import(methods)
 importFrom(numDeriv, jacobian)
+importFrom(xtable, xtable)
+importFrom(latex2exp, TeX)
+importFrom(grid, grid.newpage, pushViewport, viewport, grid.layout)
 #exportPattern("^[[:alpha:]]+")
 exportPattern("^dynr.+")
 #exportClassPattern("^dynr[[A-Z]][[:alpha:]]+")
