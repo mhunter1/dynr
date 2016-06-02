@@ -183,6 +183,7 @@ summaryResults<-function(object){
              cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.2f", neg2LL)))
              cat(paste0("\nAIC = ", sprintf("%.2f", AIC)))
              cat(paste0("\nBIC = ", sprintf("%.2f", BIC)))
+             cat("\n")
            }
 
 ##' Get the summary of a dynrCook object
