@@ -117,7 +117,6 @@ Mode <- function(y) {
 ##' Plot method for dynrCook objects
 ##' 
 ##' @param x dynrCook object
-##' @param y ignored
 ##' @param dynrModel model object
 ##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
 ##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
@@ -127,8 +126,7 @@ Mode <- function(y) {
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, y=NULL, dynrModel, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
-  y <- NULL
+          function(x, dynrModel, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   #The first panel is the ggplot
   p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=dynrModel@measurement@state.names, ...)
 
