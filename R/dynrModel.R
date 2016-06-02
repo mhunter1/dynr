@@ -371,7 +371,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
   }
-  
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 

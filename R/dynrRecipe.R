@@ -1055,28 +1055,27 @@ setMethod("createRfun", "dynrTrans",
               sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
               f.string<-"inv.tf<-function(vec){"
               for (j in 1:length(rhs)){
-                #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
                 for (i in 1:length(lhs)){
                   rhs[j]=gsub(paste0("\\<",lhs[i],"\\>"),sub[i],rhs[j])
                 }
                 eq=paste0(sub[j],"=",rhs[j])
-                f.string<-paste(f.string,eq,sep="\t\n")
+                f.string<-paste(f.string,eq,sep="\n\t")
               }
               f.string2 <- f.string
               #observed
               if (sum(param.data$ldl.observed)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.observed", values.observed, params.observed, reverse=TRUE),sep="\t\n")
+                f.string2 <- paste(f.string2, makeldlchar(param.data, values.observed, params.observed, reverse=TRUE),sep="\n\t")
               }
               #latent
               if (sum(param.data$ldl.latent)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.latent", values.latent, params.latent, reverse=TRUE),sep="\t\n")
+                f.string2 <- paste(f.string2, makeldlchar(param.data, values.latent, params.latent, reverse=TRUE),sep="\n\t")
               }
               #inicov
               if (sum(param.data$ldl.inicov)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov, reverse=TRUE),sep="\t\n")
+                f.string2 <- paste(f.string2, makeldlchar(param.data, values.inicov, params.inicov, reverse=TRUE),sep="\n\t")
               }
-              f.string2<-paste0(f.string2,"\t\nreturn(vec)}")
-              f.string<-paste0(f.string,"\t\nreturn(vec)}")
+              f.string2<-paste0(f.string2,"\n\treturn(vec)}")
+              f.string<-paste0(f.string,"\n\treturn(vec)}")
               
               eval(parse(text=f.string2))
               object@inv.tfun.full <- inv.tf
@@ -1094,30 +1093,29 @@ setMethod("createRfun", "dynrTrans",
               sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
               
               for (j in 1:length(rhs)){
-                #TODO modify the sub pattern, and make sure "a" in "abs" will not be substituted
                 for (i in 1:length(lhs)){
                   rhs[j]=gsub(paste0("\\<",lhs[i],"\\>"),sub[i],rhs[j])
                 }
                 eq=paste0(sub[j],"=",rhs[j])
-                f.string<-paste(f.string,eq,sep="\t\n")
+                f.string<-paste(f.string,eq,sep="\n\t")
               }
               object@paramnames<-lhs
               }
             
             #observed
             if (sum(param.data$ldl.observed)>0){
-              f.string<-paste(f.string, makeldlchar(param.data, "ldl.observed", values.observed, params.observed),sep="\t\n")
+              f.string<-paste(f.string, makeldlchar(param.data, values.observed, params.observed),sep="\n\t")
             }
             #latent
             if (sum(param.data$ldl.latent)>0){
-              f.string<-paste(f.string, makeldlchar(param.data, "ldl.latent", values.latent, params.latent),sep="\t\n")
+              f.string<-paste(f.string, makeldlchar(param.data, values.latent, params.latent),sep="\n\t")
             }
             #inicov
             if (sum(param.data$ldl.inicov)>0){
-              f.string<-paste(f.string, makeldlchar(param.data, "ldl.inicov", values.inicov, params.inicov),sep="\t\n")
+              f.string<-paste(f.string, makeldlchar(param.data, values.inicov, params.inicov),sep="\n\t")
             }
               
-            f.string<-paste0(f.string,"\t\nreturn(vec)}")
+            f.string<-paste0(f.string,"\n\treturn(vec)}")
             eval(parse(text=f.string))   
             object@tfun <- tf
             
@@ -1126,18 +1124,34 @@ setMethod("createRfun", "dynrTrans",
 )
 
 # TODO Lu, make this function handle lists for values and params
-makeldlchar<-function(param.data, ldl.char, values, params, reverse=FALSE){
-  vec.noise=paste0("vec[",paste0("c(",paste(param.data$param.number[param.data[,ldl.char]],collapse=","),")"),"]")
-  param.name=param.data$param.name[param.data[,ldl.char]]
-
-  vec.sub=as.vector(params)
-  mat.index=sapply(param.name,function(x){min(which(vec.sub==x))})
-  for (i in 1:length(param.name)){
-    vec.sub=gsub(param.name[i], paste0("vec[",param.data$param.number[param.data$param.name==param.name[i]],"]"), vec.sub)
-  }
-  vec.sub[which(vec.sub=="fixed")]<-as.vector(values)[which(vec.sub=="fixed")]
+makeldlchar<-function(param.data, values, params, reverse=FALSE){
+  #Note: Because we need to gurantee the uniqueness of the parameter values in estimation after applying reverseldl transformations, 
+  #there should be no intersections between the parameter names used in different matrices that are subject to the ldl transformations
+  #See below for an example where the (2,2) parameters are the same in two original matrices but the reverseldl-ed parameters differ.
+  #This is problematic in estimation. We should treat the parameters in matrix(c(2,1,2,5) and matrix(c(3,1,2,5) as two different sets of parameters.
+  #Also, the noise structure can only be either fully freed or with diagonals freed.
+  #   > dynr:::reverseldl(matrix(c(2,1,2,5),ncol=2))
+  #   [,1]     [,2]
+  #   [1,] 0.6931472 0.000000
+  #   [2,] 1.0000000 1.098612
+  #   > dynr:::reverseldl(matrix(c(3,1,2,5),ncol=2))
+  #   [,1]     [,2]
+  #   [1,] 1.0986123 0.000000
+  #   [2,] 0.6666667 1.299283
   
-  char=paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(params),")))[",paste0("c(",paste(mat.index,collapse=","),")"),"]")
+  params.numbers <- lapply(params, .exchangeNamesAndNumbers, param.data$param.name)
+  values <- PopBackMatrix(values, params.numbers, paste0("vec[",param.data$param.number,"]"))
+  char<-character(0)
+  if (length(values)>0){
+    for (i in 1:length(values)){
+      param.number=unique(params.numbers[[i]][which(params.numbers[[i]]!=0,arr.ind = TRUE)])
+      vec.noise=paste0("vec[",paste0("c(",paste(param.number,collapse=","),")"),"]")
+      vec.sub <- as.vector(values[[i]])
+      mat.index=sapply(param.number,function(x){min(which(params.numbers[[i]]==x))})
+      char.i=paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(values[[i]]),")))[",paste0("c(",paste(mat.index,collapse=","),")"),"]")
+      char=paste(char, char.i, sep = "\n\t")
+    }
+  }
   return(char)
 }
 
