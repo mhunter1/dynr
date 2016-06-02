@@ -96,6 +96,10 @@ ecov <- prep.noise(
 ecov
 # dynr takes steps to make sure covariance matrices are positive definite
 
+#ecov <- prep.noise(
+#	values.latent=rep(list(diag(c(0, 1), 2)), 2), params.latent=rep(list(diag(c('fixed', 'dnoise'), 2)), 2), # uses free parameter 3
+#	values.observed=list(diag(0.5, 1), diag(1.5, 1)), params.observed=list(diag('mnoise1', 1), diag('mnoise2', 1))) # uses free parameter 4
+
 
 # initial covariances and latent state values
 # These initialize the recursive algorithm (extended Kalman filter) that dynr uses
