@@ -991,16 +991,29 @@ setMethod("writeCcode", "dynrInitial",
 
 setMethod("writeCcode", "dynrNoise",
 	function(object, covariates){
-		params.latent <- object$params.latent[[1]]
-		params.observed <- object$params.observed[[1]]
-		#Note: should we mutate these other slots of the object or leave them alone?
-		values.latent <- object@values.latent.inv.ldl[[1]]
-		values.observed <- object@values.observed.inv.ldl[[1]]
+		params.latent <- object$params.latent
+		params.observed <- object$params.observed
+		#Note: use mutated values, instead of raw values
+		values.latent <- object@values.latent.inv.ldl
+		values.observed <- object@values.observed.inv.ldl
+		
+		nregime <- length(values.latent)
 		
 		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
-		ret <- paste(ret, setGslMatrixElements(values.latent, params.latent, "eta_noise_cov"), sep="\n")
-		ret <- paste(ret, setGslMatrixElements(values.observed, params.observed, "y_noise_cov"), sep="\n")
-		ret <- paste(ret, "\n}\n\n")
+		if(nregime > 1){
+			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+			for(reg in 1:nregime){
+				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+				ret <- paste(ret, setGslMatrixElements(values.latent[[reg]], params.latent[[reg]], "eta_noise_cov", depth=3), sep="\n")
+				ret <- paste(ret, setGslMatrixElements(values.observed[[reg]], params.observed[[reg]], "y_noise_cov", depth=3), sep="\n")
+				ret <- paste0(ret, "\t\t", "break;", "\n")
+			} # close for loop
+			ret <- paste0(ret, "\t", "}\n\n") # close case switch
+		} else {
+			ret <- paste(ret, setGslMatrixElements(values.latent[[1]], params.latent[[1]], "eta_noise_cov"), sep="\n")
+			ret <- paste(ret, setGslMatrixElements(values.observed[[1]], params.observed[[1]], "y_noise_cov"), sep="\n")
+		}
+		ret <- paste(ret, "\n}\n\n") # close C function
 		
 		object@c.string <- ret
 		
@@ -1580,6 +1593,12 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	r <- coProcessValuesParams(values.observed, params.observed)
 	values.observed <- r$values
 	params.observed <- r$params
+	
+	if(length(values.observed) != length(values.latent)){
+		msg <- paste0("Stuff and nonsense: number of regimes for observed covariance (", length(values.observed),
+			") is not equal to that for the latent covariance(", length(values.latent), ").")
+		stop(msg)
+	}
 	
 	values.latent <- lapply(values.latent, preProcessValues)
 	params.latent <- lapply(params.latent, preProcessParams)
