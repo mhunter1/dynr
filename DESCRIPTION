@@ -2,10 +2,10 @@ Package: dynr
 Title: Dynamic modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person(c("Michael", "D."), "Hunter", role="aut"),
-	person("Sy-Miin", "Chow", role="aut"))
+    person("Sy-Miin", "Chow", role="aut"))
 Author: Lu Ou [aut, cre],
-	Michael Hunter [aut],
-	Sy-Miin Chow [aut]
+    Michael Hunter [aut],
+    Sy-Miin Chow [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
 Depends: R (>= 3.0.0), methods, numDeriv, ggplot2, reshape2, plyr, xtable, latex2exp, grid
 Suggests: testthat, roxygen2 (>= 3.1)
