@@ -130,7 +130,7 @@ setMethod("plot", "dynrCook",
           function(x, y=NULL, dynrModel, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   y <- NULL
   #The first panel is the ggplot
-  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=model@measurement@state.names, ...)
+  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=dynrModel@measurement@state.names, ...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
   if (dynrModel$num_regime>1){
@@ -308,7 +308,7 @@ dynr.ggplot <- function(res, data.dynr, numSubjDemo=2,
 		data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=length(states),byrow=TRUE))
 		names(data.plot) <- c(names.id.vars, names.measure.vars)
 		
-		data_long<- reshape2::melt(data.plot[data.plot$id%in%randid,],
+		data_long <- reshape2::melt(data.plot[data.plot$id%in%randid,],
 			id.vars=names.id.vars,
 			measure.vars=names.measure.vars,
 			value.name="value")
