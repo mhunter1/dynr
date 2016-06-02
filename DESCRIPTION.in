@@ -8,7 +8,8 @@ Author: Lu Ou [aut, cre],
     Michael Hunter [aut],
     Sy-Miin Chow [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
-Depends: R (>= 3.0.0), methods, numDeriv, ggplot2, reshape2, plyr, xtable, latex2exp, grid
+Depends: R (>= 3.0.0), methods, ggplot2, reshape2, plyr, xtable, latex2exp, grid
+Imports: numDeriv
 Suggests: testthat, roxygen2 (>= 3.1)
 Description: Dynamic modeling of all kinds in R. These incluse models of processes in 
     discrete time or continuous time.  They also include processes that are linear

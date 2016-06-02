@@ -1,4 +1,5 @@
 #import(methods)
+importFrom(numDeriv, jacobian)
 #exportPattern("^[[:alpha:]]+")
 exportPattern("^dynr.+")
 #exportClassPattern("^dynr[[A-Z]][[:alpha:]]+")
