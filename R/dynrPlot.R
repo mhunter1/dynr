@@ -194,13 +194,17 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
                    length(dynrModel@dynamics@values.dyn))
     dyn_tex=printex(dynrModel@dynamics,AsMatrix=FALSE)
     nEq <- length(dyn_tex[[1]])
+    noise_tex <- paste0(" + ", ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), "w_{",1:nEq, "}(t)")
     for (i in 1:nRegime){
       if (nRegime>1){
         dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
       }
-      #TODO modify when noise becomes a list
-      noise_tex <- paste0(" + ", ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), "w_{",1:nEq, "}(t)")
-      noise_tex[which(diag(dynrModel@noise@values.latent)==0)] <- ""
+      if (length(dynrModel@noise@values.latent)==1){
+        values.latent.mat <- dynrModel@noise@values.latent[[1]] 
+      }else if (length(dynrModel@noise@values.latent)==nRegime){
+        values.latent.mat <- dynrModel@noise@values.latent[[i]]
+      }else{stop("The number of regimes implied by the dynamic noise structure does not match the number of regimes in the dynamic model.")}
+      noise_tex[which(diag(values.latent.mat)==0)] <- ""
       dyn.df <- rbind(dyn.df,plotdf(paste0(dyn_tex[[i]], noise_tex)))
     }
   }
@@ -211,13 +215,17 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
     nRegime=length(dynrModel@measurement@values.load)
     meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
     nEq <- length(meas_tex[[1]])
+    noise_tex <- paste0(" + ", "\\epsilon_{", 1:nEq, "}")
     for (i in 1:nRegime){
       if (nRegime>1){
         meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
       }
-      #TODO modify when noise becomes a list
-      noise_tex <- paste0(" + ", "\\epsilon_{", 1:nEq, "}")
-      noise_tex[which(diag(dynrModel@noise@values.observed)==0)] <- ""
+      if (length(dynrModel@noise@values.observed)==1){
+        values.observed.mat <- dynrModel@noise@values.observed[[1]] 
+      }else if (length(dynrModel@noise@values.observed)==nRegime){
+        values.observed.mat <- dynrModel@noise@values.observed[[i]]
+      }else{stop("The number of regimes implied by the measurement noise structure does not match the number of regimes in the measurement model.")}
+      noise_tex[which(diag(values.observed.mat)==0)] <- ""
       meas.df<-rbind(meas.df,plotdf(paste0(meas_tex[[i]], noise_tex)))
     }
   }
