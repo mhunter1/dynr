@@ -96,11 +96,35 @@ vecRegime <- function(object){
   return(Prlist)
 }  
 
+LaTeXnames<-function(names, decimal = 2, latex = TRUE){
+  if (latex == TRUE){
+    if (class(names)=="character"){
+      names<-gsub("([[:alnum:]]+[\\]*)_([[:alnum:]]+)","\\1_{\\2}",names)
+      
+      greek <- c("alpha", "nu", "beta", "xi", "Xi", "gamma", "Gamma", "delta", 
+                 "Delta", "pi", "Pi", "epsilon", "varepsilon", "rho", "varrho", 
+                 "zeta", "sigma", "Sigma", "eta", "tau", "theta", "vartheta", 
+                 "Theta", "upsilon", "Upsilon", "iota", "phi", "varphi", "Phi", 
+                 "kappa", "chi", "lambda", "Lambda", "psi", "Psi", "mu", "omega", "Omega")
+      greekpat <- paste0("(\\<", paste0(greek, collapse = "_*\\>|\\<"), "_*\\>)")
+      names<-gsub(greekpat,"\\\\\\1",names)
+      
+      names<-gsub("\\\\_", "_", names)
+    }
+  }
+  
+  if (class(names)=="numeric"){
+    names<-sprintf(paste0("%.",decimal,"f"), names)
+  }
+  
+  return(names)
+}
+
 setMethod("printex", "dynrModel",
           function(object, ParameterAs, 
                    printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE,
                    outFile){
-            model2<-PopBackModel(object, ParameterAs)
+            model2<-PopBackModel(object, LaTeXnames(ParameterAs, latex = FALSE))
             
             inlist <- list(model2$dynamics, model2$measurement, model2$noise, model2$initial, model2$regimes)
             outlist <- lapply(inlist, printex, show = FALSE)
@@ -286,8 +310,8 @@ setMethod("printex", "dynrModel",
                                                  outlist[[2]]$meas_loadings[[j]],
                                                  state,exom))
                 if (isMeasNoise){
-                  measequ <- paste0(measequ,paste0("+ \\epsilon,",
-                                                   "\\\\&\\epsilon\\sim N\\Big(",
+                  measequ <- paste0(measequ,paste0("+ epsilon,",
+                                                   "\\\\&epsilon\\sim N\\Big(",
                                                    .xtableMatrix(matrix(rep(0,length((model2$measurement)$obs.names)),ncol=1),F),
                                                    ",",measNoise,"\\Big)"))
                 }#end of (isMeasNoise check)
@@ -330,6 +354,7 @@ setMethod("printex", "dynrModel",
               outcode <- paste0(outcode, "\n\nThe regime-switching model is given by:\n", RSequ)
             }
             outcode <- paste0(outcode, "\\end{document}\n")
+            outcode <- LaTeXnames(outcode)
             if (missing(outFile)){
               cat(outcode)
             }else{

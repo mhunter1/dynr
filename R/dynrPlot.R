@@ -174,7 +174,7 @@ plotdf <- function(vec_tex){
 ##' This function typesets a set of formulas that represent the model.
 plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, textsize=4){
   
-  dynrModel <- PopBackModel(dynrModel, ParameterAs)
+  dynrModel <- PopBackModel(dynrModel, LaTeXnames(ParameterAs, latex = FALSE))
 
   #Dynamic model
   if (printDyn){  
@@ -203,7 +203,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
         values.latent.mat <- dynrModel@noise@values.latent[[i]]
       }else{stop("The number of regimes implied by the dynamic noise structure does not match the number of regimes in the dynamic model.")}
       noise_tex[which(diag(values.latent.mat)==0)] <- ""
-      dyn.df <- rbind(dyn.df,plotdf(paste0(dyn_tex[[i]], noise_tex)))
+      dyn.df <- rbind(dyn.df,plotdf(LaTeXnames(paste0(dyn_tex[[i]], noise_tex))))
     }
   }
   
@@ -213,7 +213,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
     nRegime=length(dynrModel@measurement@values.load)
     meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
     nEq <- length(meas_tex[[1]])
-    noise_tex <- paste0(" + ", "\\epsilon_{", 1:nEq, "}")
+    noise_tex <- paste0(" + ", "epsilon_{", 1:nEq, "}")
     for (i in 1:nRegime){
       if (nRegime>1){
         meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
@@ -224,7 +224,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
         values.observed.mat <- dynrModel@noise@values.observed[[i]]
       }else{stop("The number of regimes implied by the measurement noise structure does not match the number of regimes in the measurement model.")}
       noise_tex[which(diag(values.observed.mat)==0)] <- ""
-      meas.df<-rbind(meas.df,plotdf(paste0(meas_tex[[i]], noise_tex)))
+      meas.df<-rbind(meas.df,plotdf(LaTeXnames(paste0(meas_tex[[i]], noise_tex))))
     }
   }
   

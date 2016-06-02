@@ -1136,7 +1136,6 @@ setMethod("createRfun", "dynrTrans",
           }
 )
 
-# TODO Lu, make this function handle lists for values and params
 makeldlchar<-function(param.data, values, params, reverse=FALSE){
   #Note: Because we need to gurantee the uniqueness of the parameter values in estimation after applying reverseldl transformations, 
   #there should be no intersections between the parameter names used in different matrices that are subject to the ldl transformations
