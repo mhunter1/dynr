@@ -67,8 +67,8 @@ rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initia
 
 printex(rsmod, ParameterAs=rsmod$param.names, printInit=TRUE,printRS=TRUE,
         outFile="RSLinearDiscrete.tex")
-tools::texi2pdf("RSLinearDiscrete.tex")
-system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
+#tools::texi2pdf("RSLinearDiscrete.tex")
+#system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
 
 yum <- dynr.cook(rsmod)
 
@@ -89,13 +89,13 @@ dynr.ggplot(yum, dynrModel = rsmod, style = 1,
             title="Results from RS-AR model", numSubjDemo=1,
             shape.values = c(1),
             text=element_text(size=16))
-ggsave("RSLinearDiscreteggPlot1.pdf")
+#ggsave("RSLinearDiscreteggPlot1.pdf")
 dynr.ggplot(yum, dynrModel = rsmod, style = 2,
             names.regime=c("Deactivated","Activated"),
             title="Results from RS-AR model", numSubjDemo=1,
             text=element_text(size=16))
-ggsave("RSLinearDiscreteggPlot2.pdf")
+#ggsave("RSLinearDiscreteggPlot2.pdf")
 plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
 plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
 #---- End of demo ---- 
-save(rsmod,yum,file="RSLinearDiscrete.RData")
+#save(rsmod,yum,file="RSLinearDiscrete.RData")

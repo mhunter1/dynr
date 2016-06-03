@@ -133,8 +133,8 @@ model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=ini
 
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="LinearSDE.tex")
-tools::texi2pdf("LinearSDE.tex")
-system(paste(getOption("pdfviewer"), "LinearSDE.pdf"))
+#tools::texi2pdf("LinearSDE.tex")
+#system(paste(getOption("pdfviewer"), "LinearSDE.pdf"))
 
 
 # Estimate free parameters
@@ -143,7 +143,7 @@ res <- dynr.cook(model)
 summary(res)
 
 plotFormula(model, res@transformed.parameters)
-ggsave("LinearSDEPlotFml.pdf")
+#ggsave("LinearSDEPlotFml.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -171,4 +171,4 @@ cor(sm, t(tx)[-1,])
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="LinearSDE.RData")
+#save(model,res,file="LinearSDE.RData")

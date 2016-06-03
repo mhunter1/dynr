@@ -103,8 +103,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
         outFile="RSNonlinearODE.tex")
-tools::texi2pdf("RSNonlinearODE.tex")
-system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
+#tools::texi2pdf("RSNonlinearODE.tex")
+#system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
 
 model@ub[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(0,10)
 model@lb[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(-10,0)
@@ -115,20 +115,20 @@ res <- dynr.cook(model)
 summary(res)
 
 plotFormula(model, ParameterAs=res@transformed.parameters) 
-ggsave("RSNonlinearODEPlotFml.pdf")
+#ggsave("RSNonlinearODEPlotFml.pdf")
 
 dynr.ggplot(res, model, style = 1,
             names.regime=c("Free","Constrained"),
             title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             shape.values = c(1,2),
             text=element_text(size=16))
-ggsave("RSNonlinearODEggPlot1.pdf")
+#ggsave("RSNonlinearODEggPlot1.pdf")
 
 dynr.ggplot(res, model, style=2, 
             names.regime=c("Free","Constrained"),
             title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             text=element_text(size=16))
-ggsave("RSNonlinearODEggPlot2.pdf")
+#ggsave("RSNonlinearODEggPlot2.pdf")
 
 plot(res, dynrModel = model, style=1)
 plot(res, dynrModel = model, style=2)
@@ -147,5 +147,5 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="RSNonlinearODE.RData")
+#save(model,res,file="RSNonlinearODE.RData")
 

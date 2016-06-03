@@ -70,8 +70,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="NonlinearODE.tex")
-tools::texi2pdf("NonlinearODE.tex")
-system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
+#tools::texi2pdf("NonlinearODE.tex")
+#system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
 
 # Estimate free parameters
 res <- dynr.cook(dynrModel=model)
@@ -96,6 +96,5 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-save(model,res,file="NonlinearODE.RData")
-
+#save(model,res,file="NonlinearODE.RData")
 

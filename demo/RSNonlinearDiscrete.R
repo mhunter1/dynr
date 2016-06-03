@@ -92,8 +92,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov,
 
 printex(model,ParameterAs=model$param.names,printInit=TRUE, printRS=TRUE,
         outFile="RSNonlinearDiscrete.tex")
-tools::texi2pdf("RSNonlinearDiscrete.tex")
-system(paste(getOption("pdfviewer"), "RSNonlinearDiscrete.pdf"))
+#tools::texi2pdf("RSNonlinearDiscrete.tex")
+#system(paste(getOption("pdfviewer"), "RSNonlinearDiscrete.pdf"))
 
 res <- dynr.cook(model)
 
@@ -123,17 +123,17 @@ dynr.ggplot(res, dynrModel=model, style=1,
             title="Results from RS Nonlinear DFA model", numSubjDemo=1,idtoPlot=c(1),
             shape.values = c(1,2),
             text=element_text(size=16))
-ggsave("RSNonlinearDiscreteggPlot1.pdf")
+#ggsave("RSNonlinearDiscreteggPlot1.pdf")
 dynr.ggplot(res, dynrModel=model, style=2,
             names.observed=c("y1","y4"),
             names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
             title="Results from RS Nonlinear DFA model", numSubjDemo=1,idtoPlot=c(1),
             text=element_text(size=16))
-ggsave("RSNonlinearDiscreteggPlot2.pdf")
+#ggsave("RSNonlinearDiscreteggPlot2.pdf")
 
 plotFormula(dynrModel=model, ParameterAs=model@param.names, printDyn=TRUE, printMeas=TRUE)
 plot(res, dynrModel=model, style = 1)
 plot(res, dynrModel=model, style = 2, names.observed=c("y1","y4"))
 #---- Done ----
-save(model,res,file="RSNonlinearDiscrete.RData")
+#save(model,res,file="RSNonlinearDiscrete.RData")
 
