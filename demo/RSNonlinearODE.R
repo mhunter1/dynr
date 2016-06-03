@@ -15,11 +15,17 @@ data <- dynr.data(RSPPsim, id="id", time="time",observed=c("x","y"),covariate="c
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
-meas <- prep.loadings(
-  map=list(
-    prey=c("x"),
-    predator=c("y")),
-  params=NULL)
+meas <- prep.measurement(
+  values.load=diag(1, 2),
+  obs.names = c('x', 'y'),
+  state.names=c('prey', 'predator'))
+
+# alternatively, use prep.loadings
+# meas <- prep.loadings(
+#   map=list(
+#     prey="x",
+#     predator="y"),
+#   params=NULL)
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(

@@ -18,11 +18,19 @@ data <- dynr.data(NonlinearDFAsim, id="id", time="time",observed=colnames(Nonlin
 #--- (1) Prepare the recipes ----
 
 #---- (1a) Measurement (factor loadings) -----
-meas <- prep.loadings(
-  map=list(
-    PE=paste0('y', 1:3),
-    NE=paste0('y', 4:6)),
-  params=c("lambda_21","lambda_31","lambda_52","lambda_62"))
+meas <- prep.measurement(
+  values.load=matrix(c(1, .8, .8, rep(0, 3),
+                       rep(0, 3), 1, .8, .8), ncol=2),
+  params.load=matrix(c("fixed", "lambda_21", "lambda_31", rep("fixed",3),
+                       rep("fixed",3), "fixed", "lambda_52","lambda_62"), ncol=2),
+  state.names=c('PE', 'NE'))
+
+# alternatively, use prep.loadings
+# meas <- prep.loadings(
+#   map=list(
+#     PE=paste0('y', 1:3),
+#     NE=paste0('y', 4:6)),
+#   params=c("lambda_21","lambda_31","lambda_52","lambda_62"))
 
 
 #---- (1b) Initial conditions ----
