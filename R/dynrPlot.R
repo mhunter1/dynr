@@ -387,7 +387,7 @@ dynr.ggplot <- function(res, dynrModel, style,
       points.var <- names.state
     }#end of style 1
     if (style==2){
-      dynrModel=dynr:::PopBackModel(dynrModel, LaTeXnames(res@transformed.parameters, latex = FALSE))
+      dynrModel=PopBackModel(dynrModel, LaTeXnames(res@transformed.parameters, latex = FALSE))
       dynrModel@measurement@values.load=lapply(dynrModel@measurement@values.load, function(x){matrix(as.numeric(x),ncol=ncol(x))})
       num_regime_meas <- length(dynrModel@measurement@values.load)
       if (length(dynrModel@measurement@values.exo)!=0){
