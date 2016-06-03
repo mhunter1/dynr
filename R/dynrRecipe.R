@@ -215,7 +215,8 @@ setMethod("$", "dynrRecipe",
 ##' @details
 ##' This is a general way of getting a LaTeX string for recipes, models, and cooked models.  It is a great way to check that you specified
 ##' the model or recipe you think you did before estimating its free parameters (cooking).  After the model is cooked, you can use it to get
-##' LaTeX code with the estimated parameters in it.
+##' LaTeX code with the estimated parameters in it.  The underscores in parameter names are saved for use of subscripts.  Greek letters can be 
+##' specified as corresponding LaTeX symbols without backslashes (e.g., "lambda") and printed as greek letters.
 ##' 
 ##' Further arguments for the \code{dynrModel} method are with their defaults are \code{ParameterAs}, \code{printDyn=TRUE}, \code{printMeas=TRUE}, \code{printInit=FALSE}, \code{printRS=FALSE}, and \code{outFile}.
 setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
@@ -1577,10 +1578,10 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 
 ##' Recipe function for specifying the measurement error and process noise covariance structures
 ##' 
-##' @param values.latent a positive definite matrix of the starting or fixed values of the process noise covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
-##' @param params.latent a matrix of parameter names that appear in the measurement error covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
-##' @param values.observed a positive definite matrix of the starting or fixed values of the measurement error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. 
-##' @param params.observed a matrix of parameter names that appear in the process noise covariance. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.latent a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the process noise covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching dynamic model, the process noise covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
+##' @param params.latent a matrix or list of matrices of the parameter names that appear in the process noise covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.
+##' @param values.observed a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the measurement error covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching measurement model, the measurement noise covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. 
+##' @param params.observed a matrix or list of matrices of the parameter names that appear in the measurement error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.
 ##' 
 ##' @examples 
 ##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
@@ -1974,13 +1975,13 @@ processFormula<-function(formula.list){
 
 ##' Recipe function for preparing the initial conditions for the model. 
 ##' 
-##' @param values.inistate a vector of the starting or fixed values of the initial state vector
-##' @param params.inistate a vector of the parameter names that appear in the initial state vector. If an element is 0, the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
-##' @param values.inicov a positive definite matrix of the starting or fixed values of the initial error covariance matrix. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
-##' @param params.inicov a matrix of the parameter names that appear in the initial error covariance matrix. If an element is 0, the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix.
+##' @param values.inistate a vector or list of vectors of the starting or fixed values of the initial state vector in one or more regimes.
+##' @param params.inistate a vector or list of vectors of the parameter names that appear in the initial state vector in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param values.inicov a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the initial error covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching dynamic model, the initial error covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
+##' @param params.inicov a matrix or list of matrices of the parameter names that appear in the initial error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.
 ##' @param values.regimep a vector of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
 ##' @param params.regimep a vector of the parameter indices of the initial probabilities of 
-##' being in each regime. If an element is 0, the corresponding element is fixed at the value 
+##' being in each regime. If an element is 0 or "fixed", the corresponding element is fixed at the value 
 ##' specified in the "values" vector; Otherwise, the corresponding element is to be estimated 
 ##' with the starting value specified in the values vector.
 ##' 

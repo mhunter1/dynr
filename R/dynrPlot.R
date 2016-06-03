@@ -164,11 +164,13 @@ plotdf <- function(vec_tex){
 
 ##' Plot the formula from a model
 ##' 
-##' @param dynrModel The model object to plot
-##' @param ParameterAs The parameter values or names to plot
-##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
+##' @param dynrModel The model object to plot.
+##' @param ParameterAs The parameter values or names to plot. The underscores in parameter names are saved for 
+##' use of subscripts.  Greek letters can be specified as corresponding LaTeX symbols without backslashes (e.g., "lambda") 
+##' and printed as greek letters.
+##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model.
 ##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
-##' @param textsize The text size use in the plot
+##' @param textsize The text size use in the plot.
 ##' 
 ##' @details
 ##' This function typesets a set of formulas that represent the model.
