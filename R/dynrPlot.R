@@ -258,8 +258,8 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##' @param style The style of the plot. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
 ##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
 ##' @param idtoPlot Values of the ID variable to plot
-##' @param names.state (optional) The names of the states to be plotted, which should be a subset of dynrModel@measurement@state.names.
-##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of dynrModel@measurement@obs.names.
+##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
+##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
 ##' @param names.regime (optional) The names of the regimes to be plotted, which can be missing.
 ##' @param shape.values (optional) A vector of values that correspond to the shapes of the points, which can be missing. See the R documentation on pch for details on possible shapes.
 ##' @param title (optional) A title of the plot.
@@ -270,7 +270,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##' @param mancolorPalette (optional) A color palette for manually scaling the colors of lines and plots.
 ##' @param manfillPalette (optional) A color palette for manually scaling the colors of filled blocks.
 ##' @param ... A list of element name, element pairings that modify the existing ggplot2::ggplot ggplot2::theme. Consult the ggplot2::theme() function in the R package ggplot2::ggplot.
-dynr.ggplot <- function(res, dynrModel, style,
+dynr.ggplot <- function(res, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 
                         names.observed,
@@ -289,6 +289,8 @@ dynr.ggplot <- function(res, dynrModel, style,
   if(missing(names.observed)){names.observed=dynrModel@measurement@obs.names}
   observed=which(names.observed%in%dynrModel@measurement@obs.names)
   if ((length(observed)>8)&(missing(mancolorPalette))&(style==2)){stop("You provided too many variables than the default color palette can handle.\nPlease consider specify the mancolorPalette argument.")}
+  if(missing(names.state)){names.state=dynrModel@measurement@state.names}
+  states=which(names.state%in%dynrModel@measurement@state.names)
   if(missing(shape.values)){
     if (style==1) shape.values=48+states
     if (style==2) shape.values=15+observed
@@ -339,8 +341,8 @@ dynr.ggplot <- function(res, dynrModel, style,
       }#end of one-regime meas
       names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
       data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
-      colnames(data.dynr$observed[,observed])<-paste0(names.observed, ".observed")
       data.plot <- cbind(data.plot, data.dynr$observed[,observed])
+      colnames(data.plot)[seq(to=ncol(data.plot), by = 1, length.out = length(observed))]<-paste0(names.observed, ".observed")
       lines.var <- paste0(names.observed, ".predicted")
       points.var <- paste0(names.observed, ".observed")
       if (length(observed)<8){
@@ -366,8 +368,7 @@ dynr.ggplot <- function(res, dynrModel, style,
     
   }else{#more than two regimes
     if(missing(names.regime)){names.regime = 1:num_regime}
-    if(missing(names.state)){names.state=dynrModel@measurement@state.names}
-    states=which(names.state%in%dynrModel@measurement@state.names)
+
     findRegime = function(prop){
       MostLikelyRegime = names.regime[prop==max(prop)]
       return(MostLikelyRegime[1])
@@ -425,8 +426,8 @@ dynr.ggplot <- function(res, dynrModel, style,
       
       names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
       data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
-      colnames(data.dynr$observed[,observed])<-paste0(names.observed, ".observed")
       data.plot <- cbind(data.plot, data.dynr$observed[,observed])
+      colnames(data.plot)[seq(to=ncol(data.plot), by = 1, length.out = length(observed))]<-paste0(names.observed, ".observed")
       lines.var <- paste0(names.observed, ".predicted")
       points.var <- paste0(names.observed, ".observed")
       if (length(observed)<=8){

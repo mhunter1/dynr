@@ -21,7 +21,6 @@ setClass(Class =  "dynrModel",
            data="list",
            num_regime="integer",
            dim_latent_var="integer",
-           infile="character",
            outfile="character",
            verbose="logical",
            compileLib="logical",
@@ -385,8 +384,6 @@ setMethod("printex", "dynrModel",
 ##' @param ... additional arguments specifying other dynrRecipe objects. Argument regimes is for 
 ##' a dynrRegimes object prepared with \code{\link{prep.regimes}} and argument transform is for 
 ##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
-##' @param infile a character string of the name of the input C script of model functions to be compiled 
-##' for parameter estimation. The default is a temporary file name.
 ##' @param outfile a character string of the name of the output C script of model functions to be compiled 
 ##' for parameter estimation.
 ##' 
@@ -394,7 +391,7 @@ setMethod("printex", "dynrModel",
 ##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=tempfile(), outfile){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
@@ -454,7 +451,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
   param.data$param.value=unique.values
   
   #initiate a dynrModel object
-  obj.dynrModel <- new("dynrModel", c(list(data=data, infile=infile, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
   obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
   
   obj.dynrModel@xstart <- param.data$param.value

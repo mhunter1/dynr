@@ -22,9 +22,9 @@ dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
 recMeas <- prep.measurement(
 	values.load=rep(list(matrix(1, 1, 1)), 2),
 	values.int=list(matrix(0, 1, 1), matrix(1, 1, 1)),
-	params.int=list(matrix('mu0', 1, 1), matrix('mu1', 1, 1)),
+	params.int=list(matrix('mu_0', 1, 1), matrix('mu_1', 1, 1)),
 	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
-	params.exo=list(matrix('beta0', 1, 1), matrix('beta1', 1, 1)),
+	params.exo=list(matrix('beta_0', 1, 1), matrix('beta_1', 1, 1)),
 	obs.names = c('EMG'),
 	state.names=c('lEMG'),
 	exo.names=c("self"))
@@ -58,7 +58,7 @@ recIni <- prep.initial(
 
 recDyn <- prep.matrixDynamics(
 	values.dyn=list(matrix(.1, 1, 1), matrix(.8, 1, 1)),
-	params.dyn=list(matrix('phi0', 1, 1), matrix('phi1', 1, 1)),
+	params.dyn=list(matrix('phi_0', 1, 1), matrix('phi_1', 1, 1)),
 	isContinuousTime=FALSE)
 
 #---- (4) Create model and cook it all up ----
@@ -84,13 +84,13 @@ exp(r1)/sum(exp(r1)) #first row of transition probability matrix
 r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
 exp(r2)/sum(exp(r2)) #second row of transition probability matrix
 
-dynr.ggplot(yum, data.dynr=dd, style = 1, 
+dynr.ggplot(yum, dynrModel = rsmod, style = 1, 
             names.regime=c("Deactivated","Activated"),
             title="Results from RS-AR model", numSubjDemo=1,
             shape.values = c(1),
             text=element_text(size=16))
 ggsave("RSLinearDiscreteggPlot1.pdf")
-dynr.ggplot(yum, data.dynr=dd, style = 2,
+dynr.ggplot(yum, dynrModel = rsmod, style = 2,
             names.regime=c("Deactivated","Activated"),
             title="Results from RS-AR model", numSubjDemo=1,
             text=element_text(size=16))

@@ -117,7 +117,7 @@ summary(res)
 plotFormula(model, ParameterAs=res@transformed.parameters) 
 ggsave("RSNonlinearODEPlotFml.pdf")
 
-dynr.ggplot(res, model, states=c(1:2), 
+dynr.ggplot(res, model, style = 1, states=c(1:2), 
             names.regime=c("Free","Constrained"),
             title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             shape.values = c(1,2),
