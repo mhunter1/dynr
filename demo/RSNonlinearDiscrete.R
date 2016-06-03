@@ -20,8 +20,8 @@ data <- dynr.data(NonlinearDFAsim, id="id", time="time",observed=colnames(Nonlin
 #---- (1a) Measurement (factor loadings) -----
 meas <- prep.loadings(
   map=list(
-    x1=paste0('y', 1:3),
-    x2=paste0('y', 4:6)),
+    PE=paste0('y', 1:3),
+    NE=paste0('y', 4:6)),
   params=c("lambda_21","lambda_31","lambda_52","lambda_62"))
 
 
@@ -110,13 +110,18 @@ truepar <- c(
   0.98,0.85)
 data.frame(name=res@param.names , true=truepar, estim=coef(res))
 
-dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+dynr.ggplot(res, dynrModel=model, style=1,
             names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
-            names.state=c("PE","NE"),
             title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
             shape.values = c(1,2),
             text=element_text(size=16))
-ggsave("RSNonlinearDiscreteggPlot.pdf")
+ggsave("RSNonlinearDiscreteggPlot1.pdf")
+dynr.ggplot(res, dynrModel=model, style=2,
+            names.observed=c("y1","y4"),
+            names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
+            title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
+            text=element_text(size=16))
+ggsave("RSNonlinearDiscreteggPlot2.pdf")
 
 plotFormula(dynrModel=model, ParameterAs=model@param.names, printDyn=TRUE, printMeas=TRUE)
 plot(res, dynrModel=model)
