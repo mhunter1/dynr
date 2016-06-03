@@ -118,6 +118,7 @@ Mode <- function(y) {
 ##' 
 ##' @param x dynrCook object
 ##' @param dynrModel model object
+##' @param style The style of the plot in the first panel. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
 ##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
 ##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
 ##' @param textsize numeric. Font size used in the plot.
@@ -126,9 +127,9 @@ Mode <- function(y) {
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, dynrModel, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
+          function(x, dynrModel, style = 1, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   #The first panel is the ggplot
-  p1 <- dynr.ggplot(x, data.dynr=dynrModel@data, numSubjDemo=1, names.state=dynrModel@measurement@state.names, ...)
+  p1 <- dynr.ggplot(x, dynrModel, style, numSubjDemo=1, ...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
   if (dynrModel$num_regime>1){
@@ -253,128 +254,232 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##' The ggplot of the smoothed state estimates and the most likely regimes
 ##' 
 ##' @param res The dynr object returned by dynr.cook().
-##' @param data.dynr The dynr data returned by dynr.data().
+##' @param dynrModel The model object to plot.
+##' @param style The style of the plot. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
 ##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
-##' @param states The indices of the states to be plotted.
-##' @param names.state The names of the states to be plotted, which can be missing.
-##' @param names.regime The names of the regimes to be plotted, which can be missing.
-##' @param shape.values A vector of values that correspond to the shapes of the points, which can be missing. See the R documentation on pch for details on possible shapes.
 ##' @param idtoPlot Values of the ID variable to plot
-##' @param title A title of the plot.
-##' @param ylab The label of the y axis.
-##' @param is.bw Is plot in black and white?
+##' @param names.state (optional) The names of the states to be plotted, which should be a subset of dynrModel@measurement@state.names.
+##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of dynrModel@measurement@obs.names.
+##' @param names.regime (optional) The names of the regimes to be plotted, which can be missing.
+##' @param shape.values (optional) A vector of values that correspond to the shapes of the points, which can be missing. See the R documentation on pch for details on possible shapes.
+##' @param title (optional) A title of the plot.
+##' @param ylab (optional) The label of the y axis.
+##' @param is.bw Is plot in black and white? The default is FALSE.
 ##' @param colorPalette A palette function for lines and dots that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
 ##' @param fillPalette A palette function for blocks that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
-##' @param mancolorPalette A color palette for manually scaling the colors of lines and plots.
-##' @param manfillPalette A color palette for manually scaling the colors of filled blocks.
+##' @param mancolorPalette (optional) A color palette for manually scaling the colors of lines and plots.
+##' @param manfillPalette (optional) A color palette for manually scaling the colors of filled blocks.
 ##' @param ... A list of element name, element pairings that modify the existing ggplot2::ggplot ggplot2::theme. Consult the ggplot2::theme() function in the R package ggplot2::ggplot.
-dynr.ggplot <- function(res, data.dynr, numSubjDemo=2, 
-                        states, names.state, 
-                        names.regime,shape.values,
-                        idtoPlot=c(),
-                        title=" ", 
-                        ylab="Smoothed State Values", 
+dynr.ggplot <- function(res, dynrModel, style,
+                        numSubjDemo=2, idtoPlot=c(),
+                        names.state, 
+                        names.observed,
+                        names.regime,
+                        shape.values,
+                        title, 
+                        ylab, 
                         is.bw=FALSE, 
                         colorPalette="Set2", 
                         fillPalette="Set2", 
                         mancolorPalette, manfillPalette, ...){
-	
-	dim_latent_var=dim(res@eta_smooth_final)[1]
-	if (missing(states)) states=1:dim_latent_var
-	num_regime=dim(res@pr_t_given_T)[1]
-	if(missing(names.regime)){names.regime = 1:num_regime}
-	if(missing(names.state)){names.state=paste0("state", states)}
-  if(missing(shape.values)){shape.values=48+states}
-	num_sbj=length(unique(data.dynr$id))
-	if(length(idtoPlot)<1){
-	  randid =sample(unique(data.dynr$id),numSubjDemo)
-	  }else {randid=idtoPlot}
-
-	findRegime = function(prop){
-	  MostLikelyRegime = names.regime[prop==max(prop)]
-	  return(MostLikelyRegime[1])
-	  #If the probabilities are equal, return the first regime
-	}
-	data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
-	#data.plot<-cbind(data.plot,data.dynr$observed)
-	
-	addendtime <- function(data_frame){
-		data_frame$endtime <- c(data_frame$time[2:nrow(data_frame)], data_frame$time[nrow(data_frame)]+min(diff(data_frame$time)))
-		return(data_frame)
-	}
-	if(num_regime==1){
-		names.id.vars <- c("id","time")
-		names.measure.vars <- names.state
-		data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=length(states),byrow=TRUE))
-		names(data.plot) <- c(names.id.vars, names.measure.vars)
-		
-		data_long <- reshape2::melt(data.plot[data.plot$id%in%randid,],
-			id.vars=names.id.vars,
-			measure.vars=names.measure.vars,
-			value.name="value")
-		value <- NULL
-		variable <- NULL
-		partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable)) + 
-		  ggplot2::geom_line(size=1) +
-		  ggplot2::geom_point(size=4, ggplot2::aes(shape=variable)) +
-		  ggplot2::scale_shape_manual(values=shape.values)+
-		  ggplot2::facet_wrap(~id)+
-		  ggplot2::labs(title = title,y=ylab,ggtitle="")+
-		  ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
-
-	}else{
-		
-		data.plot <- plyr::ddply(data.plot,"id",addendtime)
-		data.plot$regime<-as.factor(apply(res@pr_t_given_T,2,findRegime))
-		names.id.vars<-c("id","time","endtime","regime")
-		names.measure.vars<-names.state
-		data.plot<-cbind(data.plot,matrix((res@eta_smooth_final[states,]),ncol=length(states),byrow=TRUE))
-		names(data.plot)<-c(names.id.vars,names.measure.vars)
-		
-		data_long<- reshape2::melt(data.plot[data.plot$id%in%randid,],
-			id.vars=names.id.vars,
-			measure.vars=names.measure.vars,
-			value.name="value")
-    #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
-	endtime <- NULL
-	regime <- NULL
-    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
-		  ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
-		  ggplot2::geom_line(size=1, ggplot2::aes(color=variable)) +
-      ggplot2::geom_point(size=4, ggplot2::aes(color=variable,shape=variable)) +
-      ggplot2::scale_shape_manual(values=shape.values)+
-		  #geom_text(size=1, ggplot2::aes(label=statenumber,color=variable))+
-		  ggplot2::facet_wrap(~id)+ 
-		  ggplot2::labs(title = title,y=ylab,ggtitle="")+
-		  ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
-	
-		}
   
-	if(is.bw){
-	  bw.plot<-partial.plot+
-	    ggplot2::scale_fill_grey(start = 0.1, end = 0.9)+
-	    ggplot2::scale_color_grey(start = 0.2, end = 0.7)
-	  print(bw.plot)
-	}else{
-	  default.plot<-partial.plot+
-	    ggplot2::scale_colour_brewer(palette=colorPalette)+
-	    ggplot2::scale_fill_brewer(palette=fillPalette)		  
-	  if(!missing(mancolorPalette)){
-	    manual.plot<-partial.plot+ggplot2::scale_colour_manual(values=mancolorPalette)
-	  }
-	  if(!missing(manfillPalette)){
-	    if(!exists("manual.plot")){manual.plot<-partial.plot}
-	    manual.plot<-manual.plot+ggplot2::scale_fill_manual(values=manfillPalette)
-	  }
-	  if (exists("manual.plot")){
-	    return(manual.plot) #print(manual.plot)
-	  }else{
-	    return(default.plot)#print(default.plot)
-	    }
-	}
+  data.dynr=dynrModel@data
+  dim_latent_var=dim(res@eta_smooth_final)[1]
+  num_regime=dim(res@pr_t_given_T)[1]
+  if(missing(names.observed)){names.observed=dynrModel@measurement@obs.names}
+  observed=which(names.observed%in%dynrModel@measurement@obs.names)
+  if ((length(observed)>8)&(missing(mancolorPalette))&(style==2)){stop("You provided too many variables than the default color palette can handle.\nPlease consider specify the mancolorPalette argument.")}
+  if(missing(shape.values)){
+    if (style==1) shape.values=48+states
+    if (style==2) shape.values=15+observed
+  }
+  num_sbj=length(unique(data.dynr$id))
+  if(length(idtoPlot)<1){
+    randid =sample(unique(data.dynr$id),numSubjDemo)
+  }else {randid=idtoPlot}
+  if(missing(title)){
+    if (style==1) title=" "
+    if (style==2) title="Observed vs Predicted"
+  }
+  if(missing(ylab)){
+    if (style==1) ylab="Smoothed State Values"
+    if (style==2) ylab="Values"
+  }
+  
+  data.plot<-data.frame(id=as.factor(data.dynr$id),time=data.dynr$time)
+  
+  if(num_regime==1){
+    names.id.vars <- c("id","time")
+    if (style==1){
+      names.measure.vars <- names.state
+      data.plot <- cbind(data.plot, matrix(res@eta_smooth_final[states,],ncol=length(states),byrow=TRUE))
+      lines.var <- names.state
+      points.var <- names.state
+    }#end of style 1
+    if (style==2){
+      dynrModel=PopBackModel(dynrModel, LaTeXnames(res@transformed.parameters, latex = FALSE))
+      dynrModel@measurement@values.load=lapply(dynrModel@measurement@values.load, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      num_regime_meas <- length(dynrModel@measurement@values.load)
+      if (length(dynrModel@measurement@values.exo)!=0){
+        dynrModel@measurement@values.exo=lapply(dynrModel@measurement@values.exo, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      }
+      if (length(dynrModel@measurement@values.int)!=0){
+        dynrModel@measurement@values.int=lapply(dynrModel@measurement@values.int, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      }
+      #predicted scores
+      if (num_regime_meas==1){#one-regime measurement model
+        predicted=dynrModel@measurement@values.load[[1]]%*%res@eta_smooth_final
+        if (length(dynrModel@measurement@values.int)!=0){
+          predicted=predicted+dynrModel@measurement@values.int[[1]]%*%matrix(rep(1,ncol(res@eta_smooth_final)), nrow=1)
+        }
+        if (length(dynrModel@measurement@values.exo)!=0){
+          exo.mat=t(as.matrix(dynrModel@data$covariates[,paste0("covar",sapply(dynrModel@measurement@exo.names, function(x){which(dynrModel@data$covariate.names==x)}))]))
+          predicted=predicted+dynrModel@measurement@values.exo[[1]]%*%exo.mat
+        }
+      }#end of one-regime meas
+      names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
+      data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
+      colnames(data.dynr$observed[,observed])<-paste0(names.observed, ".observed")
+      data.plot <- cbind(data.plot, data.dynr$observed[,observed])
+      lines.var <- paste0(names.observed, ".predicted")
+      points.var <- paste0(names.observed, ".observed")
+      if (length(observed)<8){
+        fancy8 <- c("#edaac1","#a7dab0","#dfb3e2","#8bc5ed","#bcb8ec","#e6b296","#d2d39d","#82d9d6")
+        mancolorPalette=rep(fancy8[observed],each=2)
+      }
+    }#end of style 2
+    names(data.plot) <- c(names.id.vars, names.measure.vars)
+    
+    data_long <- reshape2::melt(data.plot[data.plot$id%in%randid,],
+                                id.vars=names.id.vars,
+                                measure.vars=names.measure.vars,
+                                value.name="value")
+    value <- NULL
+    variable <- NULL
+    partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable)) + 
+      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(shape=variable)) +
+      ggplot2::scale_shape_manual(values=shape.values)+
+      ggplot2::facet_wrap(~id)+
+      ggplot2::labs(title = title, y=ylab, ggtitle="")+
+      ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
+    
+  }else{#more than two regimes
+    if(missing(names.regime)){names.regime = 1:num_regime}
+    if(missing(names.state)){names.state=dynrModel@measurement@state.names}
+    states=which(names.state%in%dynrModel@measurement@state.names)
+    findRegime = function(prop){
+      MostLikelyRegime = names.regime[prop==max(prop)]
+      return(MostLikelyRegime[1])
+      #If the probabilities are equal, return the first regime
+    }
+    addendtime <- function(data_frame){
+      data_frame$endtime <- c(data_frame$time[2:nrow(data_frame)], data_frame$time[nrow(data_frame)]+min(diff(data_frame$time)))
+      return(data_frame)
+    }
+    data.plot <- plyr::ddply(data.plot,"id",addendtime)
+    data.plot$regime<-as.factor(apply(res@pr_t_given_T,2,findRegime))
+    names.id.vars<-c("id","time","endtime","regime")
+    if (style==1){
+      names.measure.vars<-names.state
+      data.plot<-cbind(data.plot,matrix((res@eta_smooth_final[states,]),ncol=length(states),byrow=TRUE))
+      lines.var <- names.state
+      points.var <- names.state
+    }#end of style 1
+    if (style==2){
+      dynrModel=dynr:::PopBackModel(dynrModel, LaTeXnames(res@transformed.parameters, latex = FALSE))
+      dynrModel@measurement@values.load=lapply(dynrModel@measurement@values.load, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      num_regime_meas <- length(dynrModel@measurement@values.load)
+      if (length(dynrModel@measurement@values.exo)!=0){
+        dynrModel@measurement@values.exo=lapply(dynrModel@measurement@values.exo, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      }
+      if (length(dynrModel@measurement@values.int)!=0){
+        dynrModel@measurement@values.int=lapply(dynrModel@measurement@values.int, function(x){matrix(as.numeric(x),ncol=ncol(x))})
+      }
+      #predicted scores
+      if (num_regime_meas==1){#one-regime measurement model
+        predicted=dynrModel@measurement@values.load[[1]]%*%res@eta_smooth_final
+        if (length(dynrModel@measurement@values.int)!=0){
+          predicted=predicted+dynrModel@measurement@values.int[[1]]%*%matrix(rep(1,ncol(res@eta_smooth_final)), nrow=1)
+        }
+        if (length(dynrModel@measurement@values.exo)!=0){
+          exo.mat=t(as.matrix(dynrModel@data$covariates[,paste0("covar",sapply(dynrModel@measurement@exo.names, function(x){which(dynrModel@data$covariate.names==x)}))]))
+          predicted=predicted+dynrModel@measurement@values.exo[[1]]%*%exo.mat
+        }
+        #end of one-regime meas
+      }else if (num_regime_meas==num_regime){
+        ntotaltime=ncol(res@eta_smooth_final)
+        predicted=matrix(rep(0,length(observed)*ntotaltime),ncol=ntotaltime)
+        for (index in 1:ntotaltime){
+          predicted[,index]=dynrModel@measurement@values.load[[data.plot$regime[index]]]%*%matrix(res@eta_smooth_final[,index], ncol=1)
+          if (length(dynrModel@measurement@values.int)!=0){
+            predicted[,index]=predicted[,index]+dynrModel@measurement@values.int[[data.plot$regime[index]]]
+          }
+          if (length(dynrModel@measurement@values.exo)!=0){
+            exo.mat=t(as.matrix(dynrModel@data$covariates[index,paste0("covar",sapply(dynrModel@measurement@exo.names, function(x){which(dynrModel@data$covariate.names==x)}))]))
+            predicted[,index]=predicted[,index]+dynrModel@measurement@values.exo[[data.plot$regime[index]]]%*%exo.mat
+          }
+        }
+        #end of regime specific measurement
+      }
+      
+      names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
+      data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
+      colnames(data.dynr$observed[,observed])<-paste0(names.observed, ".observed")
+      data.plot <- cbind(data.plot, data.dynr$observed[,observed])
+      lines.var <- paste0(names.observed, ".predicted")
+      points.var <- paste0(names.observed, ".observed")
+      if (length(observed)<=8){
+        fancy8 <- c("#edaac1","#a7dab0","#dfb3e2","#8bc5ed","#bcb8ec","#e6b296","#d2d39d","#82d9d6")
+        manfillPalette=fancy8[9-(1:num_regime)]
+        mancolorPalette=rep(fancy8[observed],each=2)
+      }
+    }#end of style 2
+    
+    names(data.plot)<-c(names.id.vars,names.measure.vars)
+    
+    data_long<- reshape2::melt(data.plot[data.plot$id%in%randid,],
+                               id.vars=names.id.vars,
+                               measure.vars=names.measure.vars,
+                               value.name="value")
+    #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
+    endtime <- NULL
+    regime <- NULL
+    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
+      ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
+      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1, ggplot2::aes(color=variable)) +
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(color=variable,shape=variable)) +
+      ggplot2::scale_shape_manual(values=shape.values)+
+      #geom_text(size=1, ggplot2::aes(label=statenumber,color=variable))+
+      ggplot2::facet_wrap(~id)+ 
+      ggplot2::labs(title = title,y=ylab,ggtitle="")+
+      ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
+    
+  }
+  
+  if(is.bw){
+    bw.plot<-partial.plot+
+      ggplot2::scale_fill_grey(start = 0.1, end = 0.9)+
+      ggplot2::scale_color_grey(start = 0.2, end = 0.7)
+    print(bw.plot)
+  }else{
+    default.plot<-partial.plot+
+      ggplot2::scale_colour_brewer(palette=colorPalette)+
+      ggplot2::scale_fill_brewer(palette=fillPalette)		  
+    if(!missing(mancolorPalette)){
+      manual.plot<-partial.plot+ggplot2::scale_colour_manual(values=mancolorPalette)
+    }
+    if(!missing(manfillPalette)){
+      if(!exists("manual.plot")){manual.plot<-partial.plot}
+      manual.plot<-manual.plot+ggplot2::scale_fill_manual(values=manfillPalette)
+    }
+    if (exists("manual.plot")){
+      return(manual.plot) #print(manual.plot)
+    }else{
+      return(default.plot)#print(default.plot)
+    }
+  }
 }
-
-
 
 
 
