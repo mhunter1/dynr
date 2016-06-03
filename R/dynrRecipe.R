@@ -1664,7 +1664,7 @@ replaceDiagZero <- function(x){
 ##' 
 ##' @param values matrix giving the values. Should have (number of Regimes) rows and (number of regimes x number of covariates) columns
 ##' @param params matrix of the same size as "values" consisting of the names of the parameters
-##' @param a vector of the names of the covariates to be used in the regime-switching functions
+##' @param covariates a vector of the names of the covariates to be used in the regime-switching functions
 ##' 
 ##' @details
 ##' Note that each row of the transition probability matrix must sum to one. To accomplish this
@@ -1742,7 +1742,7 @@ autojacob<-function(formula,n){
 ##' the first-order derivatives of the specified variables; if False, the left hand 
 ##' side of the formulas represent the current state of the specified variable while 
 ##' the same variable on the righ hand side is its previous state.  
-##' @param (optional) jacobian a list of formulas specifying the analytic jacobian matrices 
+##' @param jacobian (optional) a list of formulas specifying the analytic jacobian matrices 
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
