@@ -133,7 +133,7 @@ ggsave("RSNonlinearDiscreteggPlot2.pdf")
 
 plotFormula(dynrModel=model, ParameterAs=model@param.names, printDyn=TRUE, printMeas=TRUE)
 plot(res, dynrModel=model, style = 1)
-plot(res, dynrModel=model, style = 2)
+plot(res, dynrModel=model, style = 2, names.observed=c("y1","y4"))
 #---- Done ----
 save(model,res,file="RSNonlinearDiscrete.RData")
 

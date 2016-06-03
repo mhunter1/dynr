@@ -119,6 +119,8 @@ Mode <- function(y) {
 ##' @param x dynrCook object
 ##' @param dynrModel model object
 ##' @param style The style of the plot in the first panel. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
+##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
+##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
 ##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
 ##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
 ##' @param textsize numeric. Font size used in the plot.
@@ -127,9 +129,11 @@ Mode <- function(y) {
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
 setMethod("plot", "dynrCook",
-          function(x, dynrModel, style = 1, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
+          function(x, dynrModel, style = 1, names.state, names.observed, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   #The first panel is the ggplot
-  p1 <- dynr.ggplot(x, dynrModel, style, numSubjDemo=1, ...)
+  if(missing(names.observed)){names.observed=dynrModel@measurement@obs.names}
+  if(missing(names.state)){names.state=dynrModel@measurement@state.names}
+  p1 <- dynr.ggplot(x, dynrModel, style, numSubjDemo=1, names.state=names.state, names.observed=names.observed, ...)
 
   #If there are more than 2 regimes, the second panel shows the histogram of the most probable regimes across time and subjects.
   if (dynrModel$num_regime>1){
@@ -292,11 +296,11 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   if(missing(names.state)){names.state=dynrModel@measurement@state.names}
   states=which(names.state%in%dynrModel@measurement@state.names)
   if(missing(shape.values)){
-    if (style==1) shape.values=48+states
-    if (style==2) shape.values=c(rbind(15+observed,rep(32,length(observed))))
+    if (style==1) shape.values=states#48+states
+    if (style==2) shape.values=c(15+observed,rep(32,length(observed)))
   }
-  if (style==1) line.values=rep(1,states)
-  if (style==2) line.values=rep(c(0,1),length(observed))
+  if (style==1) line.values=rep(1,length(states))
+  if (style==2) line.values=rep(c(0,1),each=length(observed))
   num_sbj=length(unique(data.dynr$id))
   if(length(idtoPlot)<1){
     randid =sample(unique(data.dynr$id),numSubjDemo)
@@ -349,7 +353,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
       points.var <- paste0(names.observed, ".observed")
       if (length(observed)<8){
         fancy8 <- c("#edaac1","#a7dab0","#dfb3e2","#8bc5ed","#bcb8ec","#e6b296","#d2d39d","#82d9d6")
-        mancolorPalette=rep(fancy8[observed],each=2)
+        mancolorPalette=rep(fancy8[observed],2)
       }
     }#end of style 2
     names(data.plot) <- c(names.id.vars, names.measure.vars)
@@ -363,8 +367,8 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
     partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable, shape = variable, linetype = variable)) + 
       ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
       ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4) +
-      ggplot2::scale_linetype_manual(values=line.values)+
-      ggplot2::scale_shape_manual(values=shape.values)+
+      ggplot2::scale_linetype_manual(labels=names.measure.vars, values=line.values)+
+      ggplot2::scale_shape_manual(labels=names.measure.vars, values=shape.values)+
       ggplot2::facet_wrap(~id)+
       ggplot2::labs(title = title, y=ylab, ggtitle="")+
       ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
@@ -402,33 +406,33 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
       }
       #predicted scores
       if (num_regime_meas==1){#one-regime measurement model
-        predicted=dynrModel@measurement@values.load[[1]]%*%res@eta_smooth_final
+        predicted=matrix(dynrModel@measurement@values.load[[1]][observed,],nrow=length(observed))%*%res@eta_smooth_final
         if (length(dynrModel@measurement@values.int)!=0){
-          predicted=predicted+dynrModel@measurement@values.int[[1]]%*%matrix(rep(1,ncol(res@eta_smooth_final)), nrow=1)
+          predicted=predicted+matrix(dynrModel@measurement@values.int[[1]][observed,],nrow=length(observed))%*%matrix(rep(1,ncol(res@eta_smooth_final)), nrow=1)
         }
         if (length(dynrModel@measurement@values.exo)!=0){
           exo.mat=t(as.matrix(dynrModel@data$covariates[,paste0("covar",sapply(dynrModel@measurement@exo.names, function(x){which(dynrModel@data$covariate.names==x)}))]))
-          predicted=predicted+dynrModel@measurement@values.exo[[1]]%*%exo.mat
+          predicted=predicted+matrix(dynrModel@measurement@values.exo[[1]][observed,],nrow=length(observed))%*%exo.mat
         }
         #end of one-regime meas
       }else if (num_regime_meas==num_regime){
         ntotaltime=ncol(res@eta_smooth_final)
         predicted=matrix(rep(0,length(observed)*ntotaltime),ncol=ntotaltime)
         for (index in 1:ntotaltime){
-          predicted[,index]=dynrModel@measurement@values.load[[data.plot$regime[index]]]%*%matrix(res@eta_smooth_final[,index], ncol=1)
+          predicted[,index]=matrix(dynrModel@measurement@values.load[[data.plot$regime[index]]][observed,],nrow=length(observed))%*%matrix(res@eta_smooth_final[,index], ncol=1)
           if (length(dynrModel@measurement@values.int)!=0){
-            predicted[,index]=predicted[,index]+dynrModel@measurement@values.int[[data.plot$regime[index]]]
+            predicted[,index]=matrix(predicted[,index]+dynrModel@measurement@values.int[[data.plot$regime[index]]][observed,],nrow=length(observed))
           }
           if (length(dynrModel@measurement@values.exo)!=0){
             exo.mat=t(as.matrix(dynrModel@data$covariates[index,paste0("covar",sapply(dynrModel@measurement@exo.names, function(x){which(dynrModel@data$covariate.names==x)}))]))
-            predicted[,index]=predicted[,index]+dynrModel@measurement@values.exo[[data.plot$regime[index]]]%*%exo.mat
+            predicted[,index]=matrix(predicted[,index]+dynrModel@measurement@values.exo[[data.plot$regime[index]]][observed,],nrow=length(observed))%*%exo.mat
           }
         }
         #end of regime specific measurement
       }
       
       names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
-      data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
+      data.plot <- cbind(data.plot, matrix(predicted,ncol=length(observed), byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
       data.plot <- cbind(data.plot, data.dynr$observed[,observed])
       colnames(data.plot)[seq(to=ncol(data.plot), by = 1, length.out = length(observed))]<-paste0(names.observed, ".observed")
       lines.var <- paste0(names.observed, ".predicted")
@@ -436,7 +440,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
       if (length(observed)<=8){
         fancy8 <- c("#edaac1","#a7dab0","#dfb3e2","#8bc5ed","#bcb8ec","#e6b296","#d2d39d","#82d9d6")
         manfillPalette=fancy8[9-(1:num_regime)]
-        mancolorPalette=rep(fancy8[observed],each=2)
+        mancolorPalette=rep(fancy8[observed],2)
       }
     }#end of style 2
     
@@ -449,11 +453,11 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
     #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
     endtime <- NULL
     regime <- NULL
-    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable, color=variable, shape=variable, linetype=variable)) +
+    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
       ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
-      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
-      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4) +
-      ggplot2::scale_linetype_manual(values=line.values)+
+      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1, ggplot2::aes(color=variable, shape=variable, linetype=variable)) +
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(color=variable, shape=variable, linetype=variable)) +
+      ggplot2::scale_linetype_manual(labels=names.measure.vars, values=line.values)+
       ggplot2::scale_shape_manual(labels=names.measure.vars, values=shape.values)+
       #geom_text(size=1, ggplot2::aes(label=statenumber,color=variable))+
       ggplot2::facet_wrap(~id)+ 
@@ -465,14 +469,14 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   if(is.bw){
     bw.plot<-partial.plot+
       ggplot2::scale_fill_grey(start = 0.1, end = 0.9)+
-      ggplot2::scale_color_grey(start = 0.2, end = 0.7)
+      ggplot2::scale_color_grey(labels=names.measure.vars, start = 0.2, end = 0.7)
     print(bw.plot)
   }else{
     default.plot<-partial.plot+
-      ggplot2::scale_colour_brewer(palette=colorPalette)+
+      ggplot2::scale_colour_brewer(labels=names.measure.vars, palette=colorPalette)+
       ggplot2::scale_fill_brewer(palette=fillPalette)		  
     if(!missing(mancolorPalette)){
-      manual.plot<-partial.plot+ggplot2::scale_colour_manual(values=mancolorPalette)
+      manual.plot<-partial.plot+ggplot2::scale_colour_manual(labels=names.measure.vars, values=mancolorPalette)
     }
     if(!missing(manfillPalette)){
       if(!exists("manual.plot")){manual.plot<-partial.plot}
