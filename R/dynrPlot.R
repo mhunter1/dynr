@@ -282,7 +282,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
                         colorPalette="Set2", 
                         fillPalette="Set2", 
                         mancolorPalette, manfillPalette, ...){
-  
+
   data.dynr=dynrModel@data
   dim_latent_var=dim(res@eta_smooth_final)[1]
   num_regime=dim(res@pr_t_given_T)[1]
@@ -293,8 +293,10 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   states=which(names.state%in%dynrModel@measurement@state.names)
   if(missing(shape.values)){
     if (style==1) shape.values=48+states
-    if (style==2) shape.values=15+observed
+    if (style==2) shape.values=c(rbind(15+observed,rep(32,length(observed))))
   }
+  if (style==1) line.values=rep(1,states)
+  if (style==2) line.values=rep(c(0,1),length(observed))
   num_sbj=length(unique(data.dynr$id))
   if(length(idtoPlot)<1){
     randid =sample(unique(data.dynr$id),numSubjDemo)
@@ -358,9 +360,10 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
                                 value.name="value")
     value <- NULL
     variable <- NULL
-    partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable)) + 
+    partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable, shape = variable, linetype = variable)) + 
       ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
-      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(shape=variable)) +
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4) +
+      ggplot2::scale_linetype_manual(values=line.values)+
       ggplot2::scale_shape_manual(values=shape.values)+
       ggplot2::facet_wrap(~id)+
       ggplot2::labs(title = title, y=ylab, ggtitle="")+
@@ -446,11 +449,12 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
     #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
     endtime <- NULL
     regime <- NULL
-    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
+    partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable, color=variable, shape=variable, linetype=variable)) +
       ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
-      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1, ggplot2::aes(color=variable)) +
-      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(color=variable,shape=variable)) +
-      ggplot2::scale_shape_manual(values=shape.values)+
+      ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4) +
+      ggplot2::scale_linetype_manual(values=line.values)+
+      ggplot2::scale_shape_manual(labels=names.measure.vars, values=shape.values)+
       #geom_text(size=1, ggplot2::aes(label=statenumber,color=variable))+
       ggplot2::facet_wrap(~id)+ 
       ggplot2::labs(title = title,y=ylab,ggtitle="")+
