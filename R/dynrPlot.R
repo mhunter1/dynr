@@ -291,16 +291,16 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   dim_latent_var=dim(res@eta_smooth_final)[1]
   num_regime=dim(res@pr_t_given_T)[1]
   if(missing(names.observed)){names.observed=dynrModel@measurement@obs.names}
-  observed=which(names.observed%in%dynrModel@measurement@obs.names)
+  observed=which(dynrModel@measurement@obs.names%in%names.observed)
   if ((length(observed)>8)&(missing(mancolorPalette))&(style==2)){stop("You provided too many variables than the default color palette can handle.\nPlease consider specify the mancolorPalette argument.")}
   if(missing(names.state)){names.state=dynrModel@measurement@state.names}
-  states=which(names.state%in%dynrModel@measurement@state.names)
+  states=which(dynrModel@measurement@state.names%in%names.state)
   if(missing(shape.values)){
     if (style==1) shape.values=states#48+states
-    if (style==2) shape.values=c(15+observed,rep(32,length(observed)))
+    if (style==2) shape.values=c(rep(32,length(observed)),observed)#pre-obs
   }
   if (style==1) line.values=rep(1,length(states))
-  if (style==2) line.values=rep(c(0,1),each=length(observed))
+  if (style==2) line.values=rep(c(1,0),each=length(observed))#pre-obs
   num_sbj=length(unique(data.dynr$id))
   if(length(idtoPlot)<1){
     randid =sample(unique(data.dynr$id),numSubjDemo)
@@ -345,10 +345,9 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
           predicted=predicted+dynrModel@measurement@values.exo[[1]]%*%exo.mat
         }
       }#end of one-regime meas
-      names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
+      names.measure.vars <- c(paste0(names.observed, ".predicted"), paste0(names.observed, ".observed"))
       data.plot <- cbind(data.plot, matrix(predicted[observed,],ncol=length(observed),byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
       data.plot <- cbind(data.plot, data.dynr$observed[,observed])
-      colnames(data.plot)[seq(to=ncol(data.plot), by = 1, length.out = length(observed))]<-paste0(names.observed, ".observed")
       lines.var <- paste0(names.observed, ".predicted")
       points.var <- paste0(names.observed, ".observed")
       if (length(observed)<8){
@@ -367,8 +366,8 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
     partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable, shape = variable, linetype = variable)) + 
       ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1) +
       ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4) +
-      ggplot2::scale_linetype_manual(labels=names.measure.vars, values=line.values)+
-      ggplot2::scale_shape_manual(labels=names.measure.vars, values=shape.values)+
+      ggplot2::scale_linetype_manual(labels=sort(names.measure.vars), values=line.values[order(names.measure.vars)])+
+      ggplot2::scale_shape_manual(labels=sort(names.measure.vars), values=shape.values[order(names.measure.vars)])+
       ggplot2::facet_wrap(~id)+
       ggplot2::labs(title = title, y=ylab, ggtitle="")+
       ggplot2::theme(plot.title=ggplot2::element_text(lineheight=.8, face="bold"), legend.position="bottom",legend.text=ggplot2::element_text(lineheight=0.8, face="bold"),...)
@@ -431,10 +430,9 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
         #end of regime specific measurement
       }
       
-      names.measure.vars <- c(paste0(names.observed, ".observed"), paste0(names.observed, ".predicted"))
+      names.measure.vars <- c(paste0(names.observed, ".predicted"), paste0(names.observed, ".observed"))
       data.plot <- cbind(data.plot, matrix(predicted,ncol=length(observed), byrow=TRUE, dimnames=list(NULL, paste0(names.observed, ".predicted"))))
       data.plot <- cbind(data.plot, data.dynr$observed[,observed])
-      colnames(data.plot)[seq(to=ncol(data.plot), by = 1, length.out = length(observed))]<-paste0(names.observed, ".observed")
       lines.var <- paste0(names.observed, ".predicted")
       points.var <- paste0(names.observed, ".observed")
       if (length(observed)<=8){
@@ -456,9 +454,9 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
     partial.plot<-ggplot2::ggplot(data_long,ggplot2::aes(x=time, y=value, group=variable)) +
       ggplot2::geom_rect(ggplot2::aes(xmin=time, xmax=endtime, ymin=-Inf, ymax=Inf, fill=regime), alpha=.15) +
       ggplot2::geom_line(data=data_long[data_long$variable%in%lines.var,], size=1, ggplot2::aes(color=variable, shape=variable, linetype=variable)) +
-      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=4, ggplot2::aes(color=variable, shape=variable, linetype=variable)) +
-      ggplot2::scale_linetype_manual(labels=names.measure.vars, values=line.values)+
-      ggplot2::scale_shape_manual(labels=names.measure.vars, values=shape.values)+
+      ggplot2::geom_point(data=data_long[data_long$variable%in%points.var,], size=3, ggplot2::aes(color=variable, shape=variable, linetype=variable)) +
+      ggplot2::scale_linetype_manual(labels=sort(names.measure.vars), values=line.values[order(names.measure.vars)])+
+      ggplot2::scale_shape_manual(labels=sort(names.measure.vars), values=shape.values[order(names.measure.vars)])+
       #geom_text(size=1, ggplot2::aes(label=statenumber,color=variable))+
       ggplot2::facet_wrap(~id)+ 
       ggplot2::labs(title = title,y=ylab,ggtitle="")+
@@ -469,14 +467,14 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   if(is.bw){
     bw.plot<-partial.plot+
       ggplot2::scale_fill_grey(start = 0.1, end = 0.9)+
-      ggplot2::scale_color_grey(labels=names.measure.vars, start = 0.2, end = 0.7)
+      ggplot2::scale_color_grey(labels=sort(names.measure.vars), start = 0.2, end = 0.7)
     print(bw.plot)
   }else{
     default.plot<-partial.plot+
-      ggplot2::scale_colour_brewer(labels=names.measure.vars, palette=colorPalette)+
+      ggplot2::scale_colour_brewer(labels=sort(names.measure.vars), palette=colorPalette)+
       ggplot2::scale_fill_brewer(palette=fillPalette)		  
     if(!missing(mancolorPalette)){
-      manual.plot<-partial.plot+ggplot2::scale_colour_manual(labels=names.measure.vars, values=mancolorPalette)
+      manual.plot<-partial.plot+ggplot2::scale_colour_manual(labels=sort(names.measure.vars), values=mancolorPalette[order(names.measure.vars)])
     }
     if(!missing(manfillPalette)){
       if(!exists("manual.plot")){manual.plot<-partial.plot}

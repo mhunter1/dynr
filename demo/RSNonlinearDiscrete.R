@@ -120,14 +120,14 @@ data.frame(name=res@param.names , true=truepar, estim=coef(res))
 
 dynr.ggplot(res, dynrModel=model, style=1,
             names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
-            title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
+            title="Results from RS Nonlinear DFA model", numSubjDemo=1,idtoPlot=c(1),
             shape.values = c(1,2),
             text=element_text(size=16))
 ggsave("RSNonlinearDiscreteggPlot1.pdf")
 dynr.ggplot(res, dynrModel=model, style=2,
             names.observed=c("y1","y4"),
             names.regime=c("Decoupled (linear)","Coupled (nonlinear)"),
-            title="Results from RS Nonlinear DFA model", numSubjDemo=2,idtoPlot=c(1,2),
+            title="Results from RS Nonlinear DFA model", numSubjDemo=1,idtoPlot=c(1),
             text=element_text(size=16))
 ggsave("RSNonlinearDiscreteggPlot2.pdf")
 
