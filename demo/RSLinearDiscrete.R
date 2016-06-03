@@ -84,13 +84,18 @@ exp(r1)/sum(exp(r1)) #first row of transition probability matrix
 r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
 exp(r2)/sum(exp(r2)) #second row of transition probability matrix
 
-dynr.ggplot(yum, data.dynr=dd, states=1, 
+dynr.ggplot(yum, data.dynr=dd, style = 1, 
             names.regime=c("Deactivated","Activated"),
-            names.state=c("EMG"),
             title="Results from RS-AR model", numSubjDemo=1,
             shape.values = c(1),
             text=element_text(size=16))
-ggsave("RSLinearDiscreteggPlot.pdf")
-plot(yum, dynrModel = rsmod, textsize = 5)
+ggsave("RSLinearDiscreteggPlot1.pdf")
+dynr.ggplot(yum, data.dynr=dd, style = 2,
+            names.regime=c("Deactivated","Activated"),
+            title="Results from RS-AR model", numSubjDemo=1,
+            text=element_text(size=16))
+ggsave("RSLinearDiscreteggPlot2.pdf")
+plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
+plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
 #---- End of demo ---- 
-#save(rsmod,yum,file="RSLinearDiscrete.RData")
+save(rsmod,yum,file="RSLinearDiscrete.RData")

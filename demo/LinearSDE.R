@@ -142,12 +142,13 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-plotFormula(model, sprintf("%.2f", res@transformed.parameters))
+plotFormula(model, res@transformed.parameters)
 ggsave("LinearSDEPlotFml.pdf")
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
-plot(res, dynrModel=model, textsize=6)
+plot(res, dynrModel=model, textsize=6, style = 1)
+plot(res, dynrModel=model, textsize=6, style = 2)
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
@@ -170,4 +171,4 @@ cor(sm, t(tx)[-1,])
 
 #------------------------------------------------------------------------------
 # End
-#save(model,res,file="LinearSDE.RData")
+save(model,res,file="LinearSDE.RData")

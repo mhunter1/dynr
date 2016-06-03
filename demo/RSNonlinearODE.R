@@ -33,7 +33,7 @@ initial <- prep.initial(
   params.inistate=c("fixed", "fixed"),
   values.inicov=diag(c(0.01,0.01)), 
   params.inicov=diag("fixed",2),
-	values.regimep=c(.5, .5),
+	values.regimep=c(.7, .3),
 	params.regimep=c("fixed", "fixed")
 )
 
@@ -51,8 +51,8 @@ regimes <- prep.regimes(
   values=matrix(c(0,0,-1,1,
                   0,0,-1,1),
                 nrow=2, ncol=4,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
-  params=matrix(c("fixed","fixed","int","slp",
-                  "fixed","fixed","int","slp"), 
+  params=matrix(c("fixed","fixed","int_1","slp_1",
+                  "fixed","fixed","int_2","slp_2"), 
                 nrow=2, ncol=4,byrow=T), 
   covariates="cond")
 
@@ -61,7 +61,7 @@ mdcov <- prep.noise(
   values.latent=diag(0, 2),
   params.latent=diag(c("fixed","fixed"), 2),
   values.observed=diag(rep(0.5,2)),
-  params.observed=diag(rep("var",2),2)
+  params.observed=diag(rep("epsilon",2),2)
 )
 
 # dynamics
@@ -106,26 +106,32 @@ printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
 tools::texi2pdf("RSNonlinearODE.tex")
 system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
 
-model@ub[model@param.names%in%c("int","slp")]<-c(0,10)
-model@lb[model@param.names%in%c("int","slp")]<-c(-10,0)
+model@ub[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(0,10)
+model@lb[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(-10,0)
 # Estimate free parameters
 res <- dynr.cook(model)
 
 # Examine results
 summary(res)
 
-plotFormula(model, ParameterAs=sprintf("%.2f", res@transformed.parameters)) 
+plotFormula(model, ParameterAs=res@transformed.parameters) 
 ggsave("RSNonlinearODEPlotFml.pdf")
 
-dynr.ggplot(res, data.dynr=data, states=c(1:2), 
+dynr.ggplot(res, model, states=c(1:2), 
             names.regime=c("Free","Constrained"),
-            names.state=c("Prey","Predator"),
             title="Results from RS-nonlinear ODE model", numSubjDemo=2,
             shape.values = c(1,2),
             text=element_text(size=16))
-ggsave("RSNonlinearODEggPlot.pdf")
+ggsave("RSNonlinearODEggPlot1.pdf")
 
-plot(res, dynrModel = model)
+dynr.ggplot(res, model, style=2, 
+            names.regime=c("Free","Constrained"),
+            title="Results from RS-nonlinear ODE model", numSubjDemo=2,
+            text=element_text(size=16))
+ggsave("RSNonlinearODEggPlot2.pdf")
+
+plot(res, dynrModel = model, style=1)
+plot(res, dynrModel = model, style=2)
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -141,5 +147,5 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-#save(model,res,file="RSNonlinearODE.RData")
+save(model,res,file="RSNonlinearODE.RData")
 

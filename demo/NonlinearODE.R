@@ -79,7 +79,8 @@ res <- dynr.cook(dynrModel=model)
 # Examine results
 summary(res)
 
-plot(res,dynrModel=model)
+plot(res,dynrModel=model,style=1)
+plot(res,dynrModel=model,style=2)
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
@@ -95,6 +96,6 @@ BIC(res)
 
 #------------------------------------------------------------------------------
 # End
-#save(model,res,file="NonlinearODE.RData")
+save(model,res,file="NonlinearODE.RData")
 
 

@@ -132,8 +132,8 @@ dynr.ggplot(res, dynrModel=model, style=2,
 ggsave("RSNonlinearDiscreteggPlot2.pdf")
 
 plotFormula(dynrModel=model, ParameterAs=model@param.names, printDyn=TRUE, printMeas=TRUE)
-plot(res, dynrModel=model)
-
+plot(res, dynrModel=model, style = 1)
+plot(res, dynrModel=model, style = 2)
 #---- Done ----
-#save(model,res,file="RSNonlinearDiscrete.RData")
+save(model,res,file="RSNonlinearDiscrete.RData")
 
