@@ -314,7 +314,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	  options=dynrModel@options,
 	  isContinuousTime=dynrModel@dynamics@isContinuousTime,
 	  infile=dynrModel@outfile,
-	  outfile=dynrModel@outfile,
+	  outfile=gsub(".c\\>","",dynrModel@outfile),
 	  compileLib=dynrModel@compileLib,
 	  verbose=dynrModel@verbose
 	)
