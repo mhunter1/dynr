@@ -61,7 +61,7 @@ mdcov <- prep.noise(
   values.latent=diag(0, 2),
   params.latent=diag(c("fixed","fixed"), 2),
   values.observed=diag(rep(0.5,2)),
-  params.observed=diag(rep("epsilon",2),2)
+  params.observed=diag(rep("var_epsilon",2),2)
 )
 
 # dynamics

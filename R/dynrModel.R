@@ -404,7 +404,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., infile=
       stop("Formulas should be specified in the same order for different regimes.")
     }
     if (!all(measurement@state.names == states.dyn)){
-      stop("The state.names slot of the 'dynrMeasurement' object hould match the order of the dynamic formulas specified.")
+      stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
   }
   if (!all(measurement@obs.names == data$observed.names)){

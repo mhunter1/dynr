@@ -60,23 +60,23 @@ mdcov <- prep.noise(
 
 #---- (1e) dynamics ----
 formula=list(
-  list(x1~a1*x1,
-       x2~a2*x2),
-  list(x1~a1*x1+c12*(exp(abs(x2)))/(1+exp(abs(x2)))*x2,
-       x2~a2*x2+c21*(exp(abs(x1)))/(1+exp(abs(x1)))*x1) 
+  list(PE~a1*PE,
+       NE~a2*NE),
+  list(PE~a1*PE+c12*(exp(abs(NE)))/(1+exp(abs(NE)))*NE,
+       NE~a2*NE+c21*(exp(abs(PE)))/(1+exp(abs(PE)))*PE) 
 )
 
 #For nonlinear functions you need to specify the jacobian
 #matrix containing the differentiation of each dynamic function
-#above with respect to each latent variable (e.g., x1 and x2
+#above with respect to each latent variable (e.g., PE and NE
 #in this case)
 jacob=list(
-  list(x1~x1~a1,
-       x2~x2~a2),
-  list(x1~x1~a1,
-       x1~x2~c12*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
-       x2~x2~a2,
-       x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
+  list(PE~PE~a1,
+       NE~NE~a2),
+  list(PE~PE~a1,
+       PE~NE~c12*(exp(abs(NE))/(exp(abs(NE))+1)+NE*sign(NE)*exp(abs(NE))/(1+exp(abs(NE))^2)),
+       NE~NE~a2,
+       NE~PE~c21*(exp(abs(PE))/(exp(abs(PE))+1)+PE*sign(PE)*exp(abs(PE))/(1+exp(abs(PE))^2))))
 
 dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
 
