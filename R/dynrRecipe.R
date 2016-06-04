@@ -8,7 +8,7 @@
 # TODO add documentation
 
 
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 # Create dynrRecipe object class
 
 ##' The dynrRecipe Class
@@ -18,8 +18,15 @@
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.
-##' The following are all subclasses of this class: \code{\link{dynrMeasurement-class}}, \code{\link{dynrDynamics-class}}, \code{\link{dynrRegimes-class}}, \code{\link{dynrInitial-class}}, \code{\link{dynrNoise-class}}, and \code{\link{dynrTrans-class}}.  Recipes are the things that go into a \code{\link{dynrModel-class}} using \code{\link{dynr.model}}.
-##' Use the recipe prep functions (\code{\link{prep.measurement}}, \code{\link{prep.formulaDynamics}}, \code{\link{prep.matrixDynamics}}, \code{\link{prep.regimes}}, \code{\link{prep.initial}}, \code{\link{prep.noise}}, or \code{\link{prep.tfun}}) to create these classes instead.
+##' The following are all subclasses of this class: \code{\link{dynrMeasurement-class}}, 
+##' \code{\link{dynrDynamics-class}}, \code{\link{dynrRegimes-class}}, 
+##' \code{\link{dynrInitial-class}}, \code{\link{dynrNoise-class}}, 
+##' and \code{\link{dynrTrans-class}}.  Recipes are the things that 
+##' go into a \code{\link{dynrModel-class}} using \code{\link{dynr.model}}.
+##' Use the recipe prep functions (\code{\link{prep.measurement}}, 
+##' \code{\link{prep.formulaDynamics}}, \code{\link{prep.matrixDynamics}}, 
+##' \code{\link{prep.regimes}}, \code{\link{prep.initial}}, \code{\link{prep.noise}}, 
+##' or \code{\link{prep.tfun}}) to create these classes instead.
 setClass(Class =  "dynrRecipe",
          representation = representation(
            c.string =  "character",
@@ -57,7 +64,9 @@ setClass(Class = "dynrMeasurement",
 ##' dynrDynamicsMatrix-class
 ##' 
 ##' @details
-##' This is an internal class structure.  The classes \code{dynrDynamicsFormula-class} and \code{dynrDynamicsMatrix-class} are subclasses of this.  However, you should not use it directly.
+##' This is an internal class structure.  The classes \code{dynrDynamicsFormula-class} 
+##' and \code{dynrDynamicsMatrix-class} are subclasses of this.  However, you should 
+##' not use it directly.
 ##' Use \code{\link{prep.matrixDynamics}} or \code{\link{prep.formulaDynamics}} instead.
 setClass(Class = "dynrDynamics",
          representation = representation(
@@ -150,9 +159,10 @@ setClass(Class = "dynrNoise",
            values.observed = "list",
            params.observed = "list",
            values.latent.inv.ldl = "list",
-           values.observed.inv.ldl = "list"),#TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
+           values.observed.inv.ldl = "list"),
          contains = "dynrRecipe"
 )
+#TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
 
 ##' The dynrTrans Class
 ##' 
@@ -213,12 +223,20 @@ setMethod("$", "dynrRecipe",
 ##' @param ... Further named arguments, passed to internal method.
 ##' 
 ##' @details
-##' This is a general way of getting a LaTeX string for recipes, models, and cooked models.  It is a great way to check that you specified
-##' the model or recipe you think you did before estimating its free parameters (cooking).  After the model is cooked, you can use it to get
-##' LaTeX code with the estimated parameters in it.  The underscores in parameter names are saved for use of subscripts.  Greek letters can be 
-##' specified as corresponding LaTeX symbols without backslashes (e.g., "lambda") and printed as greek letters.
+##' This is a general way of getting a LaTeX string for recipes, 
+##' models, and cooked models.  It is a great way to check that 
+##' you specified the model or recipe you think you did before 
+##' estimating its free parameters (cooking).  After the model 
+##' is cooked, you can use it to get LaTeX code with the estimated 
+##' parameters in it.  The underscores in parameter names are saved 
+##' for use of subscripts.  Greek letters can be specified as 
+##' corresponding LaTeX symbols without backslashes (e.g., "lambda") 
+##' and printed as greek letters.
 ##' 
-##' Further arguments for the \code{dynrModel} method are with their defaults are \code{ParameterAs}, \code{printDyn=TRUE}, \code{printMeas=TRUE}, \code{printInit=FALSE}, \code{printRS=FALSE}, and \code{outFile}.
+##' Further arguments for the \code{dynrModel} method are with their 
+##' defaults are \code{ParameterAs}, \code{printDyn=TRUE}, 
+##' \code{printMeas=TRUE}, \code{printInit=FALSE}, \code{printRS=FALSE}, 
+##' and \code{outFile}.
 setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
 	return(standardGeneric("printex")) 
 })
@@ -1410,13 +1428,17 @@ extractValues <- function(v, p){
 ##' @param exo.names names of the exogenous covariates
 ##' 
 ##' @details
-##' The default pattern for 'idvar' is to fix the first factor loading for each factor to one.
-##' The variable names listed in 'idvar' have their factor loadings fixed to one.
-##' However, if the names of the latent variables are used for 'idvar', then all the factor loadings
-##' will be freely estimated and you should fix the factor variances in the noise part of the model (e.g. \code{\link{prep.noise}}).
+##' The default pattern for 'idvar' is to fix the first factor loading 
+##' for each factor to one.  The variable names listed in 'idvar' have 
+##' their factor loadings fixed to one.  However, if the names of the 
+##' latent variables are used for 'idvar', then all the factor loadings
+##' will be freely estimated and you should fix the factor variances 
+##' in the noise part of the model (e.g. \code{\link{prep.noise}}).
 ##'
-##' This function does not have the full set of features possible in the dynr package. In particular, it does not have
-##' regime-swtiching factor loadings, any intercepts, or any covariates.  For complete functionality use \code{\link{prep.measurement}}.
+##' This function does not have the full set of features possible in 
+##' the dynr package. In particular, it does not have regime-swtiching 
+##' factor loadings, any intercepts, or any covariates.  For complete 
+##' functionality use \code{\link{prep.measurement}}.
 ##' 
 ##' @examples
 ##' #Single factor model with one latent variable fixing first loading
@@ -1429,13 +1451,16 @@ extractValues <- function(v, p){
 ##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 1:4), idvar='eta1')
 ##' 
 ##' # Two factor model with simple structure
-##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), paste0("lambda_", c(2:4, 6:7)))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), 
+##' paste0("lambda_", c(2:4, 6:7)))
 ##' 
 ##' #Two factor model with repeated use of a free parameter
-##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), paste0("lambda_", c(2:4, 6:7, 4)))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:8)), 
+##' paste0("lambda_", c(2:4, 6:7, 4)))
 ##' 
 ##' #Two factor model with a cross loading
-##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), paste0("lambda_", c("21", "31", "41", "22", "62")))
+##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), 
+##' paste0("lambda_", c("21", "31", "41", "22", "62")))
 prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
@@ -1584,7 +1609,8 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 ##' @param params.observed a matrix or list of matrices of the parameter names that appear in the measurement error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.
 ##' 
 ##' @examples 
-##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
+##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), 
+##' values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	# Handle latent covariance
 	r <- coProcessValuesParams(values.latent, params.latent)
@@ -1663,7 +1689,8 @@ replaceDiagZero <- function(x){
 
 ##' Recipe function for creating regime switching (Markov transition) functions
 ##' 
-##' @param values matrix giving the values. Should have (number of Regimes) rows and (number of regimes x number of covariates) columns
+##' @param values matrix giving the values. Should have (number of Regimes) rows 
+##' and (number of regimes x number of covariates) columns
 ##' @param params matrix of the same size as "values" consisting of the names of the parameters
 ##' @param covariates a vector of the names of the covariates to be used in the regime-switching functions
 ##' 
@@ -1674,13 +1701,17 @@ replaceDiagZero <- function(x){
 ##' 
 ##' @examples
 ##' #Regime-switching with no covariates (self-transition ID)
-##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c(0, 'p1', 'p2', 'p3', 0, 'p4', 'p5', 'p6', 0), 3, 3))
+##' b <- prep.regimes(values=matrix(0, 3, 3), 
+##' params=matrix(c(0, 'p1', 'p2', 'p3', 0, 'p4', 'p5', 'p6', 0), 3, 3))
 ##' 
 ##' #Regime switching with no covariates (second regime ID)
-##' b <- prep.regimes(values=matrix(0, 3, 3), params=matrix(c('p1', 'p2', 'p3', 0, 0, 0, 'p4', 'p5', 'p6'), 3, 3))
+##' b <- prep.regimes(values=matrix(0, 3, 3), 
+##' params=matrix(c('p1', 'p2', 'p3', 0, 0, 0, 'p4', 'p5', 'p6'), 3, 3))
 ##' 
 ##' #2 regimes with three covariates
-##' b <- prep.regimes(values=matrix(c(0), 2, 8), params=matrix(c(paste0('p', 8:15), rep(0, 8)), 2, 8), covariates=c('x1', 'x2', 'x3'))
+##' b <- prep.regimes(values=matrix(c(0), 2, 8), 
+##' params=matrix(c(paste0('p', 8:15), rep(0, 8)), 2, 8), 
+##' covariates=c('x1', 'x2', 'x3'))
 prep.regimes <- function(values, params, covariates){
 	if(!missing(values)){
 		values <- preProcessValues(values)
@@ -1761,7 +1792,8 @@ autojacob<-function(formula,n){
 ##'       x1~x2~c12*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
 ##'       x2~x2~a2,
 ##'       x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
-##' dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE,jacobian=jacob)
+##' dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),
+##' isContinuousTime=FALSE,jacobian=jacob)
 ##' 
 ##' #For a full demo example that uses automatic jacobian functions see:
 ##' #demo(RSNonlinearODE , package="dynr")
