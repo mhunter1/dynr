@@ -389,7 +389,7 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' @examples
 ##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
-##' initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
+##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
