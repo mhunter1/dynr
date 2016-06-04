@@ -1,17 +1,17 @@
 Package: dynr
 Date: @DATE@
-Title: Dynamic modeling in R
+Title: Dynamic Modeling in R
 Authors@R: c(person("Lu", "Ou", role=c("aut", "cre"), email="lzo114@psu.edu"),
     person(c("Michael", "D."), "Hunter", role="aut"),
     person("Sy-Miin", "Chow", role="aut"))
 Author: Lu Ou [aut, cre],
-    Michael Hunter [aut],
+    Michael D. Hunter [aut],
     Sy-Miin Chow [aut]
 Maintainer: Lu Ou <lzo114@psu.edu>
 Depends: R (>= 3.0.0), methods, ggplot2
 Imports: numDeriv, xtable, latex2exp, grid, reshape2, plyr
 Suggests: testthat, roxygen2 (>= 3.1)
-Description: Dynamic modeling of all kinds in R. These incluse models of processes in 
+Description: Dynamic modeling of all kinds in R. These include models of processes in 
     discrete time or continuous time.  They also include processes that are linear
     or nonlinear. Latent variables can be continuous (e.g. state space models) or 
     discrete (e.g. regime-switching models). The general approach involves maximum
