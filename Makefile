@@ -5,7 +5,7 @@ export REXEC
 BUILDARGS = --force-biarch --dsym
 #BUILDARGS = --dsym
 
-TESTFILE = inst/tools/testModels.R
+TESTFILE = tools/testModels.R
 
 # subdirectories
 RSOURCE = R
@@ -53,17 +53,17 @@ build-prep:
 	git archive --format=tar HEAD | (cd build; tar -xf -)
 
 build: build-prep
-	cd build && ./util/prep && $(REXEC) CMD INSTALL $(BUILDARGS) --build .
+	cd build && ./tools/prep && $(REXEC) CMD INSTALL $(BUILDARGS) --build .
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
 srcbuild: build-prep
-	cd build && ./util/prep && $(REXEC) CMD build .
+	cd build && ./tools/prep && $(REXEC) CMD build .
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 	@echo 'To generate a PACKAGES file, use:'
 	@echo '  echo "library(tools); write_PACKAGES('"'.', type='source'"')" | R --vanilla'
 
 install:
-	./util/prep
+	./tools/prep
 	MAKEFLAGS="$(INSTALLMAKEFLAGS)" $(REXEC) CMD INSTALL $(BUILDARGS) .
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
