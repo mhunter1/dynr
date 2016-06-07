@@ -37,6 +37,7 @@ help:
 	@echo ""
 	@echo "  build         create a dynr binary for the local system"
 	@echo "  srcbuild      create a dynr source release"
+	@echo "  cran-build    create a dynr CRAN release"
 
 
 
@@ -61,6 +62,10 @@ srcbuild: build-prep
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 	@echo 'To generate a PACKAGES file, use:'
 	@echo '  echo "library(tools); write_PACKAGES('"'.', type='source'"')" | R --vanilla'
+
+cran-build: build-prep
+	cd build && ./tools/prep && rm Makefile DESCRIPTION.in && $(REXEC) CMD build .
+	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
 install:
 	./tools/prep
