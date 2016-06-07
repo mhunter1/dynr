@@ -1,0 +1,12 @@
+# set by configure
+GSL_CFLAGS = -I$(LIB_GSL)/include
+
+ifeq "$(WIN)" "64"
+GSL_LIBS = -L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas
+else
+GSL_LIBS = -L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas
+endif
+
+# combine with standard arguments for R
+PKG_CPPFLAGS = $(GSL_CFLAGS)
+PKG_LIBS = $(GSL_LIBS)

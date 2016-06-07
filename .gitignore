@@ -5,7 +5,6 @@ src/*.o
 src/*.so
 src/*.dll
 R/dynrVersion.R
-src/Makevars.win
 src-i386/
 src-x64/
 build/
