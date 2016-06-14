@@ -456,8 +456,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
   
   obj.dynrModel@xstart <- param.data$param.value
-  obj.dynrModel@ub <- rep(9999,length(obj.dynrModel@xstart))
-  obj.dynrModel@lb <- rep(9999,length(obj.dynrModel@xstart))
+  obj.dynrModel@ub <- as.double(rep(NA, length(obj.dynrModel@xstart)))
+  obj.dynrModel@lb <- as.double(rep(NA, length(obj.dynrModel@xstart)))
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
   }

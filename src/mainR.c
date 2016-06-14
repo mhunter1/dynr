@@ -277,8 +277,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     int h;
     /*DYNRPRINT(verbose_flag, "ub value h %f\n", ub[1]);*/
     for (h=0; h < data_model.pc.num_func_param; h++){
-      if (ub[h]==9999){ub[h]=HUGE_VAL;}
-      if (lb[h]==9999){lb[h]=-HUGE_VAL;}
+      if (ub[h]==9999 || !R_FINITE(ub[h])){ub[h]=HUGE_VAL;}
+      if (lb[h]==9999 || !R_FINITE(lb[h])){lb[h]=-HUGE_VAL;}
     }
     /*DYNRPRINT(verbose_flag, "Arrays allocated.\n");*/
     /*double ub[6] = {4, 4, 4, 4, 4, 4};
