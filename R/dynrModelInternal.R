@@ -36,6 +36,8 @@ checkAndProcessTimeArgument <- function(time){
 
 default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10, 
                               ftol_abs=-1, maxeval=as.integer(500), maxtime=-1)
+#N.B. We may want to change these defaults.  Particularly, ftol_rel -> 6.3e-12
+
 #' Do internal model preparation for dynr
 #' 
 #' Principally, this function takes a host of arguments and gives back
