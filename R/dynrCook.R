@@ -286,6 +286,7 @@ vcov.dynrCook <- function(object, ...){
 ##' @param conf.level a cumulative proportion indicating the level of desired confidence intervals for the final parameter estimates (default is .95)
 ##' @param infile (not required for models specified through the recipe functions) the name of a file that has the C codes for all dynr submodels for those interested in specifying a model directly in C
 ##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the estimation process should be printed
+##' @param weight_flag a flag (TRUE/FALSE) indicating whether the negative log likelihood function should be weighted by the length of the time series for each individual
 ##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can be used for diagnostic purposes 
 ##' 
 ##' @details
@@ -298,7 +299,7 @@ vcov.dynrCook <- function(object, ...){
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_flag=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_flag=TRUE, debug_flag=FALSE) {
 	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
@@ -330,7 +331,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, debug_fla
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call(.Backend, model, data, debug_flag, outall_flag, verbose, PACKAGE = "dynr")
+	output <- .Call(.Backend, model, data, weight_flag, debug_flag, outall_flag, verbose, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')

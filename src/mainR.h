@@ -23,7 +23,7 @@
 
 SEXP getListElement(SEXP list, const char *str);
 
-SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in);
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in);
 
 
 

@@ -60,16 +60,18 @@ SEXP getListElement(SEXP list, const char *str)
  * The gateway function for the R interface
  * @param model_list is a list in R of all model specifications.
  * @param data_list is a list in R of the outputs prepared by dynr.data()
+ * @param weight_flag_in a flag for weighting the neg loglike function by individual data length
  * @param debug_flag_in a flag for returning a longer list of outputs for debugging purposes
  * @param outall_flag_in a flag for returning all possible outputs
  * @param verbose_flag_in a flag of whether or not to print debugging statements before and during estimation.
  */
-SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in)
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in)
 {
     size_t index,index_col,index_row;
     bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
 	bool outall_flag=*LOGICAL(PROTECT(outall_flag_in));
 	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
+	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
     /** =======================Interface : Start to Set up the data and the model========================= **/
 
     static Data_and_Model data_model;
@@ -155,7 +157,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
     	data_model.pc.func_jacob_dynam = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
     }
 	
-    data_model.pc.isnegloglikeweightedbyT=false;
+    data_model.pc.isnegloglikeweightedbyT=weight_flag;
     data_model.pc.second_order=false;
 
     /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
@@ -948,20 +950,20 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP debug_flag_in, SEXP outall_fla
 	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
 		if (outall_flag){
-			UNPROTECT(89-17);
+			UNPROTECT(90-17);
 		}else if (debug_flag){
-			UNPROTECT(89-17-19);
+			UNPROTECT(90-17-19);
 		}else{
-			UNPROTECT(89-17-19-8);
+			UNPROTECT(90-17-19-8);
 		}
 
 	}else{
 		if (outall_flag){
-			UNPROTECT(89-17-1);
+			UNPROTECT(90-17-1);
 		}else if (debug_flag){
-			UNPROTECT(89-17-19-1);
+			UNPROTECT(90-17-19-1);
 		}else{
-			UNPROTECT(89-17-19-8-1);
+			UNPROTECT(90-17-19-8-1);
 		}
 	}/*unprotect objects: find all PROTECT in the script, then -2*2Cancel-6ENDUNP-4outputflag-2/3CTflag -1 comment=-17*/
 
