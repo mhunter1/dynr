@@ -299,7 +299,7 @@ vcov.dynrCook <- function(object, ...){
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_flag=TRUE, debug_flag=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
 	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
@@ -335,9 +335,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	backendStop <- Sys.time()
 	#gc()#garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
-	output$exitflag <- output$exitflag + ifelse(output$exitflag<0, 6, 0) + ifelse(output$exitflag>0, 5, 0)
+	# Check to make sure likelihood is not NaN.
+	output$exitflag <- ifelse(is.na(output$neg.log.likelihood), -6, output$exitflag)
+	# Use lookup table for exit flags
 	cat('Modified exit flag: ', output$exitflag, '\n')
-	cat(.ExitFlags[output$exitflag], '\n')
+	cat(.ExitFlags[as.character(output$exitflag)], '\n')
 	
 	diagH = diag(output$hessian.matrix)
 	diagH[diagH==0] = 10e-14
@@ -345,7 +347,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
 	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
-	if (output$exitflag > 5 && status==1){
+	if (output$exitflag > 0 && status==1){
 		output2 <- endProcessing(output, transformation, conf.level)
 	}else{		
 	  	output2 <- endProcessing2(output, transformation)
@@ -456,20 +458,20 @@ is.positive.definite <- function(x){
 	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
 }
 
+# From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
 .ExitFlags <- c(
-	'1'='Optimization halted because of a forced termination.',
-	'2'='Optimization halted because of roundoff errors.',
-	'3'='Optimization failed. Ran out of memory.',
-	'4'='Optimization halted. Lower bounds are bigger than upper bounds.',
-	'5'='Optimization failed. Check starting values.',
-	'6'='Optimization terminated successfully',
-	'7'='Optimization stopped because objective function reaches stopval',
-	'8'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
-	'9'='Optimization terminated successfully: xtol_rel or xtol_abs was reached.',
-	'10'='Maximum number of function evaluations reached.',
-	'11'='Increase maxeval or change starting values.',
-	'12'='Maximum optimization time reached.',
-	'13'='Increase maxtime or change starting values.')
+	'-5'='Optimization halted because of a forced termination.',
+	'-4'='Optimization halted because of roundoff errors.',
+	'-3'='Optimization failed. Ran out of memory.',
+	'-2'='Optimization halted. Lower bounds are bigger than upper bounds.',
+	'-1'='Optimization failed. Check starting values.',
+	'1'='Optimization terminated successfully',
+	'2'='Optimization stopped because objective function reached stopval',
+	'3'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
+	'4'='Optimization terminated successfully: xtol_rel or xtol_abs was reached.',
+	'5'='Maximum number of function evaluations reached. Increase maxeval or change starting values.',
+	'6'='Maximum optimization time reached. Increase maxtime or change starting values.',
+	'-6'='Likelihood function is NaN and could not find a way out. Optimizer gave up but is not at a converged optimum.')
 
 PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
   if (class(values.matrix)=="list"){

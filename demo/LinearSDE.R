@@ -163,6 +163,9 @@ BIC(res)
 trueParams <- c(-.3, -.7, 2.2, 1.5, 0)
 data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=trueParams, estim=coef(res))
 
+# Check that all true parameters are within the confidence intervals of the estimated params
+withinIntervals <- res@conf.intervals[,1] < trueParams & trueParams < res@conf.intervals[,2]
+testthat::expect_true(all(withinIntervals))
 
 # compare estimated smoothed latent states to true
 # simulated ones
