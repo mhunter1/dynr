@@ -346,16 +346,26 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	diag(output$hessian.matrix) = diagH
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	status = ifelse(any(!is.finite(output$hessian.matrix)) || !is.positive.definite(output$hessian.matrix), 0, 1)
+	# if any of the Hessian elements are non-finite or the overall Hessian is non-positive definite
+	#  set status = 0, otherwise it is 1
+	nonfiniteH <- any(!is.finite(output$hessian.matrix))
+	nonpdH <- !is.positive.definite(output$hessian.matrix)
+	status = ifelse(nonfiniteH || nonpdH, 0, 1)
+	output2 <- endProcessing(output, transformation, conf.level)
 	if (output$exitflag > 0 && status==1){
-		output2 <- endProcessing(output, transformation, conf.level)
-	}else{		
-	  	output2 <- endProcessing2(output, transformation)
-	  	cat('Hessian Matrix:',  '\n')
+		cat('Successful trial\n')
+	}else{
+		cat('Failed trial\n')
+		cat('Hessian Matrix:',  '\n')
 		print(output$hessian.matrix)
 		cat('\n')
-		#Print a message. Hessian matrix at convergence contains non-finite values or is
-		#non-positive definite. ?
+		if(nonfiniteH){
+			msg <- paste("Non-finite values in the Hessian matrix.")
+			warning(msg)
+		} else if(nonpdH){
+			msg <- paste("Hessian is not positive definite. These parameters have untrustworthy standard errors: ", paste(dynrModel$param.names[diag(output2$transformed.inv.hessian) < 0], collapse=", "))
+			warning(msg)
+		}
 	}
 	names(output2$transformed.parameters) <- dynrModel$param.names
 	if (outall_flag){
@@ -391,8 +401,8 @@ endProcessing2 <- function(x, transformation){
   
   nParam <- length(x$fitted.parameters)
   x$standard.errors <- rep(999,nParam)
-  x$transformed.inv.hessian <-matrix(999, nrow=nParam,ncol=nParam)
-  x$conf.intervals <-matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+  x$transformed.inv.hessian <- matrix(999, nrow=nParam,ncol=nParam)
+  x$conf.intervals <- matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
   return(x)
 }
 
