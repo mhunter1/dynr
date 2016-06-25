@@ -20,6 +20,7 @@ setClass(Class =  "dynrCook",
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
+           bad.standard.errors = "logical",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
@@ -40,6 +41,7 @@ setMethod("initialize", "dynrCook",
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
             .Object@standard.errors <- x$standard.errors
+            .Object@bad.standard.errors <- x$bad.standard.errors
             .Object@hessian <- x$hessian.matrix
             .Object@transformed.inv.hessian <- x$transformed.inv.hessian
             .Object@conf.intervals <- x$conf.intervals
@@ -57,6 +59,7 @@ setClass(Class =  "dynrDebug",
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
+           bad.standard.errors = "logical",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
@@ -82,6 +85,7 @@ setMethod("initialize", "dynrDebug",
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
             .Object@standard.errors <- x$standard.errors
+            .Object@bad.standard.errors <- x$bad.standard.errors
             .Object@hessian <- x$hessian.matrix
             .Object@transformed.inv.hessian <- x$transformed.inv.hessian
             .Object@conf.intervals <- x$conf.intervals
@@ -104,6 +108,7 @@ setClass(Class =  "dynrOutall",
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
+           bad.standard.errors = "logical",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
@@ -139,6 +144,7 @@ setMethod("initialize", "dynrOutall",
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
             .Object@standard.errors <- x$standard.errors
+            .Object@bad.standard.errors <- x$bad.standard.errors
             .Object@hessian <- x$hessian.matrix
             .Object@transformed.inv.hessian <- x$transformed.inv.hessian
             .Object@conf.intervals <- x$conf.intervals
@@ -175,10 +181,11 @@ summaryResults<-function(object){
              d <- data.frame(names=object@param.names, transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
+             d$bad <- factor(c("", "!")[object@bad.standard.errors + 1])
              neg2LL = -2*logLik(object)
              AIC = AIC(object)
              BIC = BIC(object)
-             colnames(d) = c("names","parameters","s.e.","t-value","ci.lower","ci.upper")
+             colnames(d) = c("names", "parameters", "s.e.", "t-value", "ci.lower", "ci.upper", "")
              print(d)
              cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(neg2LL,2))))
              cat(paste0("\nAIC = ", sprintf("%.02f", round(AIC,2))))
@@ -192,6 +199,10 @@ summaryResults<-function(object){
 ##' 
 ##' @details
 ##' The summary gives information on the free parameters estimated: names, parameter values, numerical Hessian-based standard errors, t-values (values divided by standard errors), and standard-error based confidence intervals.  Additionally, the likelihood, AIC, and BIC are provided.
+##' 
+##' Note that an exclamation point (!) in the final column of the summary table indicates that
+##' the standard error and confidence interval for this parameter may not be trustworthy. The corresponding
+##' element of the (transformed, inverse) Hessian was negative and an absolute value was taken to make it positive.
 setMethod( f = "summary",  signature = "dynrCook" ,
            definition = summaryResults)
 
@@ -363,7 +374,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 			msg <- paste("Non-finite values in the Hessian matrix.")
 			warning(msg)
 		} else if(nonpdH){
-			msg <- paste("Hessian is not positive definite. These parameters have untrustworthy standard errors: ", paste(dynrModel$param.names[diag(output2$transformed.inv.hessian) < 0], collapse=", "))
+			msg <- paste("Hessian is not positive definite. These parameters have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "))
 			warning(msg)
 		}
 	}
@@ -415,13 +426,15 @@ endProcessing <- function(x, transformation, conf.level){
 	V1 = solve(x$hessian.matrix)
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess <- J %*% V1%*%t(J)
-	tSE <- sqrt(diag(iHess))
+	bad.SE <- diag(iHess) < 0
+	tSE <- sqrt(abs(diag(iHess)))
 	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
 	x$transformed.parameters <- tParam #Can do
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- iHess
 	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	x$bad.standard.errors <- bad.SE
 	return(x)
 }
 
