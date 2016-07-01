@@ -62,14 +62,6 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
     /*MYPRINT("Set ftol_rel to  %f\n", *ftol_rel);*/
 	
     int status=nlopt_optimize(opt, fittedpar, minf);
-    if ( status< 0) {
-		MYPRINT("nlopt failed!\n");
-    }else{
-		MYPRINT("Starting Hessian calculation ...\n");
-		hessianRichardson(fittedpar,my_func_data,function_neg_log_like, *minf, Hessian_mat); /*information matrix*/
-		MYPRINT("Finished Hessian calculation.\n");
-		/* mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat); */ /*variance*/
-	}
 	
 	nlopt_destroy(opt);
 	

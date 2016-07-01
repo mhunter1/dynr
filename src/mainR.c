@@ -530,6 +530,17 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    eta_regime_j_t,error_cov_regime_j_t,eta_regime_jk_pred,error_cov_regime_jk_pred,eta_regime_jk_t_plus_1,error_cov_regime_jk_t_plus_1,
 	    pr_t, pr_t_given_t_minus_1,innov_v,inv_residual_cov);
 
+	    if ( status< 0) {
+			MYPRINT("nlopt failed!\n");
+	    }else{
+			MYPRINT("Starting Hessian calculation ...\n");
+		    data_model.pc.isnegloglikeweightedbyT=false;
+			hessianRichardson(fittedpar, &data_model, function_neg_log_like, neg_log_like, Hessian_mat); /*information matrix*/
+		    data_model.pc.isnegloglikeweightedbyT=weight_flag;
+			MYPRINT("Finished Hessian calculation.\n");
+			/* mathfunction_inv_matrix(Hessian_mat, inv_Hessian_mat); */ /*variance*/
+		}
+
 
 	    EKimSmoother(data_model.y_time, data_model.co_variate, &data_model.pc, &par, pr_t_given_t_minus_1, pr_t, eta_regime_jk_pred,error_cov_regime_jk_pred,eta_regime_j_t,error_cov_regime_j_t,
 	    	    eta_regime_j_smooth,error_cov_regime_j_smooth,eta_smooth,error_cov_smooth,pr_T,transprob_T);
