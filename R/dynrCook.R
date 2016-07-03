@@ -360,7 +360,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	# if any of the Hessian elements are non-finite or the overall Hessian is non-positive definite
 	#  set status = 0, otherwise it is 1
 	nonfiniteH <- any(!is.finite(output$hessian.matrix))
-	nonpdH <- !is.positive.definite(output$hessian.matrix)
+	nonpdH <- !is.positive.definite2(output$hessian.matrix)
 	status = ifelse(nonfiniteH || nonpdH, 0, 1)
 	output2 <- endProcessing(output, transformation, conf.level)
 	if (output$exitflag > 0 && status==1){
@@ -374,7 +374,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 			msg <- paste("Non-finite values in the Hessian matrix.")
 			warning(msg)
 		} else if(nonpdH){
-			msg <- paste("Hessian is not positive definite. These parameters have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "))
+			msg <- "Hessian is not positive definite. "
+  if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
+    msg <- paste0(msg,"These parameters may have untrustworthy standard errors: ", dynrModel$param.names[output2$bad.standard.errors],". Check if these parameters are identifiable and that the parameter constraints imposed (if applicable) are as intended.")
+  }
+
 			warning(msg)
 		}
 	}
@@ -418,15 +422,17 @@ endProcessing2 <- function(x, transformation){
 }
 
 endProcessing <- function(x, transformation, conf.level){
-  #Sukruth to create another version of:
-  #Do line 205, 207
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
 	#Analytic Jacobian
-	V1 = solve(x$hessian.matrix)
+	V1 = MASS::ginv(x$hessian.matrix)
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess <- J %*% V1%*%t(J)
-	bad.SE <- diag(iHess) < 0
+	diHess <-  diag(iHess)
+	bad.SE <- diHess < 0
+	diHess[bad.SE & abs(diHess)< 1e-8] <- abs(diHess[bad.SE & abs(diHess)< 1e-8])
+	bad.SE[bad.SE & abs(diHess)< 1e-8] <- FALSE
+	diag(iHess) <- diHess
 	tSE <- sqrt(abs(diag(iHess)))
 	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
@@ -479,6 +485,10 @@ is.null.pointer <- function(pointer){
 is.positive.definite <- function(x){
 	ret <- try(chol(x), silent=TRUE)
 	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
+}
+
+is.positive.definite2 <- function(x) {
+  class(try(MASS::ginv(x),silent=T))=="matrix"
 }
 
 # From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
