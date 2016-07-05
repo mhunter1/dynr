@@ -363,21 +363,21 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	nonpdH <- !is.positive.definite2(output$hessian.matrix)
 	status = ifelse(nonfiniteH || nonpdH, 0, 1)
 	output2 <- endProcessing(output, transformation, conf.level)
-	if (output$exitflag > 0 && status==1){
+	print(dynrModel$param.names[output2$bad.standard.errors])
+	if (output$exitflag > 0 && status==1 &&length(dynrModel$param.names[output2$bad.standard.errors])==0){
 		cat('Successful trial\n')
 	}else{
-		cat('Failed trial\n')
-		cat('Hessian Matrix:',  '\n')
-		print(output$hessian.matrix)
+		cat('Check the hessian matrix from your dynr output. \n')
+		#cat('Hessian Matrix:',  '\n')
+		#print(output$hessian.matrix)
 		cat('\n')
 		if(nonfiniteH){
 			msg <- paste("Non-finite values in the Hessian matrix.")
 			warning(msg)
-		} else if(nonpdH){
-			msg <- "Hessian is not positive definite. "
+		} else if(nonpdH || length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
+			msg <- "Hessian is not positive definite. The standard errors were computed using the generalized Cholesky and generalized inverse of the -Hessian matrix."
   if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-    msg <- paste0(msg,"These parameters may have untrustworthy standard errors: ", dynrModel$param.names[output2$bad.standard.errors],". Check if these parameters are identifiable and that the parameter constraints imposed (if applicable) are as intended.")
-  }
+    msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(model2R.LO3$param.names[res2R.LO3@bad.standard.errors],collapse=", "),"."),collapse="")  }
 
 			warning(msg)
 		}
@@ -421,19 +421,32 @@ endProcessing2 <- function(x, transformation){
   return(x)
 }
 
+
+  ##Tried but not working broadly enough for non-positive definite hessians
+  ##Calculating a pseudovariance matrix = V'V,
+  ##where V = GCHOL(H-), GCHOL(.) is the generalized Cholesky, and H- is
+  ##the generalized inverse of the Hessian
+  ##See the pseudo-inverse Hessian described in the following chapter, without importance sampling:
+  ##Gill, J., et al. (2003). Numerical Issues Involved in Inverting Hessian Matrices. Numerical Issues in Statistical Computing for the Social Scientist, John Wiley & Sons, Inc.: 143-176.
+  #Hinv <- MASS::ginv(x) #Generalized inverse of x
+  #V <- sechol(Hinv)   #V <- ifelse(class(sechol(Hinv)) == "try-error", TRUE, FALSE)
+  #V1 <- t(V) %*% V    
+
 endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
-	#Analytic Jacobian
-	V1 = MASS::ginv(x$hessian.matrix)
+	if (is.positive.definite(x$hessian.matrix)){
+	  V1 <- solve(x$hessian.matrix)
+	}
+	else{
+	  PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
+	  bad.SE <- eigen(x$hessian.matrix)$values < 0
+	  V1 <- solve(PDhessian)
+	}
+	#Numerical Jacobian
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess <- J %*% V1%*%t(J)
-	diHess <-  diag(iHess)
-	bad.SE <- diHess < 0
-	diHess[bad.SE & abs(diHess)< 1e-8] <- abs(diHess[bad.SE & abs(diHess)< 1e-8])
-	bad.SE[bad.SE & abs(diHess)< 1e-8] <- FALSE
-	diag(iHess) <- diHess
-	tSE <- sqrt(abs(diag(iHess)))
+	tSE <- sqrt(diag(iHess))
 	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
 	x$transformed.parameters <- tParam #Can do
@@ -488,7 +501,7 @@ is.positive.definite <- function(x){
 }
 
 is.positive.definite2 <- function(x) {
-  class(try(MASS::ginv(x),silent=T))=="matrix"
+  class(try(MASS::ginv(x),silent=TRUE))=="matrix"
 }
 
 # From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
@@ -551,4 +564,108 @@ PopBackModel<-function(dynrModel, trans.parameters){
   dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
   
   return(dynrModel)
+}
+
+#Computes the Sechol-Schnabel cholesky factorization
+#See Sechol-Schnabel, R. B. and Eskow, E. 1990. "A New Modified Cholesky Factorization." SIAM Journal of Scientific Statistical Computing 11, 1136-58.
+sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
+  if (is.complex(A))  {
+    warning("complex matrices not permitted at present")
+    return(NULL)
+  } else if (!is.numeric(A))  {
+    warning("non-numeric argument to 'sechol'")
+    return(NULL)
+  }
+  if (is.matrix(A)) {
+    if (nrow(A) != ncol(A)) {
+      warning("non-square matrix in 'sechol'")
+      return(NULL)
+    }
+  } else {
+    if (length(A) != 1) {
+      warning("non-matrix argument to 'sechol'")
+      return(NULL)
+    }
+    if (A>0) {
+      return(as.matrix(sqrt(A)))
+    } 
+    warning("the leading minor of order 1 is not positive definite")
+    return(NULL)
+  }
+  n <- nrow(A)
+  L <- matrix(rep(0,n*n),ncol=ncol(A))
+  tau <- tol ^(1/3)  # made to match gauss
+  gamm <- max(A)
+  deltaprev <- 0
+  Pprod <- diag(n)
+  if (n > 2)  {
+    for (k in 1:(n-2))  {
+      if( (min(diag(A[(k+1):n,(k+1):n]) - A[k,(k+1):n]^2/A[k,k]) < tau*gamm) 
+          && (min(svd(A[(k+1):n,(k+1):n])$d)) < 0) {
+        dmax <- order(diag(A[k:n,k:n]))[(n-(k-1))]
+        if (A[(k+dmax-1),(k+dmax-1)] > A[k,k])  {
+          if (!silent) {
+            print(paste("iteration:",k,"pivot on:",dmax,"with absolute:",(k+dmax-1)))
+          }
+          P <- diag(n)
+          Ptemp <-  P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
+          A <- P%*%A%*%P
+          L <- P%*%L%*%P
+          Pprod <- P%*%Pprod
+        }
+        g <- rep(0,length=(n-(k-1)))
+        for (i in k:n)  {
+          if (i == 1) sum1 <- 0
+          else sum1 <- sum(abs(A[i,k:(i-1)]))
+          if (i == n) sum2 <- 0
+          else sum2 <- sum(abs(A[(i+1):n,i]))
+          g[i-(k-1)] <- A[i,i] - sum1 - sum2
+        }
+        gmax <- order(g)[length(g)]
+        if (gmax != k)  {
+          if (!silent) {
+            print(paste("iteration:",k,
+                        "gerschgorin pivot on:",gmax,"with absolute:",(k+gmax-1)))
+          }
+          P <- diag(ncol(A))
+          Ptemp <-  P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
+          A <- P%*%A%*%P
+          L <- P%*%L%*%P
+          Pprod <- P%*%Pprod
+        }
+        normj <- sum(abs(A[(k+1):n,k]))
+        delta <- max(0,deltaprev,-A[k,k]+max(normj,tau*gamm))
+        if (delta > 0)  {
+          A[k,k] <- A[k,k] + delta
+          deltaprev <- delta
+        }
+      }
+      
+      L[k,k] <- A[k,k] <- sqrt(A[k,k])
+      for (i in (k+1):n)  {
+        L[i,k] <- A[i,k] <- A[i,k]/L[k,k]
+        A[i,(k+1):i] <- A[i,(k+1):i] - L[i,k]*L[(k+1):i,k]
+        if(A[i,i] < 0) A[i,i] <- 0
+      }
+    }
+  }
+  A[(n-1),n] <- A[n,(n-1)]
+  eigvals <- eigen(A[(n-1):n,(n-1):n])$values
+  delta <- max(0,deltaprev,
+               -min(eigvals)+tau*max((1/(1-tau))*(max(eigvals)-min(eigvals)),gamm))
+  if (delta > 0)  {
+    if (!silent) {
+      print(paste("delta:",delta))
+    }
+    A[(n-1),(n-1)] <- A[(n-1),(n-1)] + delta
+    A[n,n] <- A[n,n] + delta
+    deltaprev <- delta
+  }
+  L[(n-1),(n-1)] <- A[(n-1),(n-1)] <- sqrt(A[(n-1),(n-1)])
+  L[n,(n-1)] <- A[n,(n-1)] <- A[n,(n-1)]/L[(n-1),(n-1)]
+  L[n,n] <- A[n,n] <- sqrt(A[n,n] - L[n,(n-1)]^2)
+  
+  r = t(Pprod)%*%t(L)%*%t(Pprod)
+  attr(r,"delta")=delta
+  return(r)
 }
