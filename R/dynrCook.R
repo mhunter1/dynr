@@ -363,11 +363,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	nonpdH <- !is.positive.definite2(output$hessian.matrix)
 	status = ifelse(nonfiniteH || nonpdH, 0, 1)
 	output2 <- endProcessing(output, transformation, conf.level)
-	print(dynrModel$param.names[output2$bad.standard.errors])
 	if (output$exitflag > 0 && status==1 &&length(dynrModel$param.names[output2$bad.standard.errors])==0){
 		cat('Successful trial\n')
 	}else{
-		cat('Check the hessian matrix from your dynr output. \n')
+		#cat('Check the hessian matrix from your dynr output. \n')
 		#cat('Hessian Matrix:',  '\n')
 		#print(output$hessian.matrix)
 		cat('\n')
@@ -375,10 +374,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 			msg <- paste("Non-finite values in the Hessian matrix.")
 			warning(msg)
 		} else if(nonpdH || length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-			msg <- "Hessian is not positive definite. The standard errors were computed using the generalized Cholesky and generalized inverse of the -Hessian matrix."
+			msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
   if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-    msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(model2R.LO3$param.names[res2R.LO3@bad.standard.errors],collapse=", "),"."),collapse="")  }
-
+    msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors],collapse=", "),"."),collapse="")  
+    }
 			warning(msg)
 		}
 	}
