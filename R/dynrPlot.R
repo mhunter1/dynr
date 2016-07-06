@@ -361,6 +361,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
                                 id.vars=names.id.vars,
                                 measure.vars=names.measure.vars,
                                 value.name="value")
+	data_long$variable<-factor(data_long$variable, levels=sort(names.measure.vars)) 
     value <- NULL
     variable <- NULL
     partial.plot<-ggplot2::ggplot(data_long, ggplot2::aes(x=time, y=value, colour = variable, shape = variable, linetype = variable)) + 
@@ -448,6 +449,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
                                id.vars=names.id.vars,
                                measure.vars=names.measure.vars,
                                value.name="value")
+    data_long$variable<-factor(data_long$variable, levels=sort(names.measure.vars)) 
     #data_long$statenumber<-as.factor(sub("state","",data_long$variable))
     endtime <- NULL
     regime <- NULL
