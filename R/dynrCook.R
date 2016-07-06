@@ -437,9 +437,9 @@ endProcessing <- function(x, transformation, conf.level){
 	}
 	else{
 	  PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
-	  bad.SE <- eigen(x$hessian.matrix)$values < 0
 	  V1 <- solve(PDhessian)
 	}
+	bad.SE <- eigen(x$hessian.matrix)$values < 0
 	#Numerical Jacobian
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess <- J %*% V1%*%t(J)
