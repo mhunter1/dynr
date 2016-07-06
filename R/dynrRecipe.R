@@ -218,9 +218,16 @@ setMethod("$", "dynrRecipe",
 ##' printex,dynrRegimes-method
 ##' 
 ##' @param object The dynr object (recipe, model, cooked, model)
-##' @param show logical. Whether or not to show the result in the console.
-##' @param AsMatrix logical. Whether to put the object in matrix form.
-##' @param ... Further named arguments, passed to internal method.
+##' @param ParameterAs The parameter values or names to plot. The underscores in parameter names are 
+##' saved for use of subscripts.  Greek letters can be specified as corresponding LaTeX symbols without ##' backslashes (e.g., "lambda") and printed as greek letters.
+##' @param printDyn logical. Whether or not to print the dynamic model. The default is TRUE.
+##' @param printMeas logical. Whether or not to print the dynamic model. The default is TRUE.
+##' @param printInit logical. Whether or not to print the dynamic model. The default is FALSE.
+##' @param printRS logical. Whether or not to print the dynamic model. The default is FALSE.
+##' @param outFile The name of the output tex file.
+##' @param ... Further named arguments, passed to internal method. 
+##' \code{show} is a logical indicator of whether or not to show the result in the console. 
+##' \code{AsMatrix} is a logical indicator of whether to put the object in matrix form.
 ##' 
 ##' @details
 ##' This is a general way of getting a LaTeX string for recipes, 
@@ -228,21 +235,16 @@ setMethod("$", "dynrRecipe",
 ##' you specified the model or recipe you think you did before 
 ##' estimating its free parameters (cooking).  After the model 
 ##' is cooked, you can use it to get LaTeX code with the estimated 
-##' parameters in it.  The underscores in parameter names are saved 
-##' for use of subscripts.  Greek letters can be specified as 
-##' corresponding LaTeX symbols without backslashes (e.g., "lambda") 
-##' and printed as greek letters.
-##' 
-##' Further arguments for the \code{dynrModel} method are with their 
-##' defaults are \code{ParameterAs}, \code{printDyn=TRUE}, 
-##' \code{printMeas=TRUE}, \code{printInit=FALSE}, \code{printRS=FALSE}, 
-##' and \code{outFile}.
-setGeneric("printex", function(object, show=TRUE, AsMatrix=TRUE, ...) { 
+##' parameters in it.
+setGeneric("printex", function(object, ParameterAs, 
+	printDyn, printMeas, printInit, printRS, outFile, ...) { 
 	return(standardGeneric("printex")) 
 })
 
 setMethod("printex", "dynrMeasurement",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             if (AsMatrix){
               meas_loadings=lapply(object$values.load, .xtableMatrix, show)
               meas_int=lapply(object$values.int, .xtableMatrix, show)
@@ -269,7 +271,9 @@ setMethod("printex", "dynrMeasurement",
 )
 
 setMethod("printex", "dynrDynamicsMatrix",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             if (AsMatrix){
               dyn_tran=lapply((object)$values.dyn,.xtableMatrix, show)
               dyn_int=lapply((object)$values.int,.xtableMatrix, show)
@@ -305,7 +309,9 @@ setMethod("printex", "dynrDynamicsMatrix",
 )
 
 setMethod("printex", "dynrRegimes",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
             return(invisible(list(regimes=lG)))
           }
@@ -313,7 +319,9 @@ setMethod("printex", "dynrRegimes",
 
 
 setMethod("printex", "dynrInitial",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             lx0 <- lapply(object$values.inistate, .xtableMatrix, show)
             lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
             lr0 <- .xtableMatrix(object$values.regimep, show)
@@ -323,7 +331,9 @@ setMethod("printex", "dynrInitial",
 
 
 setMethod("printex", "dynrNoise",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             lQ <- lapply(object$values.latent, .xtableMatrix, show=show)
             lR <- lapply(object$values.observed, .xtableMatrix, show=show)
             return(invisible(list(dynamic.noise=lQ, measurement.noise=lR)))
@@ -331,7 +341,9 @@ setMethod("printex", "dynrNoise",
 )
 
 setMethod("printex", "dynrDynamicsFormula",
-          function(object, show=TRUE, AsMatrix=TRUE){
+          function(object, ParameterAs, 
+			  printDyn, printMeas, printInit, printRS, outFile, 
+			  show=TRUE, AsMatrix=TRUE){
             if (object$isContinuousTime){
             LHSvarPre <- "d("
             LHSvarPost <- "(t))"
