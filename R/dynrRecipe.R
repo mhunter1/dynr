@@ -217,7 +217,7 @@ setMethod("$", "dynrRecipe",
 ##' printex,dynrInitial-method
 ##' printex,dynrRegimes-method
 ##' 
-##' @param object The dynr object (recipe, model, cooked, model)
+##' @param object The dynr object (recipe, model, cooked, model).
 ##' @param ParameterAs The parameter values or names to plot. The underscores in parameter names are 
 ##' saved for use of subscripts.  Greek letters can be specified as corresponding LaTeX symbols without ##' backslashes (e.g., "lambda") and printed as greek letters.
 ##' @param printDyn logical. Whether or not to print the dynamic model. The default is TRUE.
