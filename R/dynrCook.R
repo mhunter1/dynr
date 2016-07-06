@@ -15,7 +15,7 @@
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.
 ##' Use \code{\link{dynr.cook}} instead.
-setClass(Class =  "dynrCook",
+setClass(Class =  "dynrCook", 
          representation = representation(
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
