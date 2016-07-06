@@ -427,7 +427,9 @@ endProcessing2 <- function(x, transformation){
   ##Gill, J., et al. (2003). Numerical Issues Involved in Inverting Hessian Matrices. Numerical Issues in Statistical Computing for the Social Scientist, John Wiley & Sons, Inc.: 143-176.
   #Hinv <- MASS::ginv(x) #Generalized inverse of x
   #V <- sechol(Hinv)   #V <- ifelse(class(sechol(Hinv)) == "try-error", TRUE, FALSE)
-  #V1 <- t(V) %*% V    
+  #V1 <- t(V) %*% V   
+
+#J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
 
 endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
@@ -439,9 +441,20 @@ endProcessing <- function(x, transformation, conf.level){
 	  PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
 	  V1 <- solve(PDhessian)
 	}
-	bad.SE <- eigen(x$hessian.matrix)$values < 0
+	
+	#Identifies too many problematic parameters
+	#evector <- eigen(x$hessian.matrix)$vectors
+	#bad.values <- eigen(x$hessian.matrix)$values < 0
+	#bad.evec <-  evector[,bad.values]
+	#bad.evec <- apply(bad.evec,2,function(x){abs(x/sum(x))}) #normalize within column
+	#bad.evecj <- apply(bad.evec,2,function(x){x > .5})#For each column find the substantial row (param) entries  
+	#bad.SE <- apply(bad.evecj,1,function(x){ifelse(length(x[x=="TRUE"]) > 0, TRUE,FALSE)}) #Flag parameters that have been identified as problematic at least once
+	
 	#Numerical Jacobian
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
+	iHess0 <- J%*%(MASS::ginv(x$hessian))%*%t(J)
+	bad.SE <- diag(iHess0) < 0
+	
 	iHess <- J %*% V1%*%t(J)
 	tSE <- sqrt(diag(iHess))
 	tParam <- transformation(x$fitted.parameters) #Can do
