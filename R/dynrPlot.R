@@ -298,6 +298,8 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   if(missing(shape.values)){
     if (style==1) shape.values=states#48+states
     if (style==2) shape.values=c(rep(32,length(observed)),observed)#pre-obs
+  }else{
+  	if (style==2) shape.values=c(rep(32,length(shape.values)), shape.values)#pre-obs
   }
   if (style==1) line.values=rep(1,length(states))
   if (style==2) line.values=rep(c(1,0),each=length(observed))#pre-obs
