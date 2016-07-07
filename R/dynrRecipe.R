@@ -225,8 +225,8 @@ setMethod("$", "dynrRecipe",
 ##' @param printInit logical. Whether or not to print the dynamic model. The default is FALSE.
 ##' @param printRS logical. Whether or not to print the dynamic model. The default is FALSE.
 ##' @param outFile The name of the output tex file.
+##' @param{show} is a logical indicator of whether or not to show the result in the console. 
 ##' @param ... Further named arguments, passed to internal method. 
-##' \code{show} is a logical indicator of whether or not to show the result in the console. 
 ##' \code{AsMatrix} is a logical indicator of whether to put the object in matrix form.
 ##' 
 ##' @details
@@ -237,7 +237,7 @@ setMethod("$", "dynrRecipe",
 ##' is cooked, you can use it to get LaTeX code with the estimated 
 ##' parameters in it.
 setGeneric("printex", function(object, ParameterAs, 
-	printDyn, printMeas, printInit, printRS, outFile, ...) { 
+	printDyn, printMeas, printInit, printRS, outFile, show, ...) { 
 	return(standardGeneric("printex")) 
 })
 
@@ -1078,26 +1078,27 @@ setMethod("writeCcode", "dynrTrans",
 )
 
 setGeneric("createRfun", function(object, param.data, params.observed, params.latent, params.inicov,
-                                  values.observed, values.latent, values.inicov, show=TRUE) { 
+                                  values.observed, values.latent, values.inicov,
+                                  values.observed.orig, values.latent.orig, values.inicov.orig, show=TRUE) { 
   return(standardGeneric("createRfun")) 
 })
 
 setMethod("createRfun", "dynrTrans",
           function(object, param.data, params.observed, params.latent, params.inicov,
-                   values.observed, values.latent, values.inicov){
+                   values.observed, values.latent, values.inicov,
+                   values.observed.orig, values.latent.orig, values.inicov.orig){
             #inv.tfun
             inv.tf <- NULL
             tf <- NULL
-            if (length(object@formula.inv)==0){
-              #TODO If formula.inv is missing, point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
-              #inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root} 
-              #eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}")) 
-            }else{
+            f.string<-"inv.tf<-function(vec){"
+            if (length(object@formula.inv) > 0){
+              #TODO If formula.inv is missing (i.e. length == 0), point-wise inverse functions that are based on the uniroot function will be used to calculate starting values.
+              #inverse = function (f, lower = -100, upper = 100) {function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)$root}
+              #eval(parse(text="inv.tf<-function(namedvec){return(c(a=inverse(exp)(namedvec[\"a\"]),b=inverse(function(x)x^2,0.0001,100)(namedvec[\"b\"])))}"))
               fml.str=formula2string(object@formula.inv)
               lhs=fml.str$lhs
               rhs=fml.str$rhs
               sub=sapply(lhs,function(x){paste0("vec[",param.data$param.number[param.data$param.name==x],"]")})
-              f.string<-"inv.tf<-function(vec){"
               for (j in 1:length(rhs)){
                 for (i in 1:length(lhs)){
                   rhs[j]=gsub(paste0("\\<",lhs[i],"\\>"),sub[i],rhs[j])
@@ -1105,28 +1106,28 @@ setMethod("createRfun", "dynrTrans",
                 eq=paste0(sub[j],"=",rhs[j])
                 f.string<-paste(f.string,eq,sep="\n\t")
               }
-              f.string2 <- f.string
-              #observed
-              if (sum(param.data$ldl.observed)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, values.observed, params.observed, reverse=TRUE),sep="\n\t")
-              }
-              #latent
-              if (sum(param.data$ldl.latent)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, values.latent, params.latent, reverse=TRUE),sep="\n\t")
-              }
-              #inicov
-              if (sum(param.data$ldl.inicov)>0){
-                f.string2 <- paste(f.string2, makeldlchar(param.data, values.inicov, params.inicov, reverse=TRUE),sep="\n\t")
-              }
-              f.string2<-paste0(f.string2,"\n\treturn(vec)}")
-              f.string<-paste0(f.string,"\n\treturn(vec)}")
-              
-              eval(parse(text=f.string2))
-              object@inv.tfun.full <- inv.tf
-              
-              eval(parse(text=f.string)) 
-              object@inv.tfun <- inv.tf
             }
+            f.string2 <- f.string
+            #observed
+            if (sum(param.data$ldl.observed)>0){
+            f.string2 <- paste(f.string2, makeldlchar(param.data, lapply(values.observed.orig, replaceDiagZero), params.observed, reverse=TRUE),sep="\n\t")
+            }
+            #latent
+            if (sum(param.data$ldl.latent)>0){
+            f.string2 <- paste(f.string2, makeldlchar(param.data, lapply(values.latent.orig, replaceDiagZero), params.latent, reverse=TRUE),sep="\n\t")
+            }
+            #inicov
+            if (sum(param.data$ldl.inicov)>0){
+            f.string2 <- paste(f.string2, makeldlchar(param.data, lapply(values.inicov.orig, replaceDiagZero), params.inicov, reverse=TRUE),sep="\n\t")
+            }
+            f.string2<-paste0(f.string2,"\n\treturn(vec)}")
+            f.string<-paste0(f.string,"\n\treturn(vec)}")
+            
+            eval(parse(text=f.string2))
+            object@inv.tfun.full <- inv.tf
+            
+            eval(parse(text=f.string)) 
+            object@inv.tfun <- inv.tf
             
             f.string<-"tf<-function(vec){"
               
@@ -1191,7 +1192,7 @@ makeldlchar<-function(param.data, values, params, reverse=FALSE){
         vec.noise=paste0("vec[",paste0("c(",paste(param.number,collapse=","),")"),"]")
         vec.sub <- as.vector(values[[i]])
         mat.index=sapply(param.number,function(x){min(which(params.numbers[[i]]==x))})
-        char.i=paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(",paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(values[[i]]),")))[",
+        char.i=paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(", paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(values[[i]]),")))[",
                       paste0("c(",paste(mat.index,collapse=","),")"),"]", ifelse(i!=length(values),"\n\t",""))
         char=paste0(char, char.i)
       }

@@ -131,6 +131,10 @@ data <- dynr.data(simdata, id="id", time="times", observed="y1")
 # put all the recipes together
 model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial, data=data, outfile="LinearSDE.c")
 
+# set upper bounds, if you want
+model$ub <- c(100, 100, 100, 100, 100)
+
+
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
         outFile="LinearSDE.tex")
 #tools::texi2pdf("LinearSDE.tex")
