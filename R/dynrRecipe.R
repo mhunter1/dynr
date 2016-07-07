@@ -221,11 +221,11 @@ setMethod("$", "dynrRecipe",
 ##' @param ParameterAs The parameter values or names to plot. The underscores in parameter names are 
 ##' saved for use of subscripts.  Greek letters can be specified as corresponding LaTeX symbols without ##' backslashes (e.g., "lambda") and printed as greek letters.
 ##' @param printDyn logical. Whether or not to print the dynamic model. The default is TRUE.
-##' @param printMeas logical. Whether or not to print the dynamic model. The default is TRUE.
-##' @param printInit logical. Whether or not to print the dynamic model. The default is FALSE.
-##' @param printRS logical. Whether or not to print the dynamic model. The default is FALSE.
+##' @param printMeas logical. Whether or not to print the measurement model. The default is TRUE.
+##' @param printInit logical. Whether or not to print the initial conditions. The default is FALSE.
+##' @param printRS logical. Whether or not to print the regime-switching model. The default is FALSE.
 ##' @param outFile The name of the output tex file.
-##' @param{show} is a logical indicator of whether or not to show the result in the console. 
+##' @param show logical indicator of whether or not to show the result in the console. 
 ##' @param ... Further named arguments, passed to internal method. 
 ##' \code{AsMatrix} is a logical indicator of whether to put the object in matrix form.
 ##' 
@@ -237,13 +237,13 @@ setMethod("$", "dynrRecipe",
 ##' is cooked, you can use it to get LaTeX code with the estimated 
 ##' parameters in it.
 setGeneric("printex", function(object, ParameterAs, 
-	printDyn, printMeas, printInit, printRS, outFile, show, ...) { 
+	printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show, ...) { 
 	return(standardGeneric("printex")) 
 })
 
 setMethod("printex", "dynrMeasurement",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             if (AsMatrix){
               meas_loadings=lapply(object$values.load, .xtableMatrix, show)
@@ -272,7 +272,7 @@ setMethod("printex", "dynrMeasurement",
 
 setMethod("printex", "dynrDynamicsMatrix",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             if (AsMatrix){
               dyn_tran=lapply((object)$values.dyn,.xtableMatrix, show)
@@ -310,7 +310,7 @@ setMethod("printex", "dynrDynamicsMatrix",
 
 setMethod("printex", "dynrRegimes",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
             return(invisible(list(regimes=lG)))
@@ -320,7 +320,7 @@ setMethod("printex", "dynrRegimes",
 
 setMethod("printex", "dynrInitial",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             lx0 <- lapply(object$values.inistate, .xtableMatrix, show)
             lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
@@ -332,7 +332,7 @@ setMethod("printex", "dynrInitial",
 
 setMethod("printex", "dynrNoise",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             lQ <- lapply(object$values.latent, .xtableMatrix, show=show)
             lR <- lapply(object$values.observed, .xtableMatrix, show=show)
@@ -342,7 +342,7 @@ setMethod("printex", "dynrNoise",
 
 setMethod("printex", "dynrDynamicsFormula",
           function(object, ParameterAs, 
-			  printDyn, printMeas, printInit, printRS, outFile, 
+			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             if (object$isContinuousTime){
             LHSvarPre <- "d("
