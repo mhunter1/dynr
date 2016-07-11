@@ -167,6 +167,40 @@ plotdf <- function(vec_tex){
   return(dataframe)
 }
 
+##' Plot of the estimated frequencies of the regimes across all individuals and time points
+##' based on their smoothed regime probabilities
+##' 
+##' @param res The dynr object returned by dynr.cook().
+##' @param dynrModel The model object to plot.
+##' @param names.regime (optional) Names of the regimes (must match the length of the number of regimes)
+##' @param title (optional) Title of the plot.
+##' @param xlab (optional) Label of the x-axis.
+##' @param ylab (optional) Label of the y-axis.
+##' @param textsize (default = 12) Text size for the axis labels and title (= textsize + 2).
+##' @param print (default = TRUE) A flag for whether the plot should be printed.
+dynr.plotFreq <- function(res, dynrModel, names.regime, title, xlab, ylab, textsize=12,print=TRUE) {
+  if(missing(names.regime)){names.regime<-paste0("Regime",1:dynrModel@num_regime)}
+  if(missing(title)){title<-'Counts by most probable regime'}
+  if(missing(xlab)){xlab<-'Regime'}
+  if(missing(ylab)){ylab<-'Counts'}
+
+    regime <- NULL
+    highProbR <- data.frame(regime=factor(apply(res@pr_t_given_T,2,which.max),
+                                   levels=1:dynrModel@num_regime,
+                                   labels=names.regime))
+    p2 <- ggplot2::ggplot(data = highProbR, ggplot2::aes(factor(regime))) +
+      ggplot2::geom_bar() +
+      ggplot2::scale_fill_brewer(palette = 3) +
+      ggplot2::xlab(xlab) + ggplot2::ylab(ylab) + ggplot2::labs(fill = '') + 
+      ggplot2::ggtitle(title) +
+      ggplot2::theme(axis.title = ggplot2::element_text(size=textsize+2),
+                     axis.text=ggplot2::element_text(size=textsize),
+                     plot.title = ggplot2::element_text(size = textsize, colour = "black", face = "bold"))
+    if (print) print(p2)
+    return(p2)
+  }
+  
+
 ##' Plot the formula from a model
 ##' 
 ##' @param dynrModel The model object to plot.
