@@ -269,7 +269,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
                     
                     
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
-                    p=isfinite(exp(-neg_log_p))&&exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
+                   p=isfinite(exp(-neg_log_p))&&exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
                     
                    /*MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
                    MYPRINT("before exponential %lf\n",neg_log_p);
@@ -809,7 +809,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
                    neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], y_non_miss, innov_determinant);
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
-                   p=exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
+                   p=isfinite(exp(-neg_log_p))&&exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
 
                    /*MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
                    MYPRINT("oringinal %lf\n",exp(-neg_log_p));
@@ -825,7 +825,6 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
 
 			
-			/*TODO: Make sure this thing is non-zero*/	
             /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
             log_like+=log(mathfunction_matrix_normalize(like_jk));/*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
 
