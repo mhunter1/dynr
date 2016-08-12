@@ -2,6 +2,8 @@ importFrom("graphics", "text")
 importFrom("stats", "D", "as.formula", "coef", "formula", "logLik",
             "qnorm", "time")
 importFrom("utils", "str")
+importFrom("MASS", "ginv")
+importFrom("Matrix", "nearPD")
 importFrom(numDeriv, jacobian)
 importFrom(xtable, xtable)
 importFrom(latex2exp, TeX)
