@@ -1,0 +1,27 @@
+
+dynr 0.1.8
+--------------
+
+2016-08-12
+
+New features include:
+* None
+
+
+Bug fixes and performance tweaks include:
+* In single-regime models, free parameters for intercepts and covariate effects
+    in the measurement model can now be properly estimated.
+* Standard errors are more frequently returned
+* Flags indicate problematic standard errors.
+* Warning messages are more helpful regarding standard errors.
+* A weight flag allows easier convergence of multi-subject models.
+* Several new plotting features.
+
+
+dynr 0.1.7
+--------------
+
+2016-06-07
+
+Initial release to CRAN!
+
