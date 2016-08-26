@@ -31,7 +31,7 @@ NULL
 ##' A dataset simulated using a discrete-time nonlinear dynamic factor analysis model
 ##' with 6 observed indicators for identifying two latent factors: individuals'
 ##' positive and negative emotions. Proposed by Chow and Zhang (2013), the model was inspired 
-##' by models of affects and it posits that the two latent factors follow a vector autoregressive
+##' by models of affect and it posits that the two latent factors follow a vector autoregressive
 ##' process of order 1 (VAR(1)) with parameters that vary between two possible regimes:
 ##' (1) an "independent" regime in which the lagged influences between positive and negative
 ##' emotions are zero; (2) a "high-activation" regime to capture instances
