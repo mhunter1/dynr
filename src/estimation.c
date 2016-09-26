@@ -42,7 +42,8 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
 {
     MYPRINT("Optimization function called.\n");
     nlopt_opt opt;
-    /*opt = nlopt_create(NLOPT_LD_MMA, 2); */
+    //opt = nlopt_create(NLOPT_LD_MMA, num_func_param);
+    //opt = nlopt_create(NLOPT_LN_NELDERMEAD, num_func_param);
     opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
     nlopt_set_upper_bounds(opt, ub);
     nlopt_set_lower_bounds(opt, lb);
