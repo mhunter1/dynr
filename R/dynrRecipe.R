@@ -978,6 +978,8 @@ setMethod("writeCcode", "dynrInitial",
 		
 		nregime <- max(length(values.inistate), length(values.inicov))
 		someStatesNotZero <- sapply(values.inistate, function(x){!all(x == 0)})
+		someStatesNotZero2 <- sapply(params.inistate, function(x){!all(x == 0)})
+		someStatesNotZero <- someStatesNotZero | someStatesNotZero2
 		
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0){\n"
 		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
