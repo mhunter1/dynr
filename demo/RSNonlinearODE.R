@@ -106,8 +106,8 @@ printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
 #tools::texi2pdf("RSNonlinearODE.tex")
 #system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
 
-model@ub[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(0,10)
-model@lb[model@param.names%in%c("int1","slp1","int2","slp2")]<-c(-10,0)
+model$ub[model@param.names%in%c("int_1", "int_2", "slp_1", "slp_2")]<-c(0,0,10,10)
+model$lb[model@param.names%in%c("int_1", "int_2", "slp_1", "slp_2")]<-c(-10,-10,0,0)
 # Estimate free parameters
 res <- dynr.cook(model)
 
