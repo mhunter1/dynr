@@ -1269,10 +1269,13 @@ dynr.ldl <- function(x){
 	return(ret)
 }
 
-reverseldl<-function(values){
+reverseldl <- function(values){
 	if(dim(values)[1]==1){
 		return(log(values))
-	}else{
+	} else if(any(is.na(values))){
+		warning("Avast ye swarthy dog! NA was passed to LDL. Unset bounds might be fine. Values might be wrong.")
+		return(values)
+	} else{
 		mat <- dynr.ldl(values)
 		diag(mat) <- log(diag(mat))
 		return(mat)
