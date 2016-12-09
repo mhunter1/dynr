@@ -70,19 +70,11 @@ printex(rsmod, ParameterAs=rsmod$param.names, printInit=TRUE,printRS=TRUE,
 #tools::texi2pdf("RSLinearDiscrete.tex")
 #system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
 
-yum <- dynr.cook(rsmod)
+yum <- dynr.cook(rsmod, debug_flag=TRUE)
 
 #---- (5) Serve it! ----
 
 summary(yum)
-
-#true parameters
-truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, dynnoise=.5^2, p00=.99, p10=.01)
-
-r1 <- c(coef(yum)[which(rsmod$param.names=="p00")],0)
-exp(r1)/sum(exp(r1)) #first row of transition probability matrix
-r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
-exp(r2)/sum(exp(r2)) #second row of transition probability matrix
 
 dynr.ggplot(yum, dynrModel = rsmod, style = 1, 
             names.regime=c("Deactivated","Activated"),
@@ -99,3 +91,72 @@ plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
 plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
 #---- End of demo ---- 
 #save(rsmod,yum,file="RSLinearDiscrete.RData")
+
+
+#---- (6) Compare true and estimated params ----
+
+#true parameters
+truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, dynnoise=.5^2, p00=.99, p10=.01)
+estp <- coef(yum)
+
+r1 <- c(coef(yum)[which(rsmod$param.names=="p00")],0)
+(r1 <- exp(r1)/sum(exp(r1))) #first row of transition probability matrix
+r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
+(r2 <- exp(r2)/sum(exp(r2))) #second row of transition probability matrix
+
+estp[8:9] <- c(r1[1], r2[1])
+
+plot(estp, truep)
+abline(a=0, b=1)
+
+rms <- function(x, y){sqrt(mean((x-y)^2))}
+
+testthat::expect_true(rms(estp, truep) < 0.07)
+
+# Check that all true parameters are within the confidence intervals of the estimated params
+# other than the regime-switching params
+withinIntervals <- yum@conf.intervals[1:7,1] < truep[1:7] & truep[1:7] < yum@conf.intervals[1:7,2]
+testthat::expect_true(all(withinIntervals))
+
+
+#---- (6) Compare true and estimated states ----
+
+#---- (6a) latent states ----
+
+#pdf('plotFilterSmoothEMG.pdf')
+
+smoothCor <- cor(yum@eta_smooth_final[1,], EMGsim$truestate)
+smoothRMS <- rms(yum@eta_smooth_final[1,], EMGsim$truestate)
+
+plot(yum@eta_smooth_final, EMGsim$truestate, xlab='Smoothed Latent State', ylab='True Latent State', main='Smoothed Estimates')
+text(x=1, y=-2, labels=paste0('r = ', round(smoothCor,3)), adj=c(1,1))
+text(x=1, y=-2.5, labels=paste0('RMSE = ', round(smoothRMS,3)), adj=c(1,1))
+
+estRegime <- apply(yum@pr_t_given_T, 2, which.max) - 1
+
+fstate1 <- yum@eta_regime_t[1,,]
+#indmat <- cbind(EMGsim$trueregime+1,1:500)
+indmat <- cbind(estRegime+1,1:500)
+fstate2 <- fstate1[indmat]
+
+updateCor <- cor(fstate2, EMGsim$truestate)
+updateRMS <- rms(fstate2, EMGsim$truestate)
+
+plot(fstate2, EMGsim$truestate, xlab='Updated Latent State', ylab='True Latent State', main='Updated Estimates')
+text(x=1, y=-2, labels=paste0('r = ', round(updateCor,3)), adj=c(1,1))
+text(x=1, y=-2.5, labels=paste0('RMSE = ', round(updateRMS,3)), adj=c(1,1))
+
+
+#---- (6b) latent regimes ----
+
+
+(rtab <- table(trueRegime=EMGsim$trueregime, estRegime=estRegime))
+
+plot(x=jitter(apply(yum@pr_t_given_T, 2, which.max) - 1), y=jitter(EMGsim$trueregime), xlab='Estimated Smoothed Regime', ylab='True Regime', xaxt='n', yaxt='n', main='Smoothed Regimes')
+axis(side=1, at=c(0,1))
+axis(side=2, at=c(0,1))
+text(x=c(0,0,1,1), y=c(0+.25,1-.25,0+.25,1-.25), labels=c(rtab))
+
+#dev.off()
+
+
