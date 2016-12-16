@@ -212,7 +212,7 @@ dynr.plotFreq <- function(res, dynrModel, names.regime, title, xlab, ylab, texts
 ##' @param textsize The text size use in the plot.
 ##' 
 ##' @details
-##' This function typesets a set of formulas that represent the model.
+##' This function typesets a set of formulas that represent the model.  Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
 plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, textsize=4){
   
   dynrModel <- PopBackModel(dynrModel, LaTeXnames(ParameterAs, latex = FALSE))

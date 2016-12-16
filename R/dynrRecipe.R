@@ -236,6 +236,10 @@ setMethod("$", "dynrRecipe",
 ##' estimating its free parameters (cooking).  After the model 
 ##' is cooked, you can use it to get LaTeX code with the estimated 
 ##' parameters in it.
+##' 
+##' Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
+##' 
+##' @seealso A way to put this in a plot with \code{\link{plotFormula}}
 setGeneric("printex", function(object, ParameterAs, 
 	printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show, ...) { 
 	return(standardGeneric("printex")) 
