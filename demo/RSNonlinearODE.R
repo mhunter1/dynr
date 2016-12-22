@@ -48,8 +48,8 @@ initial <- prep.initial(
 # lp(p11) and lp(p21) are fixed at zero.
 
 regimes <- prep.regimes(
-  values=matrix(c(0,0,-1,1,
-                  0,0,-1,1),
+  values=matrix(c(0,0,-1,1.5,
+                  0,0,-1,1.5),
                 nrow=2, ncol=4,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
   params=matrix(c("fixed","fixed","int_1","slp_1",
                   "fixed","fixed","int_2","slp_2"), 
@@ -72,8 +72,8 @@ formula=list(
        predator~ f*predator - c*predator^2 + d*prey*predator ))
 
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1,
-                                      e = 1, f = 1),
+                           startval=c(a = 2.1, c = 3, b = 1.2, d = 1.2,
+                                      e = 1, f = 2),
                            isContinuousTime=TRUE)
 
 #constraints
@@ -99,12 +99,12 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial,
                     regimes=regimes, transform=trans,
                     data=data,
-                    outfile="RSNonlinearODE.c")
+                    outfile="RSNonlinearODE_1.c")
 
 printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
-        outFile="RSNonlinearODE.tex")
-#tools::texi2pdf("RSNonlinearODE.tex")
-#system(paste(getOption("pdfviewer"), "RSNonlinearODE.pdf"))
+        outFile="RSNonlinearODE_1.tex")
+#tools::texi2pdf("RSNonlinearODE_1.tex")
+#system(paste(getOption("pdfviewer"), "RSNonlinearODE_1.pdf"))
 
 model$ub[model@param.names%in%c("int_1", "int_2", "slp_1", "slp_2")]<-c(0,0,10,10)
 model$lb[model@param.names%in%c("int_1", "int_2", "slp_1", "slp_2")]<-c(-10,-10,0,0)
@@ -114,19 +114,21 @@ res <- dynr.cook(model)
 # Examine results
 summary(res)
 
-plotFormula(model, ParameterAs=res@transformed.parameters) 
-#ggsave("RSNonlinearODEPlotFml.pdf")
+
+plotFormula(model, ParameterAs=model@param.names)+ggtitle("(A)")+theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
+plotFormula(model, ParameterAs=res@transformed.parameters)+ggtitle("(B)")+theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16))
+
 
 dynr.ggplot(res, model, style = 1,
             names.regime=c("Free","Constrained"),
-            title="Results from RS-nonlinear ODE model", numSubjDemo=2,
+            title="", numSubjDemo=1, idtoPlot = 11,
             shape.values = c(1,2),
             text=element_text(size=16))
 #ggsave("RSNonlinearODEggPlot1.pdf")
 
 dynr.ggplot(res, model, style=2, 
             names.regime=c("Free","Constrained"),
-            title="Results from RS-nonlinear ODE model", numSubjDemo=2,
+            title="", idtoPlot = 9,
             text=element_text(size=16))
 #ggsave("RSNonlinearODEggPlot2.pdf")
 
@@ -137,7 +139,6 @@ plot(res, dynrModel = model, style=2)
 
 # get the estimated parameters from a cooked model/data combo
 coef(res)
-
 
 # get the log likelihood, AIC, and BIC from a cooked model/data combo
 logLik(res)
