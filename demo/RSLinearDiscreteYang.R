@@ -99,6 +99,13 @@ dynr.ggplot(yum, dynrModel = rsmod, style = 1,
             text = element_text(size=16),
             is.bw = TRUE)
 
+plotFormula(dynrModel = rsmod, ParameterAs = rsmod$param.names,
+            printDyn = TRUE, printMeas = TRUE) +
+  ggtitle("(A)")+
+  theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
+
 plotFormula(dynrModel = rsmod, ParameterAs = coef(yum),
             printDyn = TRUE, printMeas = TRUE) +
-            ggtitle("(A) Example 1")
+  ggtitle("(B)")+
+  theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
+
