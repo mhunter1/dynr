@@ -87,7 +87,7 @@ vecRegime <- function(object){
            matrix(c(1,object$covariates),ncol=1),
            FUN=paste,sep="*"),ncol=numCovariates+1))
   #namesLO = paste0("&\\frac{Pr(p",j,q,")}{1-Pr(p",j,q,")}")
-  namesLO = paste0("&Log-odds(p",j,q,")")
+  namesLO = paste0("&Log Odds(p",j,q,")")
   a <- paste0(namesLO," = ", 
               implode(gsub("*1","",a,fixed=TRUE),sep=" + "))
   Prlist <- paste0(Prlist , a, "\\\\")
