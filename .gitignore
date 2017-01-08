@@ -26,6 +26,7 @@ man/dynrNoise-class.Rd
 man/dynrRecipe-class.Rd
 man/dynrRegimes-class.Rd
 man/dynrTrans-class.Rd
+man/EMG.Rd
 man/EMGsim.Rd
 man/internalModelPrep.Rd
 man/logLik.dynrCook.Rd

@@ -1,3 +1,15 @@
+dynr 0.1.9
+--------------
+
+2017-01-08
+
+New features include:
+* A new demo example is added to replicate the results from Yang & Chow (2010) paper.
+
+
+Bug fixes and performance tweaks include:
+* Changes are made to accommodate the new release of ggplot2. 
+
 
 dynr 0.1.8
 --------------
