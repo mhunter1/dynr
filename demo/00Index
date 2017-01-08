@@ -1,5 +1,6 @@
 LinearSDE	                   Linear Harmonic Oscillator
-NonlinearODE                       Predator-Prey Model
-RSLinearDiscrete	           Regime-switching linear discrete-time
+NonlinearODE                       Predator-prey model
+RSLinearDiscrete	           Regime-switching linear discrete-time model
+RSLinearDiscreteYang		   Regime-switching linear discrete-time model (Replication of Yang & Chow, 2010)
 RSNonlinearDiscrete	           Nonlinear dynamic factor analysis
 RSNonlinearODE	                   Regime-switching predator-prey model

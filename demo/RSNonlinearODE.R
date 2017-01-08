@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
-# Author: Lu Ou, Sy-Miin Chow
-# Date: 2016-05-24
+# Author: Lu Ou
+# Date: 2016-12-23
 # Filename: RSNonlinearODE.R
 # Purpose: An illustrative example of using dynr to fit
 #   a regime-switching predator-prey model
@@ -10,9 +10,10 @@ require(dynr)
 
 # ---- Read in the data ----
 data(RSPPsim)
-data <- dynr.data(RSPPsim, id="id", time="time",observed=c("x","y"),covariate="cond")
+data <- dynr.data(RSPPsim, id="id", time="time",
+                  observed=c("x","y"),covariate="cond")
 
-#---- Prepare the recipes (i.e., specifies modeling functions) ----
+# ---- Prepare the recipes (i.e., specifies modeling functions) ----
 
 # Measurement (factor loadings)
 meas <- prep.measurement(
@@ -37,20 +38,20 @@ initial <- prep.initial(
 	params.regimep=c("fixed", "fixed")
 )
 
-
 # Regime-switching function
 # The RS model assumes that each element of the transition probability 
 # matrix (TPM) can be expressed as a linear predictor (lp).
 # LPM = 
 # lp(p11) ~ 1 + x1 + x2 + ... + xn,   lp(p12) ~ 1 + x1 + x2 + ... + xn
 # lp(p21) ~ 1 + x1 + x2 + ... + xn,   lp(p22) ~ 1 + x1 + x2 + ... + xn
-# Here I am specifying lp(p11) and lp(p22); the remaining elements
+# Here I am specifying lp(p12) and lp(p22); the remaining elements
 # lp(p11) and lp(p21) are fixed at zero.
+# nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
 
 regimes <- prep.regimes(
   values=matrix(c(0,0,-1,1.5,
                   0,0,-1,1.5),
-                nrow=2, ncol=4,byrow=T), # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+                nrow=2, ncol=4,byrow=T), 
   params=matrix(c("fixed","fixed","int_1","slp_1",
                   "fixed","fixed","int_2","slp_2"), 
                 nrow=2, ncol=4,byrow=T), 
