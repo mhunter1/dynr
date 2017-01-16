@@ -1805,22 +1805,28 @@ autojacob<-function(formula,n){
 ##' #Not run: 
 ##' #For a full demo example that uses user-supplied analytic jacobian functions see:
 ##' #demo(RSNonlinearDiscrete, package="dynr")
-##' formula=list(list(x1~a1*x1,x2~a2*x2),list(x1~a1*x1+c12*(exp(abs(x2)))/(1+exp(abs(x2)))*x2,
-##'     x2~a2*x2+c21*(exp(abs(x1)))/(1+exp(abs(x1)))*x1))
-##' jacob=list(
+##' formula <- list(
+##'     list(
+##'       x1 ~ a1*x1,
+##'       x2 ~ a2*x2),
+##'     list(
+##'       x1 ~ a1*x1 + c12*(exp(abs(x2)))/(1+exp(abs(x2)))*x2,
+##'       x2 ~ a2*x2 + c21*(exp(abs(x1)))/(1+exp(abs(x1)))*x1)
+##'   )
+##' jacob <- list(
 ##'   list(x1~x1~a1,
 ##'       x2~x2~a2),
 ##'   list(x1~x1~a1,
 ##'       x1~x2~c12*(exp(abs(x2))/(exp(abs(x2))+1)+x2*sign(x2)*exp(abs(x2))/(1+exp(abs(x2))^2)),
 ##'       x2~x2~a2,
 ##'       x2~x1~c21*(exp(abs(x1))/(exp(abs(x1))+1)+x1*sign(x1)*exp(abs(x1))/(1+exp(abs(x1))^2))))
-##' dynm<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),
-##' isContinuousTime=FALSE,jacobian=jacob)
+##' dynm <- prep.formulaDynamics(formula=formula, startval=c( a1=.3, a2=.4, c12=-.5, c21=-.5),
+##'                              isContinuousTime=FALSE, jacobian=jacob)
 ##' 
 ##' #For a full demo example that uses automatic jacobian functions see:
 ##' #demo(RSNonlinearODE , package="dynr")
-##' formula=list(prey~ a*prey - b*prey*predator, predator~ -c*predator + d*prey*predator)
-##' dynm<-prep.formulaDynamics(formula=formula,
+##' formula=list(prey ~ a*prey - b*prey*predator, predator ~ -c*predator + d*prey*predator)
+##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
 prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
