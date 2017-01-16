@@ -907,6 +907,8 @@ setMethod("writeCcode", "dynrRegimes",
 		covariates_local <- object$covariates
 		numCovariates <- length(covariates_local)
 		numRegimes <- nrow(values)
+		intercept.values <- matrix(0, numRegimes, 1)
+		intercept.params <- matrix(0, numRegimes, 1)
 		
 		#Restructure values matrix for row-wise
 		if(nrow(values)!=0 && nrow(params)!=0){
@@ -923,6 +925,8 @@ setMethod("writeCcode", "dynrRegimes",
 			             createGslMatrix(numRegimes, numCovariates, "Gmatrix"),
 			             createGslVector(numRegimes, "Pvector"),
 			             createGslVector(numRegimes, "Presult"),
+			             createGslVector(numRegimes, "Pintercept"),
+			             setGslVectorElements(values=intercept.values, params=intercept.params, name="Pintercept"),
 			             sep="\n")
 			for(reg in 1L:numRegimes){
 				selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
@@ -930,6 +934,7 @@ setMethod("writeCcode", "dynrRegimes",
 					setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
 					setGslMatrixElements(values=values[selRows, -1, drop=FALSE], params=params[selRows, -1, drop=FALSE], name="Gmatrix"),
 					blasMV(FALSE, "1.0", "Gmatrix", "covariate_local", "1.0", "Pvector"),
+					"\tgsl_vector_add(Pvector, Pintercept);",
 					"\tmathfunction_softmax(Pvector, Presult);",
 					gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
 					"\tgsl_vector_set_zero(Pvector);",
@@ -940,6 +945,7 @@ setMethod("writeCcode", "dynrRegimes",
 				destroyGslMatrix("Gmatrix"),
 				destroyGslVector("Pvector"),
 				destroyGslVector("Presult"),
+				destroyGslVector("Pintercept"),
 				destroyGslVector("covariate_local"),
 				sep="\n")
 		} else if(nrow(values) != 0 && nrow(params) != 0 && numCovariates == 0){
@@ -947,11 +953,14 @@ setMethod("writeCcode", "dynrRegimes",
 			ret <- paste(ret,
 				createGslVector(numRegimes, "Pvector"),
 				createGslVector(numRegimes, "Presult"),
+				createGslVector(numRegimes, "Pintercept"),
+				setGslVectorElements(values=intercept.values, params=intercept.params, name="Pintercept"),
 				sep="\n")
 			for(reg in 1L:numRegimes){
 				selRows <- rowBeginSeq[reg]:rowEndSeq[reg]
 				ret <- paste(ret,
 					setGslVectorElements(values=values[selRows, 1, drop=FALSE], params=params[selRows, 1, drop=FALSE], name="Pvector"),
+					"\tgsl_vector_add(Pvector, Pintercept);",
 					"\tmathfunction_softmax(Pvector, Presult);",
 					gslVector2Column("regime_switch_mat", reg-1, "Presult", 'row'),
 					"\tgsl_vector_set_zero(Pvector);",
@@ -960,6 +969,7 @@ setMethod("writeCcode", "dynrRegimes",
 			ret <- paste(ret,
 				destroyGslVector("Pvector"),
 				destroyGslVector("Presult"),
+				destroyGslVector("Pintercept"),
 				sep="\n")
 		} else {
 			ret <- paste(ret, "\tgsl_matrix_set_identity(regime_switch_mat);", sep="\n")
