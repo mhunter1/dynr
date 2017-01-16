@@ -133,6 +133,12 @@ model <- dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=ini
 
 # set upper bounds, if you want
 model$ub <- c(100, 100, 100, 100, 100)
+model$ub <- c(friction=101, spring=100, inipos=103, 100, 100)
+model$ub['dnoise'] <- 99
+
+# Developer
+# Check that an error message is thrown
+testthat::expect_error(model$ub <- c(friction=101, spring=100, inipos=103, 100, 100, 4), regexp="I'm going over my borders. You gave me 6 things, but I need 5 (the number of free parameters).", fixed=TRUE)
 
 
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,

@@ -53,8 +53,21 @@ setMethod("$", "dynrModel",
 
 setReplaceMethod("$", "dynrModel",
 	function(x, name, value){
+		#TODO Implement a better/smarter method for "model$ub['a'] <- "
 		if(name %in% c('xstart', 'ub', 'lb')){
+			if(length(value) != length(x$param.names)){
+				stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
+					"but I need", length(x$param.names),
+					"(the number of free parameters)."))
+			}
 			# Check that the length is okay
+			if(is.null(names(value))){
+				names(value) <- x$param.names
+			}
+			lookup <- match(names(value), x$param.names)
+			lookup <- union(na.omit(lookup), 1L:length(value))
+			value[lookup] <- value
+			names(value) <- x$param.names
 			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value)
 		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
 			slot(object=x, name=name, check = TRUE) <- value
@@ -461,6 +474,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub <- as.double(rep(NA, length(obj.dynrModel@xstart)))
   obj.dynrModel@lb <- as.double(rep(NA, length(obj.dynrModel@xstart)))
+  names(obj.dynrModel@ub) <- obj.dynrModel@param.names
+  names(obj.dynrModel@lb) <- obj.dynrModel@param.names
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
   }
