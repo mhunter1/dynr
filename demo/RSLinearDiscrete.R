@@ -43,6 +43,24 @@ recReg <- prep.regimes(
 	values=matrix(0, 2, 2),
 	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2))
 
+#recReg <- prep.regimes(
+#	values=matrix(0, 2, 2),
+#	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2),
+#	deviation=TRUE) # refRow gets set to refCol=2
+
+#recReg <- prep.regimes(
+#	values=matrix(0, 2, 2),
+#	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2),
+#	deviation=TRUE, refRow=1) #refRow get set to non-default 1
+
+#recReg <- prep.regimes(
+#	values=matrix(0, 2, 2),
+#	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2),
+#	deviation=TRUE, refRow=3) ##rightly causes error, refRow out of bounds
+
+
+
+
 #---- (3d) Initial condition specification ----
 
 recIni <- prep.initial(
