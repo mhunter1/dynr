@@ -912,9 +912,19 @@ setMethod("writeCcode", "dynrRegimes",
 		deviation <- object$deviation
 		refRow <- object$refRow
 		
-		#if(deviation){}else{}
-		intercept.values <- matrix(0, numRegimes, 1)
-		intercept.params <- matrix(0, numRegimes, 1)
+		if(deviation){
+			if(nrow(values)!=0 && nrow(params)!=0){
+				# I need to look into this one
+				interceptSel <- seq(1, ncol(values), by=numCovariates+1)
+				intercept.values <- matrix(values[refRow, interceptSel], numRegimes, 1)
+				intercept.params <- matrix(params[refRow, interceptSel], numRegimes, 1)
+				values[refRow, interceptSel] <- 0
+				params[refRow, interceptSel] <- 0
+			}
+		} else {
+			intercept.values <- matrix(0, numRegimes, 1)
+			intercept.params <- matrix(0, numRegimes, 1)
+		}
 		
 		#Restructure values matrix for row-wise
 		if(nrow(values)!=0 && nrow(params)!=0){
