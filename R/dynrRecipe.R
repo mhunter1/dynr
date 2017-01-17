@@ -119,7 +119,9 @@ setClass(Class = "dynrRegimes",
            paramnames = "character",
            values = "matrix",
            params = "matrix",
-           covariates = "character"),
+           covariates = "character",
+           deviation = "logical",
+           refRow = "numeric"),
          contains = "dynrRecipe"
 )
 
@@ -907,6 +909,10 @@ setMethod("writeCcode", "dynrRegimes",
 		covariates_local <- object$covariates
 		numCovariates <- length(covariates_local)
 		numRegimes <- nrow(values)
+		deviation <- object$deviation
+		refRow <- object$refRow
+		
+		#if(deviation){}else{}
 		intercept.values <- matrix(0, numRegimes, 1)
 		intercept.params <- matrix(0, numRegimes, 1)
 		
@@ -1725,11 +1731,18 @@ replaceDiagZero <- function(x){
 ##' and (number of regimes x number of covariates) columns
 ##' @param params matrix of the same size as "values" consisting of the names of the parameters
 ##' @param covariates a vector of the names of the covariates to be used in the regime-switching functions
+##' @param deviation logical. Whether to use the deviation form or not.  See Details.
+##' @param refRow numeric. Which row is treated at the reference.  See Details.
 ##' 
 ##' @details
 ##' Note that each row of the transition probability matrix must sum to one. To accomplish this
 ##' fix at least one transition log odds parameter in each row of "values" (including its intercept 
 ##' and the regression slopes of all covariates) to 0.
+##' 
+##' When \code{deviation=FALSE}, the non-deviation form of the multinomial logistic regression is used. This form has a separate intercept term for each entry of the transition probability matrix (TPM). When \code{deviation=TRUE}, the deviation form of the multinomial logistic regression is used. This form has an intercept term that is common to each column of the TPM. The rows are then distinguished by their own individual deviations from the common intercept. The deviation form requires the same reference column constraint as the non-deviation form; however, the deviation form also requires one row to be indicated as the reference row (described below). By default the reference row is taken to be the same as the reference column.
+##' 
+##' The \code{refRow} argument determines which row is used as the intercept row. It is only
+##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @examples
 ##' #Regime-switching with no covariates (self-transition ID)
@@ -1744,7 +1757,7 @@ replaceDiagZero <- function(x){
 ##' b <- prep.regimes(values=matrix(c(0), 2, 8), 
 ##' params=matrix(c(paste0('p', 8:15), rep(0, 8)), 2, 8), 
 ##' covariates=c('x1', 'x2', 'x3'))
-prep.regimes <- function(values, params, covariates){
+prep.regimes <- function(values, params, covariates, deviation=FALSE, refRow){
 	if(!missing(values)){
 		values <- preProcessValues(values)
 	}
@@ -1758,11 +1771,14 @@ prep.regimes <- function(values, params, covariates){
 	if(missing(covariates)){
 		covariates <- character(0)
 	}
+	if(missing(refRow)){ # or other default values???
+		refRow <- numeric(0)
+	}
 	
 	if(!all(dim(values))==all(dim(params))) {
 	  stop('The dimensions of values and params matrices must match.')
-	}else if(!ncol(values )== nrow(values)*(length(covariates)+1)){
-	  stop(paste0("The matrix values should have ",nrow(values)*(length(covariates)+1), " columns."))
+	}else if(!ncol(values ) == nrow(values)*(length(covariates)+1)){
+	  stop(paste0("The matrix values should have ", nrow(values)*(length(covariates)+1), " columns."))
 	}
 	
 	sv <- extractValues(values, params)
@@ -1771,7 +1787,41 @@ prep.regimes <- function(values, params, covariates){
 	if(length(sv) > nrow(values)*(nrow(values)-1)*(length(covariates)+1)){
 		stop("Regime transition probability parameters not uniquely identified.\nFix all parameters in at least one cell of each row of the \ntransition probability matrix to be zero.")
 	}
-	x <- list(startval=sv, paramnames=pn, values=values, params=params, covariates=covariates)
+	# Do lots or processing and checking for the reference row and column
+	if(deviation == TRUE){
+		# if needed set refRow
+		if(length(refRow) == 0){
+			# check valid reference column (i.e. there is a single column as reference, no diagonal identification)
+			# detect reference column
+			colIsZero <- apply(params, 2, function(x){all(x %in% c('fixed'))})
+			blockSize <- length(covariates)+1
+			colIsZeroM <- matrix(colIsZero, nrow=blockSize, ncol=nrow(values))
+			refCol <- apply(colIsZeroM, 2, function(x){all(x==TRUE)})
+			if(sum(refCol) < 1){ #no single reference column found
+				stop(paste("No single reference column found. Identification along the diagonal is not allowed without you specifiy the reference row. Set e.g. refRow=1."))
+			}
+			if(sum(refCol) > 1){#found more than one reference column
+				stop(paste0("Found multiple possible reference columns: ", paste(which(refCol==1), collapse=', '), ".  Reconsider your model specification or just set e.g. refRow=1."))
+			}
+			# set reference row to reference column
+			refRow <- which(refCol)
+		}
+		if(length(refRow) > 1){
+			# error reference row must have length 0 or 1
+			stop(paste("refRow must being a single number. That is, have length 0 or 1, we found length", length(refRow)))
+		}
+		if(refRow > nrow(values)){
+			# error reference row must be between 1 and nrow(values)
+			stop(paste("refRow must be between 1 and", nrow(values), "but we found", refRow))
+		}
+	} else {
+		if(length(refRow) > 0){
+			#warning refRow is ignored when for the non-deviation case (deviation=FALSE)
+			warning("refRow argument is ignored in the non-deviation case (i.e. when deviation=FALSE)")
+		}
+	}
+	# Create the list for the object to return
+	x <- list(startval=sv, paramnames=pn, values=values, params=params, covariates=covariates, deviation=deviation, refRow=refRow)
 	return(new("dynrRegimes", x))
 }
 
