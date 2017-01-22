@@ -51,6 +51,16 @@ setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
 
+
+.DollarNames.dynrModel <- function(x, pattern){
+	if(missing(pattern)){
+		pattern <- ''
+	}
+	output <- slotNames(x)
+	output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+	return(grep(pattern, output, value=TRUE))
+}
+
 setReplaceMethod("$", "dynrModel",
 	function(x, name, value){
 		#TODO Implement a better/smarter method for "model$ub['a'] <- "

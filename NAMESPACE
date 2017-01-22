@@ -25,5 +25,6 @@ export(summary)
 S3method(logLik, dynrCook)
 S3method(coef, dynrCook)
 S3method(vcov, dynrCook)
+S3method(.DollarNames, dynrModel)
 useDynLib(dynr, .registration=TRUE)
 
