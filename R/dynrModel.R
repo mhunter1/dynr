@@ -51,6 +51,17 @@ setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
 
+##' Extract the free parameter names of a dynrModel object
+##' 
+##' @param x The dynrModel object from which the free parameter names are desired
+setMethod("names", "dynrModel",
+	function(x) {
+		pnames <- x$param.names
+		output <- c(pnames)
+		output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+		return(output)
+	}
+)
 
 .DollarNames.dynrModel <- function(x, pattern){
 	if(missing(pattern)){

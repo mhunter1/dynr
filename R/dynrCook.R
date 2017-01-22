@@ -289,6 +289,18 @@ vcov.dynrCook <- function(object, ...){
 	return(rt)
 }
 
+##' Extract the free parameter names of a dynrCook object
+##' 
+##' @param x The dynrCook object from which the free parameter names are desired
+setMethod("names", "dynrCook",
+	function(x) {
+		pnames <- names(coef(x))
+		output <- c(pnames)
+		output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+		return(output)
+	}
+)
+
 #------------------------------------------------------------------------------
 
 ##' Cook a dynr model to estimate its free parameters
