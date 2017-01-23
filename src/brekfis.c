@@ -726,6 +726,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
+                        MYPRINT("eta_jk_pred:\n");
+                        print_vector(eta_regime_jk_pred[t][regime_j][regime_k]);
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk_pred:\n");
+                        print_matrix(error_cov_regime_jk_pred[t][regime_j][regime_k]);
+                        MYPRINT("\n");
                         MYPRINT("eta_jk:\n");
                         print_vector(eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
                         MYPRINT("\n");
@@ -766,6 +772,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
+                        MYPRINT("eta_jk_pred:\n");
+                        print_vector(eta_regime_jk_pred[t][regime_j][regime_k]);
+                        MYPRINT("\n");
+                        MYPRINT("error_cov_jk_pred:\n");
+                        print_matrix(error_cov_regime_jk_pred[t][regime_j][regime_k]);
+                        MYPRINT("\n");
                         MYPRINT("eta_jk:\n");
                         print_vector(eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
                         MYPRINT("\n");
@@ -803,7 +815,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    }
                    gsl_vector_set(pr_t_given_t_minus_1[t],regime_k,gsl_vector_get(pr_t_given_t_minus_1[t],regime_k)+tran_prob_jk);
                    /*MYPRINT("prob_regime:\n");
-                   print_vector(pr_t[t]);
+                   print_vector(pr_t[t-1]);
                    MYPRINT("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
@@ -921,7 +933,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
 
 	   /*fprintf(pr_file,"%lu %lu %lf %lf\n",sbj,t,gsl_vector_get(pr_t[t],0),gsl_vector_get(pr_t[t],1));*/
-	   /*MYPRINT("Pr_St|t:\n");
+	   	   /*MYPRINT("Pr_St|t:\n");
            print_vector(pr_t[t]);
            MYPRINT("\n");*/
 
@@ -1045,6 +1057,11 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
             for(regime_j=0; regime_j<config->num_regime; regime_j++){/*from regime regime_j*/
                 sum_overk=0;
+		 	   	
+				/*MYPRINT("pr_t_given_t_minus_1[t+1]:\n");
+		        print_vector(pr_t_given_t_minus_1[t+1]);
+		        MYPRINT("\n");*/
+				
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
 
                     /*MYPRINT("sbj %lu t %lu from regime %lu to regime %lu\n",sbj,t,regime_j,regime_k);
@@ -1055,7 +1072,9 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 					/*TODO Check for division zero (near) zero*/
                     /*Pr[S_i,t+1=regime_k, S_it=regime_j|Y_iT]*/
                     gsl_vector_set(transprob_T[t][regime_j],regime_k, gsl_vector_get(p_next_regime_T,regime_k)*gsl_vector_get(pr_t[t],regime_j)*gsl_matrix_get(param->regime_switch_mat,regime_j,regime_k)/gsl_vector_get(pr_t_given_t_minus_1[t+1],regime_k));
-                      /*Pr[S_it=j|Y_iT] sum over k*/
+                    
+
+					/*Pr[S_it=j|Y_iT] sum over k*/
 					/*Cf. Denominator of A.9*/
                     sum_overk+=gsl_vector_get(transprob_T[t][regime_j],regime_k);
 					/*TODO print this sum_overk , i.e. check denominator not to near zero*/
@@ -1077,12 +1096,17 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     /*MYPRINT("sbj %lu t-1 %lu \n",sbj,t);
                     print_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k]);
                     MYPRINT("\n");*/
+					
 					/*TODO possible re-write this function to take pseudo-inverse as needed*/
                     mathfunction_inv_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k], inv_P_jk_pred);/*obtain the inverse matrix*/
-                    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, pb, inv_P_jk_pred, 0.0, P_tilde_regime_jk); /* compute P*B*Pjk^{-1}*/
-                    /*print_matrix(P_tilde_regime_jk);
+					
+					/*print_matrix(inv_P_jk_pred);
                     MYPRINT("\n");*/
-					/*TODO print inv_P_jk_pred to check invertibility*/
+					
+                    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, pb, inv_P_jk_pred, 0.0, P_tilde_regime_jk); /* compute P*B*Pjk^{-1}*/
+                    
+					/*print_matrix(P_tilde_regime_jk);
+                    MYPRINT("\n");*/
 
                     /*eta_regime_jk_T*/
                     /* compute eta_regime_j_t[t+1][regime_k] - eta_regime_jk_pred[t+1][regime_j][regime_k]*/
@@ -1090,7 +1114,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     gsl_vector_sub(temp_diff_eta_vec, eta_regime_jk_pred[t+1][regime_j][regime_k]);
                     gsl_matrix_set_col(temp_diff_eta, 0, temp_diff_eta_vec);
                     /*eta_regime_j_t[t][regime_j]+P_tilde_regime_jk%*%temp_diff_eta*/
-                    gsl_matrix_set_col(eta_regime_jk_T,0,eta_regime_j_t[t][regime_j]);
+                    gsl_matrix_set_col(eta_regime_jk_T,0, eta_regime_j_t[t][regime_j]);
                     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, P_tilde_regime_jk, temp_diff_eta, 1, eta_regime_jk_T);
                     gsl_matrix_get_col(eta_regime_jk_T_vec, eta_regime_jk_T, 0);
 
@@ -1103,7 +1127,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     gsl_matrix_memcpy(error_cov_regime_jk_T,error_cov_regime_j_t[t][regime_j]);
                     gsl_matrix_set_zero(temp_modif_p);
                     gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, P_tilde_regime_jk, temp_diff_P, 0.0, temp_modif_p);
-                    gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0,temp_modif_p,P_tilde_regime_jk, 1, error_cov_regime_jk_T);
+                    gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, temp_modif_p,P_tilde_regime_jk, 1, error_cov_regime_jk_T);
 
 
 
@@ -1140,17 +1164,28 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
                if (sum_overk>1){
                    gsl_vector_scale(transprob_T[t][regime_j],1/sum_overk);
-                   gsl_vector_set(pr_T[t], regime_j,1.0);
+                   gsl_vector_set(pr_T[t], regime_j, 1.0);
                }else{
-                   gsl_vector_set(pr_T[t], regime_j,sum_overk);
+                   gsl_vector_set(pr_T[t], regime_j, sum_overk);
                }
 
                gsl_vector_scale(eta_regime_j_smooth[t][regime_j],1/sum_overk);
                gsl_matrix_scale(error_cov_regime_j_smooth[t][regime_j],1/sum_overk);
-
+   			
+			/*MYPRINT("\n");
+   			MYPRINT("sum_overk: %f\n",sum_overk);*/
 
             }/*end of from regime regime_j*/
-
+   			
+			/*MYPRINT("pr_T[t]:\n");
+   			print_vector(pr_T[t]);
+			MYPRINT("\n");*/
+			/*MYPRINT("eta_regime_j_smooth[t]:\n");
+   			print_vector(eta_regime_j_smooth[t]);
+			MYPRINT("\n");
+			MYPRINT("error_cov_regime_j_smooth[t]:\n");
+   			print_matrix(error_cov_regime_j_smooth[t]);
+   			MYPRINT("\n");*/
 
             /*Final collapse over j*/
             for(regime_j=0; regime_j<config->num_regime; regime_j++){
@@ -1171,6 +1206,14 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                 gsl_matrix_add(error_cov_smooth[t], temp_modif_p);
 
             }
+			
+			/*MYPRINT("eta_smooth[t]:\n");
+   			print_vector(eta_smooth[t]);
+			MYPRINT("\n");
+			MYPRINT("error_cov_smooth[t]:\n");
+   			print_matrix(error_cov_smooth[t]);
+			MYPRINT("\n");*/
+			
         }/*end of the t loop*/
     }/*end of the sbj loop*/
 
