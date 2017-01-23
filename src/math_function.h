@@ -60,6 +60,16 @@ double mathfunction_vector_normalize(gsl_vector *v);
 void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat);
 
 /**
+ * Compute the (Moore-Penrose) pseudo-inverse of a matrix.
+ *
+ * If the singular value decomposition (SVD) of A = U Sigma t(V) then the pseudoinverse  = V Sigma_pinv t(U), 
+ * where t() indicates transpose and Sigma_pinv is obtained by taking the reciprocal of each nonzero element on the diagonal, 
+ * leaving zeros in place. Elements on the diagonal smaller than rcond times the largest singular value are considered zero.
+ *
+ **/
+void mathfunction_moore_penrose_pinv(gsl_matrix *inv_mat);
+
+/**
  * This method computes the trace of the given matrix
  * @param mat the target matrix, make sure the matrix is a square one.
  * @return the trace

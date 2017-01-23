@@ -130,9 +130,11 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
-	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
+	if(fabs(det) < pow(1.0e-6, mat->size1) || info == GSL_EDOM){
 		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
-		gsl_matrix_set_all(inv_mat, 10000.0);
+		/*gsl_matrix_set_all(inv_mat, 10000.0);*/
+		gsl_matrix_memcpy(inv_mat, mat);
+		mathfunction_moore_penrose_pinv(inv_mat);
 		det = 0.0;
 	}
 	else {
@@ -156,9 +158,11 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
-	if(fabs(det) < 1.0e-6 || info == GSL_EDOM){
+	if(fabs(det) < pow(1.0e-6, mat->size1) || info == GSL_EDOM){
 		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
-		gsl_matrix_set_all(inv_mat, 10000.0);
+		/*gsl_matrix_set_all(inv_mat, 10000.0);*/
+		gsl_matrix_memcpy(inv_mat, mat);
+		mathfunction_moore_penrose_pinv(inv_mat);
 		det = 0.0;
 	}
 	else {
@@ -179,6 +183,55 @@ double mathfunction_cholesky_det(const gsl_matrix *mat){
 	}
 	d*=d;
 	return d;
+}
+
+/**
+ * Compute the (Moore-Penrose) pseudo-inverse of a matrix.
+ *
+ * If the singular value decomposition (SVD) of A = U Sigma t(V) then the pseudoinverse  = V Sigma_pinv t(U), 
+ * where t() indicates transpose and Sigma_pinv is obtained by taking the reciprocal of each nonzero element on the diagonal, 
+ * leaving zeros in place. Elements on the diagonal smaller than rcond times the largest singular value are considered zero.
+ *
+ **/
+void mathfunction_moore_penrose_pinv(gsl_matrix *inv_mat) {
+    
+	/*a real number specifying the singular value threshold for inclusion.*/ 
+	const double rcond=1.0e-15;
+	
+	size_t i;
+	
+	unsigned int m = inv_mat->size2;
+	gsl_matrix *V = gsl_matrix_alloc(m, m);
+	gsl_vector *u = gsl_vector_alloc(m);
+	gsl_vector *_tmp_vec = gsl_vector_alloc(m);
+	gsl_matrix *_tmp_mat = gsl_matrix_calloc(m, m);
+	gsl_matrix *U = gsl_matrix_alloc(m, m);
+		gsl_matrix_memcpy(U, inv_mat);
+	gsl_matrix *Sigma_pinv = gsl_matrix_calloc(m, m);
+	
+
+	/* do SVD */
+	gsl_linalg_SV_decomp(U, V, u, _tmp_vec);	
+
+	/* compute Sigma_pinv */
+	double cutoff = rcond * gsl_vector_get(u, 0); /*non-increasing*/
+	for (i = 0; i < m; ++i) {
+		if (gsl_vector_get(u, i) > cutoff) {
+			gsl_matrix_set(Sigma_pinv, i, i, 1. / gsl_vector_get(u, i));
+		}	
+	}
+
+	/* obtain pseudoinverse */
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1., V, Sigma_pinv, 0., _tmp_mat);
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1., _tmp_mat, U, 0., inv_mat);
+	
+	gsl_vector_free(_tmp_vec);
+	gsl_matrix_free(_tmp_mat);
+	gsl_matrix_free(U);
+	gsl_matrix_free(Sigma_pinv);
+	gsl_vector_free(u);
+	gsl_matrix_free(V);
+
 }
 
 /**

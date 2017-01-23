@@ -30,6 +30,8 @@ man/EMG.Rd
 man/EMGsim.Rd
 man/internalModelPrep.Rd
 man/logLik.dynrCook.Rd
+man/names-dynrCook-method.Rd
+man/names-dynrModel-method.Rd
 man/NonlinearDFAsim.Rd
 man/plot-dynrCook-method.Rd
 man/plotFormula.Rd
