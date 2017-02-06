@@ -331,7 +331,7 @@ setMethod("names", "dynrCook",
 ##' @param ... further names arguments. Ignored.
 ##' 
 ##' @details
-##' The \code{parm] argument can be a numeric vector or a vector of names. If it is missing then it defaults to using all the parameters.
+##' The \code{parm} argument can be a numeric vector or a vector of names. If it is missing then it defaults to using all the parameters.
 ##' 
 ##' These are Wald-type confidence intervals based on the standard errors of the (transformed) parameters.  Wald-type confidence intervals are known to be inaccurate for variance parameters, particularly when the variance is near zero (See references for issues with Wald-type confidence intervals).
 ##' 
