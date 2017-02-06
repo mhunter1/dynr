@@ -514,6 +514,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub <- as.double(rep(NA, length(obj.dynrModel@xstart)))
   obj.dynrModel@lb <- as.double(rep(NA, length(obj.dynrModel@xstart)))
+  names(obj.dynrModel@xstart) <- obj.dynrModel@param.names
   names(obj.dynrModel@ub) <- obj.dynrModel@param.names
   names(obj.dynrModel@lb) <- obj.dynrModel@param.names
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
