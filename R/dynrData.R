@@ -27,7 +27,8 @@
 
 ##' Create a list of data for parameter estimation (cooking dynr) using \code{\link{dynr.cook}}
 ##'
-##' @param dataframe the data in the format of a data frame in R that contain a column of subject ID numbers 
+##' @param dataframe either a ``ts'' class object of time series data for a single subject or 
+##' a data frame object of data for potentially multiple subjects that contain a column of subject ID numbers 
 ##' (i.e., an ID variable), a column indicating subject-specific measurement occasions
 ##' (i.e., a TIME variable), at least one column of observed values, and any number of covariates. 
 ##' If the data are fit to a discrete-time model, the TIME variable should contain subject-specific sequences 
@@ -36,15 +37,31 @@
 ##' of irregularly spaced real numbers.  
 ##' Missing values in the observed variables shoud be indicated by NA. Missing values in covariates are not allowed. 
 ##' That is, missing values in the covariates, if there are any, should be imputed first. 
-##' @param id a character string of the name of the ID variable in the data.
-##' @param time a character string of the name of the TIME variable in the data.
-##' @param observed a vector of character strings of the names of the observed variables in the data.
-##' @param covariates a vector of character strings of the names of the covariates in the data, which can be missing.
+##' @param id a character string of the name of the ID variable in the data. Optional for a ``ts'' class object. 
+##' @param time a character string of the name of the TIME variable in the data. Optional for a ``ts'' class object.
+##' @param observed a vector of character strings of the names of the observed variables in the data. 
+##' Optional for a ``ts'' class object.
+##' @param covariates (optional) a vector of character strings of the names of the covariates in the data,
+##'  which can be missing.
 ##' 
 ##' @examples
 ##' data(EMGsim)
-##' dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
-dynr.data <- function(dataframe, id, time, observed, covariates){
+##' dd <- dynr.data(EMGsim, id = 'id', time = 'time', observed = 'EMG', covariates = 'self')
+##' 
+##' z <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
+##' dz <- dynr.data(z)
+dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates){
+  if (is.ts(dataframe)){
+    # ts class 
+    # single or multivariate time series
+    # one subject
+    dataframe = as.data.frame(dataframe)
+    if (missing(observed)){
+      observed =  colnames(dataframe)
+    }
+    dataframe[ , id] <- 1
+    dataframe[ , time] <- 1:nrow(dataframe)
+  }
 	ids <- unique(dataframe[ , id])
 	tstart <- c(
 		sapply(1:length(ids),
