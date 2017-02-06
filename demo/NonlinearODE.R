@@ -73,6 +73,9 @@ printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
 #tools::texi2pdf("NonlinearODE.tex")
 #system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
 
+# Check number of observations
+testthat::expect_equal(nobs(model), 1000)
+
 # Estimate free parameters
 res <- dynr.cook(dynrModel=model)
 
@@ -81,6 +84,9 @@ summary(res)
 
 plot(res,dynrModel=model,style=1)
 plot(res,dynrModel=model,style=2)
+
+testthat::expect_equal(nobs(res), 1000)
+
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
