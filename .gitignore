@@ -32,6 +32,7 @@ man/internalModelPrep.Rd
 man/logLik.dynrCook.Rd
 man/names-dynrCook-method.Rd
 man/names-dynrModel-method.Rd
+man/nobs.dynrCook.Rd
 man/NonlinearDFAsim.Rd
 man/plot-dynrCook-method.Rd
 man/plotFormula.Rd
