@@ -177,7 +177,7 @@ setMethod("initialize", "dynrOutall",
 #  and returns/does whatever we want.
 # See Also the print method of summary.lm
 #  getAnywhere(print.summary.lm)
-summaryResults<-function(object){
+summaryResults <- function(object){
              d <- data.frame(names=object@param.names, transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              d$t_value<-ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
              d <-cbind(d,object@conf.intervals)
@@ -322,6 +322,48 @@ setMethod("names", "dynrCook",
 		return(output)
 	}
 )
+
+##' Confidence Intervals for Model Parameters
+##' 
+##' @param object a fitted model object
+##' @param parm which parameters are to be given confidence intervals
+##' @param level the confidence level
+##' @param ... further names arguments. Ignored.
+##' 
+##' @details
+##' The \code{parm] argument can be a numeric vector or a vector of names. If it is missing then it defaults to using all the parameters.
+##' 
+##' These are Wald-type confidence intervals based on the standard errors of the (transformed) parameters.  Wald-type confidence intervals are known to be inaccurate for variance parameters, particularly when the variance is near zero (See references for issues with Wald-type confidence intervals).
+##' 
+##' @return
+##' A matrix with columns giving lower and upper confidence limits for each parameter. These will be labelled as (1-level)/2 and 1 - (1-level)/2 as a percentage (e.g. by default 2.5% and 97.5%).
+##' 
+##' @references
+##' Pritikin, J.N., Rappaport, L.M. & Neale, M.C.  (In Press). Likelihood-Based Confidence Intervals for a Parameter With an Upper or Lower Bound.  Structural Equation Modeling.  DOI: 10.1080/10705511.2016.1275969
+##' 
+##' Neale, M. C. & Miller M. B. (1997). The use of likelihood based confidence intervals in genetic models. Behavior Genetics, 27(2), 113-120.
+##' 
+##' Pek, J. & Wu, H. (2015). Profile likelihood-based confidence intervals and regions for structural equation models. Psychometrica, 80(4), 1123-1145.
+##' 
+##' Wu, H. & Neale, M. C. (2012). Adjusted confidence intervals for a bounded parameter. Behavior genetics, 42(6), 886-898.
+##' 
+##' @examples
+##' # Let cookedModel be the output from dynr.cook
+##' #confint(cookedModel)
+confint.dynrCook <- function(object, parm, level = 0.95, ...){
+	vals <- coef(object)
+	if(missing(parm)){
+		parm <- names(vals)
+	}
+	vals <- vals[parm]
+	iHess <- vcov(object)[parm, parm, drop=FALSE]
+	SE <- sqrt(diag(iHess))
+	tlev <- (1-level)/2
+	confx <- qnorm(1-tlev)
+	CI <- matrix(c(vals - SE*confx, vals + SE*confx), ncol=2)
+	dimnames(CI) <- list(names(vals), c(paste(tlev*100, "%"), paste((1 - tlev)*100, "%")) )
+	return(CI)
+}
 
 #------------------------------------------------------------------------------
 
@@ -509,6 +551,7 @@ preProcessModel <- function(x){
 	x$lb <- as.double(x$lb)
 	return(x)
 }
+
 
 combineModelDataInformation <- function(model, data){
 	# TODO add argument to dynrModel a la "usevars"

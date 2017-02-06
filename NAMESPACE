@@ -27,6 +27,7 @@ S3method(nobs, dynrCook)
 S3method(nobs, dynrModel)
 S3method(coef, dynrCook)
 S3method(vcov, dynrCook)
+S3method(confint, dynrCook)
 S3method(.DollarNames, dynrModel)
 useDynLib(dynr, .registration=TRUE)
 
