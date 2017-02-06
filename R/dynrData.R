@@ -55,12 +55,13 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates)
     # ts class 
     # single or multivariate time series
     # one subject
+    tsp=attributes(dataframe)$tsp
     dataframe = as.data.frame(dataframe)
     if (missing(observed)){
-      observed =  colnames(dataframe)
+      observed = colnames(dataframe)
     }
     dataframe[ , id] <- 1
-    dataframe[ , time] <- 1:nrow(dataframe)
+    dataframe[ , time] <- seq(from = tsp[1], to = tsp[2], length.out = nrow(dataframe))
   }
 	ids <- unique(dataframe[ , id])
 	tstart <- c(
