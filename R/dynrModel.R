@@ -99,6 +99,25 @@ setReplaceMethod("$", "dynrModel",
 	}
 )
 
+##' Extract the number of observations for a dynrModel object
+##' 
+##' @param object An unfitted model object
+##' @param ... Further named arguments. Ignored.
+##' 
+##' @details
+##' We return the total number of rows of data, adding up the number of time points for each person. For some purposes, you may want the mean number of observations per person or the number of people instead.  These are not currently supported via \code{nobs}.
+##' 
+##' @return
+##' A single number. The total number of observations across all IDs.
+##' 
+##' @examples
+##' # Let rawModel be the output from dynr.model
+##' #nobs(rawModel)
+nobs.dynrModel <- function(object, ...){
+	dim(object$data$observed)[1]
+}
+
+
 implode <- function(..., sep='') {
   paste(..., collapse=sep)
 }
