@@ -1304,6 +1304,16 @@ reverseldl <- function(values){
 		return(log(values))
 	} else if(any(is.na(values))){
 		warning("Avast ye swarthy dog! NA was passed to LDL. Unset bounds might be fine. Values might be wrong.")
+		# if it's a matrix and all the lower triangular parts are NA
+		# then we're just setting bounds on the variances
+		if(is.matrix(values) && all(is.na(values[lower.tri(values, diag=FALSE)]))){
+			values[lower.tri(values, diag=FALSE)] <- 0
+			values[upper.tri(values, diag=FALSE)] <- 0
+			mat <- dynr.ldl(values)
+			diag(mat) <- log(diag(mat))
+			mat[lower.tri(mat, diag=FALSE)] <- NA
+			return(mat)
+		}
 		return(values)
 	} else{
 		mat <- dynr.ldl(values)
