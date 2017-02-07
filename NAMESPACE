@@ -1,7 +1,7 @@
 importFrom("graphics", "text")
 importFrom("stats", "D", "as.formula", "coef", "formula", "logLik",
             "qnorm", "time", "nobs", "vcov", "confint")
-importFrom("utils", "str")
+importFrom("utils", "str", ".DollarNames")
 importFrom("MASS", "ginv")
 importFrom("Matrix", "nearPD")
 importFrom(numDeriv, jacobian)
