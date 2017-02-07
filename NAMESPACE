@@ -1,6 +1,6 @@
 importFrom("graphics", "text")
 importFrom("stats", "D", "as.formula", "coef", "formula", "logLik",
-            "qnorm", "time")
+            "qnorm", "time", "nobs", "vcov", "confint")
 importFrom("utils", "str")
 importFrom("MASS", "ginv")
 importFrom("Matrix", "nearPD")
