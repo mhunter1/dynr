@@ -75,12 +75,12 @@ setMethod("names", "dynrModel",
 setReplaceMethod("$", "dynrModel",
 	function(x, name, value){
 		if(name %in% c('xstart', 'ub', 'lb')){
+			# Check that the length is okay
 			if(length(value) != length(x$param.names)){
 				stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
 					"but I need", length(x$param.names),
 					"(the number of free parameters)."))
 			}
-			# Check that the length is okay
 			if(is.null(names(value))){
 				names(value) <- x$param.names
 			}
