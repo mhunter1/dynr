@@ -160,6 +160,10 @@ plotFormula(model, res@transformed.parameters)
 plot(res, dynrModel=model, textsize=6, style = 1)
 plot(res, dynrModel=model, textsize=6, style = 2)
 
+
+autoplot(res, model, numSubjDemo=1)
+
+
 # get the estimated parameters from a cooked model/data combo
 coef(res)
 
