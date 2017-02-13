@@ -215,6 +215,7 @@ coef.summary.dynrCook <- function(object, ...){
 ##' Get the summary of a dynrCook object
 ##' 
 ##' @param object The dynrCook object for which the summary is desired.
+##' @param ... Further named arguments, passed to the print method (e.g., \code{digits} and \code{signif.stars}).
 ##' 
 ##' @details
 ##' The summary gives information on the free parameters estimated: names, parameter values, numerical Hessian-based standard errors, t-values (values divided by standard errors), and standard-error based confidence intervals.  Additionally, the likelihood, AIC, and BIC are provided.
