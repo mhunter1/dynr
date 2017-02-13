@@ -74,7 +74,6 @@ setMethod("names", "dynrModel",
 
 setReplaceMethod("$", "dynrModel",
 	function(x, name, value){
-		#TODO Implement a better/smarter method for "model$ub['a'] <- "
 		if(name %in% c('xstart', 'ub', 'lb')){
 			if(length(value) != length(x$param.names)){
 				stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
@@ -89,7 +88,7 @@ setReplaceMethod("$", "dynrModel",
 			lookup <- union(na.omit(lookup), 1L:length(value))
 			value[lookup] <- value
 			names(value) <- x$param.names
-			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value)
+			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
 		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
 			slot(object=x, name=name, check = TRUE) <- value
 		} else {
