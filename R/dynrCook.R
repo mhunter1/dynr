@@ -177,7 +177,8 @@ setMethod("initialize", "dynrOutall",
 #  and returns/does whatever we want.
 # See Also the print method of summary.lm
 #  getAnywhere(print.summary.lm)
-summaryResults <- function(object){
+summaryResults <- function(object, ...){
+             ret <- list()
              d <- data.frame(transformed.parameters=object@transformed.parameters, standard.errors=object@standard.errors)
              row.names(d) <- names(coef(object))
              d$t_value <- ifelse(d$standard.errors==0, NA, d$transformed.parameters/d$standard.errors)
@@ -189,13 +190,27 @@ summaryResults <- function(object){
              BIC = BIC(object)
              colnames(d) = c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper", #"",
                "Pr(>|t|)")
-             cat("Coefficients:\n")
-             printCoefmat(d, cs.ind=c(1L, 2L, 4L, 5L), tst.ind=3L, zap.ind=6L)
-             cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(neg2LL,2))))
-             cat(paste0("\nAIC = ", sprintf("%.02f", round(AIC,2))))
-             cat(paste0("\nBIC = ", sprintf("%.02f", round(BIC,2))))
-             cat("\n")
+             ret$Coefficients <- d
+             ret$neg2LL <- neg2LL
+             ret$AIC <- AIC
+             ret$BIC <- BIC
+             class(ret) <- "summary.dynrCook"
+             return(ret)
            }
+
+print.summary.dynrCook <- function(x, digits = max(3L, getOption("digits") - 3L), signif.stars = getOption("show.signif.stars"), ...){
+	cat("Coefficients:\n")
+	printCoefmat(x$Coefficients, cs.ind=c(1L, 2L, 4L, 5L), tst.ind=3L, zap.ind=6L, digits = digits, signif.stars = signif.stars, ...)
+	cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(x$neg2LL,2))))
+	cat(paste0("\nAIC = ", sprintf("%.02f", round(x$AIC,2))))
+	cat(paste0("\nBIC = ", sprintf("%.02f", round(x$BIC,2))))
+	cat("\n")
+	invisible(x)
+}
+
+coef.summary.dynrCook <- function(object, ...){
+	object$Coefficients
+}
 
 ##' Get the summary of a dynrCook object
 ##' 
