@@ -290,6 +290,8 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 }
 
 ##' The ggplot of the smoothed state estimates and the most likely regimes
+##'
+##' @aliases autoplot.dynrCook
 ##' 
 ##' @param res The dynr object returned by dynr.cook().
 ##' @param dynrModel The model object to plot.
@@ -308,6 +310,9 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##' @param mancolorPalette (optional) A color palette for manually scaling the colors of lines and plots.
 ##' @param manfillPalette (optional) A color palette for manually scaling the colors of filled blocks.
 ##' @param ... A list of element name, element pairings that modify the existing ggplot2::ggplot ggplot2::theme. Consult the ggplot2::theme() function in the R package ggplot2::ggplot.
+##' 
+##' @details
+##' The two functions \code{dynr.ggplot} and \code{autoplot} as identical aliases of one another.  The \code{autoplot} function is an S3 method from ggplot2 that allows many objects to be plotted in that package.
 dynr.ggplot <- function(res, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 
@@ -526,6 +531,7 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
   }
 }
 
-
+##' @rdname dynr.ggplot
+autoplot.dynrCook <- dynr.ggplot
 
 

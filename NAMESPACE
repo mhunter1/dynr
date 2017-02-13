@@ -31,5 +31,6 @@ S3method(confint, dynrCook)
 S3method(.DollarNames, dynrModel)
 S3method(print, summary.dynrCook)
 S3method(coef, summary.dynrCook)
+S3method(autoplot, dynrCook)
 useDynLib(dynr, .registration=TRUE)
 
