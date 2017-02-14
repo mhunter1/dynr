@@ -127,9 +127,8 @@ Mode <- function(y) {
 ##' @param ... Further named arguments
 ##' 
 ##' @details
-##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that is shows the equations for the plot.
-setMethod("plot", "dynrCook",
-          function(x, dynrModel, style = 1, names.state, names.observed, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
+##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that it shows the model equations in a plot.
+plot.dynrCook <- function(x, dynrModel, style = 1, names.state, names.observed, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
   #The first panel is the ggplot
   if(missing(names.observed)){names.observed=dynrModel@measurement@obs.names}
   if(missing(names.state)){names.state=dynrModel@measurement@state.names}
@@ -159,7 +158,7 @@ setMethod("plot", "dynrCook",
     multiplot(p1, p3, layout=matrix(c(1,1,2,2), nrow=2, byrow=TRUE))
   }
 
-  })
+}
 
 plotdf <- function(vec_tex){
   dataframe=data.frame(text=sapply(paste0("$",vec_tex,"$"),function(x){as.character(latex2exp::TeX(x))}))

@@ -36,7 +36,7 @@ man/names-dynrModel-method.Rd
 man/nobs.dynrCook.Rd
 man/nobs.dynrModel.Rd
 man/NonlinearDFAsim.Rd
-man/plot-dynrCook-method.Rd
+man/plot.dynrCook.Rd
 man/plotFormula.Rd
 man/PPsim.Rd
 man/prep.formulaDynamics.Rd
@@ -49,5 +49,5 @@ man/prep.regimes.Rd
 man/prep.tfun.Rd
 man/printex.Rd
 man/RSPPsim.Rd
-man/summary-dynrCook-method.Rd
+man/summary.dynrCook.Rd
 man/vcov.dynrCook.Rd

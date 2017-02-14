@@ -223,8 +223,7 @@ coef.summary.dynrCook <- function(object, ...){
 ##' Note that an exclamation point (!) in the final column of the summary table indicates that
 ##' the standard error and confidence interval for this parameter may not be trustworthy. The corresponding
 ##' element of the (transformed, inverse) Hessian was negative and an absolute value was taken to make it positive.
-setMethod( f = "summary",  signature = "dynrCook" ,
-           definition = summaryResults)
+summary.dynrCook <- summaryResults
 
 
 display.dynrCook <- function(x, ...){
