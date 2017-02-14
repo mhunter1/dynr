@@ -41,17 +41,17 @@ recNoise <- prep.noise(
 
 recReg <- prep.regimes(
 	values=matrix(0, 2, 2),
-	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2))
+	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
 
-#recReg <- prep.regimes(
-#	values=matrix(0, 2, 2),
-#	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2),
-#	deviation=TRUE) # refRow gets set to refCol=2
+recReg2 <- prep.regimes(
+	values=matrix(0, 2, 2),
+	params=matrix(c('dev1', 'base1', 'fixed', 'fixed'), 2, 2),
+	deviation=TRUE) # refRow gets set to refCol=2
 
-#recReg <- prep.regimes(
-#	values=matrix(0, 2, 2),
-#	params=matrix(c('p00', 'p10', 'fixed', 'fixed'), 2, 2),
-#	deviation=TRUE, refRow=1) #refRow get set to non-default 1
+recReg1 <- prep.regimes(
+	values=matrix(0, 2, 2),
+	params=matrix(c('base1', 'dev2', 'fixed', 'fixed'), 2, 2),
+	deviation=TRUE, refRow=1) #refRow get set to non-default 1
 
 #recReg <- prep.regimes(
 #	values=matrix(0, 2, 2),
@@ -83,12 +83,24 @@ recDyn <- prep.matrixDynamics(
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 
+rsmod1 <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg1, data=dd, outfile="RSLinearDiscreteDev1.c")
+
+rsmod1$lb['phi_0'] <- -1.5
+
+rsmod2 <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg2, data=dd, outfile="RSLinearDiscreteDev2.c")
+
+
 printex(rsmod, ParameterAs=rsmod$param.names, printInit=TRUE,printRS=TRUE,
         outFile="RSLinearDiscrete.tex")
 #tools::texi2pdf("RSLinearDiscrete.tex")
 #system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
 
+
 yum <- dynr.cook(rsmod, debug_flag=TRUE)
+yum1 <- dynr.cook(rsmod1)
+yum2 <- dynr.cook(rsmod2)
+
+
 
 #---- (5) Serve it! ----
 
@@ -137,9 +149,9 @@ withinIntervals <- yum@conf.intervals[1:7,1] < truep[1:7] & truep[1:7] < yum@con
 testthat::expect_true(all(withinIntervals))
 
 
-#---- (6) Compare true and estimated states ----
+#---- (7) Compare true and estimated states ----
 
-#---- (6a) latent states ----
+#---- (7a) latent states ----
 
 #pdf('plotFilterSmoothEMG.pdf')
 
@@ -165,7 +177,7 @@ text(x=1, y=-2, labels=paste0('r = ', round(updateCor,3)), adj=c(1,1))
 text(x=1, y=-2.5, labels=paste0('RMSE = ', round(updateRMS,3)), adj=c(1,1))
 
 
-#---- (6b) latent regimes ----
+#---- (7b) latent regimes ----
 
 
 (rtab <- table(trueRegime=EMGsim$trueregime, estRegime=estRegime))
@@ -176,5 +188,14 @@ axis(side=2, at=c(0,1))
 text(x=c(0,0,1,1), y=c(0+.25,1-.25,0+.25,1-.25), labels=c(rtab))
 
 #dev.off()
+
+
+#---- (8) Compare deviation and non-deviation estimates ----
+
+
+testthat::expect_equal(coef(yum)['c11'], coef(yum1)['base1'], tolerance=0.001, check.names=FALSE)
+testthat::expect_equal(coef(yum)['c21'], coef(yum2)['base1'], tolerance=0.001, check.names=FALSE)
+testthat::expect_equal(coef(yum)['c21'], sum(coef(yum1)[c('base1', 'dev2')]), tolerance=0.001, check.names=FALSE)
+testthat::expect_equal(coef(yum)['c11'], sum(coef(yum2)[c('base1', 'dev1')]), tolerance=0.001, check.names=FALSE)
 
 
