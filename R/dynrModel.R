@@ -124,7 +124,6 @@ coef.dynrModel <- function(object, ...){
 
 ##' @rdname coef.dynrCook
 ##' 
-##' @param object object for the method
 ##' @param value values for setting
 `coef<-` <- function(object, value){
 	UseMethod("coef<-")

@@ -272,6 +272,8 @@ coef.dynrCook <- function(object, ...){
 
 ##' Extract the log likelihood from a dynrCook Object
 ##' 
+##' @aliases deviance.dynrCook
+##' 
 ##' @param object The dynrCook object for which the log likelihood is desired
 ##' @param ... further named arguments, ignored for this method
 ##' 
