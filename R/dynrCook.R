@@ -250,6 +250,8 @@ setMethod("show", "dynrCook", function(object) {
 
 ##' Extract fitted parameters from a dynrCook Object
 ##' 
+##' aliases coef.dynrModel coef<- coef<-.dynrModel
+##' 
 ##' @param object The dynrCook object for which the coefficients are desired
 ##' @param ... further named arguments, ignored for this method
 ##' 
@@ -677,6 +679,11 @@ PopBackModel<-function(dynrModel, trans.parameters){
   dynrModel@initial@values.regimep<-PopBackMatrix(dynrModel@initial@values.regimep, dynrModel@initial@params.regimep, trans.parameters)
   dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
   
+  # process model matrices to re-extract start values
+  if(length(dynrModel$transform$inv.tfun.full) > 0 ){
+    trans.parameters <- dynrModel$transform$inv.tfun.full(trans.parameters)
+  }
+  dynrModel@xstart <- trans.parameters
   return(dynrModel)
 }
 

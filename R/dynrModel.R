@@ -117,6 +117,26 @@ nobs.dynrModel <- function(object, ...){
 }
 
 
+##' @rdname coef.dynrCook
+coef.dynrModel <- function(object, ...){
+	object$transform$tfun(object$xstart)
+}
+
+##' @rdname coef.dynrCook
+##' 
+##' @param object object for the method
+##' @param value values for setting
+`coef<-` <- function(object, value){
+	UseMethod("coef<-")
+}
+
+##' @rdname coef.dynrCook
+`coef<-.dynrModel` <- function(object, value){
+	object <- PopBackModel(object, value)
+	return(object)
+}
+
+
 implode <- function(..., sep='') {
   paste(..., collapse=sep)
 }
