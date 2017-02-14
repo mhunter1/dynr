@@ -686,10 +686,10 @@ PopBackModel<-function(dynrModel, trans.parameters){
   dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
   
   # process model matrices to re-extract start values
-  if(length(dynrModel$transform$inv.tfun.full) > 0 ){
+  if(length(dynrModel$transform$inv.tfun.full) > 0 && is.numeric(trans.parameters)){
     trans.parameters <- dynrModel$transform$inv.tfun.full(trans.parameters)
+    dynrModel@xstart <- trans.parameters
   }
-  dynrModel@xstart <- trans.parameters
   return(dynrModel)
 }
 
