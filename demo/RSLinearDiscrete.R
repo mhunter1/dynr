@@ -90,10 +90,20 @@ rsmod1$lb['phi_0'] <- -1.5
 rsmod2 <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg2, data=dd, outfile="RSLinearDiscreteDev2.c")
 
 
+# Inspect three versions of the same model
+#  The only difference is how the regimes are created
 printex(rsmod, ParameterAs=rsmod$param.names, printInit=TRUE,printRS=TRUE,
         outFile="RSLinearDiscrete.tex")
 #tools::texi2pdf("RSLinearDiscrete.tex")
 #system(paste(getOption("pdfviewer"), "RSLinearDiscrete.pdf"))
+printex(rsmod1, ParameterAs=rsmod1$param.names, printInit=TRUE,printRS=TRUE,
+        outFile="RSLinearDiscrete1.tex")
+#tools::texi2pdf("RSLinearDiscrete1.tex")
+#system(paste(getOption("pdfviewer"), "RSLinearDiscrete1.pdf"))
+printex(rsmod2, ParameterAs=rsmod2$param.names, printInit=TRUE,printRS=TRUE,
+        outFile="RSLinearDiscrete2.tex")
+#tools::texi2pdf("RSLinearDiscrete2.tex")
+#system(paste(getOption("pdfviewer"), "RSLinearDiscrete2.pdf"))
 
 
 yum <- dynr.cook(rsmod, debug_flag=TRUE)
