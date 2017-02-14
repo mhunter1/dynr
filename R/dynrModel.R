@@ -143,27 +143,57 @@ implode <- function(..., sep='') {
 
 
 vecRegime <- function(object){
+	objValues <- object$values
+	objParams <- object$params
 	numRegimes <- nrow(object$values)
 	covariates <- object$covariates
 	numCovariates <- length(covariates)
+	deviation <- object$deviation
+	refRow <- object$refRow
 	
+	if(deviation){
+		if(nrow(objValues)!=0 && nrow(objParams)!=0){
+			interceptSel <- seq(1, ncol(objValues), by=numCovariates+1)
+			intercept.values <- matrix(objValues[refRow, interceptSel], numRegimes, 1)
+			intercept.params <- matrix(objParams[refRow, interceptSel], numRegimes, 1)
+			objValues[refRow, interceptSel] <- 0
+			objParams[refRow, interceptSel] <- 0
+		}
+	} else {
+		intercept.values <- matrix(0, numRegimes, 1)
+		intercept.params <- matrix(0, numRegimes, 1)
+	}
+	browser()
+	colBeginSeq <- seq(1, ncol(objValues), by=numCovariates+1)
+	colEndSeq <- colBeginSeq + numCovariates
 	Prlist <- list()
 	for (j in 1:numRegimes){
-		values <- object$values[j, which(object$values[j,] != 0) ]
-		params <- object$params[j, which(object$values[j,] != 0) ]
-		colIndex <- which(params==params)    #which(object$values[j,]!="0")
-		colIndexSet <- ceiling( colIndex/(numCovariates+1) )
-		for (q in unique(colIndexSet)){
-			colIndex2 <- which(colIndexSet==q)
-			mat1 <- matrix(values[colIndex2], ncol=numCovariates+1)
-			mat2 <- matrix(c(1,object$covariates), ncol=1)
-			mat3 <- outer(mat1, mat2, FUN=paste, sep="*")
-			a <- diag(matrix(mat3, ncol=numCovariates+1))
-			#namesLO = paste0("&\\frac{Pr(p",j,q,")}{1-Pr(p",j,q,")}")
-			namesLO = paste0("&Log Odds(p", j, q, ")")
+		#values <- objValues[j, which(objValues[j,] != 0) ] #CHANGE to which(objParams[j,] != 0)???
+		#params <- objParams[j, which(objValues[j,] != 0) ]
+		#colIndex <- which(params==params)    #which(object$values[j,]!="0")
+		#colIndexSet <- ceiling( colIndex/(numCovariates+1) )
+		#for (q in unique(colIndexSet)){
+		for(k in 1:numRegimes){
+			#colIndex2 <- which(colIndexSet==q)
+			colSel <- colBeginSeq[k]:colEndSeq[k]
+			mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
+			mat2 <- matrix(c(1, covariates), ncol=1)
+			# drop zeros before multiplication
+			mat1 <- mat1[mat1 !=0 ]
+			mat2 <- mat2[mat1 !=0 ]
+			a <- paste(mat1, mat2, sep="*")
+			#namesLO = paste0("&\\frac{Pr(p",j,k,")}{1-Pr(p",j,k,")}")
+			namesLO = paste0("&Log Odds(p", j, k, ")")
 			a <- gsub("*1", "", a, fixed=TRUE)
-			a <- paste0(namesLO, " = ", implode(a, sep=" + "))
-			Prlist <- paste0(Prlist , a, "\\\\")
+			b <- intercept.values[k, 1]
+			b <- b[ b != 0]
+			#b <- ifelse(length(b) > 0, paste0(b, " + "), "")
+			#a <- paste0(b, implode(a, sep=" + "))
+			a <- implode(c(b, a), sep=" + ")
+			if(nchar(a) > 0){
+				a <- paste0(namesLO, " = ", a)
+				Prlist <- paste0(Prlist , a, "\\\\")
+			}
 		}#End of loop through colIndex
 	}#End of loop through regime
 	return(Prlist)
