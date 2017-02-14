@@ -279,7 +279,9 @@ coef.dynrCook <- function(object, ...){
 ##' @details
 ##' The 'df' attribute for this object is the number of freely estimated parameters. The 'nobs' attribute is the total number of rows of data, adding up the number of time points for each person.
 ##' 
-##' @return An object of class \code{logLik}.
+##' The \code{deviance} method returns minus two times the log likelihood.
+##' 
+##' @return In the case of \code{logLik}, an object of class \code{logLik}.
 ##' 
 ##' @seealso Other S3 methods \code{\link{coef.dynrCook}}
 ##' 
@@ -297,6 +299,10 @@ logLik.dynrCook <- function(object, ...){
 # N.B. AIC() and BIC() are implicitly defined in terms
 #  of logLik().
 
+##' @rdname logLik.dynrCook
+deviance.dynrCook <- function(object, ...){
+	as.numeric(-2*logLik(object))
+}
 
 ##' Extract the number of observations for a dynrCook object
 ##' 
