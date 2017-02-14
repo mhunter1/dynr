@@ -143,30 +143,31 @@ implode <- function(..., sep='') {
 
 
 vecRegime <- function(object){
-  numRegimes <- nrow(object$values)
-  covariates <- object$covariates
-  numCovariates <- length(covariates)
-  
-  Prlist <- list()
-  for (j in 1:numRegimes){
-  values <- object$values[j,which(object$values[j,]!=0)]
-  params <- object$params[j,which(object$values[j,]!=0)]
-  colIndex <- which(params==params)    #which(object$values[j,]!="0")
-  colIndexSet <- ceiling((colIndex)/(numCovariates+1))
-  for (q in unique(colIndexSet)){
-  colIndex2 <- which(colIndexSet==q)
-  a <- diag(matrix(outer(matrix(values[colIndex2],ncol=numCovariates+1), 
-           matrix(c(1,object$covariates),ncol=1),
-           FUN=paste,sep="*"),ncol=numCovariates+1))
-  #namesLO = paste0("&\\frac{Pr(p",j,q,")}{1-Pr(p",j,q,")}")
-  namesLO = paste0("&Log Odds(p",j,q,")")
-  a <- paste0(namesLO," = ", 
-              implode(gsub("*1","",a,fixed=TRUE),sep=" + "))
-  Prlist <- paste0(Prlist , a, "\\\\")
-              }#End of loop through colIndex
-  }#End of loop through regime
-  return(Prlist)
-}  
+	numRegimes <- nrow(object$values)
+	covariates <- object$covariates
+	numCovariates <- length(covariates)
+	
+	Prlist <- list()
+	for (j in 1:numRegimes){
+		values <- object$values[j, which(object$values[j,] != 0) ]
+		params <- object$params[j, which(object$values[j,] != 0) ]
+		colIndex <- which(params==params)    #which(object$values[j,]!="0")
+		colIndexSet <- ceiling( colIndex/(numCovariates+1) )
+		for (q in unique(colIndexSet)){
+			colIndex2 <- which(colIndexSet==q)
+			mat1 <- matrix(values[colIndex2], ncol=numCovariates+1)
+			mat2 <- matrix(c(1,object$covariates), ncol=1)
+			mat3 <- outer(mat1, mat2, FUN=paste, sep="*")
+			a <- diag(matrix(mat3, ncol=numCovariates+1))
+			#namesLO = paste0("&\\frac{Pr(p",j,q,")}{1-Pr(p",j,q,")}")
+			namesLO = paste0("&Log Odds(p", j, q, ")")
+			a <- gsub("*1", "", a, fixed=TRUE)
+			a <- paste0(namesLO, " = ", implode(a, sep=" + "))
+			Prlist <- paste0(Prlist , a, "\\\\")
+		}#End of loop through colIndex
+	}#End of loop through regime
+	return(Prlist)
+}
 
 LaTeXnames<-function(names, decimal = 2, latex = TRUE){
   if (latex == TRUE){
@@ -397,13 +398,13 @@ setMethod("printex", "dynrModel",
               #initial regime probabilities
               initProb <- outlist[[4]]$initial.probability
               outProb <- NULL
-              if (length((model2$initial)$values.regimep)>1){
+              if (model2$num_regime > 1){
                 #Only print initial regime probabilities if > 1 regime
                 outProb <- paste0("&\\text{Initial regime probabilities = }",
                                   initProb,"\\\\\n")
               }
               #regime switch probability
-              if (length((model2$initial)$values.regimep)>1){
+              if (model2$num_regime > 1){
                 Prlist <- implode(vecRegime(model2$regimes),sep="&\\\\\n")
                 #Only print initial RS probabilities if > 1 regime
                 RSequ=paste0("\\begin{align*}\n",outProb,
