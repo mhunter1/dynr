@@ -531,6 +531,31 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
 }
 
 ##' @rdname dynr.ggplot
-autoplot.dynrCook <- dynr.ggplot
-
+##' 
+##' @param object The same as res. The dynr object returned by dynr.cook().
+autoplot.dynrCook <- function(object, dynrModel, style = 1,
+                        numSubjDemo=2, idtoPlot=c(),
+                        names.state, 
+                        names.observed,
+                        names.regime,
+                        shape.values,
+                        title, 
+                        ylab, 
+                        is.bw=FALSE, 
+                        colorPalette="Set2", 
+                        fillPalette="Set2", 
+                        mancolorPalette, manfillPalette, ...){
+	dynr.ggplot(object, dynrModel=dynrModel, style = style,
+                        numSubjDemo=numSubjDemo, idtoPlot=idtoPlot,
+                        names.state=names.state, 
+                        names.observed=names=observed,
+                        names.regime=names.regime,
+                        shape.values=shape.values,
+                        title=title, 
+                        ylab=ylab, 
+                        is.bw=is.bw, 
+                        colorPalette=colorPalette, 
+                        fillPalette=fillPalette, 
+                        mancolorPalette=mancolorPalette, manfillPalette=manfillPalette, ...)
+}
 
