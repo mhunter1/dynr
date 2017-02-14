@@ -224,7 +224,7 @@ coef.summary.dynrCook <- function(object, ...){
 ##' the standard error and confidence interval for this parameter may not be trustworthy. The corresponding
 ##' element of the (transformed, inverse) Hessian was negative and an absolute value was taken to make it positive.
 ##' 
-##' @method
+##' @method summary dynrCook
 summary.dynrCook <- summaryResults
 
 
