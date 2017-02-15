@@ -213,8 +213,8 @@ printRecipeOrModel <- function(x, ...){
 	return(invisible(x))
 }
 
-setMethod("print", "dynrRecipe", recipePrint)
-setMethod("show", "dynrRecipe", function(object){recipePrint(object)})
+setMethod("print", "dynrRecipe", printRecipeOrModel)
+setMethod("show", "dynrRecipe", function(object){printRecipeOrModel(object)})
 
 
 #------------------------------------------------------------------------------
