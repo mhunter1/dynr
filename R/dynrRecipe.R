@@ -190,16 +190,16 @@ setClass(Class = "dynrTrans",
 )
 
 setMethod("initialize", "dynrRecipe",
-          function(.Object, x){
-            for(i in names(x)){
+		function(.Object, x){
+			for(i in names(x)){
 				slot(.Object, name=i, check = TRUE) <- x[[i]]
 			}
 			return(.Object)
-          }
+		}
 )
 
 setMethod("$", "dynrRecipe",
-          function(x, name){slot(x, name)}
+		function(x, name){slot(x, name)}
 )
 
 printRecipeOrModel <- function(x, ...){
