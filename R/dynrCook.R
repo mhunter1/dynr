@@ -229,8 +229,15 @@ summary.dynrCook <- summaryResults
 
 
 display.dynrCook <- function(x, ...){
-  str(x)
-  invisible(x)
+	maxChar <- max(nchar(sn <- slotNames(x)))
+	tfmt <- paste0("..$ %-", maxChar, "s:")
+	for(aslot in sn){
+		if( !(aslot %in% c("conf.intervals", "hessian", "transformed.inv.hessian", "neg.log.likelihood", "param.names")) ){
+			cat(sprintf(tfmt, aslot))
+			str(slot(x, aslot))
+		}
+	}
+	return(invisible(x))
 }
 
 setMethod("print", "dynrCook", function(x, ...) { 
@@ -353,6 +360,19 @@ setMethod("names", "dynrCook",
 		return(output)
 	}
 )
+
+setMethod("$", "dynrCook",
+          function(x, name){slot(x, name)}
+)
+
+.DollarNames.dynrCook <- function(x, pattern){
+	if(missing(pattern)){
+		pattern <- ''
+	}
+	output <- slotNames(x)
+	output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+	return(grep(pattern, output, value=TRUE))
+}
 
 ##' Confidence Intervals for Model Parameters
 ##' 
