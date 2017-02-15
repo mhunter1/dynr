@@ -228,7 +228,7 @@ coef.summary.dynrCook <- function(object, ...){
 summary.dynrCook <- summaryResults
 
 
-display.dynrCook <- function(x, ...){
+displayDynrCook <- function(x, ...){
 	maxChar <- max(nchar(sn <- slotNames(x)))
 	tfmt <- paste0("..$ %-", maxChar, "s:")
 	for(aslot in sn){
@@ -241,11 +241,11 @@ display.dynrCook <- function(x, ...){
 }
 
 setMethod("print", "dynrCook", function(x, ...) { 
-  display.dynrCook(x) 
+  displayDynrCook(x) 
 })
 
 setMethod("show", "dynrCook", function(object) { 
-  display.dynrCook(object) 
+  displayDynrCook(object) 
 })
 
 

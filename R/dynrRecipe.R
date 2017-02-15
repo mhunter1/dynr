@@ -202,7 +202,7 @@ setMethod("$", "dynrRecipe",
           function(x, name){slot(x, name)}
 )
 
-recipePrint <- function(x, ...){
+printRecipeOrModel <- function(x, ...){
 	for(aslot in slotNames(x)){
 		if( !(aslot %in% c("c.string", "startval", "paramnames")) ){
 			cat(" $", aslot, "\n", sep="")

@@ -51,6 +51,11 @@ setMethod("$", "dynrModel",
           function(x, name){slot(x, name)}
 )
 
+
+setMethod("print", "dynrModel", printRecipeOrModel)
+setMethod("show", "dynrModel", function(object){printRecipeOrModel(object)})
+
+
 ##' Extract the free parameter names of a dynrModel object
 ##' 
 ##' @param x The dynrModel object from which the free parameter names are desired
