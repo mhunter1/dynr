@@ -518,6 +518,40 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
   }
+  # check and modify the data
+  ## For discrete-time models, the time points needs to be equally spaced. 
+  if (!dynamics$isContinuousTime){
+    time.split = split(data$time, as.factor(data$id))
+    time.check = sapply(time.split, function(x) {
+      difference = diff(x)
+      return(c(spacing = sum(difference%%min(difference)) != 0,
+               full = sum(diff(difference)) != 0))
+    })
+    if(any(time.check["spacing",])){
+      stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
+    }else if (any(time.check["full",])){
+      if ("covariates" %in% names(data)){
+        data.dataframe <- data.frame(id = data$id, time = data$time, data$observed, data$covariates)
+        
+        data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
+          new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
+          out = merge(new, df, all.x = TRUE)
+        })
+        
+        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
+      }else{
+        data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
+        
+        data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
+          new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
+          out = merge(new, df, all.x = TRUE)
+        })
+        
+        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
+      }
+    }
+  }
+  
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
