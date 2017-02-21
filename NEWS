@@ -1,11 +1,13 @@
 dynr 0.1.9
 --------------
 
-2017-01-08
+2017-02-21
 
 New features include:
 * A new demo example is added to replicate the results from Yang & Chow (2010) paper.
-
+* Some standard S3 methods are added for the dynrCook class object.
+* autoplot() is added as an alias for dynr.ggplot().
+* dynr.data() now automatically handles ts class objects and equally spaced data with missingness.
 
 Bug fixes and performance tweaks include:
 * Changes are made to accommodate the new release of ggplot2. 
