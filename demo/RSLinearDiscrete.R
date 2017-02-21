@@ -139,9 +139,9 @@ plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
 truep <- c(phi0=.3, phi1=.9, beta0=0, beta1=.5, mu0=3, mu1=4, dynnoise=.5^2, p00=.99, p10=.01)
 estp <- coef(yum)
 
-r1 <- c(coef(yum)[which(rsmod$param.names=="p00")],0)
+r1 <- c(coef(yum)[which(rsmod$param.names=="c11")],0)
 (r1 <- exp(r1)/sum(exp(r1))) #first row of transition probability matrix
-r2 <- c(coef(yum)[which(rsmod$param.names=="p10")],0)
+r2 <- c(coef(yum)[which(rsmod$param.names=="c21")],0)
 (r2 <- exp(r2)/sum(exp(r2))) #second row of transition probability matrix
 
 estp[8:9] <- c(r1[1], r2[1])
