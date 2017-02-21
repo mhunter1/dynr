@@ -32,7 +32,11 @@
 ##' (i.e., an ID variable), a column indicating subject-specific measurement occasions
 ##' (i.e., a TIME variable), at least one column of observed values, and any number of covariates. 
 ##' If the data are fit to a discrete-time model, the TIME variable should contain subject-specific sequences 
-##' of consecutively equally spaced numbers (e.g, 1, 2, 3, ...).
+##' of (subsets of) consecutively equally spaced numbers (e.g, 1, 2, 3, ...). That is, the
+##' program assumes that the input data.frame is equally spaced with potential missingness. If
+##' the measurment occasions for a subject are a subset of an arithmetic sequence but are not
+##' consecutive, NAs will be inserted automatically to create an equally spaced data set before
+##' estimation.
 ##' If the data are fit to a continuous-time model, the TIME varibles can contain subject-specific increasing sequences 
 ##' of irregularly spaced real numbers.  
 ##' Missing values in the observed variables shoud be indicated by NA. Missing values in covariates are not allowed. 
