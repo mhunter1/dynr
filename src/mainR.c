@@ -115,11 +115,11 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	SEXP f_noise_cov_sexp = PROTECT(getListElement(func_address_list, "f_noise_cov"));
 	SEXP f_initial_condition_sexp = PROTECT(getListElement(func_address_list, "f_initial_condition"));
 	SEXP f_transform_sexp = PROTECT(getListElement(func_address_list, "f_transform"));
-    data_model.pc.func_measure=R_ExternalPtrAddr(f_measure_sexp);
-    data_model.pc.func_regime_switch=R_ExternalPtrAddr(f_regime_switch_sexp);
-    data_model.pc.func_noise_cov=R_ExternalPtrAddr(f_noise_cov_sexp);
-    data_model.pc.func_initial_condition=R_ExternalPtrAddr(f_initial_condition_sexp);
-    data_model.pc.func_transform=R_ExternalPtrAddr(f_transform_sexp);
+    *(void **) (&data_model.pc.func_measure) = R_ExternalPtrAddr(f_measure_sexp);
+    *(void **) (&data_model.pc.func_regime_switch) = R_ExternalPtrAddr(f_regime_switch_sexp);
+    *(void **) (&data_model.pc.func_noise_cov) = R_ExternalPtrAddr(f_noise_cov_sexp);
+    *(void **) (&data_model.pc.func_initial_condition) = R_ExternalPtrAddr(f_initial_condition_sexp);
+    *(void **) (&data_model.pc.func_transform) = R_ExternalPtrAddr(f_transform_sexp);
 
 /*
  *   data_model.pc.func_dx_dt=function_dx_dt;
@@ -137,9 +137,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
 		SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
 		SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
-	    data_model.pc.func_dx_dt=R_ExternalPtrAddr(f_dx_dt_sexp);
-	    data_model.pc.func_dF_dx=R_ExternalPtrAddr(f_dF_dx_sexp);
-	    data_model.pc.func_dP_dt=R_ExternalPtrAddr(f_dP_dt_sexp);
+	    *(void **) (&data_model.pc.func_dx_dt) = R_ExternalPtrAddr(f_dx_dt_sexp);
+	    *(void **) (&data_model.pc.func_dF_dx) = R_ExternalPtrAddr(f_dF_dx_sexp);
+	    *(void **) (&data_model.pc.func_dP_dt) = R_ExternalPtrAddr(f_dP_dt_sexp);
 	    data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
 	    if (data_model.pc.adaodesolver){
 	        data_model.pc.func_dynam=function_dynam_ada;
@@ -153,8 +153,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    data_model.pc.func_dP_dt=NULL;
 		SEXP f_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_dynamic"));
 		SEXP f_jacob_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_jacob_dynamic"));
-    	data_model.pc.func_dynam = R_ExternalPtrAddr(f_dynamic_sexp);
-    	data_model.pc.func_jacob_dynam = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
+    	*(void **) (&data_model.pc.func_dynam) = R_ExternalPtrAddr(f_dynamic_sexp);
+    	*(void **) (&data_model.pc.func_jacob_dynam) = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
     }
 	
     data_model.pc.isnegloglikeweightedbyT=weight_flag;
