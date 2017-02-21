@@ -524,8 +524,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     time.split = split(data$time, as.factor(data$id))
     time.check = sapply(time.split, function(x) {
       difference = diff(x)
-      return(c(spacing = sum(difference%%min(difference)) != 0,
-               full = sum(diff(difference)) != 0))
+      return(c(spacing = sum(difference%%min(difference)) > 1e-6, #can be a very small positive number
+               full = sum(diff(difference)) > 1e-6))
     })
     if(any(time.check["spacing",])){
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
