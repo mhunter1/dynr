@@ -11,6 +11,9 @@
 ##' @aliases
 ##' dynrOutall-class
 ##' dynrDebug-class
+##' $,dynrCook-method
+##' print,dynrCook-method
+##' show,dynrCook-method
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.

@@ -6,6 +6,8 @@
 ##' @aliases
 ##' $,dynrModel-method
 ##' $<-,dynrModel-method
+##' print,dynrModel-method
+##' show,dynrModel-method
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.

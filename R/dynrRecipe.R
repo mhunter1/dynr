@@ -15,6 +15,8 @@
 ##' 
 ##' @aliases
 ##' $,dynrRecipe-method
+##' print,dynrRecipe-method
+##' show,dynrRecipe-method
 ##' 
 ##' @details
 ##' This is an internal class structure.  You should not use it directly.
