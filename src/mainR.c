@@ -978,7 +978,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
 		if (outall_flag){
-			UNPROTECT(90-17);
+			UNPROTECT(90-17-19-8);
 		}else if (debug_flag){
 			UNPROTECT(90-17-19-8);
 		}else{
@@ -987,7 +987,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
 	}else{
 		if (outall_flag){
-			UNPROTECT(90-17-1);
+			UNPROTECT(90-17-19-8-1);
 		}else if (debug_flag){
 			UNPROTECT(90-17-19-8-1);
 		}else{
