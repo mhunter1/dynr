@@ -1,6 +1,5 @@
 importFrom("graphics", "text", "plot")
-importFrom("stats", "D", "as.formula", "coef", "formula", "logLik",
-            "qnorm", "time", "nobs", "vcov", "confint", "deviance")
+importFrom("stats", "D", "as.formula", "coef", "formula", "logLik", "qnorm", "time", "nobs", "vcov", "confint", "deviance", "is.ts", "na.omit", "printCoefmat", "pt")
 importFrom("utils", "str", ".DollarNames")
 importFrom("MASS", "ginv")
 importFrom("Matrix", "nearPD")
