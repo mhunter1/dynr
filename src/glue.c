@@ -30,6 +30,7 @@ static R_CallMethodDef callMethods[] = {
 
 void R_init_dynr(DllInfo *info) {
 	R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
+	R_useDynamicSymbols(info, TRUE);
 }
 
 
