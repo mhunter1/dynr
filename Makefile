@@ -64,7 +64,7 @@ srcbuild: build-prep
 	@echo '  echo "library(tools); write_PACKAGES('"'.', type='source'"')" | R --vanilla'
 
 cran-build: build-prep
-	cd build && ./tools/prep && rm Makefile DESCRIPTION.in && chmod 755 ./configure ./cleanup && $(REXEC) CMD build .
+	cd build && ./tools/prep && rm Makefile DESCRIPTION.in && chmod 755 configure cleanup && $(REXEC) CMD build .
 	egrep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
 install:
