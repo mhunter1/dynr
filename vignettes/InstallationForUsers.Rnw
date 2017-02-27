@@ -1,4 +1,4 @@
-
+%\VignetteIndexEntry{Installation for Users}
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
