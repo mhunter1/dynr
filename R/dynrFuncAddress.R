@@ -47,7 +47,7 @@
              f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,
              f_transform=getNativeSymbolInfo("function_transform", DLL)$address)    
   }
-  return(res)
+  return(list(address=res, libname=libLFile))
 }    
 #--------------------------------------------------
 # CompileCode: A function adapted from the compileCode function in the inline pacakge

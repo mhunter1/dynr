@@ -465,21 +465,27 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	  compileLib=dynrModel@compileLib,
 	  verbose=dynrModel@verbose
 	)
+	libname <- model$libname
+	model$libname <- NULL
 	
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	if(any(sapply(model$func_address, is.null.pointer))){
-	    warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
-	    if(missing(infile)){
-	      stop("Cannot compile your functions because 'infile' argument is missing.")
-	    }
-	    model$func_address=.C2funcaddress(isContinuousTime=model$isContinuousTime,infile=infile,verbose=verbose)
+		warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
+		if(missing(infile)){
+			stop("Cannot compile your functions because 'infile' argument is missing.")
+		}
+		addr <- .C2funcaddress(isContinuousTime=model$isContinuousTime, infile=infile, verbose=verbose)
+		model$func_address <- addr$address
+		libname <- addr$libname
 	}
 	gc()
 	backendStart <- Sys.time()
 	output <- .Call(.Backend, model, data, weight_flag, debug_flag, outall_flag, verbose, PACKAGE = "dynr")
 	backendStop <- Sys.time()
-	#gc()#garbage collection
+	dyn.unload(libname) # unload the compiled library
+	# unlink(libname) # deletes the DLL
+	#gc() # garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
 	# Check to make sure likelihood is not NaN.
 	output$exitflag <- ifelse(is.na(output$neg.log.likelihood), -6, output$exitflag)
