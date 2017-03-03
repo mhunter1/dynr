@@ -1318,18 +1318,30 @@ reverseldl <- function(values){
 	if(dim(values)[1]==1){
 		return(log(values))
 	} else if(any(is.na(values))){
-		warning("Avast ye swarthy dog! NA was passed to LDL. Unset bounds might be fine. Values might be wrong.")
-		# if it's a matrix and all the lower triangular parts are NA
-		# then we're just setting bounds on the variances
-		if(is.matrix(values) && all(is.na(values[lower.tri(values, diag=FALSE)]))){
+		if(all(is.na(values))){
+			# if everything is NA, then we're giving up.
+			return(values)
+		} else if(is.matrix(values) && all(is.na(values[lower.tri(values, diag=FALSE)]))){
+			# if it's a matrix and all the lower triangular parts are NA
+			# then we're just setting bounds on the variances
 			values[lower.tri(values, diag=FALSE)] <- 0
 			values[upper.tri(values, diag=FALSE)] <- 0
 			mat <- dynr.ldl(values)
 			diag(mat) <- log(diag(mat))
 			mat[lower.tri(mat, diag=FALSE)] <- NA
 			return(mat)
+		} else if(is.matrix(values) && all(is.na(diag(values))) && all( values[lower.tri(values, diag=FALSE)] == 0)){
+			# if the matrix has NA diagonal and is otherwise 0
+			# then leave it alone
+			return(values)
+		} else{
+			# only warn when values is
+			#  1 not all missing
+			#  2 not missing everywhere except the diagonal
+			#  3 not missing on the diagonal with zero everywhere else
+			warning("Avast ye swarthy dog! NA was passed to LDL in confusing way. Not doing LDL.")
+			return(values)
 		}
-		return(values)
 	} else{
 		mat <- dynr.ldl(values)
 		diag(mat) <- log(diag(mat))
