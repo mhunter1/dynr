@@ -23,7 +23,7 @@ void forward_diff_grad(double *grad_approx, double ref_fit, const double *x, voi
 }
 
 
-double myfunc_wrapper(unsigned n, const double *x, double *grad, void *my_func_data)
+double neg_log_like_wrapper(unsigned n, const double *x, double *grad, void *my_func_data)
 {
     double fitval = function_neg_log_like(x, my_func_data);
     if (grad) {
@@ -37,7 +37,7 @@ double myfunc_wrapper(unsigned n, const double *x, double *grad, void *my_func_d
 void hessianR(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian){
     
     Data_and_Model data_model=*((Data_and_Model *)data);/*dereference the void pointer*/
- 
+    
     double eps = 1e-4;
     size_t row_index,col_index;
     double xadd[data_model.pc.num_func_param];
@@ -48,7 +48,7 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
     double xss[data_model.pc.num_func_param];
     
     double fxaa,fxas,fxsa,fxss,hvalue;
-
+    
     
     for(col_index=0; col_index<Hessian->size1; col_index++){
         memcpy(xadd, x, sizeof(xadd));
@@ -81,11 +81,11 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
             
             }
         }
-    
+     
      }
 
 void hessianRichardson(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian){
-     int i,j;	
+     int i,j;
 	for(i=0; i < Hessian->size1; i++){
 		hessianOnDiagonal(x, data, func_obj, fx, Hessian, i);
 	}

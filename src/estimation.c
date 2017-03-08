@@ -47,7 +47,7 @@ int opt_nlopt(void *my_func_data,size_t num_func_param,double *ub,double *lb,dou
 	opt = nlopt_create(NLOPT_LD_SLSQP, num_func_param); /* algorithm and dimensionality */
 	nlopt_set_upper_bounds(opt, ub);
 	nlopt_set_lower_bounds(opt, lb);
-	nlopt_set_min_objective(opt, myfunc_wrapper, my_func_data);	
+	nlopt_set_min_objective(opt, neg_log_like_wrapper, my_func_data);	
 	nlopt_set_xtol_rel(opt, * xtol_rel);
 	//DYNRPRINT(true, "stopping value: %lu\n", (long unsigned int) *stopval);
 	//if(*stopval==-9999){

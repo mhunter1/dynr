@@ -11,7 +11,7 @@ void forward_diff_grad(double *grad_approx, double ref_fit, const double *x, voi
 
 void hessian(const double *x,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian);
 
-double myfunc_wrapper(unsigned n, const double *x, double *grad, void *my_func_data);
+double neg_log_like_wrapper(unsigned n, const double *x, double *grad, void *my_func_data);
 
 void hessianR(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian);
 
