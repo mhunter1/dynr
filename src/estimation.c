@@ -11,7 +11,7 @@ Note
   You must have NLOpt installed on your machine to run this.
   Installing NLOpt basically entailed
     1.  Download the tar.gz
-    2.  Extract the tar bar
+    2.  Extract the tar ball
     3.  cd into trunk of folder
     4.  ./configure
     5.  make

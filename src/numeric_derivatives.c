@@ -85,7 +85,7 @@ void hessianR(const double *x,void *data,double (*func_obj)(const double *, void
      }
 
 void hessianRichardson(const double *x,void *data,double (*func_obj)(const double *, void *), double fx, gsl_matrix *Hessian){
-     int i,j;
+	int i,j;
 	for(i=0; i < Hessian->size1; i++){
 		hessianOnDiagonal(x, data, func_obj, fx, Hessian, i);
 	}
