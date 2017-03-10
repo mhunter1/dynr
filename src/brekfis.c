@@ -676,6 +676,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	if (t==(config->index_sbj)[sbj]){
             	    gsl_matrix_set_identity(param->regime_switch_mat);
                     gsl_vector_memcpy(pr_t[t], init->pr_0);
+                    config->func_initial_condition(param->func_param, co_variate[t], init->pr_0, init->eta_0, init->error_cov_0);
                 }else{
                     type=1;
                     config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
