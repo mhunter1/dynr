@@ -58,11 +58,14 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi);
 * error_cov_regime_jk_t_plus_1 -- filtered regime specific error covariance estimate *
 * innov_v -- innovation vector
 * inv_residual_cov -- inverse of the residual covariance
+* eta_t -- filtered state estimate
+* error_cov_t -- filtered state estimate
 **/
 
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
     gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ****eta_regime_jk_t_plus_1,gsl_matrix ****error_cov_regime_jk_t_plus_1,
-    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,gsl_vector ****innov_v,gsl_matrix ****inv_residual_cov);
+    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,gsl_vector ****innov_v,gsl_matrix ****inv_residual_cov,
+	gsl_vector **eta_t, gsl_matrix **error_cov_t);
 
 /****************************Extended Kim Smoother************************/
 /**

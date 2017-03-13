@@ -615,13 +615,16 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi){
 * error_cov_regime_jk_t_plus_1 -- filtered regime specific error covariance estimate *
 * innov_v -- innovation vector
 * inv_residual_cov -- inverse of the residual covariance
+* eta_t -- filtered state estimate
+* error_cov_t -- filtered error covariance estimate
 **/
 
 
 
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
     gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ****eta_regime_jk_t_plus_1,gsl_matrix ****error_cov_regime_jk_t_plus_1,
-    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,gsl_vector ****innov_v,gsl_matrix ****inv_residual_cov){
+    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,gsl_vector ****innov_v,gsl_matrix ****inv_residual_cov, 
+	gsl_vector **eta_t, gsl_matrix **error_cov_t){
 
 
 
@@ -931,7 +934,33 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	    print_matrix(error_cov_regime_j_t[t][regime_k]);
             	    MYPRINT("\n");*/
             }/*end of k*/
+			
+			/* obtain eta_t and error_cov_t*/
+			gsl_vector_set_zero(eta_t[t]);
+			gsl_matrix_set_zero(error_cov_t[t]);
+    	    for(regime_k=0; regime_k<config->num_regime; regime_k++){
+ 
+    	    	    gsl_blas_daxpy(gsl_vector_get(pr_t[t], regime_k), eta_regime_j_t[t][regime_k], eta_t[t]); /*sum over k through loop*/
 
+    	    	    /*if(regime_k==1){
+    	    	    MYPRINT("Here!");
+    	    	    print_vector(eta_t[t]);}*/
+    	    }
+    	    for(regime_k=0; regime_k<config->num_regime; regime_k++){
+					/* compute eta-eta_j*/
+					gsl_vector_memcpy(diff_eta_vec, eta_t[t]);
+					gsl_vector_sub(diff_eta_vec, eta_regime_j_t[t][regime_k]);
+					gsl_matrix_set_col(diff_eta, 0, diff_eta_vec);
+					/* compute (eta-eta_j)(eta-eta_j)'*/
+					gsl_matrix_set_zero(modif_p);
+					gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, diff_eta, diff_eta, 0.0, modif_p);
+					/* compute W_{i,t}{P^{k}+(eta-eta_j)(eta-eta_j)'}*/
+					gsl_matrix_add(modif_p, error_cov_regime_j_t[t][regime_k]);
+
+					gsl_matrix_scale(modif_p, gsl_vector_get(pr_t[t], regime_k));
+            		/* compute sum_j{}*/
+            		gsl_matrix_add(error_cov_t[t], modif_p);
+			}
 
 
 	   /*fprintf(pr_file,"%lu %lu %lf %lf\n",sbj,t,gsl_vector_get(pr_t[t],0),gsl_vector_get(pr_t[t],1));*/
@@ -1071,7 +1100,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
 
 					/*Cf. Chow & Zhang Equation A.9*/
-					/*TODO Check for division zero (near) zero*/
+					/*Check for division zero (near) zero*/
                     /*Pr[S_i,t+1=regime_k, S_it=regime_j|Y_iT]*/
                     gsl_vector_set(transprob_T[t][regime_j],regime_k, gsl_vector_get(p_next_regime_T,regime_k)*gsl_vector_get(pr_t[t],regime_j)*gsl_matrix_get(param->regime_switch_mat,regime_j,regime_k)/gsl_vector_get(pr_t_given_t_minus_1[t+1],regime_k));
                     
@@ -1079,7 +1108,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 					/*Pr[S_it=j|Y_iT] sum over k*/
 					/*Cf. Denominator of A.9*/
                     sum_overk+=gsl_vector_get(transprob_T[t][regime_j],regime_k);
-					/*TODO print this sum_overk , i.e. check denominator not to near zero*/
+					/*print this sum_overk , i.e. check denominator not to near zero*/
 
 
                     /*Jacobian matrix of the dynamic function*/
@@ -1099,7 +1128,6 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     print_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k]);
                     MYPRINT("\n");*/
 					
-					/*TODO possible re-write this function to take pseudo-inverse as needed*/
                     mathfunction_inv_matrix(error_cov_regime_jk_pred[t+1][regime_j][regime_k], inv_P_jk_pred);/*obtain the inverse matrix*/
 					
 					/*print_matrix(inv_P_jk_pred);
