@@ -62,7 +62,7 @@ double function_neg_log_like(const double *params, void *data){
 	print_array(par.func_param, data_model.pc.num_func_param);
 	
 	// Set initial conditions
-	data_model.pc.func_initial_condition(par.func_param, data_model.co_variate[0], pi.pr_0, pi.eta_0, pi.error_cov_0);
+	data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0);
 	
 	/* Allocate noise covariances and regime switching matrix*/
 	par.eta_noise_cov = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
