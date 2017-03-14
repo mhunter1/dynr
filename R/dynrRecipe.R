@@ -1027,7 +1027,9 @@ setMethod("writeCcode", "dynrInitial",
 		someStatesNotZero <- someStatesNotZero | someStatesNotZero2
 		
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){\n\t"
-		ret <- paste(ret, setGslVectorElements(values.regimep,params.regimep, "pr_0"), sep="\n")
+		ret <- paste0(ret, "\n", createGslVector(nregime, "Pvector"))
+		ret <- paste0(ret, setGslVectorElements(values.regimep,params.regimep, "Pvector"))
+		ret <- paste0(ret, "\tmathfunction_softmax(Pvector, pr_0);\n\t\n")
 		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
 		if (any(someStatesNotZero)){
 			ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
@@ -1059,8 +1061,8 @@ setMethod("writeCcode", "dynrInitial",
 			ret <- paste(ret, setGslMatrixElements(values.inicov[[1]], params.inicov[[1]], "(error_cov_0)[regime]"), sep="\n")
 			ret <- paste0(ret, "\t}") # close regime loop
 		}
-		
-		ret <- paste0(ret, "\n}\n") #Close function definition
+		ret <- paste0(ret, "\n", destroyGslVector("Pvector"))
+		ret <- paste0(ret, "}\n") #Close function definition
 		object@c.string <- ret
 		
 		return(object)
