@@ -68,7 +68,7 @@ recIni <- prep.initial(
 	params.inistate=matrix('fixed', 1, 1),
 	values.inicov=matrix(1, 1, 1),
 	params.inicov=matrix('fixed', 1, 1),
-	values.regimep=c(1, 0),
+	values.regimep=c(10, 0),
 	params.regimep=c('fixed', 'fixed'))
 
 

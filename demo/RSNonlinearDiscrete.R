@@ -39,7 +39,7 @@ initial <- prep.initial(
 	params.inistate=c("fixed", "fixed"),
 	values.inicov=diag(1, 2), 
 	params.inicov=diag("fixed", 2),
-	values.regimep=c(.8, .2),
+	values.regimep=c(1.3865, 0),
 	params.regimep=c("fixed", "fixed")
 )
 
