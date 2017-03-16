@@ -1021,7 +1021,15 @@ setMethod("writeCcode", "dynrInitial",
 		values.regimep <- object$values.regimep
 		params.regimep <- object$params.regimep
 		
-		nregime <- max(length(values.inistate), length(values.inicov))
+		nregime <- max(length(values.inistate), length(values.inicov), length(values.regimep))
+		if(nregime != 1 && length(values.inistate) == 1){
+			values.inistate <- rep(values.inistate, nregime)
+			params.inistate <- rep(params.inistate, nregime)
+		}
+		if(nregime != 1 && length(values.inicov) == 1){
+			values.inicov <- rep(values.inicov, nregime)
+			params.inicov <- rep(params.inicov, nregime)
+		}
 		someStatesNotZero <- sapply(values.inistate, function(x){!all(x == 0)})
 		someStatesNotZero2 <- sapply(params.inistate, function(x){!all(x == 0)})
 		someStatesNotZero <- someStatesNotZero | someStatesNotZero2
