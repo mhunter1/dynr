@@ -181,8 +181,8 @@ vecRegime <- function(object){
 			mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
 			mat2 <- matrix(c(1, covariates), ncol=1)
 			# drop zeros before multiplication
-			mat1 <- mat1[mat1 !=0 ]
 			mat2 <- mat2[mat1 !=0 ]
+			mat1 <- mat1[mat1 !=0 ]
 			a <- paste(mat1, mat2, sep="*")
 			a <- gsub("*1", "", a, fixed=TRUE)
 			b <- intercept.values[k, 1]
