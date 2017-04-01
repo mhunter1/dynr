@@ -85,7 +85,7 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 		
 		/** compute the log likelihood **/
 		result = (non_miss_size/2.0)*log(M_PI*2);
-		result+ = log(det)/2.0;
+		result += log(det)/2.0;
 		
 		gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 0.0, y); /* y=1*inv_cov_matrix*x+y*/
 		gsl_blas_ddot(x, y, &mu);
