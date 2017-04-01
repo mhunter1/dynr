@@ -20,14 +20,14 @@
  * @return the negative log-likelihood
  */
 double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss,double det){
-    /*MYPRINT("x(0)=%f\n", gsl_vector_get(x, 0));*/
-    double result=0;
+	/*MYPRINT("x(0)=%f\n", gsl_vector_get(x, 0));*/
+	double result = 0;
 	
 	/*handling missing data*/
 	double non_miss_size=mathfunction_sum_vector(y_non_miss);/*miss 0 not 1*/
 	if (non_miss_size!=0){
 		if (non_miss_size<y_non_miss->size){
-		    
+			
 			gsl_matrix *inv_cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
 			gsl_matrix *cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
 			/*Matrix View: Not efficient
@@ -75,45 +75,45 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 			}
 			
 			det=1/mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
-
+			
 			gsl_matrix_free(inv_cov_mat_small);
 			gsl_matrix_free(cov_mat_small);
-
 		}
 		
-
-	    gsl_vector *y=gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
-	    double mu; /* save result of x'*inv_cov_matrix*x*/
-    
-	    /** compute the log likelihood **/
-	    result=(non_miss_size/2.0)*log(M_PI*2);
-	    result+=log(det)/2.0;
-    
-	    gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
-	    gsl_blas_ddot(x, y, &mu);
-	    /*if(mu!=mu){
-	     MYPRINT("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
-	     }*/
-	    result+=mu/2.0;
-    
-	    /** free allocated space **/
-	    gsl_vector_free(y);
+		gsl_vector *y = gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
+		double mu; /* save result of x'*inv_cov_matrix*x*/
 		
+		/** compute the log likelihood **/
+		result = (non_miss_size/2.0)*log(M_PI*2);
+		result+ = log(det)/2.0;
+		
+		gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 1.0, y); /* y=1*inv_cov_matrix*x+y*/
+		gsl_blas_ddot(x, y, &mu);
+		/*if(mu!=mu){
+			MYPRINT("%f %f\n", gsl_vector_get(x, 0), gsl_vector_get(y, 0));
+		}*/
+		result += mu/2.0;
+		
+		/** free allocated space **/
+		gsl_vector_free(y);
 	}
-    
-    /*if(1){
-     for(ri=0; ri<inv_cov_matrix->size1; ri++){
-     for(ci=0; ci<inv_cov_matrix->size2; ci++)
-     MYPRINT("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
-     MYPRINT("\n");
-     }
-     MYPRINT("x: ( ");
-     for(ci=0; ci<x->size; ci++)
-     MYPRINT("%.3f ", gsl_vector_get(x, ci));
-     MYPRINT(")\n");
-     }*/
-    /*result=isfinite(result)?result:1e-4;*/
-    return result;
+	/* All-missing case starts */
+	
+	/*if(1){
+		for(ri=0; ri<inv_cov_matrix->size1; ri++){
+			for(ci=0; ci<inv_cov_matrix->size2; ci++){
+				MYPRINT("%.3f ", gsl_matrix_get(inv_cov_matrix, ri, ci));
+			}
+		MYPRINT("\n");
+		}
+		MYPRINT("x: ( ");
+		for(ci=0; ci<x->size; ci++)
+			MYPRINT("%.3f ", gsl_vector_get(x, ci));
+		MYPRINT(")\n");
+		}*/
+	
+	/*result=isfinite(result)?result:1e-4;*/
+	return result;
 }
 
 /**
