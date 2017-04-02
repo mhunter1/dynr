@@ -39,6 +39,7 @@
  * @return log-likelihood
  */
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config, ParamInit *init, Param *param){
+	int DEBUG_BREKFIS = 0; /*0=false/no; 1=true/yes*/
     size_t t, regime_j, regime_k, sbj;
     double neg_log_p,p, log_like=0, innov_determinant;
 
@@ -122,172 +123,174 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
         fprintf(h_file,"\n");*/
         /*FILE *eta_file=fopen("results/eta_t_ada.txt","w");*/
         /*FILE *pr_file=fopen("regimeprob.txt","w");*/
-
-
-    for(sbj=0; sbj<config->num_sbj; sbj++){
-
-   /********************************************************************************/
-
-        for(t=(config->index_sbj)[sbj]; t<(config->index_sbj)[sbj+1]; t++){
-		
+	
+	
+	/********************************************************************************/
+	for(sbj=0; sbj<config->num_sbj; sbj++){
+		for(t=(config->index_sbj)[sbj]; t<(config->index_sbj)[sbj+1]; t++){
+			
 			gsl_vector_memcpy(cp_y_t, y[t]);
-			miss_case=find_miss_data(cp_y_t, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
-
-        /** step 1: call cda ekalman filter for each possible regime switch **/
-            for(regime_j=0; regime_j<config->num_regime; regime_j++){/*from regime j*/
-
-            	/**set the regime switch matrix**/
-            	if (t==(config->index_sbj)[sbj]){
-            	    gsl_matrix_set_identity(param->regime_switch_mat);
-                    gsl_vector_memcpy(pr_t, init->pr_0);
-                }else{
-                    type=1;
-                    config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
-                }
-
-                config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
-                model_constraint_par(config, param);
-
-                /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
-                MYPRINT("\n");
-                MYPRINT("regime_switch_matrix:\n");
-                print_matrix(param->regime_switch_mat);
-                MYPRINT("\n");
-                MYPRINT("parameters:\n");
-                print_array(param->func_param,config->num_func_param);
-                MYPRINT("\n");
-                MYPRINT("measurement error:\n");
-                print_matrix(param->y_noise_cov);
-                MYPRINT("\n");
-                MYPRINT("process noise: \n");
-                print_matrix(param->eta_noise_cov);
-                MYPRINT("\n");*/
-
-
-                for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
-
-                    if (t==(config->index_sbj)[sbj]){
-                        for(col_index=0; col_index<config->dim_latent_var; col_index++){
-            	        gsl_vector_set(eta_j_t[regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
-            	        }
-            	        gsl_matrix_memcpy(error_cov_j_t[regime_j], (init->error_cov_0)[regime_j]);
-            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
-            	        print_vector(eta_j_t[regime_j]);
-            	        MYPRINT("\n");
-            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
-            	        print_matrix(error_cov_j_t[regime_j]);
-            	        MYPRINT("\n");*/
-
-
-                    innov_determinant=ext_kalmanfilter_updateonly(t, regime_k,
-                        eta_j_t[regime_j], error_cov_j_t[regime_j],
-                        y[t],co_variate[t],y_time,
-                        param->eta_noise_cov, param->y_noise_cov,
-                        param->func_param,
-                        config->func_measure,
-                        eta_jk_t_plus_1[regime_j][regime_k], error_cov_jk_t_plus_1[regime_j][regime_k], innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k]);/*inverse*/
-
-                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        MYPRINT("\n");
-                        MYPRINT("eta_jk:\n");
-                        print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("error_cov_jk:\n");
-                        print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("innov_vector:\n");
-                        print_vector(innov_v[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("inverse of the residual covariance:\n");
-                        print_matrix(residual_cov[regime_j][regime_k]);
-                        MYPRINT("\n");*/
-
-
-                   }else{
-            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
-            	        print_vector(eta_j_t[regime_j]);
-            	        MYPRINT("\n");
-            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
-            	        print_matrix(error_cov_j_t[regime_j]);
-            	        MYPRINT("\n");*/
-
-                    innov_determinant=ext_kalmanfilter(t, regime_k,
-                        eta_j_t[regime_j], error_cov_j_t[regime_j],
-                        y[t],co_variate[t],y_time,
-                        param->eta_noise_cov, param->y_noise_cov,
-                        param->func_param,config->num_func_param,
-						config->isContinuousTime,
-                        config->func_measure,
-                        config->func_dx_dt,
-                        config->func_dP_dt,
-						config->func_dF_dx,
-                        config->func_dynam,
-						config->func_jacob_dynam,
-                        eta_jk_t_plus_1[regime_j][regime_k], error_cov_jk_t_plus_1[regime_j][regime_k], innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k]);/*inverse*/
-
-
-                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        MYPRINT("\n");
-                        MYPRINT("eta_jk:\n");
-                        print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("error_cov_jk:\n");
-                        print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("innov_vector:\n");
-                        print_vector(innov_v[regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("inverse of the residual covariance:\n");
-                        print_matrix(residual_cov[regime_j][regime_k]);
-                        MYPRINT("\n");*/
-
-
-                   }
-
-                   /*for(col_index=0; col_index<config->dim_latent_var; col_index++){
-                        fprintf(eta_file, " %lf", gsl_vector_get(eta_jk_t_plus_1[0][0], col_index));
-                    }
-                   fprintf(eta_file,"\n");*/
-
-                   /*change, for random effect estimation*/
-                   /*if (t==(config->index_sbj)[sbj+1]-1){
-                        gsl_vector_set((init->eta_0)[regime_j],config->dim_latent_var*sbj+2,gsl_vector_get(eta_jk_t_plus_1[regime_j][regime_k], 2));
-                   }*/
-
-				   
-                   /** step 2: call hamilton filter to compute the probability of moving one step ahead **/
-
-                   /** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
-                   tran_prob_jk=gsl_vector_get(pr_t, regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
-
-                   /*MYPRINT("prob_regime:\n");
-                   print_vector(pr_t);
-                   MYPRINT("\n");*/
-
-                   /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
-                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss,innov_determinant);
-                    
-                    
-                   /*p=exp(-neg_log_p)*tran_prob_jk;*/
-                   p=isfinite(exp(-neg_log_p))&&exp(-neg_log_p)>1e-4?exp(-neg_log_p):1e-4;
-                    
-                   /*MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
-                   MYPRINT("before exponential %lf\n",neg_log_p);
-                   MYPRINT("oringinal %lf\n",exp(-neg_log_p));
-                   MYPRINT("adjusted %lf\n",p);*/
-
-                   /** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
-
-                   gsl_matrix_set(like_jk, regime_j, regime_k,p*tran_prob_jk);
-			   	   
-				   
-
-                }/*end of from regime j*/
-            }/*end of to regime k*/
-
-            
-            /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
-            if (config->isnegloglikeweightedbyT){
+			miss_case = find_miss_data(cp_y_t, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
+			
+			/** step 1: call cda ekalman filter for each possible regime switch **/
+			for(regime_j=0; regime_j<config->num_regime; regime_j++){/*from regime j*/
+				
+				/**set the regime switch matrix**/
+				if (t==(config->index_sbj)[sbj]){
+					gsl_matrix_set_identity(param->regime_switch_mat);
+					gsl_vector_memcpy(pr_t, init->pr_0);
+				}else{
+					type=1;
+					config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
+				}
+				
+				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
+				model_constraint_par(config, param);
+				
+				if(DEBUG_BREKFIS){
+					MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
+					MYPRINT("\n");
+					MYPRINT("regime_switch_matrix:\n");
+					print_matrix(param->regime_switch_mat);
+					MYPRINT("\n");
+					MYPRINT("parameters:\n");
+					print_array(param->func_param,config->num_func_param);
+					MYPRINT("\n");
+					MYPRINT("measurement error:\n");
+					print_matrix(param->y_noise_cov);
+					MYPRINT("\n");
+					MYPRINT("process noise: \n");
+					print_matrix(param->eta_noise_cov);
+					MYPRINT("\n");
+				}
+				
+				
+				for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
+					
+					if (t==(config->index_sbj)[sbj]){
+						for(col_index=0; col_index<config->dim_latent_var; col_index++){
+							gsl_vector_set(eta_j_t[regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
+						}
+						gsl_matrix_memcpy(error_cov_j_t[regime_j], (init->error_cov_0)[regime_j]);
+						
+						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
+						print_vector(eta_j_t[regime_j]);
+						MYPRINT("\n");
+						MYPRINT("error_cov_at_a_previous_time_point:\n");
+						print_matrix(error_cov_j_t[regime_j]);
+						MYPRINT("\n");*/
+						
+						innov_determinant = ext_kalmanfilter_updateonly(t, regime_k,
+							eta_j_t[regime_j], error_cov_j_t[regime_j],
+							y[t],co_variate[t],y_time,
+							param->eta_noise_cov, param->y_noise_cov,
+							param->func_param,
+							config->func_measure,
+							eta_jk_t_plus_1[regime_j][regime_k],
+							error_cov_jk_t_plus_1[regime_j][regime_k],
+							innov_v[regime_j][regime_k],
+							residual_cov[regime_j][regime_k]);/*inverse*/
+						
+						/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+						MYPRINT("\n");
+						MYPRINT("eta_jk:\n");
+						print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("error_cov_jk:\n");
+						print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("innov_vector:\n");
+						print_vector(innov_v[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("inverse of the residual covariance:\n");
+						print_matrix(residual_cov[regime_j][regime_k]);
+						MYPRINT("\n");*/
+						
+					} else {
+						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
+						print_vector(eta_j_t[regime_j]);
+						MYPRINT("\n");
+						MYPRINT("error_cov_at_a_previous_time_point:\n");
+						print_matrix(error_cov_j_t[regime_j]);
+						MYPRINT("\n");*/
+						
+						innov_determinant=ext_kalmanfilter(t, regime_k,
+							eta_j_t[regime_j], error_cov_j_t[regime_j],
+							y[t],co_variate[t],y_time,
+							param->eta_noise_cov, param->y_noise_cov,
+							param->func_param,config->num_func_param,
+							config->isContinuousTime,
+							config->func_measure,
+							config->func_dx_dt,
+							config->func_dP_dt,
+							config->func_dF_dx,
+							config->func_dynam,
+							config->func_jacob_dynam,
+							eta_jk_t_plus_1[regime_j][regime_k],
+							error_cov_jk_t_plus_1[regime_j][regime_k],
+							innov_v[regime_j][regime_k],
+							residual_cov[regime_j][regime_k]);/*inverse*/
+						
+						/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+						MYPRINT("\n");
+						MYPRINT("eta_jk:\n");
+						print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("error_cov_jk:\n");
+						print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("innov_vector:\n");
+						print_vector(innov_v[regime_j][regime_k]);
+						MYPRINT("\n");
+						MYPRINT("inverse of the residual covariance:\n");
+						print_matrix(residual_cov[regime_j][regime_k]);
+						MYPRINT("\n");*/
+					}
+					
+					/*for(col_index=0; col_index<config->dim_latent_var; col_index++){
+						fprintf(eta_file, " %lf", gsl_vector_get(eta_jk_t_plus_1[0][0], col_index));
+					}
+					fprintf(eta_file,"\n");*/
+					
+					/*change, for random effect estimation*/
+					/*if (t==(config->index_sbj)[sbj+1]-1){
+						gsl_vector_set((init->eta_0)[regime_j],config->dim_latent_var*sbj+2,gsl_vector_get(eta_jk_t_plus_1[regime_j][regime_k], 2));
+					}*/
+					
+					/** step 2: call hamilton filter to compute the probability of moving one step ahead **/
+					
+					/** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
+					tran_prob_jk=gsl_vector_get(pr_t, regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
+					
+					/*MYPRINT("prob_regime:\n");
+					print_vector(pr_t);
+					MYPRINT("\n");*/
+					
+					/** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
+					neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss, innov_determinant);
+					
+					/** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
+					double numNotMissingVars = mathfunction_sum_vector(y_non_miss);
+					double tooSmallNumber = numNotMissingVars < 80 ? pow(1e-4, numNotMissingVars):1e-322;
+					double tryP = exp(-neg_log_p);
+					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
+					
+					if(DEBUG_BREKFIS){
+						MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
+						MYPRINT("before exponential %lf\n",neg_log_p);
+						MYPRINT("original %lf\n",exp(-neg_log_p));
+						MYPRINT("adjusted %lf\n",p);
+					}
+					
+					/*p=exp(-neg_log_p)*tran_prob_jk;*/
+					gsl_matrix_set(like_jk, regime_j, regime_k, p*tran_prob_jk);
+					
+				}/*end of from regime j*/
+			}/*end of to regime k*/
+			/*Still inside the subject and time loops*/
+			
+			/** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
+			if (config->isnegloglikeweightedbyT){
                 log_like+=log(mathfunction_matrix_normalize(like_jk))/((config->index_sbj)[sbj+1]-(config->index_sbj)[sbj]);
             }else{
                 log_like+=log(mathfunction_matrix_normalize(like_jk));
@@ -295,16 +298,17 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             /*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
             /*individual ÐLL is now divided by each individualÕs number of occasions. This helps speed convergence and ensure that each individualÕs data get weighted equally regardless of T_i.*/
 
-
-            /*MYPRINT("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
-            print_matrix(like_jk);
-            MYPRINT("\n");
-
-            MYPRINT("negative log likelihood at time %lu:\n",t);
-            MYPRINT("%lf",-log_like);
-            MYPRINT("\n");
-
-            MYPRINT("Pr(S_it=k|Y_it) oringinal and adjusted:\n");*/
+			if(DEBUG_BREKFIS){
+	            MYPRINT("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
+	            print_matrix(like_jk);
+	            MYPRINT("\n");
+	
+	            MYPRINT("negative log likelihood at time %lu:\n",t);
+	            MYPRINT("%lf",-log_like);
+	            MYPRINT("\n");
+	
+	            MYPRINT("Pr(S_it=k|Y_it) original and adjusted:\n");
+			}
 
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
                     sum_overj=0;
@@ -389,60 +393,58 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
        /*if (sbj==2){exit(0);}*/
          /*fprintf(h_file, "%d", t+1);*/
     }/*end of sbj*/
-
-    /*fclose(h_file);*/
-    /*fclose(eta_file);*/
-    /*fclose(pr_file);*/
-    /****************************** free allocated space ***************************/
-    for(regime_j=0; regime_j<config->num_regime; regime_j++)
-        gsl_vector_free(eta_j_t[regime_j]);
-    free(eta_j_t);
-    for(regime_j=0; regime_j<config->num_regime; regime_j++)
-        gsl_matrix_free(error_cov_j_t[regime_j]);
-    free(error_cov_j_t);
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            gsl_vector_free(eta_jk_t_plus_1[regime_j][regime_k]);
-    }
-    for(regime_j=0; regime_j<config->num_regime; regime_j++)
-        free(eta_jk_t_plus_1[regime_j]);
-    free(eta_jk_t_plus_1);
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            gsl_matrix_free(error_cov_jk_t_plus_1[regime_j][regime_k]);
-    }
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        free(error_cov_jk_t_plus_1[regime_j]);
-    }
-    free(error_cov_jk_t_plus_1);
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            gsl_vector_free(innov_v[regime_j][regime_k]);
-    }
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        free(innov_v[regime_j]);
-    }
-    free(innov_v);
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        for(regime_k=0; regime_k<config->num_regime; regime_k++)
-            gsl_matrix_free(residual_cov[regime_j][regime_k]);
-    }
-    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-        free(residual_cov[regime_j]);
-    }
-    free(residual_cov);
-
-    gsl_vector_free(pr_t);
-    gsl_matrix_free(like_jk);
+	
+	/*fclose(h_file);*/
+	/*fclose(eta_file);*/
+	/*fclose(pr_file);*/
+	/****************************** free allocated space ***************************/
+	for(regime_j=0; regime_j<config->num_regime; regime_j++)
+		gsl_vector_free(eta_j_t[regime_j]);
+	free(eta_j_t);
+	for(regime_j=0; regime_j<config->num_regime; regime_j++)
+		gsl_matrix_free(error_cov_j_t[regime_j]);
+	free(error_cov_j_t);
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		for(regime_k=0; regime_k<config->num_regime; regime_k++)
+		gsl_vector_free(eta_jk_t_plus_1[regime_j][regime_k]);
+	}
+	for(regime_j=0; regime_j<config->num_regime; regime_j++)
+		free(eta_jk_t_plus_1[regime_j]);
+	free(eta_jk_t_plus_1);
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		for(regime_k=0; regime_k<config->num_regime; regime_k++)
+			gsl_matrix_free(error_cov_jk_t_plus_1[regime_j][regime_k]);
+	}
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		free(error_cov_jk_t_plus_1[regime_j]);
+	}
+	free(error_cov_jk_t_plus_1);
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		for(regime_k=0; regime_k<config->num_regime; regime_k++)
+			gsl_vector_free(innov_v[regime_j][regime_k]);
+	}
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		free(innov_v[regime_j]);
+	}
+	free(innov_v);
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		for(regime_k=0; regime_k<config->num_regime; regime_k++)
+			gsl_matrix_free(residual_cov[regime_j][regime_k]);
+	}
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+		free(residual_cov[regime_j]);
+	}
+	free(residual_cov);
+	
+	gsl_vector_free(pr_t);
+	gsl_matrix_free(like_jk);
 	gsl_vector_free(cp_y_t);
-	gsl_vector_free(y_non_miss);	
-
-
-    gsl_vector_free(diff_eta_vec);
-    gsl_matrix_free(diff_eta);
-    gsl_matrix_free(modif_p);
-
-    return(-log_like);
+	gsl_vector_free(y_non_miss);
+	gsl_vector_free(diff_eta_vec);
+	gsl_matrix_free(diff_eta);
+	gsl_matrix_free(modif_p);
+	
+	return(-log_like);
 }
 
 
