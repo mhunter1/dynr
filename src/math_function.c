@@ -19,14 +19,14 @@
  * @param inv_cov_matrix the covariance matrix
  * @return the negative log-likelihood
  */
-double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss,double det){
+double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss, double det){
 	/*MYPRINT("x(0)=%f\n", gsl_vector_get(x, 0));*/
 	double result = 0;
 	
 	/*handling missing data*/
-	double non_miss_size=mathfunction_sum_vector(y_non_miss);/*miss 0 not 1*/
+	double non_miss_size = mathfunction_sum_vector(y_non_miss); /*miss 0 not 1*/
 	if (non_miss_size!=0){
-		if (non_miss_size<y_non_miss->size){
+		if (non_miss_size < y_non_miss->size){
 			
 			gsl_matrix *inv_cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
 			gsl_matrix *cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
@@ -57,13 +57,13 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 			gsl_matrix_free(temp);
 			gsl_matrix_free(invtemp);
 			*/
-			size_t i,j=0; 	    
+			size_t i,j=0;
 			size_t i_s=0,j_s=0; 
 			for(i=0; i<y_non_miss->size; i++){
 				if(gsl_vector_get(y_non_miss, i)==1){
 					gsl_matrix_set(inv_cov_mat_small,i_s,i_s,gsl_matrix_get(inv_cov_matrix,i,i));
 					j_s=i_s+1;
-					for(j=i+1; j<y_non_miss->size; j++){				
+					for(j=i+1; j<y_non_miss->size; j++){
 						if(gsl_vector_get(y_non_miss, j)==1){
 							gsl_matrix_set(inv_cov_mat_small,i_s,j_s,gsl_matrix_get(inv_cov_matrix,i,j));
 							gsl_matrix_set(inv_cov_mat_small,j_s,i_s,gsl_matrix_get(inv_cov_matrix,i,j));
