@@ -16,6 +16,7 @@ man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
+man/dynr.mi.Rd
 man/dynr.model.Rd
 man/dynr.plotFreq.Rd
 man/dynrCook-class.Rd
