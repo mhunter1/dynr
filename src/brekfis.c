@@ -271,7 +271,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					
 					/** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
 					double numNotMissingVars = mathfunction_sum_vector(y_non_miss);
-					double tooSmallNumber = numNotMissingVars < 80 ? pow(1e-4, numNotMissingVars):1e-322;
+					double tooSmallNumber = numNotMissingVars < 32 ? pow(1e-10, numNotMissingVars):1e-322;
 					double tryP = exp(-neg_log_p);
 					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
 					
