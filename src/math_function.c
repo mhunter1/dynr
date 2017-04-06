@@ -130,7 +130,7 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
-	if(fabs(det) < pow(1.0e-6, mat->size1) || info == GSL_EDOM){
+	if(fabs(det) < pow(1e-6, mat->size1) || info == GSL_EDOM){
 		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
 		/*gsl_matrix_set_all(inv_mat, 10000.0);*/
 		gsl_matrix_memcpy(inv_mat, mat);
@@ -158,7 +158,7 @@ double mathfunction_inv_matrix_det(const gsl_matrix *mat, gsl_matrix *inv_mat){
 	double det=0.0;
 	int info = gsl_linalg_cholesky_decomp(inv_mat);
 	det = mathfunction_cholesky_det(inv_mat);
-	if(fabs(det) < pow(1.0e-6, mat->size1) || info == GSL_EDOM){
+	if(fabs(det) < pow(1e-6, mat->size1) || info == GSL_EDOM){
 		/* MYPRINT("Singular or non-positive definite matrix found by mathfunction_inv_matrix_det().\n"); */
 		/*gsl_matrix_set_all(inv_mat, 10000.0);*/
 		gsl_matrix_memcpy(inv_mat, mat);
@@ -196,7 +196,7 @@ double mathfunction_cholesky_det(const gsl_matrix *mat){
 void mathfunction_moore_penrose_pinv(gsl_matrix *inv_mat) {
     
 	/*a real number specifying the singular value threshold for inclusion.*/ 
-	const double rcond=1.0e-15;
+	const double rcond=1e-15;
 	
 	size_t i;
 	
