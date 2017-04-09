@@ -325,7 +325,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	}/*end of k*/
 
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
-			double tooSmallRegimeNumber = config->num_regime < 30 ? pow(1e-10, numNotMissingVars):1e-300;
+			double tooSmallRegimeNumber = config->num_regime < 30 ? pow(1e-10, config->num_regime):1e-300;
 	    	if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
 	        	gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
 	        	mathfunction_vector_normalize(pr_t);
