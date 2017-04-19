@@ -363,38 +363,6 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
 	    }
-	    /*output of filter: eta^regime_jk_it|t*/
-	    gsl_vector ****eta_regime_jk_t_plus_1=(gsl_vector ****)malloc(data_model.pc.total_obs*sizeof(gsl_vector ***));
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		eta_regime_jk_t_plus_1[index_sbj_t]=(gsl_vector ***)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    eta_regime_jk_t_plus_1[index_sbj_t][regime_j]=(gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
-		}
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-		    eta_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(data_model.pc.dim_latent_var);
-		}
-	    }
-	    /*output of filter: error_cov^regime_jk_it|t*/
-	    gsl_matrix ****error_cov_regime_jk_t_plus_1=(gsl_matrix ****)malloc(data_model.pc.total_obs*sizeof(gsl_matrix ***));
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		error_cov_regime_jk_t_plus_1[index_sbj_t]=(gsl_matrix ***)malloc(data_model.pc.num_regime*sizeof(gsl_matrix **));
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j]=(gsl_matrix **)malloc(data_model.pc.num_regime*sizeof(gsl_matrix *));
-		}
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-			error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
-		}
-	    }
 	    /*output of filter and input of smooth: Pr(S_it=k|Y_it)*/
 	    gsl_vector **pr_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
@@ -519,8 +487,11 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    DYNRPRINT(verbose_flag, "\n");*/
 
         double neg_log_like=EKimFilter(data_model.y, data_model.co_variate, data_model.y_time, &(data_model.pc), &pi, &par,
-	    eta_regime_j_t,error_cov_regime_j_t,eta_regime_jk_pred,error_cov_regime_jk_pred,eta_regime_jk_t_plus_1,error_cov_regime_jk_t_plus_1,
-	    pr_t, pr_t_given_t_minus_1,innov_v,inv_residual_cov, eta_t, error_cov_t);
+	    	eta_regime_j_t, error_cov_regime_j_t,
+			eta_regime_jk_pred, error_cov_regime_jk_pred,
+	    	pr_t, pr_t_given_t_minus_1,
+			innov_v, inv_residual_cov, 
+			eta_t, error_cov_t);
 
 	    if ( status< 0) {
 			MYPRINT("nlopt failed!\n");
@@ -813,116 +784,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		SET_STRING_ELT(res_names, 18, mkChar("transprob_given_T"));
 		SET_VECTOR_ELT(res_list, 18, transprob_given_T);
 		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "transprob_given_T created and copied.\n");
-				
-		
-		SEXP dims_eta_regime_regime_t_pred=PROTECT(allocVector(INTSXP,4));
-		memcpy(INTEGER(dims_eta_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
-		SEXP eta_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_eta_regime_regime_t_pred));
-		index=0;
-		ptr_index=REAL(eta_regime_regime_t_pred);
-		
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
-						ptr_index[index]=gsl_vector_get(eta_regime_jk_pred[index_sbj_t][regime_j][regime_k],index_col);
-						index++;
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 12, mkChar("eta_regime_regime_t_pred"));
-		SET_VECTOR_ELT(res_list, 12, eta_regime_regime_t_pred);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "eta_regime_regime_t_pred created and copied.\n");
-		
-		SEXP dims_error_cov_regime_regime_t_pred=PROTECT(allocVector(INTSXP,5));
-		/*DYNRPRINT(verbose_flag, "SEXP dimension created and protected.\n");*/    
-		memcpy(INTEGER(dims_error_cov_regime_regime_t_pred), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
-		/*DYNRPRINT(verbose_flag, "dimension intergers copied.\n");    
-		DYNRPRINT(verbose_flag, "dim_latent_var is %lu, num_regime is %lu, total_obs is %lu\n", data_model.pc.dim_latent_var, data_model.pc.num_regime,data_model.pc.total_obs);
-		DYNRPRINT(verbose_flag, "dimensions are %d %d %d %d %d\n", INTEGER(dims_error_cov_regime_regime_t_pred)[0], INTEGER(dims_error_cov_regime_regime_t_pred)[1],INTEGER(dims_error_cov_regime_regime_t_pred)[2],INTEGER(dims_error_cov_regime_regime_t_pred)[3],INTEGER(dims_error_cov_regime_regime_t_pred)[4]);   
-		*/
-		SEXP error_cov_regime_regime_t_pred = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_pred));
-		/*DYNRPRINT(verbose_flag, "SEXP array created and protected.\n");
-		*/
-		index=0;
-		ptr_index=REAL(error_cov_regime_regime_t_pred);
-		/*DYNRPRINT(verbose_flag, "Pointer address assigned.\n");
-		*/
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
-						for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
-							ptr_index[index]=gsl_matrix_get(error_cov_regime_jk_pred[index_sbj_t][regime_j][regime_k],index_row, index_col);
-							/* DYNRPRINT(verbose_flag, "the %lu element error_cov_regime_jk_pred %lu %lu %lu %lu %lu is %f\n",index, index_sbj_t,regime_j,regime_k,index_row,index_col, elementvalue);
-							*/
-							/*DYNRPRINT(verbose_flag, "the element is copied.\n");*/
-							index++;
-						}
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 13, mkChar("error_cov_regime_regime_t_pred"));
-		SET_VECTOR_ELT(res_list, 13, error_cov_regime_regime_t_pred);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "error_cov_regime_regime_t_pred created and copied.\n");
-		
-		SEXP dims_eta_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,4));
-		memcpy(INTEGER(dims_eta_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
-		SEXP eta_regime_regime_t_plus_1 = PROTECT(Rf_allocArray(REALSXP,dims_eta_regime_regime_t_plus_1));
-		index=0;
-		ptr_index=REAL(eta_regime_regime_t_plus_1);
-		
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
-						ptr_index[index]=gsl_vector_get(eta_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k],index_col);
-						index++;
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 14, mkChar("eta_regime_regime_t_plus_1"));
-		SET_VECTOR_ELT(res_list, 14, eta_regime_regime_t_plus_1);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "eta_regime_regime_t_plus_1 created and copied.\n");
-		
-		SEXP dims_error_cov_regime_regime_t_plus_1=PROTECT(allocVector(INTSXP,5));
-		/*DYNRPRINT(verbose_flag, "SEXP dimension created and protected.\n");
-		*/
-		memcpy(INTEGER(dims_error_cov_regime_regime_t_plus_1), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime, data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
-		SEXP error_cov_regime_regime_t_plus_1 = PROTECT(Rf_allocArray(REALSXP,dims_error_cov_regime_regime_t_plus_1));
-		/*DYNRPRINT(verbose_flag, "SEXP array created and protected.\n");
-		*/
-		index=0;
-		ptr_index=REAL(error_cov_regime_regime_t_plus_1);
-		
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
-						for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
-							ptr_index[index]=gsl_matrix_get(error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k],index_row, index_col);
-							index++;
-						}
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 15, mkChar("error_cov_regime_regime_t_plus_1"));
-		SET_VECTOR_ELT(res_list, 15, error_cov_regime_regime_t_plus_1);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "error_cov_regime_regime_t_plus_1 created and copied.\n");
-	
+		DYNRPRINT(verbose_flag, "transprob_given_T created and copied.\n");	
 	
 	}
-	
-	
 	
 	
 	setAttrib(res_list, R_NamesSymbol, res_names);
@@ -1045,41 +909,6 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
         free(error_cov_regime_jk_pred[index_sbj_t]);
     }
     free(error_cov_regime_jk_pred);
-
-
-    /*output of filter: eta^regime_jk_it|t*/
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-            gsl_vector_free(eta_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            free(eta_regime_jk_t_plus_1[index_sbj_t][regime_j]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        free(eta_regime_jk_t_plus_1[index_sbj_t]);
-    }
-    free(eta_regime_jk_t_plus_1);
-
-    /*output of filter: error_cov^regime_jk_it|t*/
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-                gsl_matrix_free(error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            free(error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        free(error_cov_regime_jk_t_plus_1[index_sbj_t]);
-    }
-    free(error_cov_regime_jk_t_plus_1);
 
     /*output of filter and input of smooth: Pr(S_it=k|Y_it)*/
     for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
