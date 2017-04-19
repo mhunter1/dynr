@@ -496,4 +496,32 @@ double mathfunction_mat_trace(const gsl_matrix *mat){
     return tr;
 }
 
-
+/**
+ * This function collapses regime-dependent matrices by adding to a target matrix
+ * the following weighted score:
+ *	weight * [mat_add + (vec_former-vec_latter)(vec_former-vec_latter)']  (1)
+ * @param vec_former the vec_former in Equation (1)
+ * @param vec_latter the vec_latter in Equation (1)
+ * @param mat_add the mat_add in Equation (1)
+ * @param weight the weight in Equation (1) 
+ * @param mat_tomodify the target square matrix to be modified.
+ * @param temp_diff_vec temporary vector space holder for the difference.
+ * @param temp_diff_col temporary matrix column space holder for the difference.
+ * @param temp_modif_mat temporary matrix space holder.
+ */
+void mathfunction_collapse(gsl_vector *vec_former, gsl_vector *vec_latter,
+	gsl_matrix *mat_add, double weight, gsl_matrix *mat_tomodify,
+	gsl_vector *temp_diff_vec, gsl_matrix *temp_diff_col, gsl_matrix *temp_modif_mat){
+	/* compute vec_former-vec_latter*/
+	gsl_vector_memcpy(temp_diff_vec, vec_former);
+	gsl_vector_sub(temp_diff_vec, vec_latter);
+	gsl_matrix_set_col(temp_diff_col, 0, temp_diff_vec);
+	/* compute (vec_former-vec_latter)(vec_former-vec_latter)'*/
+	gsl_matrix_set_zero(temp_modif_mat);
+	gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, temp_diff_col, temp_diff_col, 0.0, temp_modif_mat);
+	/* compute W_{i,t}{P^{k}+(vec_former-vec_latter)(vec_former-vec_latter)'}*/
+	gsl_matrix_add(temp_modif_mat, mat_add);
+	gsl_matrix_scale(temp_modif_mat, weight);
+	/* compute sum_j{}*/
+	gsl_matrix_add(mat_tomodify, temp_modif_mat);
+}

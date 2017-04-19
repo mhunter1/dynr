@@ -68,7 +68,23 @@ void mathfunction_inv_matrix(const gsl_matrix *mat, gsl_matrix *inv_mat);
  *
  **/
 void mathfunction_moore_penrose_pinv(gsl_matrix *inv_mat);
-
+/**
+ * This function collapses regime-dependent matrices by adding to a target matrix 
+ * the following weighted score:
+ *	weight * [mat_add + (vec_former-vec_latter)(vec_former-vec_latter)']  (1)
+ * @param vec_former the vec_former in Equation (1)
+ * @param vec_latter the vec_latter in Equation (1)
+ * @param mat_add the mat_add in Equation (1)
+ * @param weight the weight in Equation (1) 
+ * @param mat_tomodify the target square matrix to be modified.
+ * @param temp_diff_vec temporary vector space holder for the difference.
+ * @param temp_diff_col temporary matrix column space holder for the difference.
+ * @param temp_modif_mat temporary matrix space holder.
+ */
+void mathfunction_collapse(gsl_vector *vec_former, gsl_vector *vec_latter, 
+	gsl_matrix *mat_add, double weight, gsl_matrix *mat_tomodify,
+	gsl_vector *temp_diff_vec, gsl_matrix *temp_diff_col, gsl_matrix *temp_modif_mat);
+	
 /**
  * This method computes the trace of the given matrix
  * @param mat the target matrix, make sure the matrix is a square one.
