@@ -362,19 +362,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 
             	    /** step 3.2: collapse the covariance matrix to get error_cov_k **/
             	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-                            /* compute eta_j-eta_jk*/
-                            gsl_vector_memcpy(diff_eta_vec, eta_j_t[regime_k]);
-                            gsl_vector_sub(diff_eta_vec, eta_jk_t_plus_1[regime_j][regime_k]);
-                            gsl_matrix_set_col(diff_eta, 0, diff_eta_vec);
-                            /* compute (eta_j-eta_jk)(eta_j-eta_jk)'*/
-                            gsl_matrix_set_zero(modif_p);
-                            gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, diff_eta, diff_eta, 0.0, modif_p);
-                            /* compute W_{i,t}{P^{j,k}+(eta_j-eta_jk)(eta_j-eta_jk)'}*/
-                            gsl_matrix_add(modif_p, error_cov_jk_t_plus_1[regime_j][regime_k]);
+						
+						mathfunction_collapse(eta_j_t[regime_k], eta_jk_t_plus_1[regime_j][regime_k], 
+						error_cov_jk_t_plus_1[regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), error_cov_j_t[regime_k],
+						diff_eta_vec, diff_eta, modif_p);
 
-                            gsl_matrix_scale(modif_p, gsl_matrix_get(like_jk,regime_j, regime_k));
-                            /* compute sum_j{P^{j,k}+(eta_j-eta_jk)(eta_j-eta_jk)'}*/
-                            gsl_matrix_add(error_cov_j_t[regime_k], modif_p);
                     }/*end of j*/
                     gsl_matrix_scale(error_cov_j_t[regime_k], 1.0/gsl_vector_get(pr_t,regime_k));
 
@@ -620,14 +612,20 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi){
 * inv_residual_cov -- inverse of the residual covariance
 * eta_t -- filtered state estimate
 * error_cov_t -- filtered error covariance estimate
+* eta_pred_t -- predicted state estimate
+* error_cov_pred_t -- predicted error covariance estimate
 **/
 
 
 
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
-    gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ****eta_regime_jk_t_plus_1,gsl_matrix ****error_cov_regime_jk_t_plus_1,
-    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,gsl_vector ****innov_v,gsl_matrix ****inv_residual_cov, 
-	gsl_vector **eta_t, gsl_matrix **error_cov_t){
+    gsl_vector ***eta_regime_j_t, gsl_matrix ***error_cov_regime_j_t,
+	gsl_vector ****eta_regime_jk_pred, gsl_matrix ****error_cov_regime_jk_pred,
+	gsl_vector ****eta_regime_jk_t_plus_1, gsl_matrix ****error_cov_regime_jk_t_plus_1,
+    gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,
+	gsl_vector ****innov_v, gsl_matrix ****inv_residual_cov, 
+	gsl_vector **eta_t, gsl_matrix **error_cov_t, 
+	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t){
 
 
 
@@ -727,7 +725,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         param->eta_noise_cov, param->y_noise_cov,
                         param->func_param,
                         config->func_measure,
-                        eta_regime_jk_pred[t][regime_j][regime_k],error_cov_regime_jk_pred[t][regime_j][regime_k],
+                        eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k],
                         innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
 
@@ -773,7 +771,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						config->func_dF_dx,
                         config->func_dynam,
 						config->func_jacob_dynam,
-                        eta_regime_jk_pred[t][regime_j][regime_k],error_cov_regime_jk_pred[t][regime_j][regime_k],
+                        eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
 
 
@@ -919,19 +917,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
             	    /** step 3.2: collapse the covariance matrix to get error_cov_k **/
             	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-                            /* compute eta_j-eta_jk*/
-                            gsl_vector_memcpy(diff_eta_vec, eta_regime_j_t[t][regime_k]);
-                            gsl_vector_sub(diff_eta_vec, eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                            gsl_matrix_set_col(diff_eta, 0, diff_eta_vec);
-                            /* compute (eta_j-eta_jk)(eta_j-eta_jk)'*/
-                            gsl_matrix_set_zero(modif_p);
-                            gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, diff_eta, diff_eta, 0.0, modif_p);
-                            /* compute W_{i,t}{P^{j,k}+(eta_j-eta_jk)(eta_j-eta_jk)'}*/
-                            gsl_matrix_add(modif_p, error_cov_regime_jk_t_plus_1[t][regime_j][regime_k]);
+						
+						mathfunction_collapse(eta_regime_j_t[t][regime_k], eta_regime_jk_t_plus_1[t][regime_j][regime_k], 
+						error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), 
+						error_cov_regime_j_t[t][regime_k],
+						diff_eta_vec, diff_eta, modif_p);
 
-                            gsl_matrix_scale(modif_p, gsl_matrix_get(like_jk,regime_j, regime_k));
-                            /* compute sum_j{P^{j,k}+(eta_j-eta_jk)(eta_j-eta_jk)'}*/
-                            gsl_matrix_add(error_cov_regime_j_t[t][regime_k], modif_p);
                     }/*end of j*/
                     gsl_matrix_scale(error_cov_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
 
@@ -952,19 +943,11 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     	    	    print_vector(eta_t[t]);}*/
     	    }
     	    for(regime_k=0; regime_k<config->num_regime; regime_k++){
-					/* compute eta-eta_j*/
-					gsl_vector_memcpy(diff_eta_vec, eta_t[t]);
-					gsl_vector_sub(diff_eta_vec, eta_regime_j_t[t][regime_k]);
-					gsl_matrix_set_col(diff_eta, 0, diff_eta_vec);
-					/* compute (eta-eta_j)(eta-eta_j)'*/
-					gsl_matrix_set_zero(modif_p);
-					gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, diff_eta, diff_eta, 0.0, modif_p);
-					/* compute W_{i,t}{P^{k}+(eta-eta_j)(eta-eta_j)'}*/
-					gsl_matrix_add(modif_p, error_cov_regime_j_t[t][regime_k]);
+					
+					mathfunction_collapse(eta_t[t], eta_regime_j_t[t][regime_k], 
+					error_cov_regime_j_t[t][regime_k], gsl_vector_get(pr_t[t], regime_k), error_cov_t[t],
+					diff_eta_vec, diff_eta, modif_p);
 
-					gsl_matrix_scale(modif_p, gsl_vector_get(pr_t[t], regime_k));
-            		/* compute sum_j{}*/
-            		gsl_matrix_add(error_cov_t[t], modif_p);
 			}
 
 
@@ -1021,16 +1004,17 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 * **>>Output via using pointers<<**
 * transprob_T -- Pr(S_i,t+1=h, S_it=k|Y_iT)*
 * pr_T -- Pr(S_it=k|Y_iT)*
-* eta_regime_j_smooth -- eta^k_it|T *
-* error_cov_regime_j_smooth -- error_cov^k_it|T *
 * eta_smooth -- eta_it|T *
 * error_cov_smooth -- error_cov_it|T *
 * *
 **/
 
 void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *config, const Param *param,
-    gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,
-    gsl_vector ***eta_regime_j_smooth,gsl_matrix ***error_cov_regime_j_smooth,gsl_vector **eta_smooth,gsl_matrix **error_cov_smooth,gsl_vector **pr_T,gsl_vector ***transprob_T){
+    gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, 
+	gsl_vector ****eta_regime_jk_pred, gsl_matrix ****error_cov_regime_jk_pred,
+	gsl_vector ***eta_regime_j_t, gsl_matrix ***error_cov_regime_j_t,
+	gsl_vector **eta_smooth, gsl_matrix **error_cov_smooth,
+	gsl_vector **pr_T, gsl_vector ***transprob_T){
 
     /**initialization**/
     gsl_vector *temp_diff_eta_vec=gsl_vector_alloc(config->dim_latent_var);
@@ -1054,6 +1038,26 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
     gsl_matrix *error_cov_regime_jk_T=gsl_matrix_alloc(config->dim_latent_var,config->dim_latent_var);
     gsl_matrix *temp_diff_P=gsl_matrix_alloc(config->dim_latent_var,config->dim_latent_var);
 
+    /*eta^k_it|T*/
+    gsl_vector ***eta_regime_j_smooth=(gsl_vector ***)malloc(config->total_obs*sizeof(gsl_vector **));
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	eta_regime_j_smooth[index_sbj_t]=(gsl_vector **)malloc(config->num_regime*sizeof(gsl_vector *));
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    eta_regime_j_smooth[index_sbj_t][regime_j]=gsl_vector_calloc(config->dim_latent_var);
+	}
+    }
+    /*error_cov^k_it|T*/
+    gsl_matrix ***error_cov_regime_j_smooth=(gsl_matrix ***)malloc(config->total_obs*sizeof(gsl_matrix **));
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	error_cov_regime_j_smooth[index_sbj_t]=(gsl_matrix **)malloc(config->num_regime*sizeof(gsl_matrix *));
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    error_cov_regime_j_smooth[index_sbj_t][regime_j]=gsl_matrix_calloc(config->dim_latent_var,config->dim_latent_var);
+	}
+    }
 
     for(sbj=0; sbj<config->num_sbj; sbj++){/*start of the sbj loop*/
 
@@ -1068,18 +1072,10 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
 
             gsl_matrix_memcpy(error_cov_regime_j_smooth[t][regime_j], error_cov_regime_j_t[t][regime_j]);
-             /* compute eta_smooth[t]-eta_regime_j_smooth[t][regime_j]*/
-            gsl_vector_memcpy(temp_diff_eta_vec, eta_smooth[t]);
-            gsl_vector_sub(temp_diff_eta_vec, eta_regime_j_smooth[t][regime_j]);
-            gsl_matrix_set_col(temp_diff_eta, 0, temp_diff_eta_vec);
-            /* compute (eta_smooth[t]-eta_regime_j_smooth[t][regime_j])(eta_smooth[t]-eta_regime_j_smooth[t][regime_j])'*/
-            gsl_matrix_set_zero(temp_modif_p);
-            gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, temp_diff_eta, temp_diff_eta, 0.0, temp_modif_p);
-            /* compute W_{i,t}{P^{regime_j,k}+(eta_regime_j-eta_regime_jk)(eta_regime_j-eta_regime_jk)'}*/
-            gsl_matrix_add(temp_modif_p, error_cov_regime_j_smooth[t][regime_j]);
-            gsl_matrix_scale(temp_modif_p, gsl_vector_get(pr_T[t],regime_j));
-            /* compute sum_regime_j{P^{regime_j,k}+(eta_regime_j-eta_regime_jk)(eta_regime_j-eta_regime_jk)'}*/
-            gsl_matrix_add(error_cov_smooth[t], temp_modif_p);
+			
+			mathfunction_collapse(eta_smooth[t], eta_regime_j_smooth[t][regime_j], 
+			error_cov_regime_j_smooth[t][regime_j], gsl_vector_get(pr_T[t],regime_j), error_cov_smooth[t],
+			temp_diff_eta_vec, temp_diff_eta, temp_modif_p);
 
         }
 
@@ -1170,18 +1166,9 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     gsl_blas_daxpy(gsl_vector_get(transprob_T[t][regime_j],regime_k), eta_regime_jk_T_vec, eta_regime_j_smooth[t][regime_j]);;
 
                     /*error_cov_regime_j_smooth[t][regime_j]*/
-                    /* compute eta_regime_j_smooth[t][regime_j]-eta_regime_jk_T_vec*/
-                    gsl_vector_memcpy(temp_diff_eta_vec, eta_regime_j_smooth[t][regime_j]);
-                    gsl_vector_sub(temp_diff_eta_vec, eta_regime_jk_T_vec);
-                    gsl_matrix_set_col(temp_diff_eta, 0, temp_diff_eta_vec);
-                    /* compute (eta_regime_j_smooth[t][regime_j]-eta_regime_jk_T_vec)(eta_regime_j_smooth[t][regime_j]-eta_regime_jk_T_vec)'*/
-                    gsl_matrix_set_zero(temp_modif_p);
-                    gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, temp_diff_eta, temp_diff_eta, 0.0, temp_modif_p);
-                    /* compute W_{i,t}{P^{regime_j,k}+(eta_regime_j_smooth[t][regime_j]-eta_regime_jk_T_vec)(eta_regime_j_smooth[t][regime_j]-eta_regime_jk_T_vec)'}*/
-                    gsl_matrix_add(temp_modif_p, error_cov_regime_jk_T);
-                    gsl_matrix_scale(temp_modif_p, gsl_vector_get(transprob_T[t][regime_j],regime_k));
-                    /* compute sum_k W*{P^{regime_j,k}+(eta_regime_j-eta_regime_jk)(eta_regime_j-eta_regime_jk)'}*/
-                    gsl_matrix_add(error_cov_regime_j_smooth[t][regime_j], temp_modif_p);
+					mathfunction_collapse(eta_regime_j_smooth[t][regime_j], eta_regime_jk_T_vec, 
+					error_cov_regime_jk_T, gsl_vector_get(transprob_T[t][regime_j],regime_k), error_cov_regime_j_smooth[t][regime_j],
+					temp_diff_eta_vec, temp_diff_eta, temp_modif_p);
 
                     /*if(t==998){
                     print_matrix(Jacob_dyn_x);
@@ -1227,18 +1214,9 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 
                 gsl_blas_daxpy(gsl_vector_get(pr_T[t],regime_j), eta_regime_j_smooth[t][regime_j], eta_smooth[t]);/*eta_smooth[t]=eta_smooth[t]+gsl_vector_get(pr_T[t],regime_j)*eta_regime_j_smooth[t][regime_j]*/
 
-                /* compute eta_smooth[t]-eta_regime_j_smooth[t][regime_j]*/
-                gsl_vector_memcpy(temp_diff_eta_vec, eta_smooth[t]);
-                gsl_vector_sub(temp_diff_eta_vec, eta_regime_j_smooth[t][regime_j]);
-                gsl_matrix_set_col(temp_diff_eta, 0, temp_diff_eta_vec);
-                /* compute (eta_smooth[t]-eta_regime_j_smooth[t][regime_j])(eta_smooth[t]-eta_regime_j_smooth[t][regime_j])'*/
-                gsl_matrix_set_zero(temp_modif_p);
-                gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, temp_diff_eta, temp_diff_eta, 0.0, temp_modif_p);
-                /* compute gsl_vector_get(pr_T[t],regime_j)*{error_cov_regime_j_smooth[t][regime_j]+(eta_regime_j-eta_regime_jk)(eta_regime_j-eta_regime_jk)'}*/
-                gsl_matrix_add(temp_modif_p, error_cov_regime_j_smooth[t][regime_j]);
-                gsl_matrix_scale(temp_modif_p, gsl_vector_get(pr_T[t],regime_j));
-                /* compute sum_regime_j gsl_vector_get(pr_T[t],regime_j)*{error_cov_regime_j_smooth[t][regime_j]+(eta_regime_j-eta_regime_jk)(eta_regime_j-eta_regime_jk)'}*/
-                gsl_matrix_add(error_cov_smooth[t], temp_modif_p);
+				mathfunction_collapse(eta_smooth[t], eta_regime_j_smooth[t][regime_j], 
+				error_cov_regime_j_smooth[t][regime_j], gsl_vector_get(pr_T[t],regime_j), error_cov_smooth[t],
+				temp_diff_eta_vec, temp_diff_eta, temp_modif_p);
 
             }
 			
@@ -1269,6 +1247,30 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
     gsl_vector_free(eta_regime_jk_T_vec);
     gsl_matrix_free(error_cov_regime_jk_T);
     gsl_matrix_free(temp_diff_P);
+	
+    /*output of smooth: eta^k_it|T*/
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            gsl_vector_free(eta_regime_j_smooth[index_sbj_t][regime_j]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        free(eta_regime_j_smooth[index_sbj_t]);
+    }
+    free(eta_regime_j_smooth);
+
+
+    /*output of smooth: error_cov^k_it|T*/
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            gsl_matrix_free(error_cov_regime_j_smooth[index_sbj_t][regime_j]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        free(error_cov_regime_j_smooth[index_sbj_t]);
+    }
+    free(error_cov_regime_j_smooth);
+	
 
 }/*end of function EKimSmoother*/
 

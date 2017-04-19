@@ -89,15 +89,14 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 * **>>Output via using pointers<<**
 * transprob_T -- Pr(S_i,t+1=h, S_it=k|Y_iT)*
 * pr_T -- Pr(S_it=k|Y_iT)*
-* eta_regime_j_smooth -- eta^k_it|T *
-* error_cov_regime_j_smooth -- error_cov^k_it|T *
 * eta_smooth -- eta_it|T *
 * error_cov_smooth -- error_cov_it|T *
 * *
 **/
 
 void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *config, const Param *param,
-    gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,
-    gsl_vector ***eta_regime_j_smooth,gsl_matrix ***error_cov_regime_j_smooth,gsl_vector **eta_smooth,gsl_matrix **error_cov_smooth,gsl_vector **pr_T,gsl_vector ***transprob_T);
+    gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, 
+	gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,
+    gsl_vector **eta_smooth,gsl_matrix **error_cov_smooth,gsl_vector **pr_T,gsl_vector ***transprob_T);
 
 #endif
