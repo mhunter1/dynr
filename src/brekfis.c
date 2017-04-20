@@ -605,21 +605,21 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi){
 * pr_t -- Pr(S_it=k|Y_it) *
 * eta_regime_jk_pred -- eta^regime_jk_it|t-1 *
 * error_cov_regime_jk_pred -- error_cov^regime_jk_it|t-1 *
-* innov_v -- innovation vector
-* inv_residual_cov -- inverse of the residual covariance
 * eta_t -- filtered state estimate
 * error_cov_t -- filtered error covariance estimate
 * eta_pred_t -- predicted state estimate
 * error_cov_pred_t -- predicted error covariance estimate
+* innov_v_t -- innovation vector
+* residual_cov_t -- inverse of the residual covariance
 **/
 
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
     gsl_vector ***eta_regime_j_t, gsl_matrix ***error_cov_regime_j_t,
 	gsl_vector ****eta_regime_jk_pred, gsl_matrix ****error_cov_regime_jk_pred,
     gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,
-	gsl_vector ****innov_v, gsl_matrix ****inv_residual_cov, 
 	gsl_vector **eta_t, gsl_matrix **error_cov_t, 
-	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t){
+	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t,
+	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t){
 
 
     /************** initialization *****************************************************************/
@@ -667,6 +667,57 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	for(regime_j=0; regime_j<config->num_regime; regime_j++){
 	    for(regime_k=0; regime_k<config->num_regime; regime_k++)
 		error_cov_regime_jk_t_plus_1[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(config->dim_latent_var, config->dim_latent_var);
+	}
+    }
+	
+    /*output of filter: innovation vector*/
+    gsl_vector ****innov_v=(gsl_vector ****)malloc(config->total_obs*sizeof(gsl_vector ***));
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	innov_v[index_sbj_t]=(gsl_vector ***)malloc(config->num_regime*sizeof(gsl_vector *));
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    innov_v[index_sbj_t][regime_j]=(gsl_vector **)malloc(config->num_regime*sizeof(gsl_vector *));
+	}
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    for(regime_k=0; regime_k<config->num_regime; regime_k++)
+	    innov_v[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(config->dim_obs_var);
+	}
+    }
+	
+    /*output of filter: inverse_residual_cov*/
+    gsl_matrix ****inv_residual_cov=(gsl_matrix ****)malloc(config->total_obs*sizeof(gsl_matrix ***));
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	inv_residual_cov[index_sbj_t]=(gsl_matrix ***)malloc(config->num_regime*sizeof(gsl_matrix **));
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    inv_residual_cov[index_sbj_t][regime_j]=(gsl_matrix **)malloc(config->num_regime*sizeof(gsl_matrix *));
+	}
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    for(regime_k=0; regime_k<config->num_regime; regime_k++)
+		inv_residual_cov[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(config->dim_obs_var, config->dim_obs_var);
+	}
+    }
+	
+    /*output of filter: residual_cov*/
+    gsl_matrix ****residual_cov=(gsl_matrix ****)malloc(config->total_obs*sizeof(gsl_matrix ***));
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+		residual_cov[index_sbj_t]=(gsl_matrix ***)malloc(config->num_regime*sizeof(gsl_matrix **));
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    residual_cov[index_sbj_t][regime_j]=(gsl_matrix **)malloc(config->num_regime*sizeof(gsl_matrix *));
+	}
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+	for(regime_j=0; regime_j<config->num_regime; regime_j++){
+	    for(regime_k=0; regime_k<config->num_regime; regime_k++)
+		residual_cov[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(config->dim_obs_var, config->dim_obs_var);
 	}
     }
 	
@@ -755,7 +806,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         config->func_measure,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k],
-                        innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
+                        innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]);/*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
@@ -800,8 +851,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         config->func_dynam,
 						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
-                        eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k]);/*inverse*/
-
+                        eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
+						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]);/*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
@@ -1084,6 +1135,57 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
         free(error_cov_regime_jk_t_plus_1[index_sbj_t]);
     }
     free(error_cov_regime_jk_t_plus_1);
+	
+    /*output of filter: innovation vector*/
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            for(regime_k=0; regime_k<config->num_regime; regime_k++)
+            gsl_vector_free(innov_v[index_sbj_t][regime_j][regime_k]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            free(innov_v[index_sbj_t][regime_j]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        free(innov_v[index_sbj_t]);
+    }
+    free(innov_v);
+
+    /*output of filter: inverse_residual_cov*/
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            for(regime_k=0; regime_k<config->num_regime; regime_k++)
+                gsl_matrix_free(inv_residual_cov[index_sbj_t][regime_j][regime_k]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            free(inv_residual_cov[index_sbj_t][regime_j]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        free(inv_residual_cov[index_sbj_t]);
+    }
+    free(inv_residual_cov);
+	
+    /*output of filter: residual_cov*/
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            for(regime_k=0; regime_k<config->num_regime; regime_k++)
+                gsl_matrix_free(residual_cov[index_sbj_t][regime_j][regime_k]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        for(regime_j=0; regime_j<config->num_regime; regime_j++){
+            free(residual_cov[index_sbj_t][regime_j]);
+        }
+    }
+    for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
+        free(residual_cov[index_sbj_t]);
+    }
+    free(residual_cov);
 
     return(-log_like);
 }
@@ -1378,6 +1480,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
         free(error_cov_regime_j_smooth[index_sbj_t]);
     }
     free(error_cov_regime_j_smooth);
+	
 	
 
 }/*end of function EKimSmoother*/
