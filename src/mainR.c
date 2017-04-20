@@ -399,7 +399,6 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		    transprob_T[index_sbj_t][regime_j]=gsl_vector_calloc(data_model.pc.num_regime);
 		}
 	    }
-		
 	    /*output of filter: eta_it|t*/
 	    gsl_vector **eta_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
@@ -410,42 +409,26 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		error_cov_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
-	    
-
-	    /*output of filter: innovation vector*/
-	    gsl_vector ****innov_v=(gsl_vector ****)malloc(data_model.pc.total_obs*sizeof(gsl_vector ***));
+		/*output of filter: eta_it|t-1*/
+	    gsl_vector **eta_pred_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		innov_v[index_sbj_t]=(gsl_vector ***)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
+		eta_pred_t[index_sbj_t] = gsl_vector_calloc(data_model.pc.dim_latent_var);
 	    }
+		/*output of filter: error_cov_it|t-1*/
+	    gsl_matrix **error_cov_pred_t=(gsl_matrix **)malloc(data_model.pc.total_obs*sizeof(gsl_matrix *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    innov_v[index_sbj_t][regime_j]=(gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
+		error_cov_pred_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
-	    }
+		/*output of filter: innovation vector*/
+	    gsl_vector **innov_v_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-		    innov_v[index_sbj_t][regime_j][regime_k]=gsl_vector_calloc(data_model.pc.dim_obs_var);
+		innov_v_t[index_sbj_t] = gsl_vector_calloc(data_model.pc.dim_latent_var);
+	    }
+		/*output of filter: residual covariance*/
+	    gsl_matrix **residual_cov_t=(gsl_matrix **)malloc(data_model.pc.total_obs*sizeof(gsl_matrix *));
+	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+		residual_cov_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
-	    }
-	    /*output of filter: inverse_residual_cov*/
-	    gsl_matrix ****inv_residual_cov=(gsl_matrix ****)malloc(data_model.pc.total_obs*sizeof(gsl_matrix ***));
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		inv_residual_cov[index_sbj_t]=(gsl_matrix ***)malloc(data_model.pc.num_regime*sizeof(gsl_matrix **));
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    inv_residual_cov[index_sbj_t][regime_j]=(gsl_matrix **)malloc(data_model.pc.num_regime*sizeof(gsl_matrix *));
-		}
-	    }
-	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-		    for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-			inv_residual_cov[index_sbj_t][regime_j][regime_k]=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
-		}
-	    }
-
-
 
 	    /**Actual Functions**/
 	    /** initialize regime parameter**/
@@ -490,8 +473,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    	eta_regime_j_t, error_cov_regime_j_t,
 			eta_regime_jk_pred, error_cov_regime_jk_pred,
 	    	pr_t, pr_t_given_t_minus_1,
-			innov_v, inv_residual_cov, 
-			eta_t, error_cov_t);
+			eta_t, error_cov_t,
+			eta_pred_t, error_cov_pred_t, 
+			innov_v_t, residual_cov_t);
 
 	    if ( status< 0) {
 			MYPRINT("nlopt failed!\n");
@@ -962,40 +946,27 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	}
 	free(error_cov_t);
 	
+    /*output of filter: eta_it|t-1*/
+    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+		gsl_vector_free(eta_pred_t[index_sbj_t]);
+    }
+	free(eta_pred_t);
+	/*output of filter: error_cov_it|t-1*/
+    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+		gsl_matrix_free(error_cov_pred_t[index_sbj_t]);
+	}
+	free(error_cov_pred_t);
+	
     /*output of filter: innovation vector*/
     for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-            gsl_vector_free(innov_v[index_sbj_t][regime_j][regime_k]);
-        }
+		gsl_vector_free(innov_v_t[index_sbj_t]);
     }
+	free(innov_v_t);
+	/*output of filter: residual covariance*/
     for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            free(innov_v[index_sbj_t][regime_j]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        free(innov_v[index_sbj_t]);
-    }
-    free(innov_v);
-
-    /*output of filter: inverse_residual_cov*/
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++)
-                gsl_matrix_free(inv_residual_cov[index_sbj_t][regime_j][regime_k]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-            free(inv_residual_cov[index_sbj_t][regime_j]);
-        }
-    }
-    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-        free(inv_residual_cov[index_sbj_t]);
-    }
-    free(inv_residual_cov);
-
+		gsl_matrix_free(residual_cov_t[index_sbj_t]);
+	}
+	free(residual_cov_t);
 
     return res_list;
 }
