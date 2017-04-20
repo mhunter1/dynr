@@ -503,11 +503,10 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	SEXP res_names;
 	/*TODO Lu Delete the outall_flag*/
 	if (outall_flag){
-	    res_list=PROTECT(allocVector(VECSXP,21));
-	    res_names=PROTECT(allocVector(STRSXP, 21));
+		
 	}else if (debug_flag){
-	    res_list=PROTECT(allocVector(VECSXP,9));
-	    res_names=PROTECT(allocVector(STRSXP, 9));
+	    res_list=PROTECT(allocVector(VECSXP, 14));
+	    res_names=PROTECT(allocVector(STRSXP, 14));
 	}else{
 	    res_list=PROTECT(allocVector(VECSXP,10));
 	    res_names=PROTECT(allocVector(STRSXP, 10));
@@ -516,16 +515,27 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
     SEXP exitflag=PROTECT(allocVector(INTSXP,1));
     *INTEGER(exitflag)=status;
+    SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
+    SET_VECTOR_ELT(res_list, 0, exitflag);
+ 	UNPROTECT(1);
     DYNRPRINT(verbose_flag, "exitflag created and copied.\n");
+	
     SEXP negloglike=PROTECT(allocVector(REALSXP,1));
     *REAL(negloglike)=neg_log_like;/*should be the same as minf*/
+    SET_STRING_ELT(res_names, 1, mkChar("neg.log.likelihood"));
+    SET_VECTOR_ELT(res_list, 1, negloglike);
+	UNPROTECT(1);
     DYNRPRINT(verbose_flag, "negloglike created and copied.\n");
-    SEXP fittedout=PROTECT(allocVector(REALSXP, data_model.pc.num_func_param));
+    
+	SEXP fittedout=PROTECT(allocVector(REALSXP, data_model.pc.num_func_param));
 	/*DYNRPRINT(verbose_flag, "fittedout created.\n");*/
 	memcpy(REAL(fittedout),fittedpar,sizeof(fittedpar));
 	/*DYNRPRINT(verbose_flag, "fittedout copied.\n");
 	print_array(REAL(fittedout),data_model.pc.num_func_param);
 	DYNRPRINT(verbose_flag, "\n");*/
+    SET_STRING_ELT(res_names, 2, mkChar("fitted.parameters"));
+    SET_VECTOR_ELT(res_list, 2, fittedout);
+ 	UNPROTECT(1);
 	DYNRPRINT(verbose_flag, "fittedout created and copied.\n");
 
     SEXP hessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
@@ -539,6 +549,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
                  ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
              }
          }
+	SET_STRING_ELT(res_names, 3, mkChar("hessian.matrix"));
+	SET_VECTOR_ELT(res_list, 3, hessian);
+    UNPROTECT(1); 
     DYNRPRINT(verbose_flag, "hessian created and copied.\n");
     /*eta_regime_t: input and output of filter & input of smooth: eta^k_it|t*/
     /*error_cov_regime_t:input and output of filter & input of smooth: error_cov^k_it|t*/
@@ -567,6 +580,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	             index++;
 	         }
 	     }
+	 	 SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
+	     SET_VECTOR_ELT(res_list, 4, eta_smooth_final);
+		 UNPROTECT(2);
 	     DYNRPRINT(verbose_flag, "eta_smooth_final created and copied.\n");
 
 	     SEXP dims_error_cov_smooth_final=PROTECT(allocVector(INTSXP,3));
@@ -582,6 +598,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	             }
 	         }
 	     }
+	     SET_STRING_ELT(res_names, 5, mkChar("error_cov_smooth_final"));
+	     SET_VECTOR_ELT(res_list, 5, error_cov_smooth_final);
+		 UNPROTECT(2);
 	     DYNRPRINT(verbose_flag, "error_cov_smooth_final created and copied.\n");
 
 		 SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
@@ -595,6 +614,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 				 index++;
 			 }
 		 }
+	     SET_STRING_ELT(res_names, 6, mkChar("pr_t_given_T"));
+	     SET_VECTOR_ELT(res_list, 6, pr_t_given_T);
+		 UNPROTECT(2);
 		 DYNRPRINT(verbose_flag, "pr_t_given_T created and copied.\n");
 		 
 		 SEXP dims_pr_t_given_t=PROTECT(allocVector(INTSXP,2));
@@ -608,6 +630,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 				 index++;
 			 }
 		 }
+ 	 	 SET_STRING_ELT(res_names, 9, mkChar("pr_t_given_t"));
+ 	 	 SET_VECTOR_ELT(res_list, 9, pr_t_given_t);
+ 	 	 UNPROTECT(2);
 		 DYNRPRINT(verbose_flag, "pr_t_given_t created and copied.\n");
 
 		 	 
@@ -623,6 +648,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
  					index++;
  				}
  		}
+	 	SET_STRING_ELT(res_names, 7, mkChar("eta_filtered"));
+	 	SET_VECTOR_ELT(res_list, 7, eta_filtered);
+	 	UNPROTECT(2);
   		DYNRPRINT(verbose_flag, "eta_filtered created and copied.\n");
 		
  		/*filtered error covariance estimate*/
@@ -639,34 +667,13 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
  					}
  				}
  		}
- 	 	DYNRPRINT(verbose_flag, "error_cov_filtered created and copied.\n");
+	 	SET_STRING_ELT(res_names, 8, mkChar("error_cov_filtered"));
+	    SET_VECTOR_ELT(res_list, 8, error_cov_filtered);
+	    UNPROTECT(2);
+		DYNRPRINT(verbose_flag, "error_cov_filtered created and copied.\n");
 
-	     SET_STRING_ELT(res_names, 0, mkChar("exitflag"));
-	     SET_VECTOR_ELT(res_list, 0, exitflag);
-	     SET_STRING_ELT(res_names, 1, mkChar("neg.log.likelihood"));
-	     SET_VECTOR_ELT(res_list, 1, negloglike);
 
-	     SET_STRING_ELT(res_names, 2, mkChar("fitted.parameters"));
-	     SET_VECTOR_ELT(res_list, 2, fittedout);
-	     SET_STRING_ELT(res_names, 3, mkChar("hessian.matrix"));
-	     SET_VECTOR_ELT(res_list, 3, hessian);
-    
-	 	 SET_STRING_ELT(res_names, 4, mkChar("eta_smooth_final"));
-	     SET_VECTOR_ELT(res_list, 4, eta_smooth_final);
-	     SET_STRING_ELT(res_names, 5, mkChar("error_cov_smooth_final"));
-	     SET_VECTOR_ELT(res_list, 5, error_cov_smooth_final);
-	     SET_STRING_ELT(res_names, 6, mkChar("pr_t_given_T"));
-	     SET_VECTOR_ELT(res_list, 6, pr_t_given_T);
-
-		 SET_STRING_ELT(res_names, 7, mkChar("eta_filtered"));
-		 SET_VECTOR_ELT(res_list, 7, eta_filtered);
-		 SET_STRING_ELT(res_names, 8, mkChar("error_cov_filtered"));
-		 SET_VECTOR_ELT(res_list, 8, error_cov_filtered);
-		 SET_STRING_ELT(res_names, 9, mkChar("pr_t_given_t"));
-		 SET_VECTOR_ELT(res_list, 9, pr_t_given_t);
-		 
-		 
-	if (outall_flag|debug_flag){
+	if (debug_flag){
 		
  		/*predicted state estimate*/
  		SEXP dims_eta_predicted=PROTECT(allocVector(INTSXP, 2));
@@ -740,64 +747,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		UNPROTECT(2);
 		DYNRPRINT(verbose_flag, "residual_cov created and copied.\n");
 		
-	}
-	
-	/*TODO clean this part*/
-	if (outall_flag){
-		
-		SEXP invhessian=PROTECT(allocMatrix(REALSXP, data_model.pc.num_func_param, data_model.pc.num_func_param));
-		ptr_index=REAL(invhessian);
-		for (index=0;index<data_model.pc.num_func_param;index++){
-			ptr_index[index+data_model.pc.num_func_param*index]=gsl_matrix_get(inv_Hessian_mat,index,index);
-			for (index_col=index+1;index_col<data_model.pc.num_func_param;index_col++){
-				tmp=gsl_matrix_get(inv_Hessian_mat,index,index_col);
-				ptr_index[index+data_model.pc.num_func_param*index_col]=tmp;
-				ptr_index[index_col+data_model.pc.num_func_param*index]=tmp;
-			}
-		}
-		SET_STRING_ELT(res_names, 16, mkChar("inverse.hessian.matrix"));
-		SET_VECTOR_ELT(res_list, 16, invhessian);
-		UNPROTECT(1);
-		DYNRPRINT(verbose_flag, "invhessian created and copied.\n");
-				
-		
-		SEXP dims_pr_t_given_t_less_1=PROTECT(allocVector(INTSXP,2));
-		memcpy(INTEGER(dims_pr_t_given_t_less_1), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
-		SEXP pr_t_given_t_less_1 = PROTECT(Rf_allocArray(REALSXP,dims_pr_t_given_t_less_1));
-		index=0;
-		ptr_index=REAL(pr_t_given_t_less_1);
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(index_col=0; index_col<data_model.pc.num_regime; index_col++){
-				ptr_index[index]=gsl_vector_get(pr_t_given_t_minus_1[index_sbj_t],index_col);
-				index++;
-			}
-		}
-		SET_STRING_ELT(res_names, 17, mkChar("pr_t_given_t_less_1"));
-		SET_VECTOR_ELT(res_list, 17, pr_t_given_t_less_1);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "pr_t_given_t_less_1 created and copied.\n");
-		
-		
-		SEXP dims_transprob_given_T=PROTECT(allocVector(INTSXP,3));
-		memcpy(INTEGER(dims_transprob_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),3*sizeof(int));
-		SEXP transprob_given_T = PROTECT(Rf_allocArray(REALSXP,dims_transprob_given_T));
-		index=0;
-		ptr_index=REAL(transprob_given_T);
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-				for(index_col=0; index_col<data_model.pc.num_regime; index_col++){
-					ptr_index[index]=gsl_vector_get(transprob_T[index_sbj_t][regime_j],index_col);
-					index++;
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 18, mkChar("transprob_given_T"));
-		SET_VECTOR_ELT(res_list, 18, transprob_given_T);
-		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "transprob_given_T created and copied.\n");	
-	
-	}
-	
+	}	
 	
 	setAttrib(res_list, R_NamesSymbol, res_names);
 	
@@ -807,24 +757,11 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     /** =================Free Allocated space====================== **/
 	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
-		if (outall_flag){
-			UNPROTECT(90-17-19-8 + 6);
-		}else if (debug_flag){
-			UNPROTECT(90-17-19-8 + 6);
-		}else{
-			UNPROTECT(90-17-19-8 + 6);
-		}
-
+			UNPROTECT(17+3+16);
 	}else{
-		if (outall_flag){
-			UNPROTECT(90-17-19-8-1 + 6);
-		}else if (debug_flag){
-			UNPROTECT(90-17-19-8-1 + 6);
-		}else{
-			UNPROTECT(90-17-19-8-1 + 6);
-		}
-	}/*unprotect objects: find all PROTECT in the script, then -2*2Cancel-6ENDUNP-4outputflag-2/3CTflag -1 comment=-17*/
-
+			UNPROTECT(17+2+16);
+	}
+	
     free(str_number);
     free(data_model.pc.index_sbj);
 
