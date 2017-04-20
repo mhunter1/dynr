@@ -668,52 +668,78 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		 
 	if (outall_flag|debug_flag){
 		
-		/*innov vec*/
-		SEXP dims_innov_vec=PROTECT(allocVector(INTSXP,4));
-		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.num_regime,  data_model.pc.num_regime,  data_model.pc.total_obs}),4*sizeof(int));
-		SEXP innov_vec = PROTECT(Rf_allocArray(REALSXP,dims_innov_vec));
-		index=0;
-		ptr_index=REAL(innov_vec);
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_obs_var; index_col++){
-						ptr_index[index]=gsl_vector_get(innov_v[index_sbj_t][regime_j][regime_k],index_col);
-						index++;
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 10, mkChar("innov_vec"));
-		SET_VECTOR_ELT(res_list, 10, innov_vec);
+ 		/*predicted state estimate*/
+ 		SEXP dims_eta_predicted=PROTECT(allocVector(INTSXP, 2));
+ 		memcpy(INTEGER(dims_eta_predicted), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_eta_predicted)));
+ 		SEXP eta_predicted = PROTECT(Rf_allocArray(REALSXP, dims_eta_predicted));
+ 		index = 0;
+ 		ptr_index = REAL(eta_predicted);
+ 		for(index_sbj_t=0; index_sbj_t<data_model.pc.total_obs; index_sbj_t++){
+ 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
+ 					ptr_index[index]=gsl_vector_get(eta_pred_t[index_sbj_t],index_col);
+ 					index++;
+ 				}
+ 		}
+		SET_STRING_ELT(res_names, 10, mkChar("eta_predicted"));
+		SET_VECTOR_ELT(res_list, 10, eta_predicted);
 		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "innov_vec created and copied.\n");
+  		DYNRPRINT(verbose_flag, "eta_predicted created and copied.\n");
 		
-		/*TODO output the residual covariance*/
-		/*inverse residual cov*/
-		SEXP dims_inverse_residual_cov=PROTECT(allocVector(INTSXP,5));
-		memcpy(INTEGER(dims_inverse_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.num_regime,data_model.pc.num_regime,  data_model.pc.total_obs}),5*sizeof(int));
-		SEXP inverse_residual_cov = PROTECT(Rf_allocArray(REALSXP,dims_inverse_residual_cov));
-		index=0;
-		ptr_index=REAL(inverse_residual_cov);
-		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-			for(regime_k=0; regime_k<data_model.pc.num_regime; regime_k++){
-				for(regime_j=0; regime_j<data_model.pc.num_regime; regime_j++){
-					for(index_col=0; index_col<data_model.pc.dim_obs_var; index_col++){
-						for(index_row=0; index_row<data_model.pc.dim_obs_var; index_row++){
-							ptr_index[index]=gsl_matrix_get(inv_residual_cov[index_sbj_t][regime_j][regime_k],index_row, index_col);
-							index++;
-						}
-					}
-				}
-			}
-		}
-		SET_STRING_ELT(res_names, 11, mkChar("inverse_residual_cov"));
-		SET_VECTOR_ELT(res_list, 11, inverse_residual_cov);
+ 		/*predicted error covariance estimate*/
+ 		SEXP dims_error_cov_predicted=PROTECT(allocVector(INTSXP, 3));
+ 		memcpy(INTEGER(dims_error_cov_predicted), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
+ 		SEXP error_cov_predicted = PROTECT(Rf_allocArray(REALSXP, dims_error_cov_predicted));
+ 		index = 0;
+ 		ptr_index=REAL(error_cov_predicted);
+ 		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+ 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
+ 					for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
+ 						ptr_index[index]=gsl_matrix_get(error_cov_pred_t[index_sbj_t],index_row, index_col);
+ 						index++;
+ 					}
+ 				}
+ 		}
+		SET_STRING_ELT(res_names, 11, mkChar("error_cov_predicted"));
+		SET_VECTOR_ELT(res_list, 11, error_cov_predicted);
 		UNPROTECT(2);
-		DYNRPRINT(verbose_flag, "inverse_residual_cov created and copied.\n");
+ 	 	DYNRPRINT(verbose_flag, "error_cov_predicted created and copied.\n");
 		
-		/*TODO output predicted states and covariance estimates */
+ 		/*innovation vector*/
+ 		SEXP dims_innov_vec=PROTECT(allocVector(INTSXP, 2));
+ 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_innov_vec)));
+ 		SEXP innov_vec = PROTECT(Rf_allocArray(REALSXP, dims_innov_vec));
+ 		index = 0;
+ 		ptr_index = REAL(innov_vec);
+ 		for(index_sbj_t=0; index_sbj_t<data_model.pc.total_obs; index_sbj_t++){
+ 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
+ 					ptr_index[index]=gsl_vector_get(innov_v_t[index_sbj_t],index_col);
+ 					index++;
+ 				}
+ 		}
+		SET_STRING_ELT(res_names, 12, mkChar("innov_vec"));
+		SET_VECTOR_ELT(res_list, 12, innov_vec);
+		UNPROTECT(2);
+  		DYNRPRINT(verbose_flag, "innov_vec created and copied.\n");
+		
+ 		/*residual covariance*/
+ 		SEXP dims_residual_cov=PROTECT(allocVector(INTSXP, 3));
+ 		memcpy(INTEGER(dims_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
+ 		SEXP residual_cov = PROTECT(Rf_allocArray(REALSXP, dims_residual_cov));
+ 		index = 0;
+ 		ptr_index=REAL(residual_cov);
+ 		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
+ 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
+ 					for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
+ 						ptr_index[index]=gsl_matrix_get(residual_cov_t[index_sbj_t],index_row, index_col);
+ 						index++;
+ 					}
+ 				}
+ 		}
+		SET_STRING_ELT(res_names, 13, mkChar("residual_cov"));
+		SET_VECTOR_ELT(res_list, 13, residual_cov);
+		UNPROTECT(2);
+		DYNRPRINT(verbose_flag, "residual_cov created and copied.\n");
+		
 	}
 	
 	/*TODO clean this part*/
