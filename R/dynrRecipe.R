@@ -2179,7 +2179,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	params.inicov <- r$params
 	
 	if(length(values.inistate) != length(values.inicov)){
-		stop('Initial state and covariance imply a different number of regimes.')
+		stop('Initial state means and covariance matrix imply different numbers of regimes.')
 	}
 	
 	values.inistate <- lapply(values.inistate, preProcessValues)
