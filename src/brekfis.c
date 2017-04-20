@@ -613,8 +613,6 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi){
 * error_cov_pred_t -- predicted error covariance estimate
 **/
 
-
-
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
     gsl_vector ***eta_regime_j_t, gsl_matrix ***error_cov_regime_j_t,
 	gsl_vector ****eta_regime_jk_pred, gsl_matrix ****error_cov_regime_jk_pred,
@@ -624,14 +622,14 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t){
 
 
-    /**************initialization*****************************************************************/
+    /************** initialization *****************************************************************/
     size_t t, regime_j, regime_k, sbj;
     double neg_log_p,p, log_like=0, innov_determinant;
 
     size_t col_index;
     double sum_overj;
     size_t type;
-    double tran_prob_jk;
+
     /* handling missing data */
     gsl_vector *cp_y_t=gsl_vector_alloc(y[0]->size);
     gsl_vector *y_non_miss=gsl_vector_alloc(y[0]->size);
@@ -673,7 +671,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     }
 	
     /** output for hamilton filter **/
-    gsl_matrix *like_jk=gsl_matrix_alloc(config->num_regime, config->num_regime);
+	gsl_matrix *tran_prob_jk = gsl_matrix_alloc(config->num_regime, config->num_regime);/*given t-1*/
+    gsl_matrix *like_jk = gsl_matrix_alloc(config->num_regime, config->num_regime);/*given t*/
 
 
     /** input for collapse_process**/
@@ -843,11 +842,13 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
                    /** Step 2.1: compute transition probability matrix, Pr(S_{t-1} = j,S_{t} = k|Y_{t-1}) given the pr_t_1 **/
                    if (t==(config->index_sbj)[sbj]){
-                   tran_prob_jk=gsl_vector_get(pr_t[t], regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
+                   	gsl_matrix_set(tran_prob_jk, regime_j, regime_k, gsl_vector_get(pr_t[t], regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k));
                    }else{
-                   tran_prob_jk=gsl_vector_get(pr_t[t-1], regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k);
+                   	gsl_matrix_set(tran_prob_jk, regime_j, regime_k, gsl_vector_get(pr_t[t-1], regime_j)*gsl_matrix_get(param->regime_switch_mat, regime_j, regime_k));
                    }
-                   gsl_vector_set(pr_t_given_t_minus_1[t],regime_k,gsl_vector_get(pr_t_given_t_minus_1[t],regime_k)+tran_prob_jk);
+				   
+                   gsl_vector_set(pr_t_given_t_minus_1[t], regime_k, 
+				   		gsl_vector_get(pr_t_given_t_minus_1[t],regime_k) + gsl_matrix_get(tran_prob_jk, regime_j, regime_k));
                    /*MYPRINT("prob_regime:\n");
                    print_vector(pr_t[t-1]);
                    MYPRINT("\n");*/
@@ -866,13 +867,11 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
                    /** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
                    /*p=exp(-neg_log_p)*tran_prob_jk;*/
-                   gsl_matrix_set(like_jk, regime_j, regime_k, p*tran_prob_jk);
+                   gsl_matrix_set(like_jk, regime_j, regime_k, p*gsl_matrix_get(tran_prob_jk, regime_j, regime_k));
 			   	   
-				   
-                }/*end of to regime k*/
-            }/*end of from regime j*/
-
-
+				}/*end of to regime k*/
+            }/*end of from regime j*/	 
+		 
 			
             /** Step 2.3: update transit probability Pr(S_{t-1} = j,S_{t} = k|Y_t) given Pr(S_{t-1} = j,S_{t} = k|Y_{t-1})**/
             log_like+=log(mathfunction_matrix_normalize(like_jk));/*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
@@ -899,12 +898,13 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
             	    /*MYPRINT("%lf ",sum_overj);*/
             }/*end of k*/
+			
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
 	    	if(gsl_vector_min(pr_t[t])==0){
 	        	gsl_vector_add_constant(pr_t[t], 0.0001);
 	        	mathfunction_vector_normalize(pr_t[t]);
 	    		}
-			
+				/*TODO same for pr_t_given_t_minus_1*/
 			
 				/* miss_case!=0; When there is missingness*/
 				/*if (t!=(config->index_sbj)[sbj]){
@@ -920,16 +920,27 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 			print_matrix(like_jk);
 			MYPRINT("\n");*/
 			
+	        /** step 3: call collapse process **/
+	        /** step 3.1: collapse the latent variable to get eta_k **/
+				
+			/* obtain eta_t and error_cov_t*/
+			/** Other optional outputs of the Kalman Filter **/
+			
 	        for(regime_k=0; regime_k<config->num_regime; regime_k++){
-	                    gsl_vector_set_zero(eta_regime_j_t[t][regime_k]);/*here, corresponds to eta_k_t in the paper*/
-	                    gsl_matrix_set_zero(error_cov_regime_j_t[t][regime_k]);/*here, corresponds to error_cov_k_t in the paper*/
 
 	            	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
-	            	    	    /** step 3: call collapse process **/
-	            	    	    /** step 3.1: collapse the latent variable to get eta_k **/
 
-
-	            	    	    gsl_blas_daxpy(gsl_matrix_get(like_jk, regime_j, regime_k), eta_regime_jk_t_plus_1[t][regime_j][regime_k], eta_regime_j_t[t][regime_k]); /*sum over j through loop*/
+							gsl_blas_daxpy(gsl_matrix_get(like_jk, regime_j, regime_k), 
+								eta_regime_jk_t_plus_1[t][regime_j][regime_k], 
+								eta_regime_j_t[t][regime_k]); /*sum over j through loop*/
+					   		   
+							gsl_blas_daxpy(gsl_matrix_get(tran_prob_jk, regime_j, regime_k), 
+								eta_regime_jk_pred[t][regime_j][regime_k], 
+								eta_pred_regime_t[t][regime_k]); 
+					   		
+							gsl_blas_daxpy(gsl_matrix_get(tran_prob_jk, regime_j, regime_k), 
+								innov_v[t][regime_j][regime_k], 
+								innov_v_regime_t[t][regime_k]); 
 
 	            	    	    /*if(regime_k==1){
 	            	    	    MYPRINT("Here!");
@@ -938,7 +949,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	        }/*end of k*/
 			
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
+				
             	    gsl_vector_scale(eta_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
+					
+					gsl_vector_scale(eta_pred_regime_t[t][regime_k], 1.0/gsl_vector_get(pr_t_given_t_minus_1[t],regime_k));
+					
+					gsl_vector_scale(innov_v_regime_t[t][regime_k], 1.0/gsl_vector_get(pr_t_given_t_minus_1[t],regime_k));
 
             	    /*MYPRINT("eta collapsed estimate in regime %lu:\n",regime_k);
             	    print_vector(eta_regime_j_t[t][regime_k]);
@@ -951,34 +967,62 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), 
 						error_cov_regime_j_t[t][regime_k],
 						diff_eta_vec, diff_eta, modif_p);
+						
+						mathfunction_collapse(eta_pred_regime_t[t][regime_k], eta_regime_jk_pred[t][regime_j][regime_k], 
+						error_cov_regime_jk_pred[t][regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), 
+						error_cov_pred_regime_t[t][regime_k],
+						diff_eta_vec, diff_eta, modif_p);
+						
+						mathfunction_collapse(innov_v_regime_t[t][regime_k], innov_v[t][regime_j][regime_k], 
+						residual_cov[t][regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), 
+						residual_cov_regime_t[t][regime_k],
+						diff_eta_vec, diff_eta, modif_p);
 
                     }/*end of j*/
-                    gsl_matrix_scale(error_cov_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
+                    
+					gsl_matrix_scale(error_cov_regime_j_t[t][regime_k], 1.0/gsl_vector_get(pr_t[t],regime_k));
+					
+					gsl_matrix_scale(error_cov_pred_regime_t[t][regime_k], 1.0/gsl_vector_get(pr_t_given_t_minus_1[t],regime_k));
+					
+					gsl_matrix_scale(residual_cov_regime_t[t][regime_k], 1.0/gsl_vector_get(pr_t_given_t_minus_1[t],regime_k));
 
                     /*MYPRINT("error_cov collapsed estimate in regime %lu:\n",regime_k);
             	    print_matrix(error_cov_regime_j_t[t][regime_k]);
             	    MYPRINT("\n");*/
             }/*end of k*/
 			
-			/* obtain eta_t and error_cov_t*/
-			gsl_vector_set_zero(eta_t[t]);
-			gsl_matrix_set_zero(error_cov_t[t]);
-    	    for(regime_k=0; regime_k<config->num_regime; regime_k++){
+			/*gsl_vector_set_zero(eta_t[t]);*/
+			/*gsl_matrix_set_zero(error_cov_t[t]);*/
+    	    
+			for(regime_k=0; regime_k<config->num_regime; regime_k++){
  
     	    	    gsl_blas_daxpy(gsl_vector_get(pr_t[t], regime_k), eta_regime_j_t[t][regime_k], eta_t[t]); /*sum over k through loop*/
-
-    	    	    /*if(regime_k==1){
+					
+    	    	    gsl_blas_daxpy(gsl_vector_get(pr_t_given_t_minus_1[t], regime_k), eta_pred_regime_t[t][regime_k], eta_pred_t[t]); /*sum over k through loop*/
+					
+    	    	    gsl_blas_daxpy(gsl_vector_get(pr_t_given_t_minus_1[t], regime_k), innov_v_regime_t[t][regime_k], innov_v_t[t]); /*sum over k through loop*/
+					
+					/*if(regime_k==1){
     	    	    MYPRINT("Here!");
     	    	    print_vector(eta_t[t]);}*/
     	    }
-    	    for(regime_k=0; regime_k<config->num_regime; regime_k++){
+    	    
+			for(regime_k=0; regime_k<config->num_regime; regime_k++){
 					
 					mathfunction_collapse(eta_t[t], eta_regime_j_t[t][regime_k], 
 					error_cov_regime_j_t[t][regime_k], gsl_vector_get(pr_t[t], regime_k), error_cov_t[t],
 					diff_eta_vec, diff_eta, modif_p);
+					
+					mathfunction_collapse(eta_pred_t[t], eta_pred_regime_t[t][regime_k], 
+					error_cov_pred_regime_t[t][regime_k], gsl_vector_get(pr_t_given_t_minus_1[t], regime_k), error_cov_pred_t[t],
+					diff_eta_vec, diff_eta, modif_p);
+					
+					mathfunction_collapse(innov_v_t[t], innov_v_regime_t[t][regime_k], 
+					residual_cov_regime_t[t][regime_k], gsl_vector_get(pr_t_given_t_minus_1[t], regime_k), residual_cov_t[t],
+					diff_eta_vec, diff_eta, modif_p);
 
 			}
-
+	
 
 	   /*fprintf(pr_file,"%lu %lu %lf %lf\n",sbj,t,gsl_vector_get(pr_t[t],0),gsl_vector_get(pr_t[t],1));*/
 	   	   /*MYPRINT("Pr_St|t:\n");
@@ -996,7 +1040,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     /*fclose(pr_file);*/
     /****************************** free allocated space ***************************/
 
-
+    gsl_matrix_free(tran_prob_jk);
     gsl_matrix_free(like_jk);
 	gsl_vector_free(cp_y_t);
 	gsl_vector_free(y_non_miss);	
