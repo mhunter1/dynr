@@ -13,17 +13,17 @@
 
 
 static R_NativePrimitiveArgType main_R_t[] = {
-    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP
+    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP
 };
 
 static R_CMethodDef cMethods[] = {
-   {".BackendC", (DL_FUNC) &main_R, 6, main_R_t},
+   {".BackendC", (DL_FUNC) &main_R, 7, main_R_t},
    {NULL, NULL, 0}
 };
 
 
 static R_CallMethodDef callMethods[] = {
-	{".Backend", (DL_FUNC) main_R, 6},
+	{".Backend", (DL_FUNC) main_R, 7},
 	{NULL, NULL, 0}
 };
 

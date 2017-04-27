@@ -62,14 +62,16 @@ SEXP getListElement(SEXP list, const char *str)
  * @param data_list is a list in R of the outputs prepared by dynr.data()
  * @param weight_flag_in a flag for weighting the neg loglike function by individual data length
  * @param debug_flag_in a flag for returning a longer list of outputs for debugging purposes
- * @param outall_flag_in a flag for returning all possible outputs
+ * @param optimization_flag_in a flag for running optimization
+ * @param hessian_flag_in a flag for calculating hessian matrix
  * @param verbose_flag_in a flag of whether or not to print debugging statements before and during estimation.
  */
-SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP outall_flag_in, SEXP verbose_flag_in)
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in)
 {
     size_t index,index_col,index_row;
     bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
-	bool outall_flag=*LOGICAL(PROTECT(outall_flag_in));
+	bool optimization_flag=*LOGICAL(PROTECT(optimization_flag_in));
+	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
 	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
     /** =======================Interface : Start to Set up the data and the model========================= **/
@@ -292,13 +294,18 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     /** =======================Interface: Model and data set up========================= **/
 
     /** =================Optimization: start======================**/
-
-    double minf; /* the minimum objective value, upon return */
-
     gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
+	int status;
+	if (optimization_flag){
+    double minf; /* the minimum objective value, upon return */
+	
     gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-    int status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
-
+    	status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
+	
+	gsl_matrix_free(inv_Hessian_mat);
+	}else{
+		status = 0;
+	}
 
 	/*DYNRPRINT(verbose_flag, "Optimization done.\n");*/
     /** =================Optimization: done======================**/
@@ -477,9 +484,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			eta_pred_t, error_cov_pred_t, 
 			innov_v_t, residual_cov_t);
 
-	    if ( status< 0) {
+	    if (optimization_flag & (status< 0)) {
 			MYPRINT("nlopt failed!\n");
-	    }else{
+	    }else if (hessian_flag){
 			MYPRINT("Starting Hessian calculation ...\n");
 		    data_model.pc.isnegloglikeweightedbyT=false;
 			hessianRichardson(fittedpar, &data_model, function_neg_log_like, neg_log_like, Hessian_mat); /*information matrix*/
@@ -501,10 +508,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	DYNRPRINT(verbose_flag, "Creating and allocating R output ... \n");
 	SEXP res_list;
 	SEXP res_names;
-	/*TODO Lu Delete the outall_flag*/
-	if (outall_flag){
-		
-	}else if (debug_flag){
+
+	if (debug_flag){
 	    res_list=PROTECT(allocVector(VECSXP, 14));
 	    res_names=PROTECT(allocVector(STRSXP, 14));
 	}else{
@@ -757,9 +762,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     /** =================Free Allocated space====================== **/
 	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
-			UNPROTECT(17+3+16);
+			UNPROTECT(18+3+16);
 	}else{
-			UNPROTECT(17+2+16);
+			UNPROTECT(18+2+16);
 	}
 	
     free(str_number);
@@ -778,7 +783,6 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     free(data_model.y_time);
 
     gsl_matrix_free(Hessian_mat);
-    gsl_matrix_free(inv_Hessian_mat);
 
     gsl_vector_free(pi.pr_0);
 

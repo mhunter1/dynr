@@ -370,6 +370,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' the final parameter estimates (default is .95)
 ##' @param infile (not required for models specified through the recipe functions) the name of a file 
 ##' that has the C codes for all dynr submodels for those interested in specifying a model directly in C
+##' @param optimization_flag a flag (TRUE/FALSE) indicating whether optimization is to be done.
+##' @param hessian_flag a flag (TRUE/FALSE) indicating whether the Hessian matrix is to be calculated.
 ##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the 
 ##' estimation process should be printed
 ##' @param weight_flag a flag (TRUE/FALSE) indicating whether the negative log likelihood function should 
@@ -395,8 +397,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
-	outall_flag=FALSE#always set to FALSE except when a developer wants all the intermediate products from the C estimation algorithms.
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
@@ -431,7 +432,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 	}
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call(.Backend, model, data, weight_flag, debug_flag, outall_flag, verbose, PACKAGE = "dynr")
+	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL
@@ -473,8 +474,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, verbose=TRUE, weight_fl
 		}
 	}
 	names(output2$transformed.parameters) <- dynrModel$param.names
-	if (outall_flag){
-	}else if(debug_flag){
+	if(debug_flag){
 		obj <- new("dynrDebug", output2)
 	}else{
 		obj <- new("dynrCook", output2)
@@ -614,6 +614,7 @@ is.positive.definite2 <- function(x) {
 	'-3'='Optimization failed. Ran out of memory.',
 	'-2'='Optimization halted. Lower bounds are bigger than upper bounds.',
 	'-1'='Optimization failed. Check starting values.',
+	'0'='Optimization has been turned off.',
 	'1'='Optimization terminated successfully',
 	'2'='Optimization stopped because objective function reached stopval',
 	'3'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
