@@ -22,7 +22,7 @@ EMGdata <- dynr.data(EMG, id='id', time='time',
 #---- (3a) Measurement ----
 recMeas <- prep.measurement(
   values.load = rep(list(matrix(1, 1, 1)), 2),
-  values.int = list(matrix(4, 1, 1), matrix(3, 1, 1)),
+  values.int = list(matrix(3, 1, 1), matrix(4, 1, 1)),
   params.int = list(matrix('mu_1', 1, 1), matrix('mu_2', 1, 1)),
   values.exo = list(matrix(0, 1, 1), matrix(1, 1, 1)),
   params.exo = list(matrix('fixed', 1, 1), matrix('beta_2', 1, 1)),
@@ -33,7 +33,7 @@ recMeas <- prep.measurement(
 #---- (3b) Dynamic and measurement noise cov structures----
 
 recNoise <- prep.noise(
-  values.latent=matrix(1, 1, 1),
+  values.latent=matrix(.5, 1, 1),
   params.latent=matrix('dynNoise', 1, 1),
   values.observed=matrix(0, 1, 1),
   params.observed=matrix('fixed', 1, 1))
@@ -58,7 +58,7 @@ recIni <- prep.initial(
 #---- (3e) Dynamic model ----
 
 recDyn <- prep.matrixDynamics(
-  values.dyn = list(matrix(.1, 1, 1), matrix(.5, 1, 1)),
+  values.dyn = list(matrix(.5, 1, 1), matrix(.1, 1, 1)),
   params.dyn = list(matrix('phi_1', 1, 1), matrix('phi_2', 1, 1)),
   isContinuousTime = FALSE)
 
@@ -72,6 +72,8 @@ rsmod <- dynr.model(
   regimes = recReg,
   data = EMGdata,
   outfile = "RSLinearDiscrete.c")
+
+rsmod$ub[c('phi_1', 'phi_2')] <- 1.1
 
 #---- (4b) Check model specification  ----
 
