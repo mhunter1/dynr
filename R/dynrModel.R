@@ -96,6 +96,24 @@ setReplaceMethod("$", "dynrModel",
 			value[lookup] <- value
 			names(value) <- x$param.names
 			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
+			# Check that parameters are within the bounds and the bounds are in order
+			if(any(na.omit(x$ub < x$lb))){
+				warning("Some of the lower bounds are above the upper bounds. Bad, user!")
+			}
+			if(any(na.omit(x$ub < x$xstart))){
+				offenders <- names(which(na.omit(x$ub < x$xstart)))
+				offenders <- paste(offenders, collapse=', ')
+				msg <- paste0("I spy with my little eye an upper bound that is smaller than the starting value.\n",
+					"Offending parameter(s) named: ", offenders)
+				warning(msg)
+			}
+			if(any(na.omit(x$lb > x$xstart))){
+				offenders <- names(which(na.omit(x$lb > x$xstart)))
+				offenders <- paste(offenders, collapse=', ')
+				msg <- paste0("I spy with my little eye a lower bound that is larger than the starting value.\n",
+					"Offending parameter(s) named: ", offenders)
+				warning(msg)
+			}
 		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
 			slot(object=x, name=name, check = TRUE) <- value
 		} else {
