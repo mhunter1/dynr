@@ -239,6 +239,8 @@ setMethod("show", "dynrRecipe", function(object){printRecipeOrModel(object)})
 ##' saved for use of subscripts.  Greek letters can be specified as corresponding LaTeX symbols without ##' backslashes (e.g., "lambda") and printed as greek letters.
 ##' @param printDyn logical. Whether or not to print the dynamic model. The default is TRUE.
 ##' @param printMeas logical. Whether or not to print the measurement model. The default is TRUE.
+
+
 ##' @param printInit logical. Whether or not to print the initial conditions. The default is FALSE.
 ##' @param printRS logical. Whether or not to print the regime-switching model. The default is FALSE.
 ##' @param outFile The name of the output tex file.
