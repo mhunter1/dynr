@@ -41,7 +41,7 @@
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config, ParamInit *init, Param *param){
 	int DEBUG_BREKFIS = 0; /*0=false/no; 1=true/yes*/
     size_t t, regime_j, regime_k, sbj;
-    double neg_log_p,p, log_like=0, innov_determinant;
+    double neg_log_p, p, log_like=0, innov_determinant;
 
     size_t col_index;
     double sum_overj;
@@ -832,7 +832,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	        gsl_vector_set(eta_regime_j_t[t][regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
             	        }
             	        gsl_matrix_memcpy(error_cov_regime_j_t[t][regime_j], (init->error_cov_0)[regime_j]);
-            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
+            	        
+						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_regime_j_t[t][regime_j]);
             	        MYPRINT("\n");
             	        MYPRINT("error_cov_at_a_previous_time_point:\n");
@@ -873,11 +874,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
 
                    }else{
+					   
             	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
-            	        print_vector(eta_regime_j_t[t][regime_j]);
+            	        print_vector(eta_regime_j_t[t-1][regime_j]);
             	        MYPRINT("\n");
             	        MYPRINT("error_cov_at_a_previous_time_point:\n");
-            	        print_matrix(error_cov_regime_j_t[t][regime_j]);
+            	        print_matrix(error_cov_regime_j_t[t-1][regime_j]);
             	        MYPRINT("\n");*/
 
                     innov_determinant=ext_kalmanfilter_smoother(t, regime_k,
@@ -915,6 +917,9 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         MYPRINT("\n");
                         MYPRINT("inverse of the residual covariance:\n");
                         print_matrix(inv_residual_cov[t][regime_j][regime_k]);
+                        MYPRINT("\n");
+                        MYPRINT("the residual covariance:\n");
+                        print_matrix(residual_cov[t][regime_j][regime_k]);
                         MYPRINT("\n");*/
 
 
@@ -942,7 +947,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 				   
                    gsl_vector_set(pr_t_given_t_minus_1[t], regime_k, 
 				   		gsl_vector_get(pr_t_given_t_minus_1[t],regime_k) + gsl_matrix_get(tran_prob_jk, regime_j, regime_k));
-                   /*MYPRINT("prob_regime:\n");
+                   
+				   /*MYPRINT("prob_regime:\n");
                    print_vector(pr_t[t-1]);
                    MYPRINT("\n");*/
 
@@ -990,14 +996,17 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	    gsl_vector_set(pr_t[t], regime_k, sum_overj);/*pr_t_plus_1*/
 
             	    /*MYPRINT("%lf ",sum_overj);*/
+					
             }/*end of k*/
 			
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
 			double tooSmallRegimeNumber = config->num_regime < 30 ? pow(1e-10, config->num_regime):1e-300;
-			if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
-				gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
-				mathfunction_vector_normalize(pr_t);
-			}
+	    	
+			if(gsl_vector_min(pr_t[t]) < tooSmallRegimeNumber){
+	        	gsl_vector_add_constant(pr_t[t], tooSmallRegimeNumber);
+	        	mathfunction_vector_normalize(pr_t[t]);
+	    		}	
+				
 				/*TODO same for pr_t_given_t_minus_1*/
 			
 				/* miss_case!=0; When there is missingness*/
@@ -1021,6 +1030,13 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 			/** Other optional outputs of the Kalman Filter **/
 			
 	        for(regime_k=0; regime_k<config->num_regime; regime_k++){
+				
+                if (t==(config->index_sbj)[sbj]){
+        	        
+					gsl_vector_set_zero(eta_regime_j_t[t][regime_k]);
+					gsl_matrix_set_zero(error_cov_regime_j_t[t][regime_k]);
+                
+				}
 
 	            	    for(regime_j=0; regime_j<config->num_regime; regime_j++){
 
@@ -1040,7 +1056,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	            	    	    MYPRINT("Here!");
 	            	    	    print_vector(eta_regime_j_t[t][regime_k]);}*/
 	            	    }
-	        }/*end of k*/
+	        
+			}/*end of k*/
 			
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
 				
@@ -1127,6 +1144,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
        /*if (sbj==2){exit(0);}*/
          /*fprintf(h_file, "%d", t+1);*/
+		
     }/*end of sbj*/
 
     /*fclose(h_file);*/
@@ -1276,7 +1294,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
 
 /****************************Extended Kim Smoother************************/
-/**
+/* *
 * This function implements the extended Kim Smoother
 * Parameters/Input *
 * *
@@ -1300,7 +1318,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 * eta_smooth -- eta_it|T *
 * error_cov_smooth -- error_cov_it|T *
 * *
-**/
+* */
 
 void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *config, const Param *param,
     gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, 
@@ -1563,7 +1581,6 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
         free(error_cov_regime_j_smooth[index_sbj_t]);
     }
     free(error_cov_regime_j_smooth);
-	
 	
 
 }/*end of function EKimSmoother*/
