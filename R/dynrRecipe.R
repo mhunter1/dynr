@@ -1475,6 +1475,17 @@ coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	if(length(values) != length(params)){
 		stop(paste0("Mismatch between values and params.  'values' argument indicates ", length(values), " regimes but 'params' argument indicates ", length(params), " regimes.  Get your mind right."))
 	}
+	vdim <- sapply(lapply(values, as.matrix), dim)
+	pdim <- sapply(lapply(params, as.matrix), dim)
+	if(length(vdim) > 0 && apply(vdim, 1, function(x) length(unique(x)) > 1)){
+		stop("Some of the 'values' list elements are not the same size as each other\nNot cool, Donny.")
+	}
+	if(length(pdim) > 0 && apply(pdim, 1, function(x) length(unique(x)) > 1)){
+		stop("Some of the 'params' list elements are not the same size as each other\nNo-go for launch.")
+	}
+	if(any(vdim != pdim)){
+		stop("'values' and 'params' are not all the same size.\nWalter Sobchak says you can't do that.")
+	}
 	return(list(values=values, params=params))
 }
 
@@ -2202,13 +2213,25 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 		stop('Initial state means and covariance matrix imply different numbers of regimes.')
 	}
 	
+	
 	values.inistate <- lapply(values.inistate, preProcessValues)
 	params.inistate <- lapply(params.inistate, preProcessParams)
+	
 	
 	values.inicov <- lapply(values.inicov, preProcessValues)
 	params.inicov <- lapply(params.inicov, preProcessParams)
 	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
 	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
+	
+	if(nrow(values.inistate[[1]]) != nrow(values.inicov[[1]])){
+		stop(paste0('Number of latent variables implied by initial state and initial covariance differ:\n',
+			'initial state (', nrow(values.inistate[[1]]), '), initial cov (', nrow(values.inicov[[1]]), ')'))
+	}
+	if(ncol(values.inistate[[1]]) != (length(covariates) + 1)){
+		stop(paste0('Incorrect dimensions for initial state\nFound ', paste0(dim(values.inistate[[1]]), collapse=' by '),
+			'but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
+			'k by (c+1) for k=number of latent variables, c=number of covariates'))
+	}
 	
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
