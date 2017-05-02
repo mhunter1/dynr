@@ -143,7 +143,8 @@ setClass(Class = "dynrInitial",
            values.inicov.inv.ldl = "list",
            params.inicov = "list",
            values.regimep = "matrix",
-           params.regimep = "matrix"),
+           params.regimep = "matrix",
+           covariates = "character"),
          contains = "dynrRecipe"
 )
 
@@ -2175,13 +2176,18 @@ processFormula<-function(formula.list){
 ##' being in each regime. If an element is 0 or "fixed", the corresponding element is fixed at the value 
 ##' specified in the "values" vector; Otherwise, the corresponding element is to be estimated 
 ##' with the starting value specified in the values vector.
+##' @param covariates character vector of the names of the (person-level) covariates
 ##' 
 ##' @details
 ##' The initial condition model includes specifications for the intial state vector, 
 ##' initial error covariance matrix, initial probabilities of 
 ##' being in each regime and all associated parameter specifications.
 ##' 
-prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0){
+prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0, covariates){
+	if(missing(covariates)){
+		covariates <- character(0)
+	}
+	
 	# Handle initial state
 	r <- coProcessValuesParams(values.inistate, params.inistate)
 	values.inistate <- r$values
@@ -2212,7 +2218,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 	
-	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, values.inicov.inv.ldl=values.inicov.inv.ldl, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep)
+	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, values.inicov.inv.ldl=values.inicov.inv.ldl, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep, covariates=covariates)
 	return(new("dynrInitial", x))
 }
 
