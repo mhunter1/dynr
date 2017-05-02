@@ -6,7 +6,7 @@ Authors@R: c(person("Lu", "Ou", role=c("aut", "cre"), email="lzo114@psu.edu"),
 Author: Lu Ou [aut, cre],
     Michael D. Hunter [aut],
     Sy-Miin Chow [aut]
-Maintainer: Lu Ou <lzo114@psu.edu>
+Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>
 Depends: R (>= 3.0.0), methods, ggplot2
 Imports: MASS, Matrix, numDeriv, xtable, latex2exp, grid, reshape2, plyr
 Suggests: testthat, roxygen2 (>= 3.1)
