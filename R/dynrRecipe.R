@@ -1244,18 +1244,25 @@ makeldlchar<-function(param.data, values, params, reverse=FALSE){
   params.numbers <- lapply(params, .exchangeNamesAndNumbers, param.data$param.name)
   values <- PopBackMatrix(values, params.numbers, paste0("vec[",param.data$param.number,"]"))
   char <- character(0)
+  char.vec <- character(0)
   if (length(values) > 0){
     for (i in 1:length(values)){
-      param.number=unique(params.numbers[[i]][which(params.numbers[[i]]!=0,arr.ind = TRUE)])
+      param.number <- unique(params.numbers[[i]][which(params.numbers[[i]]!=0,arr.ind = TRUE)])
       if (length(param.number)!=0){
         vec.noise <- paste0("vec[",paste0("c(",paste(param.number,collapse=","),")"),"]")
         vec.sub <- as.vector(values[[i]])
         mat.index <- sapply(param.number,function(x){min(which(params.numbers[[i]]==x))})
         char.i <- paste0(vec.noise,"=as.vector(", ifelse(reverse, 'reverseldl', 'transldl'), "(matrix(", paste0("c(",paste(vec.sub,collapse=","),")"),",ncol=",ncol(values[[i]]),")))[",
                       paste0("c(",paste(mat.index,collapse=","),")"),"]", ifelse(i!=length(values),"\n\t",""))
-        char <- paste0(char, char.i)
+        char.vec <- c(char.vec, char.i)
       }
     }
+    # Check for and remove any duplicates
+    dups <- duplicated(gsub('\n\t$', '', char.vec))
+    if(length(char.vec) > 1 && any(dups)){
+      char.vec <- char.vec[!dups]
+    }
+    char <- paste0(char.vec, collapse='')
   }
   return(char)
 }
