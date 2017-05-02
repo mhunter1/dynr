@@ -326,10 +326,10 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
 			double tooSmallRegimeNumber = config->num_regime < 30 ? pow(1e-10, config->num_regime):1e-300;
-	    	if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
-	        	gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
-	        	mathfunction_vector_normalize(pr_t);
-	    		}	
+			if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
+				gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
+				mathfunction_vector_normalize(pr_t);
+			}
 			
 
 	    /*MYPRINT("\n");
@@ -993,10 +993,11 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             }/*end of k*/
 			
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
-	    	if(gsl_vector_min(pr_t[t])==0){
-	        	gsl_vector_add_constant(pr_t[t], 0.0001);
-	        	mathfunction_vector_normalize(pr_t[t]);
-	    		}
+			double tooSmallRegimeNumber = config->num_regime < 30 ? pow(1e-10, config->num_regime):1e-300;
+			if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
+				gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
+				mathfunction_vector_normalize(pr_t);
+			}
 				/*TODO same for pr_t_given_t_minus_1*/
 			
 				/* miss_case!=0; When there is missingness*/
