@@ -1023,6 +1023,9 @@ setMethod("writeCcode", "dynrInitial",
 		params.inicov <- object$params.inicov
 		values.regimep <- object$values.regimep
 		params.regimep <- object$params.regimep
+		covariates_local <- object$covariates
+		numCovariates <- length(covariates_local)
+		hasCovariates <- numCovariates > 0
 		
 		nregime <- max(length(values.inistate), length(values.inicov), length(values.regimep))
 		if(nregime != 1 && length(values.inistate) == 1){
@@ -1037,10 +1040,24 @@ setMethod("writeCcode", "dynrInitial",
 		someStatesNotZero2 <- sapply(params.inistate, function(x){!all(x == 0)})
 		someStatesNotZero <- someStatesNotZero | someStatesNotZero2
 		
+		numLatent <- nrow(values.inistate[[1]])
+		
+		values.etaIntercept <- lapply(values.inistate, function(x){x[,1, drop=FALSE]})
+		params.etaIntercept <- lapply(params.inistate, function(x){x[,1, drop=FALSE]})
+		values.covEffects <- lapply(values.inistate, function(x){x[,-1, drop=FALSE]})
+		params.covEffects <- lapply(params.inistate, function(x){x[,-1, drop=FALSE]})
+		
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){\n\t"
 		ret <- paste0(ret, "\n", createGslVector(nregime, "Pvector"))
-		ret <- paste0(ret, setGslVectorElements(values.regimep,params.regimep, "Pvector"))
+		ret <- paste0(ret, setGslVectorElements(values.regimep, params.regimep, "Pvector"))
 		ret <- paste0(ret, "\tmathfunction_softmax(Pvector, pr_0);\n\t\n")
+		
+		ret <- paste0(ret, createGslVector(numLatent, "eta_local"))
+		if(hasCovariates){
+			ret <- paste0(ret, createGslVector(numCovariates, "covariate_local"))
+			ret <- paste0(ret, createGslMatrix(numLatent, numCovariates, "CMatrix"))
+		}
+		
 		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
 		if (any(someStatesNotZero)){
 			ret <- paste0(ret,"\n\tsize_t num_sbj=(eta_0[0]->size)/(dim_latent_var);\n\tsize_t i;")
@@ -1066,13 +1083,28 @@ setMethod("writeCcode", "dynrInitial",
 			ret <- paste0(ret, "\tfor(regime=0; regime < num_regime; regime++){")
 			if (any(someStatesNotZero)){
 				ret <- paste0(ret,"\n\t\tfor(i=0; i < num_sbj; i++){\n")
+				ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[1]], params=params.etaIntercept[[1]], name='eta_local', depth=3))
+				if(hasCovariates){
+					# TODO re-write gslcovariate.front(covariates_local, covariates)
+					ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[1]], params=params.covEffects[[1]], name="CMatrix", depth=3))
+					ret <- paste0(ret, "\t\t", blasMV(FALSE, "1.0", "CMatrix", "covariate_local", "1.0", "eta_local"))
+				}
+				# TODO modify below line
 				ret <- paste0(ret, setGslVectorElements(values=values.inistate[[1]], params=params.inistate[[1]], name='(eta_0)[regime]', fill="i*dim_latent_var+", depth=3))
+				ret <- paste0(ret, "\t\t\tgsl_vector_set_zero(eta_local);\n")
+				if(hasCovariates){
+					ret <- paste0(ret, "\t\t\tgsl_matrix_set_zero(CMatrix);\n")
+				}
 				ret <- paste0(ret,"\t\t}") # close i loop
 			}
 			ret <- paste(ret, setGslMatrixElements(values.inicov[[1]], params.inicov[[1]], "(error_cov_0)[regime]"), sep="\n")
 			ret <- paste0(ret, "\t}") # close regime loop
 		}
-		ret <- paste0(ret, "\n", destroyGslVector("Pvector"))
+		ret <- paste0(ret, "\n", destroyGslVector("Pvector"), destroyGslVector("eta_local"))
+		if(hasCovariates){
+			ret <- paste0(ret, destroyGslVector("covariate_local"))
+			ret <- paste0(ret, destroyGslMatrix("CMatrix"))
+		}
 		ret <- paste0(ret, "}\n") #Close function definition
 		object@c.string <- ret
 		
