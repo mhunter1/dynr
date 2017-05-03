@@ -50,6 +50,8 @@ initial <- prep.initial(
 #/******************C Code generated********************/#
 #void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){
 #	
+#	gsl_vector *covariate_local = gsl_vector_calloc(1);
+#	
 #	gsl_vector *Pvector = gsl_vector_calloc(1);
 #	gsl_vector_set(Pvector, 0, 1);
 #	mathfunction_softmax(Pvector, pr_0);
@@ -66,4 +68,5 @@ initial <- prep.initial(
 #		}
 #	}
 #	gsl_vector_free(Pvector);
+#	gsl_vector_free(covariate_local);
 #}
