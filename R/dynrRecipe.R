@@ -1056,6 +1056,7 @@ setMethod("writeCcode", "dynrInitial",
 		if(hasCovariates){
 			ret <- paste0(ret, createGslVector(numCovariates, "covariate_local"))
 			ret <- paste0(ret, createGslMatrix(numLatent, numCovariates, "CMatrix"))
+			ret <- paste0(ret, "\t\n")
 		}
 		
 		ret <- paste0(ret,"\tsize_t num_regime=pr_0->size;\n\tsize_t dim_latent_var=error_cov_0[0]->size1;")
