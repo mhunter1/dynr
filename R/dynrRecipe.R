@@ -1085,12 +1085,11 @@ setMethod("writeCcode", "dynrInitial",
 				ret <- paste0(ret,"\n\t\tfor(i=0; i < num_sbj; i++){\n")
 				ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[1]], params=params.etaIntercept[[1]], name='eta_local', depth=3))
 				if(hasCovariates){
-					# TODO re-write gslcovariate.front(covariates_local, covariates)
+					ret <- paste0(ret, gslVectorCopy("co_variate[index_subj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=3))
 					ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[1]], params=params.covEffects[[1]], name="CMatrix", depth=3))
 					ret <- paste0(ret, "\t\t", blasMV(FALSE, "1.0", "CMatrix", "covariate_local", "1.0", "eta_local"))
 				}
-				# TODO modify below line
-				ret <- paste0(ret, setGslVectorElements(values=values.inistate[[1]], params=params.inistate[[1]], name='(eta_0)[regime]', fill="i*dim_latent_var+", depth=3))
+				ret <- paste0(ret, gslVectorCopy("eta_local", "eta_0[regime]", 1:numLatent, 1:numLatent, toFill="i*dim_latent_var+", depth=3))
 				ret <- paste0(ret, "\t\t\tgsl_vector_set_zero(eta_local);\n")
 				if(hasCovariates){
 					ret <- paste0(ret, "\t\t\tgsl_matrix_set_zero(CMatrix);\n")
@@ -2506,7 +2505,7 @@ gslVector2Column <- function(matrix, index, vector, which){
 # toLoc numeric integer vector of to locations
 # depth number of tabs to indent
 # create logical whether to create the toName before copying.  The vector created will be the length of toLoc
-gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, depth=1, create=FALSE){
+gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, fromFill="", toFill="", depth=1, create=FALSE){
 	# check lengths match
 	if(length(fromLoc) != length(toLoc)){stop("'fromLoc' and 'toLoc' lengths must match")}
 	tabs <- paste(rep('\t', depth), collapse="")
@@ -2516,8 +2515,8 @@ gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, depth=1, create=FALS
 		ret <- paste0(ret, tabsm1, createGslVector(length(toLoc), toName))
 	}
 	for(i in 1:length(toLoc)){
-		get <- paste0("gsl_vector_get(", fromName, ", ", fromLoc[i]-1)
-		set <- paste0(tabs, "gsl_vector_set(", toName, ", ", toLoc[i]-1, ", ", get, ");\n")
+		get <- paste0("gsl_vector_get(", fromName, ", ", fromFill, fromLoc[i]-1, ")")
+		set <- paste0(tabs, "gsl_vector_set(", toName, ", ", toFill, toLoc[i]-1, ", ", get, ");\n")
 		ret <- paste0(ret, set)
 	}
 	return(ret)
