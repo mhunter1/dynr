@@ -2509,3 +2509,31 @@ gslcovariate.front<-function(selected, covariates){
   }
   return(ret)
 }
+
+# fromName character name of the from vector
+# toName character name of the to vector
+# fromLoc numeric integer vector of from locations
+# toLoc numeric integer vector of to locations
+# depth number of tabs to indent
+# create logical whether to create the toName before copying.  The vector created will be the length of toLoc
+gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, depth=1, create=FALSE){
+	# check lengths match
+	if(length(fromLoc) != length(toLoc)){stop("'fromLoc' and 'toLoc' lengths must match")}
+	tabs <- paste(rep('\t', depth), collapse="")
+	tabsm1 <- paste(rep('\t', depth-1), collapse="")
+	ret <- character(0)
+	if(create){
+		ret <- paste0(ret, tabsm1, createGslVector(length(toLoc), toName))
+	}
+	for(i in 1:length(toLoc)){
+		get <- paste0("gsl_vector_get(", fromName, ", ", fromLoc[i]-1)
+		set <- paste0(tabs, "gsl_vector_set(", toName, ", ", toLoc[i]-1, ", ", get, ");\n")
+		ret <- paste0(ret, set)
+	}
+	return(ret)
+}
+
+gslcovariate.front2 <- function(selected, covariates){
+	gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
+}
+
