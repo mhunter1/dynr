@@ -2500,16 +2500,6 @@ gslVector2Column <- function(matrix, index, vector, which){
 	}
 }
 
-gslcovariate.front<-function(selected, covariates){
-  ret <- createGslVector(length(selected), "covariate_local")
-  for (i in 1:length(selected)){
-    get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected[i])-1,")")
-    set <- paste0("\tgsl_vector_set(covariate_local, ", i-1,", ", get,");\n")
-    ret <- paste0(ret, set)
-  }
-  return(ret)
-}
-
 # fromName character name of the from vector
 # toName character name of the to vector
 # fromLoc numeric integer vector of from locations
@@ -2533,7 +2523,7 @@ gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, depth=1, create=FALS
 	return(ret)
 }
 
-gslcovariate.front2 <- function(selected, covariates){
+gslcovariate.front <- function(selected, covariates){
 	gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
 }
 
