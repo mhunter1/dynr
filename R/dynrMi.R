@@ -34,8 +34,8 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	
 	datalag <- 
 	  dataforlag dplyr::`%>%`
-	  group_by(ID) dplyr::`%>%`
-	  mutate_all(lag)
+	  dplyr::group_by(ID) dplyr::`%>%`
+	  dplyr::mutate_all(lag)
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
 	dataformice=data.frame(dataformice)
