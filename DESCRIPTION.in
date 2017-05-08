@@ -2,7 +2,7 @@ Package: dynr
 Date: @DATE@
 Title: Dynamic Modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
-    person(c("Michael", "D."), "Hunter", role=c("aut", "cre")),
+    person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mhunter.ou@gmail.com"),
     person("Sy-Miin", "Chow", role="aut"))
 Author: Lu Ou [aut],
     Michael D. Hunter [aut, cre],
