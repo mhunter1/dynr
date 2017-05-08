@@ -1,18 +1,14 @@
-##' Plot method for dynrCook objects
+##' Multiple Imputation of dynrModel objects
 ##' 
-##' @param x dynrCook object
-##' @param dynrModel model object
-##' @param style The style of the plot in the first panel. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
-##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
-##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
-##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model
-##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
-##' @param textsize numeric. Font size used in the plot.
-##' @param ... Further named arguments
+##' @param model dynrModel object
+##' @param m number of multiple imputations
+##' @param aux.variable names of auxiliary variables used in imputation
+##' @param imp.obs logical. whether to impute the observed variables
+##' @param imp.exo logical. whether to impute the exogenous variables
 ##' 
 ##' @details
-##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that it shows the model equations in a plot.
-dynr.mi=function(model,m=5,aux.variable,imp.obs=0,imp.exo=0){    #multiple lag; #factor  #get variable names
+##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
+dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    #multiple lag; #factor  #get variable names
 
 
 data=model@data$original.data
