@@ -3,8 +3,8 @@ Title: Dynamic Modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre")),
     person("Sy-Miin", "Chow", role="aut"))
-Author: Lu Ou [aut, cre],
-    Michael D. Hunter [aut],
+Author: Lu Ou [aut],
+    Michael D. Hunter [aut, cre],
     Sy-Miin Chow [aut]
 Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>
 Depends: R (>= 3.0.0), methods, ggplot2
