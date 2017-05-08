@@ -33,8 +33,8 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	#head(lag(dataforlag,2))
 	
 	datalag <- 
-	  dataforlag dplyr::`%>%`
-	  dplyr::group_by(ID) dplyr::`%>%`
+	  dataforlag %>%
+	  dplyr::group_by(ID) %>%
 	  dplyr::mutate_all(lag)
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
