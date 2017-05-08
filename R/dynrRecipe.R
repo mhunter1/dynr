@@ -1072,7 +1072,17 @@ setMethod("writeCcode", "dynrInitial",
 					ret <- paste0(ret, paste0("\t\t\tcase ", reg-1, ":"), "\n")
 					if (any(someStatesNotZero[reg])){
 						ret <- paste0(ret,"\t\t\t\tfor(i=0; i < num_sbj; i++){\n")
-						ret <- paste0(ret, setGslVectorElements(values=values.inistate[[reg]], params=params.inistate[[reg]], name='(eta_0)[regime]', fill="i*dim_latent_var+", depth=5))
+						ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[reg]], params=params.etaIntercept[[reg]], name='eta_local', depth=5))
+						if(hasCovariates){
+							ret <- paste0(ret, gslVectorCopy("co_variate[index_subj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=5))
+							ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[reg]], params=params.covEffects[[reg]], name="CMatrix", depth=5))
+							ret <- paste0(ret, "\t\t\t\t", blasMV(FALSE, "1.0", "CMatrix", "covariate_local", "1.0", "eta_local"))
+						}
+						ret <- paste0(ret, gslVectorCopy("eta_local", "eta_0[regime]", 1:numLatent, 1:numLatent, toFill="i*dim_latent_var+", depth=5))
+						ret <- paste0(ret, "\t\t\t\t\tgsl_vector_set_zero(eta_local);\n")
+						if(hasCovariates){
+							ret <- paste0(ret, "\t\t\t\t\tgsl_matrix_set_zero(CMatrix);\n")
+						}
 						ret <- paste0(ret,"\t\t\t\t}") # close i loop
 					}
 					ret <- paste(ret, setGslMatrixElements(values.inicov[[reg]], params.inicov[[reg]], "(error_cov_0)[regime]", depth=4), sep="\n")
