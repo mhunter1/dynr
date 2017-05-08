@@ -44,7 +44,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	
 	colnames(dataformice)=c()
 	m=m
-	imp=mice(dataformice,m=m)
+	imp=mice::mice(dataformice,m=m)
 	
 	
 	pmcarqhat=matrix(NA, nrow=m,ncol=k) #parameter estimates from each imputation
@@ -52,7 +52,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	
 	for (j in 1:m){
 	  
-	  completedata=complete(imp,action=j)
+	  completedata=mice::complete(imp,action=j)
 	  colnames(completedata)=c(ynames,xnames,
 	                          paste("lag",ynames,sep=''),
 	                          paste("lag",xnames,sep=''),
