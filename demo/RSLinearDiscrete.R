@@ -83,11 +83,16 @@ recDyn <- prep.matrixDynamics(
 
 rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 
+rsmod$lb['phi_0'] <- -0.01
+
 rsmod1 <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg1, data=dd, outfile="RSLinearDiscreteDev1.c")
 
-rsmod1$lb['phi_0'] <- -1.5
+rsmod1$lb['phi_0'] <- -0.01
 
 rsmod2 <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg2, data=dd, outfile="RSLinearDiscreteDev2.c")
+
+rsmod2$lb['phi_0'] <- -0.01
+rsmod2$ub['beta_0'] <- 1.0
 
 
 # Inspect three versions of the same model
@@ -174,10 +179,8 @@ text(x=1, y=-2.5, labels=paste0('RMSE = ', round(smoothRMS,3)), adj=c(1,1))
 
 estRegime <- apply(yum@pr_t_given_T, 2, which.max) - 1
 
-fstate1 <- yum@eta_regime_t[1,,]
-#indmat <- cbind(EMGsim$trueregime+1,1:500)
-indmat <- cbind(estRegime+1,1:500)
-fstate2 <- fstate1[indmat]
+
+fstate2 <- yum$eta_filtered[1,]
 
 updateCor <- cor(fstate2, EMGsim$truestate)
 updateRMS <- rms(fstate2, EMGsim$truestate)
@@ -202,10 +205,16 @@ text(x=c(0,0,1,1), y=c(0+.25,1-.25,0+.25,1-.25), labels=c(rtab))
 
 #---- (8) Compare deviation and non-deviation estimates ----
 
-
+# Check that regime-switching probabilities match
 testthat::expect_equal(coef(yum)['c11'], coef(yum1)['base1'], tolerance=0.001, check.names=FALSE)
 testthat::expect_equal(coef(yum)['c21'], coef(yum2)['base1'], tolerance=0.001, check.names=FALSE)
 testthat::expect_equal(coef(yum)['c21'], sum(coef(yum1)[c('base1', 'dev2')]), tolerance=0.001, check.names=FALSE)
 testthat::expect_equal(coef(yum)['c11'], sum(coef(yum2)[c('base1', 'dev1')]), tolerance=0.001, check.names=FALSE)
 
+# Check that other parameters match
+estNonRegimeParams <- cbind(coef(yum), coef(yum1), coef(yum2))[1:7,]
+for(i in 1:nrow(estNonRegimeParams)){
+	testthat::expect_equal(estNonRegimeParams[i, 1], estNonRegimeParams[i, 2], tolerance=0.001, check.names=FALSE)
+	testthat::expect_equal(estNonRegimeParams[i, 2], estNonRegimeParams[i, 3], tolerance=0.001, check.names=FALSE)
+}
 
