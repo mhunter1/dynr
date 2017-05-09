@@ -39,9 +39,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
 	dataformice=data.frame(dataformice)
-	# dataformice[,3]=as.factor(dataformice[,3])    #identify factors
-	# dataformice[,7]=as.factor(dataformice[,7])
-	
+
 	colnames(dataformice)=c()
 	m=m
 	imp=mice::mice(dataformice,m=m)
