@@ -1074,7 +1074,7 @@ setMethod("writeCcode", "dynrInitial",
 						ret <- paste0(ret,"\t\t\t\tfor(i=0; i < num_sbj; i++){\n")
 						ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[reg]], params=params.etaIntercept[[reg]], name='eta_local', depth=5))
 						if(hasCovariates){
-							ret <- paste0(ret, gslVectorCopy("co_variate[index_subj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=5))
+							ret <- paste0(ret, gslVectorCopy("co_variate[index_sbj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=5))
 							ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[reg]], params=params.covEffects[[reg]], name="CMatrix", depth=5))
 							ret <- paste0(ret, "\t\t\t\t", blasMV(FALSE, "1.0", "CMatrix", "covariate_local", "1.0", "eta_local"))
 						}
@@ -1096,7 +1096,7 @@ setMethod("writeCcode", "dynrInitial",
 				ret <- paste0(ret,"\n\t\tfor(i=0; i < num_sbj; i++){\n")
 				ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[1]], params=params.etaIntercept[[1]], name='eta_local', depth=3))
 				if(hasCovariates){
-					ret <- paste0(ret, gslVectorCopy("co_variate[index_subj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=3))
+					ret <- paste0(ret, gslVectorCopy("co_variate[index_sbj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=3))
 					ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[1]], params=params.covEffects[[1]], name="CMatrix", depth=3))
 					ret <- paste0(ret, "\t\t", blasMV(FALSE, "1.0", "CMatrix", "covariate_local", "1.0", "eta_local"))
 				}
