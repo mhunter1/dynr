@@ -98,26 +98,47 @@ You may want to first go to the directory where Rtools is installed and check th
 
 
 
-\subsection{\Large Wrapping up the Installation Procedure }
+\subsection{\Large Wrapping up the Installation Procedure for Windows}
 \label{wrapup}
+\begin{enumerate}
+\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{shell("echo \%LIB\_GSL\%")}\\ If this returns something like ``C:/R/local323'', then everything worked fine.
+ \item If that command returns something like ``\%LIB\_GSL\%'', then something is wrong with the GSL path.  Return to Section \ref{sec:libgsl}.
+ \item If the command worked fine, follow the steps in section \ref{sec:cran} to finish the installation process in R.
+\end{enumerate}
+
+
+
+\section{\Large Instructions for Installing and Using \texttt{dynr} On Mac}
+
+\subsection{\Large Instructions for Installing Prerequisites on Mac}
+\label{sec:macpre}
+\begin{enumerate}
+\item Install Xcode with the command line tools from your Apple store. For this and all the subsequent steps, please read the installation instructions on the individual websites carefully to pick the correct software versions for your operating system.
+\item Install Macports by going to \url{https://www.macports.org/install.php}
+\item Open the terminal window. In the terminal window install the gsl library by typing: ``sudo port install gsl''.
+\item Follow the steps in section \ref{sec:maccheck} to verify that these steps worked properly.
+\end{enumerate}
+
+\subsection{\Large Checking the Installation for Mac}
+\label{sec:maccheck}
 \begin{enumerate}
 \item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))}\\ and then check again.
-\item If the above failed, then something went wrong with either Section \ref{sec:gsl} and/or Section \ref{sec:libgsl}. Please go back and try repeating or checking those sections.
+\item If the above failed, then something went wrong with either Section \ref{sec:macpre}. Please go back and try repeating or checking that section.
+\item Follow the steps in section \ref{sec:cran} to finish the installation process in R.
+\end{enumerate}
+
+
+\section{\Large Getting \texttt{dynr} from CRAN}
+\label{sec:cran}
+\begin{enumerate}
+\item Open RGui, Rstudio, or whatever editor you use to run R.
 \item Install \texttt{dynr} from CRAN as usual by typing install.packages(`\texttt{dynr}') and then require(`\texttt{dynr}').
 \item To test if \texttt{dynr} is installed correctly, run one of the demo examples. For instance, type: \\
 \texttt{demo(`LinearSDE',package=`\texttt{dynr}')}\\
 \texttt{Press $<$Return$>$ to start the demo.}\\
 Note that this specific demo requires the packages \textit{Matrix} and \textit{mvtnorm} so make sure that these have been installed.
-\end{enumerate}
-
-
-\section{\Large Instructions for Installing and Using \texttt{dynr} On Mac}
-\begin{enumerate}
-\item Install Xcode with the command line tools from your Apple store. For this and all the subsequent steps, please read the installation instructions on the individual websites carefully to pick the correct software versions for your operating system.
-\item Install Macports by going to \url{https://www.macports.org/install.php}
-\item Open the terminal window. In the terminal window install the gsl library by typing: ``sudo port install gsl''.
-\item Follow the steps in section \ref{wrapup} to finish the installation process in R.
+\item If you're on Windows and everything worked fine until you tried to run the model, something probably went wrong with installing Rtools (Section \ref{sec:Rtools}) or installing GSL (Section \ref{sec:gsl}). Please refer to those sections for troubleshooting.
 \end{enumerate}
 
 
