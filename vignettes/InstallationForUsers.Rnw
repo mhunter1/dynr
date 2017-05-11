@@ -16,24 +16,25 @@
 \SweaveOpts{concordance=TRUE}
 
 \maketitle
-The \texttt{\texttt{dynr}} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{\texttt{dynr}} C code to estimate the model, obtaining free parameters estimates, standard errors, and latent variable estimates.
+The \texttt{dynr} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameters estimates, standard errors, and latent variable estimates.
 
 
 
 \section{\Large Instructions for Installing and Using \texttt{dynr} on a Windows Computer}
-Because the \texttt{\texttt{dynr}} package compiles C code in response to user input, more setup is required for the \texttt{\texttt{dynr}} package than for many others. The general requirements are as follows:
+Because the \texttt{dynr} package compiles C code in response to user input, more setup is required for the \texttt{dynr} package than for many others. The general requirements are as follows:
 
 \begin{enumerate}
-\item R must be installed in a directory without spaces in the path.
-\item Rtools must be installed so that C code can be compiled on Windows.
-\item Additional GSL libraries must be installed so that the C code can use GSL for matrix multiplication routines.
-\item The environment variable for the system Path must be modified to include R and Rtools.
-\item An environment variable for GSL called LIB\_GSL must be created.
+\item R must be installed in a directory without spaces in the path.  See Section \ref{sec:R}.
+\item Rtools must be installed so that C code can be compiled on Windows. See Section \ref{sec:Rtools}.
+\item Additional GSL libraries must be installed so that the C code can use GSL for matrix multiplication routines. See Section \ref{sec:gsl}.
+\item The environment variable for the system Path must be modified to include R and Rtools. See Section \ref{sec:rpath}.
+\item An environment variable for GSL called LIB\_GSL must be created. See Section \ref{sec:libgsl}.
 \end{enumerate}
 
 Each of these steps is detailed below.  We acknowledge that this additional setup can be bothersome, but we believe the ease of use for the rest of the package and the wide variety of models it is possible to fit with it will compensate for this initial burden.  Hopefully you will agree!
 
 \subsection{\Large Instructions for Installation of R}
+\label{sec:R}
 \begin{itemize}
     \item Make sure that R is installed and Check the directory in which R is installed.
     \item If not go to \href{https://www.r-project.org/}{https://www.r-project.org/}  and click on download R and select any mirror.
@@ -42,6 +43,7 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 
 
 \subsection{\Large Instructions for Installation of R-tools }
+\label{sec:Rtools}
 \begin{enumerate}
 \item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest version of Rtools.
 \item You may be asked if you want to save or run a file ``Rtools33.exe''. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
@@ -62,7 +64,8 @@ You may want to first go to the directory where Rtools is installed and check th
 
 
 
-\subsection{\Large Instructions for Downloading Prerequisite Files}
+\subsection{\Large Instructions for Installation of GSL}
+\label{sec:gsl}
 \begin{enumerate}
 \item  Go to \href{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}.
 \item Download ``local323.zip'' (or the latest version) by clicking it.  The 323 refers to R 3.2.3.
@@ -70,26 +73,37 @@ You may want to first go to the directory where Rtools is installed and check th
 \end{enumerate}
 
 
-\subsection{\Large Setting up Path and Environment Variables }
+\subsection{\Large Setting up R and Rtools Path Environment Variable}
+\label{sec:rpath}
+\begin{enumerate}
+ \item Check if R can be run through CMD as follows. Put a simple R script (e.g., ``Hello.r'') script from Angel to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.r'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.r''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
+ \item Close your command prompt window.
+ \item If the file did not run correctly, follow the next 4 steps.
+ \item Open - Control Panel\textbackslash System and Security\textbackslash System
+ \item Click on Advanced system settings
+ \item Check to make sure that your path variable specified during Rtools installation is specified correctly. In Windows 10 do so by clicking on ``Environment Variables'' and then in the ``System variables'' panel click on ``Path'' and then ``Edit''. Check that the following paths have been specified at the front of your {\em system} path variable or just move them all to way up to the top.
+ \texttt{C:\textbackslash Rtools\textbackslash bin;C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}
+ \item Repeat (1) and see if you can now run R from CMD. Make sure that you open a new CMD window after you have completed the steps above. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
+\end{enumerate}
+
+\subsection{\Large Setting up the GSL Environment Variable}
+\label{sec:libgsl}
 \begin{enumerate}
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
  \item Click on Advanced system settings
- \item Add a new system variable by clicking on New.
+ \item Add a new {\em system} variable by clicking on New.  Note that this should be a {\em System} environment variable, not a {\em User} environment variable.
  \item Name the new variable as LIB\_GSL and set the variable value to the 
- directory containing the Local323 files. Example {C:/R/local323} but please note that the direction of these slashes is important This slash / will work but {\em not} this one \textbackslash.
-  \item Check if R can be run through CMD as follows. Put a simple R script (e.g., ``Hello.r'') script from Angel to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.r'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.r''. If the file runs correctly, it should print out ``hello'' in the command prompt console. If not follow the next 4 steps.
- \item Close your command prompt window.
- \item Repeat (1) and (2).
- \item Check to make sure that your path variable specified during Rtools installation is specified correctly. In Windows 10 do so by clicking on ``Environment Variables'' and then in the ``System variables'' panel click on ``Path'' and then ``Edit''. Check that the following paths have been specified at the front of your {\em system} path variable or just move them all to way up to the top.
- \texttt{C:\textbackslash Rtools\textbackslash bin;C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}
- \item Repeat (5) and see if you can now run R from CMD. Make sure that you open a new CMD window after you have completed the steps above. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
+ directory containing the local323 files downloaded in Section \ref{sec:gsl}. Example {C:/R/local323} but please note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.
 \end{enumerate}
 
 
-\subsection{\Large Wrapping up the Installation Procedure }\label{wrapup}
+
+\subsection{\Large Wrapping up the Installation Procedure }
+\label{wrapup}
 \begin{enumerate}
 \item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))}\\ and then check again.
+\item If the above failed, then something went wrong with either Section \ref{sec:gsl} and/or Section \ref{sec:libgsl}. Please go back and try repeating or checking those sections.
 \item Install \texttt{dynr} from CRAN as usual by typing install.packages(`\texttt{dynr}') and then require(`\texttt{dynr}').
 \item To test if \texttt{dynr} is installed correctly, run one of the demo examples. For instance, type: \\
 \texttt{demo(`LinearSDE',package=`\texttt{dynr}')}\\
