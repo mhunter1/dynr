@@ -46,7 +46,10 @@ double function_neg_log_like(const double *params, void *data){
 	}
 	
 	// Allocate initial probability
-	pi.pr_0 = gsl_vector_calloc(data_model.pc.num_regime);
+	pi.pr_0 = (gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
+	for(index=0; index < data_model.pc.num_regime; index++){
+		(pi.pr_0)[index] = gsl_vector_calloc(data_model.pc.num_sbj*data_model.pc.num_regime);
+	}
 	
 	
 	/** set parameter **/
@@ -79,7 +82,10 @@ double function_neg_log_like(const double *params, void *data){
 	
 	
 	/** Free allocated space **/
-	gsl_vector_free(pi.pr_0);
+	for(index=0; index<data_model.pc.num_regime; index++){
+		gsl_vector_free((pi.pr_0)[index]);
+	}
+	free(pi.pr_0);
 	
 	for(index=0; index<data_model.pc.num_regime; index++){
 		gsl_vector_free((pi.eta_0)[index]);
