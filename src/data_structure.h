@@ -43,8 +43,8 @@ typedef struct ParamConfig{
 		gsl_matrix *);
     /** time, const gsl_vector *p,double *param, gsl_vector *F_dP_dt**/
     void (*func_dP_dt)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *);
-    /**double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0**/
-    void (*func_initial_condition)(double *, gsl_vector **, gsl_vector *, gsl_vector **, gsl_matrix **, size_t *);
+    /**double *param, gsl_vector **co_variate, gsl_vector **pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t index_sbj**/
+    void (*func_initial_condition)(double *, gsl_vector **, gsl_vector **, gsl_vector **, gsl_matrix **, size_t *);
     /**size_t t, size_t type, double *param, const gsl_vector *co_variate, gsl_matrix *regime_switch_mat**/
     void (*func_regime_switch)(size_t, size_t, double *, const gsl_vector *, gsl_matrix *);
     /**size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov**/
@@ -70,7 +70,7 @@ typedef struct Data_and_Model{
 typedef struct ParamInit{
     gsl_vector **eta_0; /** initial value for latent variable in different regimes **/
     gsl_matrix **error_cov_0; /** initial value for covariance matrix of latent variable in different regimes **/
-    gsl_vector *pr_0; /** the probability of staying at each regime for the start **/
+    gsl_vector **pr_0; /** the probability of staying at each regime for the start **/
 } ParamInit;
 
 /**
