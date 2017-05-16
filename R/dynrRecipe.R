@@ -1047,7 +1047,7 @@ setMethod("writeCcode", "dynrInitial",
 		values.covEffects <- lapply(values.inistate, function(x){x[,-1, drop=FALSE]})
 		params.covEffects <- lapply(params.inistate, function(x){x[,-1, drop=FALSE]})
 		
-		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector *pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){\n\t"
+		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector **pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){\n\t"
 		ret <- paste0(ret, "\n", createGslVector(nregime, "Pvector"))
 		ret <- paste0(ret, setGslVectorElements(values.regimep, params.regimep, "Pvector"))
 		ret <- paste0(ret, "\tmathfunction_softmax(Pvector, pr_0);\n\t\n")
