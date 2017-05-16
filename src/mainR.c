@@ -436,35 +436,35 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
 		residual_cov_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
-
-	    /**Actual Functions**/
-	    /** initialize regime parameter**/
-	    ParamInit pi;
-	    pi.eta_0=(gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
-	    for(index=0;index<data_model.pc.num_regime;index++){
-		(pi.eta_0)[index]=gsl_vector_calloc(data_model.pc.num_sbj*data_model.pc.dim_latent_var);
-	    }
-
-	    pi.error_cov_0=(gsl_matrix **)malloc(data_model.pc.num_regime*sizeof(gsl_matrix *));
-	    for(index=0;index<data_model.pc.num_regime;index++){
-	    	    (pi.error_cov_0)[index]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
-	    }
-	    pi.pr_0=gsl_vector_calloc(data_model.pc.num_regime);
-
-	    /** set parameter **/
-	    Param par;
-
-	    /*function parameters*/
-	    par.func_param=(double *)malloc(data_model.pc.num_func_param*sizeof(double));
-            size_t i;
-	    for(i=0;i<data_model.pc.num_func_param;i++){
-	    	    par.func_param[i]=fittedpar[i];
-	    }
-
-
-	    data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0, data_model.pc.index_sbj);
-
-	    par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+		
+		/**Actual Functions**/
+		/** initialize regime parameter**/
+		ParamInit pi;
+		pi.eta_0=(gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
+		for(index=0;index<data_model.pc.num_regime;index++){
+			(pi.eta_0)[index]=gsl_vector_calloc(data_model.pc.num_sbj*data_model.pc.dim_latent_var);
+		}
+		
+		pi.error_cov_0=(gsl_matrix **)malloc(data_model.pc.num_regime*sizeof(gsl_matrix *));
+		for(index=0;index<data_model.pc.num_regime;index++){
+			(pi.error_cov_0)[index]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+		}
+		pi.pr_0=gsl_vector_calloc(data_model.pc.num_regime);
+		
+		/** set parameter **/
+		Param par;
+		
+		/*function parameters*/
+		par.func_param=(double *)malloc(data_model.pc.num_func_param*sizeof(double));
+		size_t i;
+		for(i=0;i<data_model.pc.num_func_param;i++){
+			par.func_param[i]=fittedpar[i];
+		}
+		
+		
+		data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0, data_model.pc.index_sbj);
+		
+		par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 	    par.y_noise_cov=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
 	    par.regime_switch_mat=gsl_matrix_calloc(data_model.pc.num_regime, data_model.pc.num_regime);
 
