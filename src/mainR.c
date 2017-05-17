@@ -450,9 +450,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			(pi.error_cov_0)[index]=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 		}
 		
-		pi.pr_0=(gsl_vector **)malloc(data_model.pc.num_regime*sizeof(gsl_vector *));
-		for(index=0; index < data_model.pc.num_regime; index++){
-			(pi.pr_0)[index] = gsl_vector_calloc(data_model.pc.num_sbj*data_model.pc.num_regime);
+		pi.pr_0=(gsl_vector **)malloc(data_model.pc.num_sbj*sizeof(gsl_vector *));
+		for(index=0; index < data_model.pc.num_sbj; index++){
+			(pi.pr_0)[index] = gsl_vector_calloc(data_model.pc.num_regime);
 		}
 		
 		
@@ -789,7 +789,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
     gsl_matrix_free(Hessian_mat);
 
-	for(index=0; index < data_model.pc.num_regime; index++){
+	for(index=0; index < data_model.pc.num_sbj; index++){
 		gsl_vector_free((pi.pr_0)[index]);
 	}
 	free(pi.pr_0);
