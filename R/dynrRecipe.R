@@ -144,7 +144,9 @@ setClass(Class = "dynrInitial",
            params.inicov = "list",
            values.regimep = "matrix",
            params.regimep = "matrix",
-           covariates = "character"),
+           covariates = "character",
+           deviation = "logical",
+           refRow = "numeric"),
          contains = "dynrRecipe"
 )
 
@@ -2230,15 +2232,26 @@ processFormula<-function(formula.list){
 ##' specified in the "values" vector; Otherwise, the corresponding element is to be estimated 
 ##' with the starting value specified in the values vector.
 ##' @param covariates character vector of the names of the (person-level) covariates
+##' @param deviation logical. Whether to use the deviation form or not.  See Details.
+##' @param refRow numeric. Which row is treated at the reference.  See Details.
 ##' 
 ##' @details
 ##' The initial condition model includes specifications for the intial state vector, 
 ##' initial error covariance matrix, initial probabilities of 
 ##' being in each regime and all associated parameter specifications.
+##' The initial probabilities are specified in multinomial logistic regression form.  When there are no covariates, this implies multinomial logistic regression with intercepts only.
 ##' 
-prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0, covariates){
+##' When \code{deviation=FALSE}, the non-deviation form of the multinomial logistic regression is used. This form has a separate intercept term for each entry of the initial probability vector. When \code{deviation=TRUE}, the deviation form of the multinomial logistic regression is used. This form has an intercept term that is common to all rows of the initial probability vector. The rows are then distinguished by their own individual deviations from the common intercept. The deviation form requires the same reference row constraint as the non-deviation form (described below). By default the reference row is taken to be the row with all zero covariate effects.  Of course, if there are no covariates and the deviation form is desired, then the user must provide the reference row.
+##' 
+##' The \code{refRow} argument determines which row is used as the intercept row. It is only
+##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
+##' 
+prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0, covariates, deviation=FALSE, refRow){
 	if(missing(covariates)){
 		covariates <- character(0)
+	}
+	if(missing(refRow)){ # or other default values???
+		refRow <- numeric(0)
 	}
 	
 	# Handle initial state
@@ -2278,12 +2291,54 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
 	
+	if(ncol(values.regimep) != (length(covariates) + 1)){
+		stop(paste0('Incorrect dimensions for initial probabilities\nFound ', paste0(dim(values.regimep), collapse=' by '),
+			'but should be ', nrow(values.regimep), ' by ', length(covariates) + 1, '\n',
+			'r by (c+1) for r=number of regimes, c=number of covariates'))
+	}
+	
+	# Do lots or processing and checking for the reference row and column
+	if(deviation == TRUE){
+		# if needed set refRow
+		if(length(refRow) == 0){
+			# check valid reference row (i.e. there is a single row as reference)
+			# detect reference row
+			# reference row has all zero covariate effects
+			covAreZero <- apply(params.regimep, 1, function(x){all(x[-1] %in% c('fixed'))})
+			blockSize <- max(length(covariates), 1)
+			covAreZeroM <- matrix(covAreZero, nrow=blockSize, ncol=nrow(values.regimep))
+			refRow <- apply(covAreZeroM, 2, function(x){all(x==TRUE)})
+			if(sum(refRow) < 1){ #no single reference row found
+				stop(paste("No single reference row found. Initial probabilities might not be identified. Set e.g. refRow=1."))
+			}
+			if(sum(refRow) > 1){#found more than one reference row
+				stop(paste0("Found multiple possible reference rows: ", paste(which(refRow==1), collapse=', '), ".  Reconsider your model specification or just set e.g. refRow=1."))
+			}
+			# set reference row to reference column
+			refRow <- which(refRow)
+		}
+		if(length(refRow) > 1){
+			# error reference row must have length 0 or 1
+			stop(paste("'refRow' must being a single number. That is, have length 0 or 1, we found length", length(refRow)))
+		}
+		if(refRow > nrow(values.regimep)){
+			# error reference row must be between 1 and nrow(values)
+			stop(paste("'refRow' must be between 1 and", nrow(values.regimep), "but we found", refRow))
+		}
+	} else {
+		if(length(refRow) > 0){
+			#warning refRow is ignored when for the non-deviation case (deviation=FALSE)
+			warning("'refRow' argument is ignored in the non-deviation case (i.e. when deviation=FALSE)")
+		}
+	}
+	
+	
 	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 	
-	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, values.inicov.inv.ldl=values.inicov.inv.ldl, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep, covariates=covariates)
+	x <- list(startval=sv, paramnames=pn, values.inistate=values.inistate, params.inistate=params.inistate, values.inicov=values.inicov, values.inicov.inv.ldl=values.inicov.inv.ldl, params.inicov=params.inicov, values.regimep=values.regimep, params.regimep=params.regimep, covariates=covariates, deviation=deviation, refRow=refRow)
 	return(new("dynrInitial", x))
 }
 
