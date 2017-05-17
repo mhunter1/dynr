@@ -292,11 +292,11 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##'
 ##' @aliases autoplot.dynrCook
 ##' 
-##' @param res The dynr object returned by dynr.cook().
+##' @param res The dynr object returned by \code{dynr.cook()}.
 ##' @param dynrModel The model object to plot.
 ##' @param style The style of the plot. If style is 1 (default), user-selected smoothed state variables are plotted. If style is 2, user-selected observed-versus-predicted values are plotted.
 ##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
-##' @param idtoPlot Values of the ID variable to plot
+##' @param idtoPlot Values of the ID variable to plot.
 ##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
 ##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
 ##' @param names.regime (optional) The names of the regimes to be plotted, which can be missing.
@@ -304,14 +304,35 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
 ##' @param title (optional) A title of the plot.
 ##' @param ylab (optional) The label of the y axis.
 ##' @param is.bw Is plot in black and white? The default is FALSE.
-##' @param colorPalette A palette function for lines and dots that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
-##' @param fillPalette A palette function for blocks that when called with a single integer argument (the number of levels in the scale) returns the values that they should take.
-##' @param mancolorPalette (optional) A color palette for manually scaling the colors of lines and plots.
-##' @param manfillPalette (optional) A color palette for manually scaling the colors of filled blocks.
-##' @param ... A list of element name, element pairings that modify the existing ggplot2::ggplot ggplot2::theme. Consult the ggplot2::theme() function in the R package ggplot2::ggplot.
+##' @param colorPalette A color palette for lines and dots. It is a value passed to the palette argument of the \code{ggplot2::scale_colour_brewer()} function. These palettes are in the R package \pkg{RColorBrewer}. One can find them by attaching the package with \code{library(RColorBrewer)} and run \code{display.brewer.all()}.
+##' @param fillPalette A color palette for blocks. It is a value passed to the palette argument of the \code{ggplot2::scale_fill_brewer()} function. These palettes are in the package \pkg{RColorBrewer}. One can find them by attaching the package with \code{library(RColorBrewer)} and run \code{display.brewer.all()}.  
+##' @param mancolorPalette (optional) A color palette for manually scaling the colors of lines and dots. It is a vector passed to the values argument of the \code{ggplot2::scale_colour_manual} function.
+##' @param manfillPalette (optional) A color palette for manually scaling the colors of filled blocks. It is a vector passed to the values argument of the \code{ggplot2::scale_fill_manual} function.
+##' @param ... A list of elements that modify the existing ggplot theme. Consult the \code{ggplot2::theme()} function in the R package \pkg{ggplot2} for more options.
 ##' 
 ##' @details
-##' The two functions \code{dynr.ggplot} and \code{autoplot} as identical aliases of one another.  The \code{autoplot} function is an S3 method from ggplot2 that allows many objects to be plotted in that package.
+##' This function outputs a ggplot layer that can be modified using functions in the package \pkg{ggplot2}. That is, one can add layers, scales, coords and facets with the "+" sign. In an example below, the \code{ggplot2::ylim()} function is used to modify the limits of the y axis of the graph. More details can be found on \link{http://ggplot2.org} and \link{http://ggplot2.tidyverse.org/reference/}.
+##'
+##' The two functions \code{dynr.ggplot()} and \code{autoplot()} as identical aliases of one another.  The \code{autoplot()} function is an S3 method from the package \pkg{ggplot2} that allows many objects to be plotted and works like the base \code{plot()} function.
+##'
+##' @examples
+##' # The following code is part of a demo example in dynr 
+##' # One can obtain the yum and rsmod objects needed below by running demo(RSLinearDiscreteYang).
+##' # p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
+##' # 	names.regime = c("Deactivated", "Activated"),
+##' # 	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##' # 	shape.values = c(1),
+##' # 	text = element_text(size = 16),
+##' # 	is.bw = TRUE)
+##' # One can modify the limits on the y axis by using '+'
+##' # p + ggplot2::ylim(-2, 4)
+##'
+##' # autoplot(yum, dynrModel = rsmod, style = 1,
+##' #	names.regime = c("Deactivated", "Activated"),
+##' #	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##' #	shape.values = c(1),
+##' #	text = element_text(size = 16),
+##' #	is.bw = TRUE)
 dynr.ggplot <- function(res, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 
