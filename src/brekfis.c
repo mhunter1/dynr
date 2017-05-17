@@ -126,19 +126,19 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	
 	
 	/********************************************************************************/
-	for(sbj=0; sbj<config->num_sbj; sbj++){
-		for(t=(config->index_sbj)[sbj]; t<(config->index_sbj)[sbj+1]; t++){
+	for(sbj=0; sbj < config->num_sbj; sbj++){
+		for(t=(config->index_sbj)[sbj]; t < (config->index_sbj)[sbj+1]; t++){
 			
 			gsl_vector_memcpy(cp_y_t, y[t]);
 			miss_case = find_miss_data(cp_y_t, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
 			
 			/** step 1: call cda ekalman filter for each possible regime switch **/
-			for(regime_j=0; regime_j<config->num_regime; regime_j++){/*from regime j*/
+			for(regime_j=0; regime_j < config->num_regime; regime_j++){/*from regime j*/
 				
 				/**set the regime switch matrix**/
 				if (t==(config->index_sbj)[sbj]){
 					gsl_matrix_set_identity(param->regime_switch_mat);
-					gsl_vector_memcpy(pr_t, init->pr_0);
+					gsl_vector_memcpy(pr_t, init->pr_0[sbj]);
 				}else{
 					type=1;
 					config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
@@ -800,7 +800,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             	/**set the regime switch matrix**/
             	if (t==(config->index_sbj)[sbj]){
             	    gsl_matrix_set_identity(param->regime_switch_mat);
-                    gsl_vector_memcpy(pr_t[t], init->pr_0);
+                    gsl_vector_memcpy(pr_t[t], init->pr_0[sbj]);
                 }else{
                     type=1;
                     config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
