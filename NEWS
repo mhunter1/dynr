@@ -6,8 +6,8 @@ dynr 0.1.10
 New features include:
 * Use of individual-level covariates in the initial conditions. See ?prep.initial for details.
 * Deviation form of regime-switching models.  Seee ?prep.regimes for details.
-* Access to extended Kalman filter estimates in the 'cooked' model.
-* We now allow filtering on models with no free parameters to obtain filtered estimates at fixed parameter values.
+* Access to the predicted, filtered, and smoothed latent variable estimates, and other by-products from the regime-switching extended Kalman filter in the 'cooked' model.
+* We now allow calculation of the negative log-likelihood value, the hessian matrix, and the predicted, filtered, and smoothed latent variable estimates at fixed parameter values without parameter optimization.
 * Beta version of a multiple imputation procedure.  See ?dynr.mi for details.
 
 Bug fixes and performance tweaks include:
