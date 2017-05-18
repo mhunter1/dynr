@@ -2425,7 +2425,25 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 ##' to C functions and utilized during the optimization process. 
 ##' If transCcode = FALSE, the transformations are only performed at the end 
 ##' of the optimization process for standard error calculations but not 
-##' during the optimization process. 
+##' during the optimization process.
+##' ##' 
+##' @details
+##' Prepares a dynr recipe that specifies the names of the parameters that are 
+##' to be subjected to user-supplied transformation functions and the 
+##' corresponding transformation and reverse-transformation functions. 
+##' This can be very in fitting dynamic models in which certain parameters can 
+##' only take on permissible values in particular ranges (e.g., a parameter may 
+##' have to positive). Note that all variance-covariance parameters in the model
+##' are automatically subjected to transformation functions to ensure that
+##' the resultant covariance matrices are positive-definite. Thus, no additional
+##' transformation functions are needed for variance-covariance parameters.
+##' 
+##' @examples
+##' #Specifies a transformation recipe, r20, that subjects the parameters
+##' #'r10' and 'r20' to exponential transformation to ensure that they are positive.
+##' trans <-prep.tfun(formula.trans=list(r10~exp(r10), r20~exp(r20)),
+##'                   formula.inv=list(r10~log(r10),r20~log(r20)))
+##'
 prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
   #input: formula.trans=list(a~exp(a),b~b^2)
   #input: formula.inv=list(a~log(a),b~sqrt(b))
