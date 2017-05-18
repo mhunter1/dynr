@@ -17,6 +17,7 @@ NeedsCompilation: yes
 License: Apache License (== 2.0)
 LazyLoad: yes
 LazyData: yes
+RdMacros: Rdpack
 Collate:
     'dynrData.R'
     'dynrRecipe.R'
