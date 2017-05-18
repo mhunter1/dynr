@@ -29,5 +29,6 @@ Collate:
     'dynrMi.R'
     'dynrVersion.R'
     'dataDoc.R'
+RdMacros: Rdpack
 Version: @VERSION@
 
