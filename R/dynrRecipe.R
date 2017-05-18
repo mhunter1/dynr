@@ -2349,16 +2349,20 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	}
 	if(ncol(values.inistate[[1]]) != (length(covariates) + 1)){
 		stop(paste0('Incorrect dimensions for initial state\nFound ', paste0(dim(values.inistate[[1]]), collapse=' by '),
-			'but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
+			' but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
 			'k by (c+1) for k=number of latent variables, c=number of covariates'))
 	}
 	
+	if(identical(values.regimep, 1) && identical(params.regimep, 0)){
+		values.regimep <- matrix(c(1, rep(0, length(covariates))), 1, length(covariates)+1)
+		params.regimep <- matrix(c(0), nrow(values.regimep), length(covariates)+1)
+	}
 	values.regimep <- preProcessValues(values.regimep)
 	params.regimep <- preProcessParams(params.regimep)
 	
 	if(ncol(values.regimep) != (length(covariates) + 1)){
 		stop(paste0('Incorrect dimensions for initial probabilities\nFound ', paste0(dim(values.regimep), collapse=' by '),
-			'but should be ', nrow(values.regimep), ' by ', length(covariates) + 1, '\n',
+			' but should be ', nrow(values.regimep), ' by ', length(covariates) + 1, '\n',
 			'r by (c+1) for r=number of regimes, c=number of covariates'))
 	}
 	
