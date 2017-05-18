@@ -2074,7 +2074,47 @@ autojacob<-function(formula,n){
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
 ##' 
+##' @details
+##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
+##' The function can be either linear or nonlinear, with free or fixed parameters, numerical constants, 
+##' covariates, and other mathematical functions that define the dynamics of the latent variables.
+##' Every latent variable in the model needs to be defined by a differential (for continuous time model), or
+##' difference (for discrete time model) equation.  The names of the latent variables should match 
+##' the specification in prep.measurement().
+##' For nonlinear models, the estimation algorithm generally needs a Jacobian matrix that contains
+##' elements of first differentiations of the dynamic functions with respect to the latent variables
+##' in the model. For most nonlinear models, such differentiations can be handled automatically by
+##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
+##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
+##' 
 ##' @examples
+##' # In this example, we present how to define the dynamics of a bivariate dual change score model
+##' # \insertRef{mcardle2009}{dynr}. This is a linear model and the user does not need to worry about 
+##' # providing any jacobian function (the default). 
+##'  
+##' # We start by creating a list of formula that describes the model. In this model, we have four 
+##' # latent variables, which are "readLevel", "readSlope", "mathLevel", and "math Slope".  The right-
+##' # hand side of each formula gives a function that defines the dynamics.   
+##'  
+##'  formula =list(
+##'           list(readLevel~ (1+beta.read)*readLevel + readSlope + gamma.read*mathLevel,
+##'           readSlope~ readSlope,
+##'           mathLevel~ (1+beta.math)*mathLevel + mathSlope + gamma.math*readLevel, 
+##'           mathSlope~ mathSlope
+##'           ))
+##'
+##' # Then we use prep.formulaDynamics() to define the formula, starting value of the parameters in
+##' # the model, and state the model is in discrete time by setting isContinuousTime=FALSE.
+##'  
+##' dynm  <- prep.formulaDynamics(formula=formula,
+##'                              startval=c(beta.read = -.5, beta.math = -.5, 
+##'                                         gamma.read = .3, gamma.math = .03
+##'                              ), isContinuousTime=FALSE)
+##' 
+##' 
+##' # For a full demo example of regime switching nonlinear discrete time model, you
+##' # may refer to a tutorial on \url{https://quantdev.ssri.psu.edu/tutorials/dynr-rsnonlineardiscreteexample}
+##' 
 ##' #Not run: 
 ##' #For a full demo example that uses user-supplied analytic jacobian functions see:
 ##' #demo(RSNonlinearDiscrete, package="dynr")
@@ -2096,7 +2136,7 @@ autojacob<-function(formula,n){
 ##' dynm <- prep.formulaDynamics(formula=formula, startval=c( a1=.3, a2=.4, c12=-.5, c21=-.5),
 ##'                              isContinuousTime=FALSE, jacobian=jacob)
 ##' 
-##' #For a full demo example that uses automatic jacobian functions see:
+##' #For a full demo example that uses automatic jacobian functions (the default) see:
 ##' #demo(RSNonlinearODE , package="dynr")
 ##' formula=list(prey ~ a*prey - b*prey*predator, predator ~ -c*predator + d*prey*predator)
 ##' dynm <- prep.formulaDynamics(formula=formula,
