@@ -2431,7 +2431,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 ##' Prepares a dynr recipe that specifies the names of the parameters that are 
 ##' to be subjected to user-supplied transformation functions and the 
 ##' corresponding transformation and reverse-transformation functions. 
-##' This can be very in fitting dynamic models in which certain parameters can 
+##' This can be very handy in fitting dynamic models in which certain parameters can 
 ##' only take on permissible values in particular ranges (e.g., a parameter may 
 ##' have to positive). Note that all variance-covariance parameters in the model
 ##' are automatically subjected to transformation functions to ensure that
