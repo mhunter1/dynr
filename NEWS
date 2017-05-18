@@ -1,3 +1,21 @@
+dynr 0.1.10
+--------------
+
+2017-05-19
+
+New features include:
+* Use of individual-level covariates in the initial conditions. See ?prep.initial for details.
+* Deviation form of regime-switching models.  Seee ?prep.regimes for details.
+* Access to extended Kalman filter estimates in the 'cooked' model.
+* We now allow filtering on models with no free parameters to obtain filtered estimates at fixed parameter values.
+* Beta version of a multiple imputation procedure.  See ?dynr.mi for details.
+
+Bug fixes and performance tweaks include:
+* Fixed a rounding bug that improves free parameter optimization, especially for models with many observed variables.
+* Improved documentation throughout
+* Added more examples in the help pages
+
+
 dynr 0.1.9
 --------------
 
