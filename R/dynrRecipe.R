@@ -1799,9 +1799,30 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 ##' 
 ##' Care should be taken that the parameters names for the latent covariances do not overlap with the parameters in the observed covariances.  Likewise, the parameter names for the latent covariances in each regime should either be identical or completely distinct. Because the LDL' transformation is applied to the covariances, sharing a parameter across regimes may cause problems with the parameter estimation.
 ##' 
+##' Use $ to show specific arguments from a dynrNoise object (see examples).
+##' @seealso 
+##' \code{\link{printex}} to show the covariance matrices in latex.
+##'  
 ##' @examples 
-##' prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), 
+##' # Two latent variables and one observed variable in a one-regime model
+##' Noise<-prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), 
 ##' values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
+##' # For matrices that can be import to latex:
+##' printex(Noise,show=TRUE)
+##' # If you want to check specific arguments you've specified, for example,
+##' # values for variance structure of the latent variables
+##' Noise$values.latent
+##' # [[1]]
+##' #     [,1] [,2]
+##' # [1,]  0.8    0
+##' # [2,]  0.0    1
+##' 
+##' # Two latent variables and one observed variable in a two-regime model
+##' Noise<-prep.noise(values.latent=list(diag(c(0.8, 1)),diag(c(0.8, 1))), 
+##' params.latent=list(diag(c('fixed', "e_x1")),diag(c('fixed', "e_x2"))), 
+##' values.observed=list(diag(1.5,1),diag(0.5,1)), 
+##' params.observed=list(diag("e_y1", 1),diag("e_y2",1)))
+##' # If the error and noise structures are assumed to be the same across regimes, it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	# Handle latent covariance
 	r <- coProcessValuesParams(values.latent, params.latent)
