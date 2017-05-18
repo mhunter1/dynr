@@ -1898,18 +1898,57 @@ replaceDiagZero <- function(x){
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @examples
-##' #Regime-switching with no covariates (self-transition ID)
+##' Two-regime example with a covariate, x; log odds (LO) parameters represented in default form,
+##' 2nd regime set to be the reference regime (i.e., have LO parameters all set to 0).
+##' The values and params matrices are of size 2 (numRegimes=2) x 4 (numRegimes*(numCovariates+1)).
+##'     The LO of staying within the 1st regime (corresponding to the (1,1) entry in the
+##'               2 x 2 transition probability matrix for the 2 regimes) = a_11 + d_11*x
+##'     The log odds of switching from the 1st to the 2nd regime (the (1,2) entry in the
+##'               transition probability matrix) = 0
+##'     The log odds of moving from regime 2 to regime 1 (the (2,1) entry) = a_21 + d_21*x
+##'     The log odds of staying within the 2nd regime (the (2,2) entry) = 0
+##' b <- prep.regimes(
+##' values=matrix(c(8,-1,rep(0,2),
+##'                -4,.1,rep(0,2)),
+##'              nrow=2, ncol=4,byrow=T), 
+##' params=matrix(c("a_11","d_11x",rep("fixed",2),
+##'                "a_21","d_21x",rep("fixed",2)), 
+##'              nrow=2, ncol=4,byrow=T), covariates=c("x"))
+##'  
+##'  Same example as above, but expressed in deviation form by specifying 'deviation = TRUE'
+##'     The LO of staying within the 1st regime (corresponding to the (1,1) entry in the
+##'               2 x 2 transition probability matrix for the 2 regimes) = a_21 + a_11 + d_11*x
+##'     The log odds of switching from the 1st to the 2nd regime (the (1,2) entry in the
+##'               transition probability matrix) = 0
+##'     The log odds of moving from regime 2 to regime 1 (the (2,1) entry) = a_21 + d_21*x
+##'     The log odds of staying within the 2nd regime (the (2,2) entry) = 0            
+##'              ##' b <- prep.regimes(
+##' values=matrix(c(8,-1,rep(0,2),
+##'                -4,.1,rep(0,2)),
+##'              nrow=2, ncol=4,byrow=T), 
+##' params=matrix(c("a_11","d_11x",rep("fixed",2),
+##'                "a_21","d_21x",rep("fixed",2)), 
+##'              nrow=2, ncol=4,byrow=T), covariates=c("x"), deviation = TRUE)
+##'              
+##' #An example of regime-switching with no covariates. The diagonal entries are fixed
+##' #at zero for identification purposes
 ##' b <- prep.regimes(values=matrix(0, 3, 3), 
-##' params=matrix(c(0, 'p1', 'p2', 'p3', 0, 'p4', 'p5', 'p6', 0), 3, 3))
+##' params=matrix(c('fixed', 'p12', 'p13', 
+##'                 'p21', 'fixed', 'p23', 
+##'                 'p31', 'p32', 'fixed'), 3, 3,byrow=T))
 ##' 
-##' #Regime switching with no covariates (second regime ID)
+##' #An example of regime-switching with no covariates. The parameters for the second regime are 
+##' fixed at zero for identification purposes, making the second regime the reference regime.
 ##' b <- prep.regimes(values=matrix(0, 3, 3), 
-##' params=matrix(c('p1', 'p2', 'p3', 0, 0, 0, 'p4', 'p5', 'p6'), 3, 3))
+##' params=matrix(c('p11', 'fixed', 'p13',
+##'                 'p21', 'fixed', 'p23', 
+##'                 'p31', 'fixed', 'p33'), 3, 3,byrow=T))
 ##' 
 ##' #2 regimes with three covariates
 ##' b <- prep.regimes(values=matrix(c(0), 2, 8), 
 ##' params=matrix(c(paste0('p', 8:15), rep(0, 8)), 2, 8), 
 ##' covariates=c('x1', 'x2', 'x3'))
+##' 
 prep.regimes <- function(values, params, covariates, deviation=FALSE, refRow){
 	if(!missing(values)){
 		values <- preProcessValues(values)
