@@ -11,8 +11,7 @@
 #------------------------------------------------------------------------------
 # Load packages
 require(dynr)
-require(mvtnorm)
-require(Matrix)
+
 
 #------------------------------------------------------------------------------
 # Example 2
@@ -20,55 +19,9 @@ require(Matrix)
 #	There is measurement noise and there are unmeasured dynamic disturbances.
 #	These disturbances are called dynamic noise.
 #	There is a single indicator.
-# TODO Figure out what combination of variables can really be estimated for 
-#	this kind of model.  It is clear that measurement noise and SOME dynamic
-#	noise can be estimated, but not all.
-
-
-#--------------------------------------
-# Data Generation
-
-xdim <- 2
-udim <- 1
-ydim <- 1
-tdim <- 1000
-set.seed(315)
-tA <- matrix(c(0, -.3, 1, -.7), xdim, xdim)
-tB <- matrix(c(0), xdim, udim)
-tC <- matrix(c(1, 0), ydim, xdim)
-tD <- matrix(c(0), ydim, udim)
-tQ <- matrix(c(0), xdim, xdim); diag(tQ) <- c(0, 2.2)
-tR <- matrix(c(0), ydim, ydim); diag(tR) <- c(1.5)
-
-x0 <- matrix(c(0, 1), xdim, 1)
-P0 <- diag(c(1), xdim)
-tdx <- matrix(0, xdim, tdim+1)
-tx <- matrix(0, xdim, tdim+1)
-tu <- matrix(0, udim, tdim)
-ty <- matrix(0, ydim, tdim)
-
-tT <- matrix(0:tdim, nrow=1, ncol=tdim+1)
-
-tI <- diag(1, nrow=xdim)
-
-tx[,1] <- x0
-for(i in 2:(tdim+1)){
-	q <- t(rmvnorm(1, rep(0, xdim), tQ))
-	tdx[,i] <- tA %*% tx[,i-1] + tB %*% tu[,i-1] + q
-	expA <- as.matrix(expm(tA * (tT[,i]-tT[,i-1])))
-	intA <- solve(tA) %*% (expA - tI)
-	tx[,i] <- expA %*% tx[, i-1] + intA %*% tB %*% tu[,i-1] + intA %*% q
-	ty[,i-1] <- tC %*% tx[,i] + tD %*% tu[,i-1] + t(rmvnorm(1, rep(0, ydim), tR))
-}
-
-
-
-rownames(ty) <- paste('y', 1:ydim, sep='')
-rownames(tx) <- paste('x', 1:xdim, sep='')
-
-
-#plot(tx[1,], type='l')
-#plot(tT[,-1], ty[1,], type='l')
+# It is somewhat open to figure out what combination of variables can really be
+#	estimated for this kind of model.  It is clear that measurement noise and
+#	SOME dynamic noise can be estimated, but not all.
 
 
 #------------------------------------------------------------------------------
@@ -124,8 +77,8 @@ dynamics <- prep.matrixDynamics(
 	isContinuousTime=TRUE)
 
 # Data
-simdata <- cbind(id=rep(1,100), t(ty), times=tT[,-1])
-data <- dynr.data(simdata, id="id", time="times", observed="y1")
+data(Oscillator)
+data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
 
 # Prepare for cooking
 # put all the recipes together

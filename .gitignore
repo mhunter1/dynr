@@ -37,6 +37,7 @@ man/names-dynrModel-method.Rd
 man/nobs.dynrCook.Rd
 man/nobs.dynrModel.Rd
 man/NonlinearDFAsim.Rd
+man/Oscillator.Rd
 man/plot.dynrCook.Rd
 man/plotFormula.Rd
 man/PPsim.Rd
