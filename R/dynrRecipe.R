@@ -2311,6 +2311,72 @@ processFormula<-function(formula.list){
 ##' The \code{refRow} argument determines which row is used as the intercept row. It is only
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically based on which parameters are \code{fixed}.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
 ##' 
+##' @examples
+##' #### No-covariates
+##' # Single regime, no covariates
+##' # latent states are position and velocity
+##' # initial position is free and called 'inipos'
+##' # initial slope is fixed at 1
+##' # initial covariance is fixed to a diagonal matrix of 1s
+##' initialNoC <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' #### One covariate
+##' # Single regime, one covariate on the inital mean
+##' # latent states are position and velocity
+##' # initial covariance is fixed to a diagonal matrix of 1s
+##' # initial latent means have
+##' #   nrow = numLatentState, ncol = numCovariates + 1
+##' # initial position has free intercept and free u1 effect
+##' # initial slope is fixed at 1
+##' initialOneC <- prep.initial(
+##' 	values.inistate=matrix(
+##' 		c(0, .5,
+##' 		  1,  0), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	params.inistate=matrix(
+##' 		c('iniPosInt', 'iniPosSlopeU1',
+##' 		'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2),
+##' 	covariates='u1')
+##' 
+##' #### Regime-switching, one covariate
+##' # latent states are position and velocity
+##' # initial covariance is fixed to a diagonal matrix of 1s
+##' # initial latent means have
+##' #   nrow = numLatentState, ncol = numCovariates + 1
+##' # initial position has free intercept and free u1 effect
+##' # initial slope is fixed at 1
+##' # There are 3 regimes but the mean and covariance
+##' #   are not regime-switching.
+##' initialRSOneC <- prep.initial(
+##' 	values.regimep=matrix(
+##' 		c(1, 1,
+##' 		  0, 1,
+##' 		  0, 0), byrow=TRUE,
+##' 		nrow=3, ncol=2),
+##' 	params.regimep=matrix(
+##' 		c('r1int', 'r1slopeU1',
+##' 		  'r2int', 'r2slopeU2',
+##' 		  'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=3, ncol=2),
+##' 	values.inistate=matrix(
+##' 		c(0, .5,
+##' 		  1,  0), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	params.inistate=matrix(
+##' 		c('iniPosInt', 'iniPosSlopeU1',
+##' 		'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2),
+##' 	covariates='u1')
+##' 
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0, covariates, deviation=FALSE, refRow){
 	if(missing(covariates)){
 		covariates <- character(0)
