@@ -2089,7 +2089,7 @@ autojacob<-function(formula,n){
 ##' 
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
-##' # \insertRef{mcardle2009}{dynr}. This is a linear model and the user does not need to worry about 
+##' # (McArdle, 2009). This is a linear model and the user does not need to worry about 
 ##' # providing any jacobian function (the default). 
 ##'  
 ##' # We start by creating a list of formula that describes the model. In this model, we have four 
