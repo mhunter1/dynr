@@ -32,13 +32,15 @@ The naming convention for \pkg{dynr} exploits the pronunciation of the package n
 Maintainer: \packageMaintainer{dynr}
 }
 \references{
-\enumerate{
 \insertRef{Chow13a}{dynr}
+
 \insertRef{Chow13b}{dynr}
+
 \insertRef{Ou17b}{dynr}
+
 \insertRef{Yang10a}{dynr}
+
 \insertRef{Chow17a}{dynr}
-}
 }
 \note{
 State-space modeling, 
