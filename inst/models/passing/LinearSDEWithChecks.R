@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # Author: Michael D. Hunter
 # Date: 2016-05-24
-# Filename: LinearSDE.R
+# Filename: LinearSDEWithChecks.R
 # Purpose: An illustrative example of using dynr to fit
 #   a linear stochastic differential equation model
 #------------------------------------------------------------------------------
@@ -89,6 +89,9 @@ model$ub <- c(100, 100, 100, 100, 100)
 model$ub <- c(friction=101, spring=100, inipos=103, 100, 100)
 model$ub['dnoise'] <- 99
 
+# Developer
+# Check that an error message is thrown
+testthat::expect_error(model$ub <- c(friction=101, spring=100, inipos=103, 100, 100, 4), regexp="I'm going over my borders. You gave me 6 things, but I need 5 (the number of free parameters).", fixed=TRUE)
 
 
 printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
@@ -131,8 +134,7 @@ data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=true
 
 # Check that all true parameters are within the confidence intervals of the estimated params
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
-withinIntervals
-# all should be true
+testthat::expect_true(all(withinIntervals))
 
 # compare estimated smoothed latent states to true
 # simulated ones
