@@ -32,7 +32,7 @@ The naming convention for \pkg{dynr} exploits the pronunciation of the package n
 Maintainer: \packageMaintainer{dynr}
 }
 \references{
-\itemize{
+\enumerate{
 \insertRef{Chow13a}{dynr}
 \insertRef{Chow13b}{dynr}
 \insertRef{Ou17b}{dynr}
