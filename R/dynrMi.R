@@ -5,15 +5,16 @@
 ##' @param aux.variable names of auxiliary variables used in imputation
 ##' @param imp.obs logical. whether to impute the observed variables
 ##' @param imp.exo logical. whether to impute the exogenous variables
+##' @param lag numeric. the number of lags to use
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
-dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    #multiple lag; #factor  #get variable names
+dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag){    #multiple lag; #factor  #get variable names
 	
 	
 	data=model@data$original.data
 	k=length(model@param.names) #- length(model@initial@paramnames)             #number of parameters estimated
-	nolag=1
+	nolag=TRUE
 	
 	
 	ynames=model@data$observed.names
@@ -35,7 +36,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE){    
 	datalag <- 
 	  dataforlag %>%
 	  dplyr::group_by(ID) %>%
-	  dplyr::mutate_all(lag)
+	  dplyr::mutate_all(lag) #Linying, what does this "lag" do?
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
 	dataformice=data.frame(dataformice)
