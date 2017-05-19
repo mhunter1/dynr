@@ -395,7 +395,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' time-varying predicted latent variable mean estimates, predicted error covariance matrix estimates, the error/residual estimates (innovation vector),
 ##' and the error/residual covariance matrix estimates.
 ##' 
-##' ##' @seealso 
+##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
 ##' \code{\link{deviance}}, \code{\link{initialize}}, \code{\link{logLik}},
 ##' \code{\link{names}}, \code{\link{nobs}}, \code{\link{plot}}, \code{\link{print}},

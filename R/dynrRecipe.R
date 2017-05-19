@@ -1719,6 +1719,9 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' When a single matrix is given to values.*, that matrix is not regime-switching.
 ##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
 ##' 
+##' @seealso 
+##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##'
 ##' @examples
 ##' prep.measurement(diag(1, 5), diag("lambda", 5))
 ##' prep.measurement(matrix(1, 5, 5), diag(paste0("lambda_", 1:5)))
@@ -1919,6 +1922,9 @@ replaceDiagZero <- function(x){
 ##' The \code{refRow} argument determines which row is used as the intercept row. It is only
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
 ##' 
+##' @seealso 
+##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##'
 ##' @examples
 ##' #Two-regime example with a covariate, x; log odds (LO) parameters represented in default form,
 ##' #2nd regime set to be the reference regime (i.e., have LO parameters all set to 0).
@@ -2087,7 +2093,10 @@ autojacob<-function(formula,n){
 ##' in the model. For most nonlinear models, such differentiations can be handled automatically by
 ##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
-##' 
+##'
+##' @seealso 
+##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{show}} 
+##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
 ##' # (McArdle, 2009). This is a linear model and the user does not need to worry about 
@@ -2198,6 +2207,9 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' vectors/matrices are assumed to hold across regimes.
 ##' 
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
+##' 
+##' @seealso 
+##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{show}} 
 ##' 
 ##' @examples 
 ##' #Single-regime, continuous-time model. For further details run: 
@@ -2406,6 +2418,9 @@ processFormula<-function(formula.list){
 ##' The \code{refRow} argument determines which row is used as the intercept row. It is only
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically based on which parameters are \code{fixed}.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
 ##' 
+##' @seealso 
+##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##'
 ##' @examples
 ##' #### No-covariates
 ##' # Single regime, no covariates
