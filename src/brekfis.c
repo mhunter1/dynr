@@ -139,6 +139,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				if (t==(config->index_sbj)[sbj]){
 					gsl_matrix_set_identity(param->regime_switch_mat);
 					gsl_vector_memcpy(pr_t, init->pr_0[sbj]);
+					if(DEBUG_BREKFIS){
+						MYPRINT("initial regime probabilities:\n");
+						print_vector(pr_t);
+						MYPRINT("\n");
+					}
 				}else{
 					type=1;
 					config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
