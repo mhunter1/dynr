@@ -1720,7 +1720,7 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
 ##'
 ##' @examples
 ##' prep.measurement(diag(1, 5), diag("lambda", 5))
@@ -1924,7 +1924,7 @@ replaceDiagZero <- function(x){
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
 ##'
 ##' @examples
 ##' #Two-regime example with a covariate, x; log odds (LO) parameters represented in default form,
@@ -1967,7 +1967,7 @@ replaceDiagZero <- function(x){
 ##'                 'p31', 'p32', 'fixed'), 3, 3, byrow=TRUE))
 ##' 
 ##' #An example of regime-switching with no covariates. The parameters for the second regime are 
-##' fixed at zero for identification purposes, making the second regime the reference regime.
+##' #  fixed at zero for identification purposes, making the second regime the reference regime.
 ##' b <- prep.regimes(values=matrix(0, 3, 3), 
 ##' params=matrix(c('p11', 'fixed', 'p13',
 ##'                 'p21', 'fixed', 'p23', 
@@ -2208,7 +2208,7 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{show}} 
+##' Methods that can be used include: \code{\link{print}}, \code{\link{show}} 
 ##' 
 ##' @examples 
 ##' #Single-regime, continuous-time model. For further details run: 
@@ -2418,7 +2418,7 @@ processFormula<-function(formula.list){
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically based on which parameters are \code{fixed}.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
+##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
 ##'
 ##' @examples
 ##' #### No-covariates
