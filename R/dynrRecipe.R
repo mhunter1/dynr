@@ -2405,15 +2405,15 @@ processFormula<-function(formula.list){
 
 ##' Recipe function for preparing the initial conditions for the model. 
 ##' 
-##' @param values.inistate a vector or list of vectors of the starting or fixed values of the initial state vector in one or more regimes.
-##' @param params.inistate a vector or list of vectors of the parameter names that appear in the initial state vector in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.
+##' @param values.inistate a vector or list of vectors of the starting or fixed values of the initial state vector in one or more regimes.  May also be a matrix or list of matrices.
+##' @param params.inistate a vector or list of vectors of the parameter names that appear in the initial state vector in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values vector; Otherwise, the corresponding element is to be estimated with the starting value specified in the values vector.  May also be a matrix or list of matrices.
 ##' @param values.inicov a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the initial error covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching dynamic model, the initial error covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose.
 ##' @param params.inicov a matrix or list of matrices of the parameter names that appear in the initial error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.
-##' @param values.regimep a vector of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
-##' @param params.regimep a vector of the parameter indices of the initial probabilities of 
+##' @param values.regimep a vector/matrix of the starting or fixed values of the initial probabilities of being in each regime. By default, the initial probability of being in the first regime is fixed at 1.
+##' @param params.regimep a vector/matrix of the parameter indices of the initial probabilities of 
 ##' being in each regime. If an element is 0 or "fixed", the corresponding element is fixed at the value 
-##' specified in the "values" vector; Otherwise, the corresponding element is to be estimated 
-##' with the starting value specified in the values vector.
+##' specified in the "values" vector/matrix; Otherwise, the corresponding element is to be estimated 
+##' with the starting value specified in the values vector/matrix.
 ##' @param covariates character vector of the names of the (person-level) covariates
 ##' @param deviation logical. Whether to use the deviation form or not.  See Details.
 ##' @param refRow numeric. Which row is treated at the reference.  See Details.
@@ -2423,6 +2423,8 @@ processFormula<-function(formula.list){
 ##' initial error covariance matrix, initial probabilities of 
 ##' being in each regime and all associated parameter specifications.
 ##' The initial probabilities are specified in multinomial logistic regression form.  When there are no covariates, this implies multinomial logistic regression with intercepts only.
+##' 
+##' The structure of the initial state vector and the initial probability vector depends on the presence of covariates.  When there are no covariates these should be vectors, or equivalently single-column matrices.  When there are covariates they should have \eqn{c+1} columns for \eqn{c} covariates.  The number of rows should be the number of regimes for the initial regimes, or the number of latent states for the initial states.
 ##' 
 ##' When \code{deviation=FALSE}, the non-deviation form of the multinomial logistic regression is used. This form has a separate intercept term for each entry of the initial probability vector. When \code{deviation=TRUE}, the deviation form of the multinomial logistic regression is used. This form has an intercept term that is common to all rows of the initial probability vector. The rows are then distinguished by their own individual deviations from the common intercept. The deviation form requires the same reference row constraint as the non-deviation form (described below). By default the reference row is taken to be the row with all zero covariate effects.  Of course, if there are no covariates and the deviation form is desired, then the user must provide the reference row.
 ##' 
