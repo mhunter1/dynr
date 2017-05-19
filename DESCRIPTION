@@ -29,4 +29,5 @@ Collate:
     'dynrVersion.R'
     'dataDoc.R'
 RdMacros: Rdpack
+Biarch: true
 

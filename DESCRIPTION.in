@@ -30,5 +30,6 @@ Collate:
     'dynrVersion.R'
     'dataDoc.R'
 RdMacros: Rdpack
+Biarch: true
 Version: @VERSION@
 
