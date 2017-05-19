@@ -513,8 +513,8 @@ setMethod("printex", "dynrModel",
 ##' Several \emph{named} arguments can be passed into the \code{...} section of the function.  These include
 ##' \itemize{
 ##' 	\item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
-##' 	\item Argument transform is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
-##' 	\item Argument options a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
+##' 	\item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
+##' 	\item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
 ##' for details. Available options for use with a dynrModel object 
 ##' include xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, and maxtime, 
 ##' all of which control the termination conditions for parameter optimization. The examples below show a case where options were set.
