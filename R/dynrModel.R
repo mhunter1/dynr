@@ -506,7 +506,7 @@ setMethod("printex", "dynrModel",
 ##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
 ##' @param outfile a character string of the name of the output C script of model functions to be compiled 
 ##' for parameter estimation.
-##' @param options a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Algorithms} 
+##' @param options a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
 ##' for details. Available options for use with a dynrModel object 
 ##' include xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, and maxtime, 
 ##' all of which control the termination conditions for parameter optimization. 
