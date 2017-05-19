@@ -139,7 +139,7 @@ testthat::expect_true(all(withinIntervals))
 # compare estimated smoothed latent states to true
 # simulated ones
 sm <- data.frame(t(res@eta_smooth_final))
-cor(sm, t(tx)[-1,])
+cor(sm, Oscillator[,c('x1', 'x2')])
 
 #------------------------------------------------------------------------------
 # End

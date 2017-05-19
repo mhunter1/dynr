@@ -135,13 +135,15 @@ NULL
 ##'   \item id. ID of the systems (1 to 1 because this is a single person)
 ##'   \item y1. Noisy observed position
 ##'   \item times. Time index (1000 time points) spaced at one unit intervals
+##'   \item x1. True latent position
+##'   \item x2. True latent velocity
 ##' }
 ##' 
 ##' @docType data
 ##' @keywords datasets
 ##' @name Oscillator
 ##' @usage data(Oscillator)
-##' @format A data frame with 1000 rows and 3 variables
+##' @format A data frame with 1000 rows and 5 variables
 ##' 
 ##' @examples
 ##' # The following was used to generate the data
@@ -187,7 +189,7 @@ NULL
 ##' 
 ##' rownames(ty) <- paste('y', 1:ydim, sep='')
 ##' rownames(tx) <- paste('x', 1:xdim, sep='')
-##' simdata <- cbind(id=rep(1, tdim), t(ty), times=tT[,-1])
+##' simdata <- cbind(id=rep(1, tdim), t(ty), times=tT[,-1], t(tx)[-1,])
 ##' # write.table(simdata, file='Oscillator.txt', row.names=FALSE, col.names=TRUE)
 ##' 
 ##' #plot(tx[1,], type='l')
