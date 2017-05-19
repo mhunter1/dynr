@@ -1826,7 +1826,8 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 ##' params.latent=list(diag(c('fixed', "e_x1")),diag(c('fixed', "e_x2"))), 
 ##' values.observed=list(diag(1.5,1),diag(0.5,1)), 
 ##' params.observed=list(diag("e_y1", 1),diag("e_y2",1)))
-##' # If the error and noise structures are assumed to be the same across regimes, it is okay to use matrices instead of lists.
+##' # If the error and noise structures are assumed to be the same across regimes,
+##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
 	# Handle latent covariance
 	r <- coProcessValuesParams(values.latent, params.latent)
@@ -2094,9 +2095,6 @@ autojacob<-function(formula,n){
 ##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
 ##'
-##' @seealso 
-##' Methods that can be used include: \code{\link{initalize}}, \code{\link{print}}, \code{\link{show}} 
-##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
 ##' # (McArdle, 2009). This is a linear model and the user does not need to worry about 
@@ -2123,7 +2121,8 @@ autojacob<-function(formula,n){
 ##' 
 ##' 
 ##' # For a full demo example of regime switching nonlinear discrete time model, you
-##' # may refer to a tutorial on \url{https://quantdev.ssri.psu.edu/tutorials/dynr-rsnonlineardiscreteexample}
+##' # may refer to a tutorial on 
+##' # \url{https://quantdev.ssri.psu.edu/tutorials/dynr-rsnonlineardiscreteexample}
 ##' 
 ##' #Not run: 
 ##' #For a full demo example that uses user-supplied analytic jacobian functions see:
