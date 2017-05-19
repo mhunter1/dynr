@@ -526,7 +526,7 @@ setMethod("printex", "dynrModel",
 ##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
 ##'
 ##' #Set relative tolerance on function value via 'options':
-##' ##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
+##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
 ##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c",
 ##' #    options=list(ftol_rel=as.numeric(1e-6)))
 ##' 
