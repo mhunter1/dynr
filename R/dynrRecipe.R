@@ -2194,8 +2194,9 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' and the vector of derivatives for the latent variables at the current time point in the continuous-time case.
 ##'
 ##' For models with regime-switching dynamic functions, the user will need to provide a list of the *.int, *.dyn, and *.exo arguments. 
-##' (when they are specified to be the default of zero vectors and matrices), or if a single set of vectors/matrices are provided, the same 
+##' (when they are specified to take on values other than the default of zero vectors and matrices), or if a single set of vectors/matrices are provided, the same 
 ##' vectors/matrices are assumed to hold across regimes.
+##' 
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
 ##' 
 ##' @examples 
