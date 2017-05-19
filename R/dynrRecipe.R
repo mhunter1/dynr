@@ -1068,10 +1068,14 @@ setMethod("writeCcode", "dynrInitial",
 		ret <- "void function_initial_condition(double *param, gsl_vector **co_variate, gsl_vector **pr_0, gsl_vector **eta_0, gsl_matrix **error_cov_0, size_t *index_sbj){\n\t"
 		ret <- paste0(ret, "\n", createGslVector(nregime, "Pvector"))
 		ret <- paste0(ret, createGslVector(nregime, "Pintercept"))
+		ret <- paste0(ret, createGslVector(nregime, "Padd"))
+		ret <- paste0(ret, createGslVector(nregime, "Preset"))
 		ret <- paste0(ret, setGslVectorElements(values.regimep[ , 1, drop=FALSE], params.regimep[ , 1, drop=FALSE], "Pvector"))
 		ret <- paste0(ret, setGslVectorElements(values.regIntercept, params.regIntercept, "Pintercept"))
-		ret <- paste0(ret, "\tgsl_vector_add(Pintercept, Pvector);\n")
-		ret <- paste0(ret, "\tgsl_vector_memcpy(Pvector, Pintercept);\n")
+		ret <- paste0(ret, "\tgsl_vector_add(Padd, Pvector);\n")
+		ret <- paste0(ret, "\tgsl_vector_add(Padd, Pintercept);\n")
+		ret <- paste0(ret, "\tgsl_vector_add(Preset, Pvector);\n")
+		ret <- paste0(ret, "\tgsl_vector_add(Preset, Pintercept);\n")
 		
 		ret <- paste0(ret, createGslVector(numLatent, "eta_local"))
 		if(hasCovariates){
@@ -1100,14 +1104,11 @@ setMethod("writeCcode", "dynrInitial",
 							ret <- paste0(ret, gslVectorCopy("co_variate[index_sbj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=5))
 							ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[reg]], params=params.covEffects[[reg]], name="Cmatrix", depth=5))
 							ret <- paste0(ret, "\t\t\t\t", blasMV(FALSE, "1.0", "Cmatrix", "covariate_local", "1.0", "eta_local"))
-							ret <- paste0(ret, "\t\t\t\t", blasMV(FALSE, "1.0", "Pmatrix", "covariate_local", "1.0", "Pvector"))
 						}
-						ret <- paste0(ret, "\t\t\t\t\tmathfunction_softmax(Pvector, pr_0[i]);\n")
 						ret <- paste0(ret, gslVectorCopy("eta_local", "eta_0[regime]", 1:numLatent, 1:numLatent, toFill="i*dim_latent_var+", depth=5))
 						ret <- paste0(ret, "\t\t\t\t\tgsl_vector_set_zero(eta_local);\n")
 						if(hasCovariates){
 							ret <- paste0(ret, "\t\t\t\t\tgsl_matrix_set_zero(Cmatrix);\n")
-							ret <- paste0(ret, "\t\t\t\t\tgsl_vector_memcpy(Pvector, Pintercept);\n")
 						}
 						ret <- paste0(ret,"\t\t\t\t}") # close i loop
 					}
@@ -1121,7 +1122,6 @@ setMethod("writeCcode", "dynrInitial",
 			if (any(someStatesNotZero)){
 				ret <- paste0(ret,"\n\t\tfor(i=0; i < num_sbj; i++){\n")
 				ret <- paste0(ret, setGslVectorElements(values=values.etaIntercept[[1]], params=params.etaIntercept[[1]], name='eta_local', depth=3))
-				ret <- paste0(ret, "\t\t\tmathfunction_softmax(Pvector, pr_0[i]);\n")
 				if(hasCovariates){
 					ret <- paste0(ret, gslVectorCopy("co_variate[index_sbj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=3))
 					ret <- paste0(ret, setGslMatrixElements(values=values.covEffects[[1]], params=params.covEffects[[1]], name="Cmatrix", depth=3))
@@ -1137,7 +1137,19 @@ setMethod("writeCcode", "dynrInitial",
 			ret <- paste(ret, setGslMatrixElements(values.inicov[[1]], params.inicov[[1]], "(error_cov_0)[regime]"), sep="\n")
 			ret <- paste0(ret, "\t}") # close regime loop
 		}
-		ret <- paste0(ret, "\n", destroyGslVector("Pvector"), destroyGslVector("Pintercept"), destroyGslVector("eta_local"))
+		
+		ret <- paste0(ret,"\n\tfor(i=0; i < num_sbj; i++){\n")
+		if(hasCovariates){
+			ret <- paste0(ret, gslVectorCopy("co_variate[index_sbj[i]]", "covariate_local", fromLoc=match(covariates_local, covariates), toLoc=1:numCovariates, depth=2))
+			ret <- paste0(ret, "\t", blasMV(FALSE, "1.0", "Pmatrix", "covariate_local", "1.0", "Padd"))
+		}
+		ret <- paste0(ret, "\t\tmathfunction_softmax(Padd, pr_0[i]);\n")
+		if(hasCovariates){
+			ret <- paste0(ret, "\t\tgsl_vector_memcpy(Padd, Preset);\n")
+		}
+		ret <- paste0(ret,"\t}") # close i loop
+		
+		ret <- paste0(ret, "\n", destroyGslVector("Pvector"), destroyGslVector("Pintercept"), destroyGslVector("Padd"), destroyGslVector("Preset"), destroyGslVector("eta_local"))
 		if(hasCovariates){
 			ret <- paste0(ret, destroyGslVector("covariate_local"))
 			ret <- paste0(ret, destroyGslMatrix("Cmatrix"))
