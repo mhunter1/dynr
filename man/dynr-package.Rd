@@ -73,6 +73,7 @@ vignette(package='dynr', 'InstallationForUsers')
 #For illustrations of the functions in dynr, check out some of the demo examples in:
 demo(package='dynr')
 
-#For example, to run the demo 'LinearSDE' type:
-demo('LinearSDE',package='dynr')
+#For example, to run the demo 'LinearSDE' type
+# the following without the comment character (#) in front of it.
+#demo('LinearSDE', package='dynr')
 }
