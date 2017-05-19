@@ -17,7 +17,7 @@ Because the \pkg{dynr} package compiles C code in response to user input, more s
 
 See the installation vignette referenced in the Examples section below for installation instructions.
 
-The naming convention for \pkg{dynr} exploits the pronunciation of the package name, \pkg{dynr}, pronounced the same as ``dinner''.s That is, the names of functions and methods are specifically designed to relate to things done surrounding dinner, such as gathering ingredients (e.g., the data), preparing recipes, cooking, and serving the finished product. The general procedure for using the \pkg{dynr} package can be summarized in five steps as below. 
+The naming convention for \pkg{dynr} exploits the pronunciation of the package name, \pkg{dynr}, pronounced the same as ``dinner''. That is, the names of functions and methods are specifically designed to relate to things done surrounding dinner, such as gathering ingredients (e.g., the data), preparing recipes, cooking, and serving the finished product. The general procedure for using the \pkg{dynr} package can be summarized in five steps as below. 
 \enumerate{
     \item Data are prepared using with the \code{dynr.data()} function. 
     \item \emph{Recipes} are prepared. To each part of a model there is a corresponding \code{prep.*()} recipe function. Examples of such \code{prep.*()} functions include: \code{prep.measurement()}, \code{prep.matrixDynamics()}, \code{prep.formulaDynamics()}, \code{prep.initial()}, \code{prep.noise()}, and \code{prep.regimes()}.
