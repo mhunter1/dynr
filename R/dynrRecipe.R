@@ -2181,11 +2181,19 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' 
 ##' @details
 ##' A recipe function for specifying the deterministic portion of a set of linear dynamic functions as:
-##' Discrete-time model: eta(t+1) = int + dyn*eta(t) + exo*x(t), where int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo. 
-##' Continuous-time model: d/dt eta(t) = int + dyn*eta(t) + exo*x(t), where int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo.
+##'
+##' Discrete-time model: eta(t+1) = int + dyn*eta(t) + exo*x(t), 
+##' where eta(t) is a vector of latent variables, x(t) is a vector of covariates,
+##' int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo. 
+##'
+##' Continuous-time model: d/dt eta(t) = int + dyn*eta(t) + exo*x(t), 
+##' where eta(t) is a vector of latent variables, x(t) is a vector of covariates,
+##' int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo.
+##' 
 ##' The left-hand side of the dynamic model consists of a vector of latent variables for the next time point in the discrete-time case,
 ##' and the vector of derivatives for the latent variables at the current time point in the continuous-time case.
-##' For models with regime-switching dynamic functions, the user will need to provide a list of the *.int, *.dyn, and *.exo arguments 
+##'
+##' For models with regime-switching dynamic functions, the user will need to provide a list of the *.int, *.dyn, and *.exo arguments. 
 ##' (when they are specified to be the default of zero vectors and matrices), or if a single set of vectors/matrices are provided, the same 
 ##' vectors/matrices are assumed to hold across regimes.
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
