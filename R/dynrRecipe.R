@@ -1,6 +1,3 @@
-<<<<<<< 7513ef2c3e6bdda7fb0bbc96a4a93fcf474ddaa5
-<<<<<<< e813e70bae8ffc94dde8a08bc547f97c84e21a18
-<<<<<<< 88be51f1acbb55739ac4653d288734b475382576
 # A Recipe is a helper function that takes user input
 #  and produces a C function definition that can be
 #  compiled by dynrFuncaddress.
