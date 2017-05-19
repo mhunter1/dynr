@@ -1710,6 +1710,7 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 ##' @param state.names  vector of names for the latent variables in the order they appear in the measurement model.
 ##' @param exo.names  (optional) vector of names for the exogenous variables in the order they appear in the measurement model.
 ##'
+##' @details
 ##' The values.* arguments give the starting and fixed values for their respective matrices.
 ##' The params.* arguments give the free parameter labels for their respective matrices.
 ##' Numbers can be used as labels.
@@ -2179,8 +2180,32 @@ prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jaco
 ##' @param isContinuousTime logical. When TRUE, use a continuous time model.  When FALSE use a discrete time model.
 ##' 
 ##' @details
-##' The right-hand-side of the dynamic model consists of a vector of latent variables for the next time point in the discrete time case,
-##' and the vector of derivatives for the latent variables at the current time point in the continuous time case.
+##' A recipe function for specifying the deterministic portion of a set of linear dynamic functions as:
+##' Discrete-time model: eta(t+1) = int + dyn*eta(t) + exo*x(t), where int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo. 
+##' Continuous-time model: d/dt eta(t) = int + dyn*eta(t) + exo*x(t), where int, dyn, and exo are vectors and matrices specified via the arguments *.int, *.dyn, and *.exo.
+##' The left-hand side of the dynamic model consists of a vector of latent variables for the next time point in the discrete-time case,
+##' and the vector of derivatives for the latent variables at the current time point in the continuous-time case.
+##' For models with regime-switching dynamic functions, the user will need to provide a list of the *.int, *.dyn, and *.exo arguments 
+##' (when they are specified to be the default of zero vectors and matrices), or if a single set of vectors/matrices are provided, the same 
+##' vectors/matrices are assumed to hold across regimes.
+##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
+##' 
+##' @examples 
+##' #Single-regime, continuous-time model. For further details run: 
+##' #demo(RSNonlinearDiscrete, package="dynr"))
+##' dynamics <- prep.matrixDynamics(
+##' values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' isContinuousTime=TRUE)
+##' 
+##' #Two-regime, continuous-time model. For further details run: 
+##' #demo(RSNonlinearDiscrete, package="dynr"))
+##' dynamics <- prep.matrixDynamics(
+##' values.dyn=list(matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##'                 matrix(c(0, -0.1, 1, 0), 2, 2)),
+##' params.dyn=list(matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##'            matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
+##' isContinuousTime=TRUE) 
 prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
                                 covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
