@@ -33,10 +33,10 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	#head(stats::lag(as.xts(dataforlag),2))
 	#head(lag(dataforlag,2))
 	
-	datalag <- 
-	  dataforlag %>%
-	  dplyr::group_by(ID) %>%
-	  dplyr::mutate_all(lag) #Linying, what does this "lag" do?
+	datalag <- dataforlag
+	#  dataforlag %>%
+	#  dplyr::group_by(ID) %>%
+	#  dplyr::mutate_all(lag) #Linying, what does this "lag" do?
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
 	dataformice=data.frame(dataformice)
