@@ -15,7 +15,7 @@ The DESCRIPTION file:
 \packageIndices{dynr}
 Because the \pkg{dynr} package compiles C code in response to user input, more setup is required for the \pkg{dynr} package than for many others. We acknowledge that this additional setup can be bothersome, but we believe the ease of use for the rest of the package and the wide variety of models it is possible to fit with it will compensate for this initial burden.  Hopefully you will agree!
 
-See the installation vignette referenced in the Examples section below.\code{\link{/vignettes/InstallationForUsers.Rnw}} for installation instructions.
+See the installation vignette referenced in the Examples section below for installation instructions.
 
 The naming convention for \pkg{dynr} exploits the pronunciation of the package name, \pkg{dynr}, pronounced the same as ``dinner''.s That is, the names of functions and methods are specifically designed to relate to things done surrounding dinner, such as gathering ingredients (e.g., the data), preparing recipes, cooking, and serving the finished product. The general procedure for using the \pkg{dynr} package can be summarized in five steps as below. 
 \enumerate{
