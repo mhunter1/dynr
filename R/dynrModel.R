@@ -525,6 +525,8 @@ setMethod("printex", "dynrModel",
 ##' 	\item The dollar sign ($) can be used to both get objects out of a model and to set pieces of the model.
 ##' 	\item \code{names} returns the names of the free parameters in a model.
 ##' 	\item \code{\link{printex}} prints LaTeX expressions for the equations that compose a model. The output can then be readily typeset for inclusion in presentations and papers.
+##' 	\item \code{nobs} gives the total number of observations (e.g. all times across all people)
+##' 	\item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
 ##' }
 ##' 
 ##' @examples
