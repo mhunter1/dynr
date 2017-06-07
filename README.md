@@ -2,6 +2,8 @@
 
 This README documents the steps necessary to get `dynr` cooking.  That was the first of many food-based puns.  It will not be the last.
 
+[![](http://cranlogs.r-pkg.org/badges/dynr)](http://cran.rstudio.com/web/packages/dynr/index.html)
+
 ### Who is this repository for? ###
 
 This repository is primarily for developers. If you're not currently on the development team but would like to be, please contact Sy-Miin Chow at Pennsylvania State University.  You will need
