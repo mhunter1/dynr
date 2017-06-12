@@ -344,15 +344,37 @@ setMethod("printex", "dynrRegimes",
 )
 
 
+mvpaste <- function(m, v, a){
+	nr <- nrow(m)
+	res <- matrix("", nrow=nr, ncol=1)
+	for(r in 1:nr){
+		mat1 <- m[r,]
+		mat2 <- v
+		mat2 <- mat2[mat1 !=0 ]
+		mat1 <- mat1[mat1 !=0 ]
+		mat3 <- paste(mat1, mat2, sep="*")
+		mat3 <- gsub("*1", "", mat3, fixed=TRUE)
+		a <- a[ a != 0]
+		b <- implode(c(mat3, a), sep=" + ")
+		res[r,] <- b
+	}
+	return(res)
+}
+
 setMethod("printex", "dynrInitial",
-          function(object, ParameterAs, 
-			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
-			  show=TRUE, AsMatrix=TRUE){
-            lx0 <- lapply(object$values.inistate, .xtableMatrix, show)
-            lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
-            lr0 <- .xtableMatrix(object$values.regimep, show)
-            return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
-          }
+	function(object, ParameterAs, printDyn=TRUE, printMeas=TRUE,
+	printInit=FALSE, printRS=FALSE, outFile, show=TRUE, AsMatrix=TRUE){
+			nx <- nrow(object$values.inistate[[1]])
+			covar <- c("1", object$covariates)
+			#x0val <- lapply(object$values.inistate, function(x){matrix(gsub(x, nrow=nx)})
+			#x0val <- lapply(x0val, function(x){matrix(paste(t(x), covar, sep="*"), nrow=nx, byrow=TRUE)})
+			#x0val <- lapply(x0val, function(x){matrix(apply(x, 1, paste, collapse=" + "), nrow=nx)})
+			x0val <- lapply(object$values.inistate, mvpaste, v=covar, a=rep("0", nx))
+			lx0 <- lapply(x0val, .xtableMatrix, show)
+			lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
+			lr0 <- .xtableMatrix(object$values.regimep, show)
+			return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
+		}
 )
 
 
