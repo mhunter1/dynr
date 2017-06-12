@@ -903,7 +903,7 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 					createGslVector(nrow(params.int[[1]]), "intVector"), "\n",
 					setGslVectorElements(values=values.int[[1]], params=params.int[[1]], name="intVector"), "\n",
 					"\tgsl_vector_add(", outName, ", intVector);", "\n",
-					destroyGslMatrix("intVector"))
+					destroyGslVector("intVector"))
 			}
 			
 			ret <- paste(ret, "}\n\n", sep="\n")
