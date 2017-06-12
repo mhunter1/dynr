@@ -2084,7 +2084,8 @@ autojacob<-function(formula,n){
 ##' @param formula a list of formulas specifying the drift or state-transition 
 ##' equations for the latent variables in continuous or discrete time, respectively.
 ##' @param startval a named vector of starting values of the parameters in the 
-##' formulas for estimation with parameter names as its name.
+##' formulas for estimation with parameter names as its name. If there are no free parameters in 
+##' the dynamic functions, leave startval as the default \code{numeric(0)}.
 ##' @param isContinuousTime if True, the left hand side of the formulas represent 
 ##' the first-order derivatives of the specified variables; if False, the left hand 
 ##' side of the formulas represent the current state of the specified variable while 
@@ -2163,8 +2164,8 @@ autojacob<-function(formula,n){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval, isContinuousTime=FALSE, jacobian){
-  if(is.null(names(startval))){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian){
+  if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector')
   }
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
