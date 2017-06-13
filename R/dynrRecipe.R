@@ -1905,6 +1905,11 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	values.observed <- lapply(values.observed, preProcessValues)
 	params.observed <- lapply(params.observed, preProcessParams)
 	
+	lapply(values.latent, checkSymmetric, name="values.latent")
+	lapply(params.latent, checkSymmetric, name="params.latent")
+	lapply(values.observed, checkSymmetric, name="values.observed")
+	lapply(params.observed, checkSymmetric, name="params.observed")
+	
 	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
 	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
 	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
@@ -1922,6 +1927,14 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 replaceDiagZero <- function(x){
 	diag(x)[diag(x) == 0] <- 1e-6
 	return(x)
+}
+
+checkSymmetric <- function(m, name="matrix"){
+	if(any(m != t(m))){
+		msg <- paste0("Covariance matrix called '", name, "' is not symmetric.\n",
+			"Covariance matrices should be equal to their transposes.")
+		stop(msg)
+	}
 }
 
 
@@ -2573,6 +2586,8 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	
 	values.inicov <- lapply(values.inicov, preProcessValues)
 	params.inicov <- lapply(params.inicov, preProcessParams)
+	lapply(values.inicov, checkSymmetric, name="values.inicov")
+	lapply(params.inicov, checkSymmetric, name="params.inicov")
 	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
 	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
