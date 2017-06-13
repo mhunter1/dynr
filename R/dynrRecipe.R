@@ -356,6 +356,7 @@ mvpaste <- function(m, v, a){
 		mat3 <- gsub("*1", "", mat3, fixed=TRUE)
 		a <- a[ a != 0]
 		b <- implode(c(mat3, a), sep=" + ")
+		b[b %in% ""] <- "0"
 		res[r,] <- b
 	}
 	return(res)
@@ -364,15 +365,35 @@ mvpaste <- function(m, v, a){
 setMethod("printex", "dynrInitial",
 	function(object, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 	printInit=FALSE, printRS=FALSE, outFile, show=TRUE, AsMatrix=TRUE){
+			values.regimep <- object$values.regimep
+			params.regimep <- object$params.regimep
+			numRegimes <- nrow(values.regimep)
+			covariates <- object$covariates
+			numCovariates <- length(covariates)
+			deviation <- object$deviation
+			refRow <- object$refRow
+			
 			nx <- nrow(object$values.inistate[[1]])
 			covar <- c("1", object$covariates)
-			#x0val <- lapply(object$values.inistate, function(x){matrix(gsub(x, nrow=nx)})
-			#x0val <- lapply(x0val, function(x){matrix(paste(t(x), covar, sep="*"), nrow=nx, byrow=TRUE)})
-			#x0val <- lapply(x0val, function(x){matrix(apply(x, 1, paste, collapse=" + "), nrow=nx)})
 			x0val <- lapply(object$values.inistate, mvpaste, v=covar, a=rep("0", nx))
 			lx0 <- lapply(x0val, .xtableMatrix, show)
 			lP0 <- lapply(object$values.inicov, .xtableMatrix, show)
-			lr0 <- .xtableMatrix(object$values.regimep, show)
+			
+			if(deviation){
+				if(nrow(values.regimep)!=0 && nrow(params.regimep)!=0){
+					values.regIntercept <- matrix(values.regimep[refRow, 1], nrow=numRegimes, 1)
+					params.regIntercept <- matrix(params.regimep[refRow, 1], nrow=numRegimes, 1)
+					values.regimep[refRow, 1] <- 0
+					params.regimep[refRow, 1] <- 0
+				}
+			} else {
+				values.regIntercept <- matrix(0, numRegimes, 1)
+				params.regIntercept <- matrix(0, numRegimes, 1)
+			}
+			
+			p0val <- mvpaste(values.regimep, covar, values.regIntercept)
+			lr0 <- .xtableMatrix(p0val, show)
+			
 			return(invisible(list(initial.state=lx0, initial.covariance=lP0, initial.probability=lr0)))
 		}
 )
