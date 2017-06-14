@@ -93,7 +93,7 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates)
 	time.split <- split(data.object$time, fid)
 	diff.npos <- sapply(time.split, function(x){d <- diff(x); any(d <= 0)})
 	if(any(diff.npos)){
-		msg <- paste0("Time steps are not all increasing.\nFound zero or negative time differnces for IDs: ", paste(levels(fid)[diff.npos], sep="", collapse=", "))
+		msg <- paste0("Time steps are not all increasing.\nFound zero or negative time differences for IDs: ", paste(levels(fid)[diff.npos], sep="", collapse=", "))
 		stop(msg)
 	}
 	return(data.object)
