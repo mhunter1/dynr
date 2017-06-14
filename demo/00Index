@@ -5,3 +5,4 @@ RSLinearDiscreteYang   Regime-switching linear discrete-time model (Replication 
 RSNonlinearDiscrete    Nonlinear dynamic factor analysis
 RSNonlinearODE         Regime-switching predator-prey model
 initialExo             Regime-switching initial conditions with covariates
+SDETVP		       Stochastic Linear Damped Oscillator with Time-varying Setpoint parameter
