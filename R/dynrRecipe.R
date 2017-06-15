@@ -1554,7 +1554,7 @@ preProcessValues <- function(x){
 }
 
 preProcessParams <- function(x){
-	x[is.na(x)] <- 'fixed'
+	if (!is.null(x)) {x[is.na(x)] <- 'fixed'}
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
