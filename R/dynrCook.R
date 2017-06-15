@@ -655,7 +655,9 @@ PopBackFormula<- function(formula, paramnames, param.names, trans.parameters){
 PopBackModel<-function(dynrModel, trans.parameters){
   
   if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
-    dynrModel@dynamics@formula<-PopBackFormula(dynrModel@dynamics@formula,dynrModel@dynamics@paramnames,dynrModel@param.names,trans.parameters)
+	if (length(dynrModel@dynamics@paramnames) > 0){
+	    dynrModel@dynamics@formula<-PopBackFormula(dynrModel@dynamics@formula,dynrModel@dynamics@paramnames,dynrModel@param.names,trans.parameters)	
+	}
   }else{
     dynrModel@dynamics@values.dyn <- PopBackMatrix(dynrModel@dynamics@values.dyn, dynrModel@dynamics@params.dyn, trans.parameters)
     dynrModel@dynamics@values.exo <- PopBackMatrix(dynrModel@dynamics@values.exo, dynrModel@dynamics@params.exo, trans.parameters)
