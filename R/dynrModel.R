@@ -446,7 +446,7 @@ setMethod("printex", "dynrModel",
               outProb <- NULL
               if (model2$num_regime > 1){
                 #Only print initial regime probabilities if > 1 regime
-                outProb <- paste0("&\\text{Initial regime probabilities = }",
+                outProb <- paste0("&\\text{Initial regime log odds = }",
                                   initProb,"\\\\\n")
               }
               #regime switch probability
