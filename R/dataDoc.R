@@ -218,28 +218,30 @@ NULL
 ##' @examples
 ##' # The following was used to generate the data
 ##' #--------------------------------------
-##' freq=-1
-##' damp=-.1
-##' mu=-2
-##' r=.5
-##' b=.1
-##' sigma1=0.1
-##' sigma2=0.1
-##' fx<-expression(y,freq*(x-z)+damp*y,r*z*(1-b*z))
-##' gx <- expression(0,sigma1,0)
-##' r3dall<-c()
-##' for (j in 1:10){
-##'   r3dtemp<-c(-5,0,.1)
-##'   r3d<-r3dtemp
-##'   for (i in seq(0.125,30,by=0.125)){
-##'     mod3dtemp <- snssde3d(drift=fx,diffusion=gx,M=1,t0=i-0.125,x0=as.numeric(r3dtemp),T=i,N=500,type="str",method="smilstein")
-##'     r3dtemp <- rsde3d(mod3dtemp,at=i)
-##'     r3d<-rbind(r3d,r3dtemp)
-##'   }
-##'   r3dall<-rbind(r3dall,cbind(r3d,id=j))
-##' }
-##' 
-##' r3dall$obsy = r3dall$x+rnorm(length(r3dall$x),0,1)
-##' write.table(r3dall,file="LogisticSetPointSDE.txt")
-
+##' #require(Sim.DiffProc)
+##' #freq <- -1
+##' #damp <- -.1
+##' #mu <- -2
+##' #r <- .5
+##' #b <- .1
+##' #sigma1 <- 0.1
+##' #sigma2 <- 0.1
+##' #fx <- expression(y, freq*(x-z) + damp*y, r*z*(1-b*z))
+##' #gx <- expression(0, sigma1, 0)
+##' #r3dall <- c()
+##' #for (j in 1:10){
+##' #  r3dtemp <- c(-5,0,.1)
+##' #  r3d <- r3dtemp
+##' #  for (i in seq(0.125, 30, by=0.125)){
+##' #    mod3dtemp <- snssde3d(drift=fx, diffusion=gx, M=1, t0=i-0.125,
+##' #        x0=as.numeric(r3dtemp), T=i, N=500, type="str",
+##' #        method="smilstein")
+##' #    r3dtemp <- rsde3d(mod3dtemp,at=i)
+##' #    r3d <-rbind(r3d,r3dtemp)
+##' #  }
+##' #  r3dall <- rbind(r3dall, cbind(r3d, id=j))
+##' #}
+##' #
+##' #r3dall$obsy <- r3dall$x+rnorm(length(r3dall$x),0,1)
+##' #write.table(r3dall, file="LogisticSetPointSDE.txt")
 NULL

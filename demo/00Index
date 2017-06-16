@@ -1,8 +1,9 @@
-LinearSDE              Linear Harmonic Oscillator
+LinearSDE              Linear harmonic oscillator
 NonlinearODE           Predator-prey model
 RSLinearDiscrete       Regime-switching linear discrete-time model
 RSLinearDiscreteYang   Regime-switching linear discrete-time model (Replication of Yang & Chow, 2010)
 RSNonlinearDiscrete    Nonlinear dynamic factor analysis
 RSNonlinearODE         Regime-switching predator-prey model
 initialExo             Regime-switching initial conditions with covariates
-SDETVP		       Stochastic Linear Damped Oscillator with Time-varying Setpoint parameter
+SDETVP                 Stochastic linear damped oscillator with time-varying setpoint parameter
+
