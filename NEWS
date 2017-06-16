@@ -1,3 +1,16 @@
+dynr 0.1.11
+--------------
+
+2017-06-16
+
+New features include:
+* New demo for a linear oscillator with time-varying parameters
+
+Bug fixes and performance tweaks include:
+* Fixed printex output for covariates and deviation form of the initial conditions
+* Fixed memory leak for intercepts in measurement models
+
+
 dynr 0.1.10
 --------------
 
