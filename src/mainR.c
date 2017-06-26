@@ -429,12 +429,12 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		/*output of filter: innovation vector*/
 	    gsl_vector **innov_v_t=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		innov_v_t[index_sbj_t] = gsl_vector_calloc(data_model.pc.dim_latent_var);
+		innov_v_t[index_sbj_t] = gsl_vector_calloc(data_model.pc.dim_obs_var);
 	    }
 		/*output of filter: residual covariance*/
 	    gsl_matrix **residual_cov_t=(gsl_matrix **)malloc(data_model.pc.total_obs*sizeof(gsl_matrix *));
 	    for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
-		residual_cov_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
+		residual_cov_t[index_sbj_t] = gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
 		}
 		
 		/**Actual Functions**/
@@ -723,12 +723,12 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*innovation vector*/
  		SEXP dims_innov_vec=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_innov_vec)));
+ 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_obs_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_innov_vec)));
  		SEXP innov_vec = PROTECT(Rf_allocArray(REALSXP, dims_innov_vec));
  		index = 0;
  		ptr_index = REAL(innov_vec);
  		for(index_sbj_t=0; index_sbj_t<data_model.pc.total_obs; index_sbj_t++){
- 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
+ 				for(index_col=0; index_col<data_model.pc.dim_obs_var; index_col++){
  					ptr_index[index]=gsl_vector_get(innov_v_t[index_sbj_t],index_col);
  					index++;
  				}
@@ -740,13 +740,13 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*residual covariance*/
  		SEXP dims_residual_cov=PROTECT(allocVector(INTSXP, 3));
- 		memcpy(INTEGER(dims_residual_cov), ((int[]){data_model.pc.dim_latent_var,  data_model.pc.dim_latent_var,  data_model.pc.total_obs}),3*sizeof(int));
+ 		memcpy(INTEGER(dims_residual_cov), ((int[]){data_model.pc.dim_obs_var,  data_model.pc.dim_obs_var,  data_model.pc.total_obs}),3*sizeof(int));
  		SEXP residual_cov = PROTECT(Rf_allocArray(REALSXP, dims_residual_cov));
  		index = 0;
  		ptr_index=REAL(residual_cov);
  		for(index_sbj_t=0;index_sbj_t<data_model.pc.total_obs;index_sbj_t++){
- 				for(index_col=0; index_col<data_model.pc.dim_latent_var; index_col++){
- 					for(index_row=0; index_row<data_model.pc.dim_latent_var; index_row++){
+ 				for(index_col=0; index_col<data_model.pc.dim_obs_var; index_col++){
+ 					for(index_row=0; index_row<data_model.pc.dim_obs_var; index_row++){
  						ptr_index[index]=gsl_matrix_get(residual_cov_t[index_sbj_t],index_row, index_col);
  						index++;
  					}
