@@ -1168,6 +1168,10 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     gsl_vector_free(diff_eta_vec);
     gsl_matrix_free(diff_eta);
     gsl_matrix_free(modif_p);
+	
+    gsl_vector_free(diff_obs_vec);
+    gsl_matrix_free(diff_obs);
+    gsl_matrix_free(modif_obs_p);
 
 	/** output of extended Kalman filter **/
     /*eta^regime_jk_it|t*/
