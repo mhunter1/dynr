@@ -615,7 +615,7 @@ void model_constraint_init(const ParamConfig *pc, ParamInit *pi){
 * eta_pred_t -- predicted state estimate
 * error_cov_pred_t -- predicted error covariance estimate
 * innov_v_t -- innovation vector
-* residual_cov_t -- inverse of the residual covariance
+* residual_cov_t -- the residual covariance
 **/
 
 double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, const ParamConfig *config, ParamInit *init, Param *param,
@@ -753,7 +753,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     }
     for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
 	for(regime_j=0; regime_j<config->num_regime; regime_j++){
-	    innov_v_regime_t[index_sbj_t][regime_j]=gsl_vector_calloc(config->dim_latent_var);
+	    innov_v_regime_t[index_sbj_t][regime_j]=gsl_vector_calloc(config->dim_obs_var);
 	}
     }
 
@@ -763,10 +763,9 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     }
     for(index_sbj_t=0;index_sbj_t<config->total_obs;index_sbj_t++){
 	for(regime_j=0; regime_j<config->num_regime; regime_j++){
-	    residual_cov_regime_t[index_sbj_t][regime_j]=gsl_matrix_calloc(config->dim_latent_var, config->dim_latent_var);
+	    residual_cov_regime_t[index_sbj_t][regime_j]=gsl_matrix_calloc(config->dim_obs_var, config->dim_obs_var);
 	}
-    }
-	
+    }	
 	
     /** output for hamilton filter **/
 	gsl_matrix *tran_prob_jk = gsl_matrix_alloc(config->num_regime, config->num_regime);/*given t-1*/
@@ -777,6 +776,9 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     gsl_vector *diff_eta_vec=gsl_vector_alloc(config->dim_latent_var);
     gsl_matrix *diff_eta=gsl_matrix_alloc(config->dim_latent_var, 1);
     gsl_matrix *modif_p=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
+    gsl_vector *diff_obs_vec=gsl_vector_alloc(config->dim_obs_var);
+    gsl_matrix *diff_obs=gsl_matrix_alloc(config->dim_obs_var, 1);
+    gsl_matrix *modif_obs_p=gsl_matrix_alloc(config->dim_obs_var, config->dim_obs_var);
 
 
     /********************************************************************************/
@@ -1092,7 +1094,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						mathfunction_collapse(innov_v_regime_t[t][regime_k], innov_v[t][regime_j][regime_k], 
 						residual_cov[t][regime_j][regime_k], gsl_matrix_get(like_jk,regime_j, regime_k), 
 						residual_cov_regime_t[t][regime_k],
-						diff_eta_vec, diff_eta, modif_p);
+						diff_obs_vec, diff_obs, modif_obs_p);
 
                     }/*end of j*/
                     
@@ -1135,7 +1137,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 					
 					mathfunction_collapse(innov_v_t[t], innov_v_regime_t[t][regime_k], 
 					residual_cov_regime_t[t][regime_k], gsl_vector_get(pr_t_given_t_minus_1[t], regime_k), residual_cov_t[t],
-					diff_eta_vec, diff_eta, modif_p);
+					diff_obs_vec, diff_obs, modif_obs_p);
 
 			}
 	
