@@ -226,13 +226,15 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       dynrModel@dynamics@values.int <- lapply((dynrModel$dynamics)$values.int, preProcessNames,state.names)
     }
 
-    dyn.df <- data.frame(text="'Dynamic Model'",x=0)
+    dyn.df <- data.frame(text="bold('Dynamic Model')",x=0)
     nRegime=ifelse(class(dynrModel@dynamics)=="dynrDynamicsFormula",
                    length(dynrModel@dynamics@formula),
                    length(dynrModel@dynamics@values.dyn))
     dyn_tex=printex(dynrModel@dynamics,AsMatrix=FALSE)
     nEq <- length(dyn_tex[[1]])
-    noise_tex <- paste0(" + ", ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), "w_{",1:nEq, "}(t)")
+    # noise_tex <- paste0(" + ", ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), "w_{",1:nEq, "}(t)")
+    noise_tex <- paste0(ifelse(dynrModel@dynamics@isContinuousTime, "d", ""), 
+                        "w_{", 1:nEq, "}(t)")
     for (i in 1:nRegime){
       if (nRegime>1){
         dyn.df <- rbind(dyn.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
@@ -242,18 +244,29 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       }else if (length(dynrModel@noise@values.latent)==nRegime){
         values.latent.mat <- dynrModel@noise@values.latent[[i]]
       }else{stop("The number of regimes implied by the dynamic noise structure does not match the number of regimes in the dynamic model.")}
-      noise_tex[which(diag(values.latent.mat)==0)] <- ""
-      dyn.df <- rbind(dyn.df,plotdf(LaTeXnames(paste0(dyn_tex[[i]], noise_tex))))
+      pos.zero <- diag(values.latent.mat) == 0
+      # noise_tex[diag(values.latent.mat)==0] <- ""
+      # dyn.df <- rbind(dyn.df,plotdf(LaTeXnames(paste0(dyn_tex[[i]], noise_tex))))
+      dyn.df <- rbind(dyn.df,
+                      plotdf(LaTeXnames(
+                        paste0(dyn_tex[[i]], 
+                               ifelse(pos.zero, "", 
+                                      paste0(" + ", noise_tex))))),
+                      plotdf(LaTeXnames(
+                        paste0(ifelse(pos.zero, "", 
+                                      paste0(noise_tex, " \\sim ", "N(0,\\,", 
+                                             diag(values.latent.mat), ")"))))) )
     }
   }
   
   #Measurement model
   if (printMeas){
-    meas.df<-data.frame(text="'Measurement Model'",x=0)
+    meas.df<-data.frame(text="bold('Measurement Model')",x=0)
     nRegime=length(dynrModel@measurement@values.load)
     meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
     nEq <- length(meas_tex[[1]])
-    noise_tex <- paste0(" + ", "epsilon_{", 1:nEq, "}")
+    # noise_tex <- paste0(" + ", "epsilon_{", 1:nEq, "}")
+    noise_tex <- paste0("epsilon_{", 1:nEq, "}")
     for (i in 1:nRegime){
       if (nRegime>1){
         meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
@@ -263,13 +276,23 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
       }else if (length(dynrModel@noise@values.observed)==nRegime){
         values.observed.mat <- dynrModel@noise@values.observed[[i]]
       }else{stop("The number of regimes implied by the measurement noise structure does not match the number of regimes in the measurement model.")}
-      noise_tex[which(diag(values.observed.mat)==0)] <- ""
-      meas.df<-rbind(meas.df,plotdf(LaTeXnames(paste0(meas_tex[[i]], noise_tex))))
+      pos.zero <- diag(values.observed.mat) == 0
+      # noise_tex[diag(values.observed.mat)==0] <- ""
+      # meas.df<-rbind(meas.df,plotdf(LaTeXnames(paste0(meas_tex[[i]], noise_tex))))
+      meas.df <- rbind(meas.df,
+                      plotdf(LaTeXnames(
+                        paste0(meas_tex[[i]],
+                               ifelse(pos.zero, "", 
+                                      paste0(" + ", noise_tex, ",")),
+                               "\\;\\,",
+                               ifelse(pos.zero, "",
+                                      paste0(noise_tex, " \\sim ", "N(0,\\,", 
+                                             diag(values.observed.mat), ")"))))))
     }
   }
   
   if (printDyn&printMeas){
-    plot.df=rbind(dyn.df,meas.df)
+    plot.df=rbind(dyn.df, meas.df)
   }else if (printDyn){
     plot.df=dyn.df
   }else if (printMeas){
