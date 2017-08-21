@@ -395,6 +395,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' time-varying predicted latent variable mean estimates, predicted error covariance matrix estimates, the error/residual estimates (innovation vector),
 ##' and the error/residual covariance matrix estimates.
 ##' 
+##' The exit flag given after optimization has finished is from the SLSQP optimizer.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values}
+##' 
 ##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
 ##' \code{\link{deviance}}, \code{\link{initialize}}, \code{\link{logLik}},
