@@ -1,4 +1,16 @@
-dynr 0.1.11
+dynr 0.1.11-8
+--------------
+
+2017-08-21
+
+New features include:
+* Noise printing by plotFormula() function
+
+Bug fixes and performance tweaks include:
+* Fixed innovation vector computation for larger than 1-dimensional observations
+
+
+dynr 0.1.11-2
 --------------
 
 2017-06-16
