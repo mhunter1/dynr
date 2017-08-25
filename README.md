@@ -55,6 +55,8 @@ Please follow [these basic guidelines](https://chris.beams.io/posts/git-commit/)
 
 We use [win-builder](https://win-builder.r-project.org/) to help test the repository prior to [submitting a new release to CRAN](https://cran.r-project.org/submit.html).
 
+A Note to developers: there is a bug in `roxygen2` such that the latest version will not build our documentation.  It is a [known issue](https://github.com/klutometis/roxygen/issues/595) that will be resolved soon.  In the meantime, use an older version of the package.  Install it with `devtools::install_version(package = 'roxygen2',version = '5.0.1', repos = c(CRAN = "https://cran.rstudio.com"))`
+
 ### Who do I talk to? ###
 
 * Michael D. Hunter is the Repo owner and admin
