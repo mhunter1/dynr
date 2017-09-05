@@ -185,11 +185,11 @@ displayDynrCook <- function(x, ...){
 }
 
 setMethod("print", "dynrCook", function(x, ...) { 
-  displayDynrCook(x) 
+	displayDynrCook(x) 
 })
 
 setMethod("show", "dynrCook", function(object) { 
-  displayDynrCook(object) 
+	displayDynrCook(object) 
 })
 
 
@@ -215,7 +215,7 @@ setMethod("show", "dynrCook", function(object) {
 ##' # Let cookedModel be the output from dynr.cook
 ##' #coef(cookedModel)
 coef.dynrCook <- function(object, ...){
-  object@transformed.parameters
+	object@transformed.parameters
 }
 
 #`coef<-.dynrCook` <- function(object, value){
@@ -243,11 +243,11 @@ coef.dynrCook <- function(object, ...){
 ##' # Let cookedModel be the output from dynr.cook
 ##' #logLik(cookedModel)
 logLik.dynrCook <- function(object, ...){
-  ans <- -object@neg.log.likelihood
-  attr(ans, "df") <- length(object@fitted.parameters)
-  attr(ans, "nobs") <- nobs(object) #dim(object@eta_smooth_final)[2]
-  class(ans) <- "logLik"
-  return(ans)
+	ans <- -object@neg.log.likelihood
+	attr(ans, "df") <- length(object@fitted.parameters)
+	attr(ans, "nobs") <- nobs(object) #dim(object@eta_smooth_final)[2]
+	class(ans) <- "logLik"
+	return(ans)
 }
 
 # N.B. AIC() and BIC() are implicitly defined in terms
@@ -409,20 +409,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
-
+	
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
-	  num_regime=dynrModel@num_regime,
-	  dim_latent_var=dynrModel@dim_latent_var,
-	  xstart=dynrModel@xstart,
-	  ub=dynrModel@ub,
-	  lb=dynrModel@lb,
-	  options=dynrModel@options,
-	  isContinuousTime=dynrModel@dynamics@isContinuousTime,
-	  infile=dynrModel@outfile,
-	  outfile=gsub(".c\\>","",dynrModel@outfile),
-	  compileLib=dynrModel@compileLib,
-	  verbose=dynrModel@verbose
+		num_regime=dynrModel@num_regime,
+		dim_latent_var=dynrModel@dim_latent_var,
+		xstart=dynrModel@xstart,
+		ub=dynrModel@ub,
+		lb=dynrModel@lb,
+		options=dynrModel@options,
+		isContinuousTime=dynrModel@dynamics@isContinuousTime,
+		infile=dynrModel@outfile,
+		outfile=gsub(".c\\>","",dynrModel@outfile),
+		compileLib=dynrModel@compileLib,
+		verbose=dynrModel@verbose
 	)
 	libname <- model$libname
 	model$libname <- NULL
@@ -463,9 +463,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	nonpdH <- !is.positive.definite2(output$hessian.matrix)
 	status = ifelse(nonfiniteH || nonpdH, 0, 1)
 	output2 <- endProcessing(output, transformation, conf.level)
-	if (output$exitflag > 0 && status==1 &&length(dynrModel$param.names[output2$bad.standard.errors])==0){
+	if (output$exitflag > 0 && status==1 && length(dynrModel$param.names[output2$bad.standard.errors])==0){
 		cat('Successful trial\n')
-	}else{
+	} else {
 		#cat('Check the hessian matrix from your dynr output. \n')
 		#cat('Hessian Matrix:',  '\n')
 		#print(output$hessian.matrix)
@@ -475,9 +475,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			warning(msg)
 		} else if(nonpdH || length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
 			msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
-  if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-    msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors],collapse=", "),"."),collapse="")  
-    }
+			if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
+				msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors],collapse=", "),"."),collapse="")  
+			}
 			warning(msg)
 		}
 	}
@@ -491,7 +491,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	obj@param.names <- dynrModel$param.names
 	#populate transformed estimates to dynrModel
 	#model<<-PopBackModel(model, obj@transformed.parameters)
-  
+	
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
@@ -507,15 +507,15 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
 
 endProcessing2 <- function(x, transformation){
-  cat('Doing end processing for a failed trial\n')
-  tParam <- transformation(x$fitted.parameters)
-  x$transformed.parameters <- tParam
-  
-  nParam <- length(x$fitted.parameters)
-  x$standard.errors <- rep(999,nParam)
-  x$transformed.inv.hessian <- matrix(999, nrow=nParam,ncol=nParam)
-  x$conf.intervals <- matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-  return(x)
+	cat('Doing end processing for a failed trial\n')
+	tParam <- transformation(x$fitted.parameters)
+	x$transformed.parameters <- tParam
+	
+	nParam <- length(x$fitted.parameters)
+	x$standard.errors <- rep(999,nParam)
+	x$transformed.inv.hessian <- matrix(999, nrow=nParam,ncol=nParam)
+	x$conf.intervals <- matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	return(x)
 }
 
 
@@ -535,11 +535,11 @@ endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
 	if (is.positive.definite(x$hessian.matrix)){
-	  V1 <- solve(x$hessian.matrix)
+		V1 <- solve(x$hessian.matrix)
 	}
 	else{
-	  PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
-	  V1 <- solve(PDhessian)
+		PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
+		V1 <- solve(PDhessian)
 	}
 	
 	#Identifies too many problematic parameters
@@ -555,7 +555,7 @@ endProcessing <- function(x, transformation, conf.level){
 	iHess0 <- J%*%(MASS::ginv(x$hessian))%*%t(J)
 	bad.SE <- diag(iHess0) < 0
 	
-	iHess <- J %*% V1%*%t(J)
+	iHess <- J %*% V1 %*% t(J)
 	tSE <- sqrt(diag(iHess))
 	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
