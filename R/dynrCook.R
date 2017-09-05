@@ -531,10 +531,12 @@ endProcessing2 <- function(x, transformation){
 
 #J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
 
+# TODO adjust endProcessing logic/workflow.  We're computing some things twice, and sometimes in different ways.
+
 endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
-	if (is.positive.definite(x$hessian.matrix)){
+	if (is.positive.definite(x$hessian.matrix)){ #N.B. We use is.positive.definite() here, but is.positive.definite2() above.  Why?
 		useHess <- x$hessian.matrix
 	}
 	else{
