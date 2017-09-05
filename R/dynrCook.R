@@ -535,11 +535,15 @@ endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
 	confx <- qnorm(1-(1-conf.level)/2)
 	if (is.positive.definite(x$hessian.matrix)){
-		V1 <- solve(x$hessian.matrix)
+		useHess <- x$hessian.matrix
 	}
 	else{
-		PDhessian <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
-		V1 <- solve(PDhessian)
+		useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
+	}
+	V1 <- try(solve(useHess))
+	if(class(V1) == "try-error"){
+		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.")
+		V1 <- MASS::ginv(useHess)
 	}
 	
 	#Identifies too many problematic parameters
@@ -552,7 +556,7 @@ endProcessing <- function(x, transformation, conf.level){
 	
 	#Numerical Jacobian
 	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
-	iHess0 <- J%*%(MASS::ginv(x$hessian))%*%t(J)
+	iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
 	bad.SE <- diag(iHess0) < 0
 	
 	iHess <- J %*% V1 %*% t(J)
