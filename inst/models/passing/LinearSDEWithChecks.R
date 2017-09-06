@@ -141,6 +141,21 @@ testthat::expect_true(all(withinIntervals))
 sm <- data.frame(t(res@eta_smooth_final))
 cor(sm, Oscillator[,c('x1', 'x2')])
 
+
+#------------------------------------------------------------------------------
+# Check that free parameters cannot have multiple starts
+
+initial2 <- prep.initial(
+	values.inistate=c(0, 1),
+	params.inistate=c('spring', 'fixed'), #initial position is free parameter 5, initial slope is fixed at 1
+	values.inicov=diag(1, 2),
+	params.inicov=diag('fixed', 2)) #initial covariance is fixed to a diagonal matrix of 1s.
+
+testthat::expect_error(
+	dynr.model(dynamics=dynamics, measurement=meas, noise=ecov, initial=initial2, data=data, outfile="LinearSDE.c"),
+	regexp="Found multiple (transformed) start values for parameter 'spring': -0.1, 0", fixed=TRUE)
+
+
 #------------------------------------------------------------------------------
 # End
 #save(model,res,file="LinearSDE.RData")

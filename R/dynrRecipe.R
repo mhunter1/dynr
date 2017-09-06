@@ -1614,6 +1614,28 @@ coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	return(list(values=values, params=params))
 }
 
+symmExtract <- function(x, s){if(s){x[lower.tri(x, diag=TRUE)]}else{x}}
+
+checkMultipleStart <- function(values, params, symmetric=FALSE){
+	if(is.list(values) & is.list(params)){
+		values <- unlist(lapply(values, symmExtract, s=symmetric))
+		params <- unlist(lapply(params, symmExtract, s=symmetric))
+	} else if(is.matrix(values) && is.matrix(params)){
+		values <- c(symmExtract(values, symmetric))
+		params <- c(symmExtract(params, symmetric))
+	} else if(xor(is.list(values), is.list(params)) || xor(is.matrix(values), is.matrix(params))){
+		stop("Invalid input to checkMultipleStart() function.\nMust be a pair of vectors, a pair of lists, or a pair of matrices.\nFound a mix.")
+	}
+	names(values) <- params
+	chparam <- setdiff(unique(params), c("0", "fixed")) # Don't check parameters labeled "fixed" or "0"
+	for(i in chparam){
+		ch <- values[ names(values) %in% i]
+		if(sum(!duplicated(ch)) > 1){
+			stop(paste0("Found multiple (transformed) start values for parameter '", i, "': ", paste(ch, sep="", collapse=", ")), call.=FALSE)
+		}
+	}
+}
+
 
 preProcessNames <- function(x,rnames=character(0),cnames=character(0)){
   rownames(x) <- rnames
@@ -1639,16 +1661,17 @@ extractParams <- function(p){
 	}
 }
 
-extractValues <- function(v, p){
+extractValues <- function(v, p, symmetric=FALSE){
 	if(is.list(v) && is.list(p) && length(v) == length(p) && length(v) > 0){
 		ret <- c()
 		for(i in 1:length(v)){
-			ret <- c(ret, extractValues(v[[i]], p[[i]]))
+			ret <- c(ret, extractValues(v[[i]], p[[i]], symmetric))
 		}
 		return(ret)
 	} else if(length(v) == 0){
 		return(numeric(0))
 	}else {
+		checkMultipleStart(v, p, symmetric)
 		return(v[extractWhichParams(p)])
 	}
 }
@@ -1834,6 +1857,7 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
+	
 	x <- list(startval=sv, paramnames=pn, values.load=values.load, params.load=params.load,
 		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int,
 		obs.names=obs.names, state.names=state.names, exo.names=exo.names)
@@ -1915,7 +1939,7 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
 	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
 	
-	sv <- c(extractValues(values.latent.inv.ldl, params.latent), extractValues(values.observed.inv.ldl, params.observed))
+	sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
