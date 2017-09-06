@@ -492,6 +492,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	#populate transformed estimates to dynrModel
 	#model<<-PopBackModel(model, obj@transformed.parameters)
 	
+	finalEqualStart <- model$xstart == obj@fitted.parameters
+	if(any(finalEqualStart) && optimization_flag){
+		warning(paste0("Some parameters were left at their starting values.\nModel might not be identified, need bounds, or need different starting values.\nParameters that were unmoved: ", paste(obj@param.names[finalEqualStart], collapse=", ", sep="")))
+	}
+	
 	frontendStop <- Sys.time()
 	totalTime <- frontendStop-frontendStart
 	backendTime <- backendStop-backendStart
