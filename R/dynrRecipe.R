@@ -1688,8 +1688,9 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##'
 ##' @param map list giving how the latent variables map onto the observed variables
 ##' @param params parameter numbers
-##' @param idvar Names of the variables used to identify the factors
+##' @param idvar names of the variables used to identify the factors
 ##' @param exo.names names of the exogenous covariates
+##' @param intercept logical. Whether to include freely esimated intercepts
 ##' 
 ##' @details
 ##' The default pattern for 'idvar' is to fix the first factor loading 
@@ -1700,19 +1701,33 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##' in the noise part of the model (e.g. \code{\link{prep.noise}}).
 ##'
 ##' This function does not have the full set of features possible in 
-##' the dynr package. In particular, it does not have regime-swtiching 
-##' factor loadings, any intercepts, or any covariates.  For complete 
-##' functionality use \code{\link{prep.measurement}}.
+##' the dynr package. In particular, it does not have any regime-swtiching.
+##' Covariates can be included with the \code{exo.names} argument, but
+##' all covariate effects are freely estimated and the starting values
+##' are all zero.  Likewise, intercepts can be included with the \code{intercept}
+##' logical argument, but all intercept terms are freely estimated with 
+##' zero as the starting value.
+##' For complete functionality use \code{\link{prep.measurement}}.
 ##' 
 ##' @examples
 ##' #Single factor model with one latent variable fixing first loading
-##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_",2:4))
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 2:4))
 ##'
 ##' #Single factor model with one latent variable fixing the fourth loading
-##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_",1:3), idvar='y4')
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 1:3), idvar='y4')
 ##' 
 ##' #Single factor model with one latent variable freeing all loadings
 ##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 1:4), idvar='eta1')
+##' 
+##' #Single factor model with one latent variable fixing first loading
+##' # and freely estimated intercept
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 2:4),
+##'  intercept=TRUE)
+##' 
+##' #Single factor model with one latent variable fixing first loading
+##' # and freely estimated covariate effects for u1 and u2
+##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 2:4),
+##'  exo.names=paste0('u', 1:2))
 ##' 
 ##' # Two factor model with simple structure
 ##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=paste0('y', 5:7)), 
@@ -1725,7 +1740,7 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##' #Two factor model with a cross loading
 ##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), 
 ##' paste0("lambda_", c("21", "31", "41", "22", "62")))
-prep.loadings <- function(map, params, idvar, exo.names=character(0)){
+prep.loadings <- function(map, params, idvar, exo.names=character(0), intercept=FALSE){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
@@ -1734,6 +1749,7 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 	
 	nx <- length(allVars)
 	ne <- length(map)
+	nu <- length(exo.names)
 	
 	if(!all(idvar %in% c(names(map), unlist(map)))){
 		stop("The 'idvar' must all be either in the names of the 'map' argument or parts of the 'map' argument.")
@@ -1759,11 +1775,28 @@ prep.loadings <- function(map, params, idvar, exo.names=character(0)){
 			}
 		}
 	}
+	
+	if(nu > 0){
+		exoVal <- matrix(0, nx, nu)
+		exoPar <- outer(paste0("b_", allVars), exo.names, paste0)
+	} else {
+		exoVal <- NULL
+		exoPar <- NULL
+	}
+	
+	if(intercept){
+		intVal <- matrix(0, nx, 1)
+		intPar <- matrix(paste0("int_", allVars), nx, 1)
+	}else{
+		intVal <- NULL
+		intPar <- NULL
+	}
+	
 	rownames(valuesMat) <- allVars
 	rownames(paramsMat) <- allVars
 	colnames(valuesMat) <- names(map)
 	colnames(paramsMat) <- names(map)
-	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat,state.names=names(map),obs.names=allVars,exo.names=exo.names)
+	x <- prep.measurement(values.load=valuesMat, params.load=paramsMat, values.exo=exoVal, params.exo=exoPar, values.int=intVal, params.int=intPar, state.names=names(map), obs.names=allVars, exo.names=exo.names)
 	return(x)
 }
 
