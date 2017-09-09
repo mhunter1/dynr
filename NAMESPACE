@@ -16,6 +16,7 @@ import(ggplot2)
 import(methods)
 exportPattern("^dynr.+")
 exportPattern("^prep.+")
+exportPattern("^togo.+")
 #exportPattern("^[^\\.]") #export everything
 #exportPattern("^[[:alpha:]]+") #export everything that doesn't start with "."
 #exportClassPattern("^dynr[[A-Z]][[:alpha:]]+") #export all dynr* Classes

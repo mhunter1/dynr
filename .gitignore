@@ -53,4 +53,5 @@ man/prep.tfun.Rd
 man/printex.Rd
 man/RSPPsim.Rd
 man/summary.dynrCook.Rd
+man/togo.noise.Rd
 man/vcov.dynrCook.Rd
