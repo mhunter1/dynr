@@ -24,7 +24,7 @@
 ##' @details
 ##' Just like food that you order to-go, this function quickly and easily gets you something tasty, but you have fewer options and less control than when preparing recipes from scratch.
 ##'  
-##' Currently supported matrix types are 'identity', 'symmetric', 'diagonal', 'scalar', and 'zero'.
+##' Currently supported matrix types are 'identity', 'symmetric', 'diagonal', 'scalar', and 'zero'. Capitalization is ignored and \code{match.arg} is used so partially matched strings are okay, too.  
 ##' 
 ##' @seealso
 ##' \code{\link{dynr.noise}}
@@ -33,14 +33,22 @@
 ##' 
 ##' library(dynr)
 ##' 
-##' togo.noise('identity', 1, '', 'symmetric', 4, '')
-togo.noise <- function(latent.type, latent.dim, latent.group,
-	observed.type, observed.dim, observed.group){
-	# TODO match partial strings for 'type' and be case insensitive
-	#  probably via grep or match.arg
+##' togo.noise(latent.type='identity', latent.dim=1, observed.type='symmetric', observed.dim=4)
+togo.noise <- function(latent.type, latent.dim, latent.group=NA,
+	observed.type, observed.dim, observed.group=NA){
+	if(length(latent.group) == 1 && is.na(latent.group)){ latent.group <- ''}
+	if(length(observed.group) == 1 && is.na(observed.group)){ observed.group <- ''}
+	
+	# Match partial strings for 'type' and be case insensitive
 	mltype <- match.arg(tolower(latent.type), .covTypes, several.ok=TRUE)
+	if(length(mltype) != length(latent.type)){
+		stop(paste("'latent.type' arg (", paste(latent.type, collapse=", "), ") was not completely matched.\nMatched types: ", paste(mltype, collapse=", ")))
+	}
 	# Throw error if length of mltype and latent.type differ.  This means some were not matched.
 	motype <- match.arg(tolower(observed.type), .covTypes, several.ok=TRUE)
+	if(length(motype) != length(observed.type)){
+		stop(paste("'observed.type' arg (", paste(observed.type, collapse=", "), ") was not completely matched.\nMatched types: ", paste(motype, collapse=", ")))
+	}
 	
 	# Check that lengths of type arguments match or are 1
 	# Check that lengths of dim arguments match or are 1
@@ -54,11 +62,19 @@ togo.noise <- function(latent.type, latent.dim, latent.group,
 	# every regimes has completely separate free params by default
 	# But check for any regimes that share params must be of the same type
 	
+	# TODO extend type, dim, and group inputs to be the maximum length (if e.g. one of them is 1 and the other is 4)
+	
 	# Build matrices
-	vlat <- buildValuesMatrix(latent.type, latent.dim, 'dnoise')
-	plat <- buildParamsMatrix(latent.type, latent.dim, latent.group, 'dnoise')
-	vobs <- buildValuesMatrix(observed.type, observed.dim, 'mnoise')
-	pobs <- buildParamsMatrix(observed.type, observed.dim, observed.group, 'mnoise')
+	vlat <- list()
+	plat <- list()
+	vobs <- list()
+	pobs <- list()
+	for(a in 1:length(latent.type)){
+		vlat[[a]] <- buildValuesMatrix(mltype[a], latent.dim[a], 'dnoise')
+		plat[[a]] <- buildParamsMatrix(mltype[a], latent.dim[a], latent.group[a], 'dnoise')
+		vobs[[a]] <- buildValuesMatrix(motype[a], observed.dim[a], 'mnoise')
+		pobs[[a]] <- buildParamsMatrix(motype[a], observed.dim[a], observed.group[a], 'mnoise')
+	}
 	
 	obj <- prep.noise(values.latent=vlat, params.latent=plat, values.observed=vobs, params.observed=pobs)
 	return(obj)
