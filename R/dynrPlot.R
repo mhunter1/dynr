@@ -208,16 +208,18 @@ dynr.plotFreq <- function(res, dynrModel, names.regime, title, xlab, ylab, texts
 ##' and printed as greek letters.
 ##' @param printDyn A logical value indicating whether or not to plot the formulas for the dynamic model.
 ##' @param printMeas A logical value indicating whether or not to plot the formulas for the measurement model
+##' @param printRS logical. Whether or not to print the regime-switching model. The default is FALSE.
 ##' @param textsize The text size use in the plot.
 ##' 
 ##' @details
 ##' This function typesets a set of formulas that represent the model.  Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
-plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, textsize=4){
+plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
+                        printRS=FALSE, textsize=4){
   
   dynrModel <- PopBackModel(dynrModel, LaTeXnames(ParameterAs, latex = FALSE))
 
   #Dynamic model
-  if (printDyn){  
+  if (printDyn) {  
     if (class(dynrModel$dynamics) == "dynrDynamicsMatrix"){
       state.names <- (dynrModel$measurement)$state.names
       exo.names <- (dynrModel$dynamics)$covariates
@@ -257,10 +259,12 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
                                       paste0(noise_tex, " \\sim ", "N(0,\\,", 
                                              diag(values.latent.mat), ")"))))) )
     }
+  } else {
+    dyn.df <- plotdf("")
   }
   
   #Measurement model
-  if (printMeas){
+  if (printMeas) {
     meas.df<-data.frame(text="bold('Measurement Model')",x=0)
     nRegime=length(dynrModel@measurement@values.load)
     meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
@@ -289,17 +293,29 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE, t
                                       paste0(noise_tex, " \\sim ", "N(0,\\,", 
                                              diag(values.observed.mat), ")"))))))
     }
+  } else {
+    meas.df <- plotdf("")
   }
   
-  if (printDyn&printMeas){
-    plot.df=rbind(dyn.df, meas.df)
-  }else if (printDyn){
-    plot.df=dyn.df
-  }else if (printMeas){
-    plot.df=meas.df
-  }else{
-    stop("There needs to be something to plot.")
+  # Regime-switching model
+  if (printRS) {
+    rs.df <- data.frame(text="bold('Regime-switching Model')", x=0)
+    if (any(dim(dynrModel@regimes@params) == 0)) {
+      warning("No Regime-switching Model. Please turn off 'printRS'.")
+    } else {
+      pos.rs.params <- which(dynrModel@regimes@params != 0, arr.ind=TRUE)
+      rs.df <- rbind(rs.df,
+                     plotdf(paste0("Log-odds(p_{",
+                                   apply(pos.rs.params, 1, paste0, collapse=""),
+                                   "}) = ",
+                                   dynrModel@regimes@values[pos.rs.params])))
+    }
+  } else {
+    rs.df <- plotdf("")
   }
+  
+  plot.df <- rbind(meas.df, dyn.df, rs.df)
+
   plot.df$y=seq((dim(plot.df)[1]-1)*5+1, 1, by=-5)
   
   x <- NULL
