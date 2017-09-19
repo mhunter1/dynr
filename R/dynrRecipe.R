@@ -904,7 +904,7 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 				ifelse(hasIntercepts, paste0("\tgsl_vector_add(", outName, ", intVector);\n"), ""),
 				destroyGslMatrix("Amatrix"),
 				ifelse(hasCovariates, paste0(destroyGslMatrix("Bmatrix"), destroyGslVector("covariate_local")), ""),
-				ifelse(hasIntercepts, destroyGslMatrix("intVector"), ""),
+				ifelse(hasIntercepts, destroyGslVector("intVector"), ""),
 				"}\n\n", sep="\n")
 			
 			
