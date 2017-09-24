@@ -203,31 +203,32 @@ dynr.taste <- function(cookDebug, dynrModel, alpha=0.95) {
 
 	# one-sided test?
 	t_start <- (model_tstart + 1)[-length(model_tstart)]
-  t_end <- model_tstart[-1]
-  t_df <- t_end - model_tstart[-length(model_tstart)]
-  
+	t_end <- model_tstart[-1]
+	t_df <- t_end - model_tstart[-length(model_tstart)]
+	
 	t_values_split <- lapply(1:length(t_end), function(i) {
-	  t_values[, t_start[i]:t_end[i]]
+		t_values[, t_start[i]:t_end[i]]
 	})
 	
 	t_test_split <- lapply(1:length(t_end), function(i) {
-	  critical_value <- qt(alpha, df=(t_df[i]-latentDim))
-	  # shock point index: latent * time
-	  which(t_values_split[[i]] > critical_value, arr.ind=FALSE)  
+		critical_value <- qt(alpha, df=(t_df[i]-latentDim))
+		# shock point index: latent * time
+		which(t_values_split[[i]] > critical_value, arr.ind=FALSE)  
 	})
-  
+	
 	## test observed chi-square. index time points
-  chi_test_obs <- which(obsChi > qchisq(alpha, observedDim))
-  ## test latent chi-square. index time points
-  chi_test_lat <- which(latChi > qchisq(alpha, latentDim))
-  ## test combined chi-square
-  chi_test_comb <- which( (obsChi + latChi) > qchisq(alpha, (observedDim + latentDim)))
-  
-	list(r=r, N=N, 
-	     chi_obs=obsChi, chi_lat=latChi,
-	     t_test=t_test_split,
-	     chi_test_obs=chi_test_obs, chi_test_lat=chi_test_lat,
-	     chi_test_comb=chi_test_comb)
+	chi_test_obs <- which(obsChi > qchisq(alpha, observedDim))
+	## test latent chi-square. index time points
+	chi_test_lat <- which(latChi > qchisq(alpha, latentDim))
+	## test combined chi-square
+	chi_test_comb <- which( (obsChi + latChi) > qchisq(alpha, (observedDim + latentDim)))
+	
+	list
+		r=r, N=N, 
+		chi_obs=obsChi, chi_lat=latChi,
+		t_test=t_test_split,
+		chi_test_obs=chi_test_obs, chi_test_lat=chi_test_lat,
+		chi_test_comb=chi_test_comb)
 }
 
 
