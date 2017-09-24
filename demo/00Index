@@ -1,5 +1,6 @@
 LinearSDE              Linear harmonic oscillator
 NonlinearODE           Predator-prey model
+PFA                    Process factor analysis is discrete time
 RSLinearDiscrete       Regime-switching linear discrete-time model
 RSLinearDiscreteYang   Regime-switching linear discrete-time model (Replication of Yang & Chow, 2010)
 RSNonlinearDiscrete    Nonlinear dynamic factor analysis
