@@ -170,87 +170,53 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				}
 				
 				
-				for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
-					
-					if (t==(config->index_sbj)[sbj]){
+				for(regime_k=0; regime_k < config->num_regime; regime_k++){/*to regime k*/
+					bool isFirstTime = (t==(config->index_sbj)[sbj]);
+					if (isFirstTime){
 						for(col_index=0; col_index<config->dim_latent_var; col_index++){
 							gsl_vector_set(eta_j_t[regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
 						}
 						gsl_matrix_memcpy(error_cov_j_t[regime_j], (init->error_cov_0)[regime_j]);
-						
-						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
-						print_vector(eta_j_t[regime_j]);
-						MYPRINT("\n");
-						MYPRINT("error_cov_at_a_previous_time_point:\n");
-						print_matrix(error_cov_j_t[regime_j]);
-						MYPRINT("\n");*/
-						
-						innov_determinant = ext_kalmanfilter_updateonly(t, regime_k,
-							eta_j_t[regime_j], error_cov_j_t[regime_j],
-							y[t],co_variate[t],y_time,
-							param->eta_noise_cov, param->y_noise_cov,
-							param->func_param,
-							config->func_measure,
-							eta_jk_t_plus_1[regime_j][regime_k],
-							error_cov_jk_t_plus_1[regime_j][regime_k],
-							innov_v[regime_j][regime_k],
-							residual_cov[regime_j][regime_k]);/*inverse*/
-						
-						/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
-						MYPRINT("\n");
-						MYPRINT("eta_jk:\n");
-						print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("error_cov_jk:\n");
-						print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("innov_vector:\n");
-						print_vector(innov_v[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("inverse of the residual covariance:\n");
-						print_matrix(residual_cov[regime_j][regime_k]);
-						MYPRINT("\n");*/
-						
-					} else {
-						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
-						print_vector(eta_j_t[regime_j]);
-						MYPRINT("\n");
-						MYPRINT("error_cov_at_a_previous_time_point:\n");
-						print_matrix(error_cov_j_t[regime_j]);
-						MYPRINT("\n");*/
-						
-						innov_determinant=ext_kalmanfilter(t, regime_k,
-							eta_j_t[regime_j], error_cov_j_t[regime_j],
-							y[t],co_variate[t],y_time,
-							param->eta_noise_cov, param->y_noise_cov,
-							param->func_param,config->num_func_param,
-							config->isContinuousTime,
-							config->func_measure,
-							config->func_dx_dt,
-							config->func_dP_dt,
-							config->func_dF_dx,
-							config->func_dynam,
-							config->func_jacob_dynam,
-							eta_jk_t_plus_1[regime_j][regime_k],
-							error_cov_jk_t_plus_1[regime_j][regime_k],
-							innov_v[regime_j][regime_k],
-							residual_cov[regime_j][regime_k]);/*inverse*/
-						
-						/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
-						MYPRINT("\n");
-						MYPRINT("eta_jk:\n");
-						print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("error_cov_jk:\n");
-						print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("innov_vector:\n");
-						print_vector(innov_v[regime_j][regime_k]);
-						MYPRINT("\n");
-						MYPRINT("inverse of the residual covariance:\n");
-						print_matrix(residual_cov[regime_j][regime_k]);
-						MYPRINT("\n");*/
 					}
+					
+					/*MYPRINT("eta_S_at_a_previous_time_point:\n");
+					print_vector(eta_j_t[regime_j]);
+					MYPRINT("\n");
+					MYPRINT("error_cov_at_a_previous_time_point:\n");
+					print_matrix(error_cov_j_t[regime_j]);
+					MYPRINT("\n");*/
+					
+					innov_determinant=ext_kalmanfilter(t, regime_k,
+						eta_j_t[regime_j], error_cov_j_t[regime_j],
+						y[t],co_variate[t],y_time,
+						param->eta_noise_cov, param->y_noise_cov,
+						param->func_param,config->num_func_param,
+						config->isContinuousTime,
+						config->func_measure,
+						config->func_dx_dt,
+						config->func_dP_dt,
+						config->func_dF_dx,
+						config->func_dynam,
+						config->func_jacob_dynam,
+						eta_jk_t_plus_1[regime_j][regime_k],
+						error_cov_jk_t_plus_1[regime_j][regime_k],
+						innov_v[regime_j][regime_k],
+						residual_cov[regime_j][regime_k], isFirstTime);/*inverse*/
+					
+					/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
+					MYPRINT("\n");
+					MYPRINT("eta_jk:\n");
+					print_vector(eta_jk_t_plus_1[regime_j][regime_k]);
+					MYPRINT("\n");
+					MYPRINT("error_cov_jk:\n");
+					print_matrix(error_cov_jk_t_plus_1[regime_j][regime_k]);
+					MYPRINT("\n");
+					MYPRINT("innov_vector:\n");
+					print_vector(innov_v[regime_j][regime_k]);
+					MYPRINT("\n");
+					MYPRINT("inverse of the residual covariance:\n");
+					print_matrix(residual_cov[regime_j][regime_k]);
+					MYPRINT("\n");*/
 					
 					/*for(col_index=0; col_index<config->dim_latent_var; col_index++){
 						fprintf(eta_file, " %lf", gsl_vector_get(eta_jk_t_plus_1[0][0], col_index));
@@ -903,7 +869,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
-						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]);/*inverse*/
+						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]); /*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");

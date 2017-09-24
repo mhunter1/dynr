@@ -85,7 +85,8 @@ double ext_kalmanfilter(size_t t,
 			void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *), gsl_matrix *),
 		gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1,
 		gsl_vector *innov_v,
-		gsl_matrix *inv_innov_cov){
+		gsl_matrix *inv_innov_cov,
+		bool isFirstTime){
 	
 	int DEBUG_EKF = 0; /*0=false/no; 1=true/yes*/
 	
@@ -148,7 +149,7 @@ double ext_kalmanfilter(size_t t,
 	/*------------------------------------------------------*\
 	* update P *
 	\*------------------------------------------------------*/
-	if (isContinuousTime){
+	if (!isFirstTime & isContinuousTime){
 		
 		gsl_vector *Pnewvec = gsl_vector_calloc(nx*(nx+1)/2);
 		gsl_vector *error_cov_t_vec = gsl_vector_calloc(nx*(nx+1)/2);
@@ -224,7 +225,7 @@ double ext_kalmanfilter(size_t t,
 		gsl_vector_free(error_cov_t_vec);
 		gsl_vector_free(Pnewvec);
 		
-	} else { /* end continuous time "Update P" calculation */
+	} else if(!isFirstTime & !isContinuousTime) { /* end continuous time "Update P" calculation */
 		
 		/*Update P for discrete time*/
 		gsl_matrix *jacob_dynam = gsl_matrix_calloc(nx,nx);
@@ -241,6 +242,8 @@ double ext_kalmanfilter(size_t t,
 		
 		gsl_matrix_free(jacob_dynam);
 		gsl_matrix_free(p_jacob_dynam);
+	} else if(isFirstTime){
+		gsl_matrix_memcpy(error_cov_t_plus_1, error_cov_t);
 	}
 	/* End "Update P" */
 	
