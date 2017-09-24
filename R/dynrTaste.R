@@ -69,7 +69,7 @@ recDyn <- prep.matrixDynamics(
 
 #---- (4a) Create model  ----
 
-rsmod <- dynr.model(
+mod <- dynr.model(
   measurement = recMeas,
   dynamics = recDyn,
   noise = recNoise,
@@ -77,29 +77,21 @@ rsmod <- dynr.model(
   data = EMGdata,
   outfile = "RSLinearDiscrete.c")
 
-plotFormula(dynrModel = rsmod, ParameterAs = rsmod$param.names,
+plotFormula(dynrModel = mod, ParameterAs = mod$param.names,
             printDyn = TRUE, printMeas = TRUE) +
   ggtitle("(A)")+
   theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
 
 
-#---- (4c) Create model and cook it all up  ----
+#---- (4c) Cook it all up  ----
 
-yum <- dynr.cook(rsmod, debug_flag=TRUE)
-#yum2 <- dynr.cook(rsmod, debug_flag=FALSE)
-F <- yum@residual_cov # array [p, p, t] ?
-v <- yum@innov_vec # matrix [p, t] ?
-P_1 <- yum@error_cov_predicted # array, [q, q, t]
-eta <- yum@eta_filtered # matrix, [q, t]
-eta_1 <- yum@eta_predicted # matrix, [q, t]
-Lambda <- matrix(1, 1, 1)
-#---- (5) Serve it! ----
+yum <- dynr.cook(mod, debug_flag=TRUE)
 
-##############
-x <- yum
-model <- rsmod
+#---- (5) Serve it ----
 
-dynr.taste <- function(cookDebug, dynrModel, alpha=0.95) {
+#---- (6) Taste test! ----
+
+dynr.taste <- function(cookDebug, dynrModel, conf.level=0.95) {
   #TODO check for non-regime switching
 	x <- cookDebug
 	model <- dynrModel
@@ -198,10 +190,10 @@ dynr.taste <- function(cookDebug, dynrModel, alpha=0.95) {
 	# t-test
 	t_values <- matrix(NA, latentDim, timeDim)
 	for (t in 1:timeDim) {
-	  t_values[,t] <- r[,t] / sqrt(diag(N[,,t]))  
+		t_values[,t] <- r[,t] / sqrt(diag(N[,,t]))  
 	}
-
-	# one-sided test?
+	
+	# two-sided test
 	t_start <- (model_tstart + 1)[-length(model_tstart)]
 	t_end <- model_tstart[-1]
 	t_df <- t_end - model_tstart[-length(model_tstart)]
@@ -211,29 +203,32 @@ dynr.taste <- function(cookDebug, dynrModel, alpha=0.95) {
 	})
 	
 	t_test_split <- lapply(1:length(t_end), function(i) {
-		critical_value <- qt(alpha, df=(t_df[i]-latentDim))
+		critical_value <- qt(1-(1-conf.level)/2, df=(t_df[i]-latentDim))
 		# shock point index: latent * time
-		which(t_values_split[[i]] > critical_value, arr.ind=FALSE)  
+		which(abs(t_values_split[[i]]) > critical_value, arr.ind=FALSE)
 	})
 	
 	## test observed chi-square. index time points
-	chi_test_obs <- which(obsChi > qchisq(alpha, observedDim))
+	chi_test_obs <- which(obsChi > qchisq(conf.level, observedDim))
 	## test latent chi-square. index time points
-	chi_test_lat <- which(latChi > qchisq(alpha, latentDim))
+	chi_test_lat <- which(latChi > qchisq(conf.level, latentDim))
 	## test combined chi-square
-	chi_test_comb <- which( (obsChi + latChi) > qchisq(alpha, (observedDim + latentDim)))
+	chi_test_comb <- which( (obsChi + latChi) > qchisq(conf.level, (observedDim + latentDim)))
 	
-	list
+	#qqplot(qt(ppoints(timeDim), df=t_df-latentDim), t_values)
+	#qqline(t_values, distribution = function(p) qt(p, df = t_df-latentDim), prob = c(0.1, 0.6))
+	
+	list(
 		r=r, N=N, 
 		chi_obs=obsChi, chi_lat=latChi,
 		t_test=t_test_split,
 		chi_test_obs=chi_test_obs, chi_test_lat=chi_test_lat,
-		chi_test_comb=chi_test_comb)
+		chi_test_comb=chi_test_comb, t_values=t_values, t_df=rep(t_df-latentDim, times=t_df))
 }
 
 
 
-
+di <- dynr.taste(yum, mod)
 
 
 
