@@ -64,15 +64,6 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	gsl_vector *innov_v, gsl_matrix *inv_innov_cov,
 	bool isFirstTime);
 
-double ext_kalmanfilter_updateonly(size_t t, size_t regime, 
-	gsl_vector *eta_t,  gsl_matrix *error_cov_t,
-	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
-	const gsl_matrix *eta_noise_cov, const gsl_matrix *y_noise_cov, 
-	double *params, 
-	void (*func_measure)(size_t, size_t, double *, const gsl_vector *, const gsl_vector *, gsl_matrix *, gsl_vector *), 
-	gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, 
-	gsl_vector *innov_v, gsl_matrix *inv_innov_cov);
-
 size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss);
 
 double ext_kalmanfilter_smoother(size_t t, size_t regime, 
