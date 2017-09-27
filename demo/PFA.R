@@ -81,5 +81,13 @@ summary(res.n50)
 # Done with demo
 # Checking final estimates
 
-trueParam <- c(.5, .4, .5, 1, 2, 1, 1, 2, 1, 2.77, 2.47, 8.40, rep(.5, 6))
+trueParam <- c(.5, .4, .5, 2, 1, 2, 1, 2.77, 2.47, 8.40, rep(.5, 6))
+ci <- confint(res.n50, level=.95)
+# Check that all parameters are within a 95% confidence interval of the true values
+withinCI <- ci[,1] < trueParam & ci[,2] > trueParam
+testthat::expect_true(sum(withinCI) >= 14)
+ci2 <- confint(res.n50, 'phi_21', level=.99)
+ci3 <- confint(res.n50, 'phi_11', level=.999)
+testthat::expect_true(ci3[,1] < trueParam[1] & ci3[,2] > trueParam[1])
+testthat::expect_true(ci2[,1] < trueParam[2] & ci2[,2] > trueParam[2])
 
