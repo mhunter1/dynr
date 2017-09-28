@@ -192,3 +192,23 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   
   # names(res) <- personID
 }
+
+
+computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
+	envList <- as.list(params)
+	for(i in 1:length(stateName)) envList[[stateName[i]]] <- cookDebug$eta_smooth_final[i, time]
+	
+	J <- matrix(NA, length(stateName), length(stateName), dimnames=list(stateName, stateName))
+	for(i in 1:(length(stateName))^2){
+		cj <- as.character(jacobian[[i]])
+		rc <- strsplit(cj[2], ' ~ ')[[1]]
+		J[rc[1], rc[2]] <- eval(parse(text=cj[3]), envList)
+	}
+	return(J)
+}
+
+# example use from demo/NonlinearODE.R
+#computeJacobian(res, model$dynamics$jacobianOriginal[[1]], model$measurement$state.names, coef(res), 1)
+
+
+
