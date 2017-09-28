@@ -87,6 +87,8 @@ setClass(Class = "dynrDynamicsFormula",
            paramnames = "character",
            formula = "list",
            jacobian = "list",
+           formulaOriginal = "list",
+           jacobianOriginal = "list",
            isContinuousTime = "logical"
            ),
          contains = "dynrDynamics"
@@ -209,7 +211,7 @@ setMethod("$", "dynrRecipe",
 
 printRecipeOrModel <- function(x, ...){
 	for(aslot in slotNames(x)){
-		if( !(aslot %in% c("c.string", "startval", "paramnames")) ){
+		if( !(aslot %in% c("c.string", "startval", "paramnames", "formulaOriginal", "jacobianOriginal")) ){
 			cat(" $", aslot, "\n", sep="")
 			print(slot(x, aslot))
 			cat("\n")
@@ -569,6 +571,8 @@ setMethod("paramName2Number", "dynrDynamicsFormula",
 
 setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
           function(object, paramList){
+            object@formulaOriginal <- object@formula
+            object@jacobianOriginal <- object@jacobian
             object@formula = .replaceNamesbyNumbers(object@formula, paramList)
             object@jacobian =.replaceNamesbyNumbers(object@jacobian, paramList)
             return(object)
@@ -2296,6 +2300,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     }
   }
   x$jacobian <- jacobian
+  x$formulaOriginal <- x$formula
+  x$jacobianOriginal <- jacobian
   x$paramnames<-names(x$startval)
   return(new("dynrDynamicsFormula", x))
 }
