@@ -38,33 +38,9 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   
   # fitted parameters
   coefx <- coef(cookDebug)
-  
-  
-  # DONGJUN, Are the next two 4-line blocks of code there just to put the estimated
-  #  parameters back into the model?  If so, this is much easier and more
-  #  reliable with
-  #  coef(dynrModel) <- coefx # modifies all values throughout dynrModel
-  #  Lambda <- dynrModel$measurement$values.load[[1]]
-  #  B <- dynrModel$dynamics$values.dyn[[1]]
-  
-  # Measurement matrix
-  # Lambda in Chow, Hamaker, and Allaire
-  # number matches the parameters in coefx
-  # e.g., 0 0
-  #       3 0
-  #       4 0
-  # 3, 4th elements in coefx match
-  Lambda_p <- dynrModel$measurement$params.load[[1]]
+  coef(dynrModel) <- coefx # modifies all values throughout dynrModel
   Lambda <- dynrModel$measurement$values.load[[1]]
-  Lambda_idx <- which(Lambda_p !=0, arr.ind=TRUE)
-  Lambda[Lambda_idx] <- coefx[ Lambda_p[Lambda_idx] ]
-  
-  # Dynamics matrix
-  # B in Chow, Hamaker, and Allaire
-  B_p <- dynrModel$dynamics$params.dyn[[1]]
   B <- dynrModel$dynamics$values.dyn[[1]]
-  B_idx <- which(B_p !=0, arr.ind=TRUE)
-  B[B_idx] <- coefx[ B_p[B_idx] ]
   
   # Array of inverse covariance matrices (i.e. information matrices) for the observed variables
   # F^-1  in Chow, Hamaker, and Allaire
