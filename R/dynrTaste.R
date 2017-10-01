@@ -25,6 +25,8 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   if ( !("residual_cov" %in% slotNames(cookDebug)) ) {
     stop("Please cook again with 'debug_flag=TRUE'.")
   }
+  # N.B. maybe we could re-cook (re-heat!) the model with debug_flag=TRUE and optimization_flag=FALSE.  That is, send the model to the backend, but do not optimization.  Instead, just re-compute the Kalman scores etc.
+  
   # check for non-regime switching
   if (dynrModel$num_regime > 2) {
     stop("This test is for non-regime switching models.")
@@ -45,11 +47,11 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   
   # Array of inverse covariance matrices (i.e. information matrices) for the observed variables
   # F^-1  in Chow, Hamaker, and Allaire
-  F_inv <- array(apply(cookDebug$residual_cov, 3, solve), 
+  F_inv <- array(apply(cookDebug$residual_cov, 3, solve),
                  c(observedDim, observedDim, timeDim))
   
   # Compute Kalman gain for every person/time combination
-  P_pred <- cookDebug$error_cov_predicted 
+  P_pred <- cookDebug$error_cov_predicted
   t_Lambda <- t(Lambda)
   v <- cookDebug$innov_vec
   K <- array(NA, c(latentDim, observedDim, timeDim))
@@ -57,10 +59,12 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   
   for(i in 1:timeDim){
     F_inv_i <- F_inv[,,i]
-    K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv_i# [lat, obs]
-    v_i <- v[,i]# [obs, 1]
+    K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv_i # [lat, obs]
+    v_i <- v[,i] # [obs, 1]
     obsChi[i] <- t(v_i) %*% F_inv_i %*% v_i
   }
+  # N.B. the first element in P_pred is the initial, predicted latent covariance matrix, i.e. from dynrInitial
+  #  The second element is the predicted cov for time=2 given the updated cov from time=1.
   
   #qqplot(qchisq(ppoints(timeDim), df=observedDim), obsChi)
   #qqline(obsChi, distribution = function(p) qchisq(p, df = observedDim), prob = c(0.1, 0.6))
@@ -74,8 +78,9 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   latChi <- numeric(timeDim)
   
   for(j in 1:length(personID)){
-    beginTime <- model_tstart[j] + 1
-    endTime <- model_tstart[j+1]
+    beginTime <- model_tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
+    endTime <- model_tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
+    
     # set endTime r and N to 0
     r[,endTime] <- 0
     N[,,endTime] <- 0
