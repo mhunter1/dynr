@@ -168,6 +168,61 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
     delta[ t_start[i]:t_end[i], ]
   })
   
+  ########### plots ###################
+  # split eta_smooth for each subject
+  etaSmooth <- cookDebug$eta_smooth_final
+  etaSmooth_spl <- lapply(1:nID, function(i) {
+    etaSmooth[, t_start[i]:t_end[i] ]
+  })
+  # split error_cov_smooth for each subject
+  errSmooth <- cookDebug$error_cov_smooth_final
+  errSmooth_spl <- lapply(1:nID, function(i) {
+    errSmooth[,, t_start[i]:t_end[i] ]
+  })
+  # split latent Chi-square for each subject
+  latChi_spl <- lapply(1:nID, function(i) {
+    latChi[ t_start[i]:t_end[i] ]
+  })
+  
+  ## TODO: test with multiple subjects
+  plots <- mapply(function(etaSm_i, errSm_i, latChi_i, lat_shk_i) {
+    plots_i <- lapply(1:length(stateName), function(s) {
+      sName <- stateName[s]
+      sProcess <- etaSm_i[s, ]
+      errProcess <- errSm_i[s,s, ]
+      shked_t <- lat_shk_i + 1 # shocked time points
+      shked_s <- sProcess[shked_t] # state values at shocked time points
+      shked_e <- 1.96 * sqrt(errProcess[shked_t]) # err s.d. at shocked time points
+      
+      sDF <- data.frame(t=1:length(sProcess), state=sProcess)
+      names(sDF)[names(sDF)=="state"] <- sName
+      shkDF <- data.frame(t=shked_t, shock=shked_s)
+      errbarDF <- data.frame(t=shked_t,
+                             lo=shked_s - shked_e,
+                             up=shked_s + shked_e)
+      
+      ggplot2::ggplot(sDF, aes_string(x="t", y=sName)) +
+        ggplot2::geom_line(alpha=0.5, colour="blue") +
+        ggplot2::geom_point(data=shkDF, aes_string(x="t", y="shock"),
+                            colour="red", size=2.5, alpha=0.5) 
+      #ggplot2::geom_errorbar(data=errbarDF, aes(ymin=lo, ymax=up), width=0.1)
+    } )
+    chiDF <- data.frame(t=1:length(latChi_i), Chi=latChi_i)
+    chiPlot <- list(
+      ggplot2::ggplot(chiDF, aes_string(x="t", y="Chi")) +
+        ggplot2::geom_line(alpha=0.5, colour="black") +
+        ggplot2::geom_hline(yintercept=qchisq(0.95, length(stateName)), colour="red", alpha=0.5)
+    )
+    plotArgs <- list(ncol=1, nrow=length(stateName) + 1)
+    do.call(ggpubr::ggarrange, c(plots_i, chiPlot, plotArgs))
+  },
+  etaSmooth_spl, errSmooth_spl, latChi_spl, chi_lat_shk_spl,
+  SIMPLIFY=FALSE)
+  
+  # N.B. out pdf file name
+  ggpubr::ggexport(plots, filename = "state_shock.pdf")
+  #####################################
+  
   list(lat_shock=chi_lat_shk_spl,
        obs_shock=chi_obs_shk_spl,
        delta=delta_spl)
