@@ -139,6 +139,8 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   
   ##### delta estimate
   delta <- matrix(NA, timeDim, latentDim)
+  colnames(delta) <- stateName
+  rownames(delta) <- 1:timeDim
   # assume independent shock indicator, TODO: function arguments??
   # assume delta [latentDim,1]
   # p 469. delta = [q, 1]. how to choose q??
@@ -160,8 +162,6 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
       if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
       delta[j,] <- S_j_inv %*% s_j
     }
-    colnames(delta) <- stateName
-    rownames(delta) <- 1:time_i
   }
   
   delta_spl <- lapply(1:nID, function(i) {
