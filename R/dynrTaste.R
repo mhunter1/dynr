@@ -16,12 +16,18 @@
 ##' @param cookDebug a dynrCook class fitted with `debug_flag=TRUE'.
 ##' @param dynrModel a dynrModel class.
 ##' @param conf.level a numeric of confidence level. The default is 0.99.
+##' @param file a character of file name. A pdf file with the name will
+##' be saved.
+##' @param numSub number of subject to print with the largest Chi-square
+##' @param idtoPlot a vector of ids.
+##' @param names.state names of state to print out
 ##' @return a list of shock points.
 ##' 
-##'  @references 
-##'  Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009). 
-##'  Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate BehavioralResearch_, 44, 465–496. 
-dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
+##' @references 
+##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009). 
+##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate BehavioralResearch_, 44, 465–496. 
+dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99, file=NULL,
+                       numSubj=NULL, idtoPlot=NULL, names.state=NULL) {
   if ( !("residual_cov" %in% slotNames(cookDebug)) ) {
     stop("Please cook again with 'debug_flag=TRUE'.")
   }
@@ -33,6 +39,13 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
   }
   
   stateName <- dynrModel$measurement$state.names
+  if ( is.null(names.state) ) {
+    names.state <- stateName
+  } else 
+    if ( !all(sn <- names.state %in% stateName) ) {
+      stop(paste("cannot recognize the state name(s):", 
+                 paste(names.state[!sn], collapse=", ")))
+    }
   latentDim <- length(stateName)
   observedDim <- length(dynrModel$measurement$obs.names)
   timeDim <- dim(cookDebug$residual_cov)[3]
@@ -184,43 +197,71 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
     latChi[ t_start[i]:t_end[i] ]
   })
   
-  ## TODO: test with multiple subjects
-  plots <- mapply(function(etaSm_i, errSm_i, latChi_i, lat_shk_i) {
-    plots_i <- lapply(1:length(stateName), function(s) {
-      sName <- stateName[s]
-      sProcess <- etaSm_i[s, ]
-      errProcess <- errSm_i[s,s, ]
-      shked_t <- lat_shk_i + 1 # shocked time points
-      shked_s <- sProcess[shked_t] # state values at shocked time points
-      shked_e <- 1.96 * sqrt(errProcess[shked_t]) # err s.d. at shocked time points
-      
-      sDF <- data.frame(t=1:length(sProcess), state=sProcess)
-      names(sDF)[names(sDF)=="state"] <- sName
-      shkDF <- data.frame(t=shked_t, shock=shked_s)
-      errbarDF <- data.frame(t=shked_t,
-                             lo=shked_s - shked_e,
-                             up=shked_s + shked_e)
-      
-      ggplot2::ggplot(sDF, aes_string(x="t", y=sName)) +
-        ggplot2::geom_line(alpha=0.5, colour="blue") +
-        ggplot2::geom_point(data=shkDF, aes_string(x="t", y="shock"),
-                            colour="red", size=2.5, alpha=0.5) 
-      #ggplot2::geom_errorbar(data=errbarDF, aes(ymin=lo, ymax=up), width=0.1)
-    } )
-    chiDF <- data.frame(t=1:length(latChi_i), Chi=latChi_i)
-    chiPlot <- list(
-      ggplot2::ggplot(chiDF, aes_string(x="t", y="Chi")) +
-        ggplot2::geom_line(alpha=0.5, colour="black") +
-        ggplot2::geom_hline(yintercept=qchisq(0.95, length(stateName)), colour="red", alpha=0.5)
-    )
-    plotArgs <- list(ncol=1, nrow=length(stateName) + 1)
-    do.call(ggpubr::ggarrange, c(plots_i, chiPlot, plotArgs))
+  if (is.null(numSubj)) {
+    numSubj_idx <- !vector(length=nID) # all TRUE
+  } else {
+    if (!is.null(idtoPlot)) {
+      stop("'numSubj' and 'idotoPlot' cannot be both activatied.")
+    }
+    # max chi for each subject. save as vector
+    chiMax <- sapply(latChi_spl, function(i) {
+      max(i)
+    })
+    numSubj_idx <- rank(-chiMax) %in% 1:numSubj
+  }
+  
+  if (is.null(idtoPlot)) {
+    idtoPlot_idx <- !vector(length=nID) # all TRUE
+  } else {
+    if ( !all(idp <- idtoPlot %in% personID) ) {
+      stop(paste("cannot recognize the id(s):", 
+                 paste(idtoPlot[!idp], collapse=", ")))
+    }
+    idtoPlot_idx <- personID %in% idtoPlot
+  }
+  
+  plots <- mapply(function(etaSm_i, errSm_i, latChi_i, lat_shk_i, id_i, numSubj_idx_i, idtoPlot_idx_i) {
+    if (numSubj_idx_i && idtoPlot_idx_i) {
+      plots_i <- lapply(1:length(names.state), function(s) {
+        sName <- names.state[s]
+        sProcess <- etaSm_i[s, ]
+        errProcess <- errSm_i[s,s, ]
+        shked_t <- lat_shk_i + 1 # shocked time points
+        shked_s <- sProcess[shked_t] # state values at shocked time points
+        shked_e <- 1.96 * sqrt(errProcess[shked_t]) # err s.d. at shocked time points
+        
+        sDF <- data.frame(t=1:length(sProcess), state=sProcess)
+        names(sDF)[names(sDF)=="state"] <- sName
+        shkDF <- data.frame(t=shked_t, shock=shked_s)
+        errbarDF <- data.frame(t=shked_t,
+                               lo=shked_s - shked_e,
+                               up=shked_s + shked_e)
+        
+        ggplot2::ggplot(sDF, aes_string(x="t", y=sName)) +
+          ggplot2::geom_line(alpha=0.5, colour="blue") +
+          ggplot2::geom_point(data=shkDF, aes_string(x="t", y="shock"),
+                              colour="red", size=2.5, alpha=0.5) +
+          ggplot2::xlab(NULL)
+        #ggplot2::geom_errorbar(data=errbarDF, aes(ymin=lo, ymax=up), width=0.1)
+      } )
+      chiDF <- data.frame(t=1:length(latChi_i), Chi=latChi_i)
+      chiPlot <- list(
+        ggplot2::ggplot(chiDF, aes_string(x="t", y="Chi")) +
+          ggplot2::geom_line(alpha=0.5, colour="black") +
+          ggplot2::geom_hline(yintercept=qchisq(conf.level, length(stateName)), colour="red", alpha=0.5)
+      )
+      plotArgs <- list(ncol=1, nrow=length(stateName) + 1, align="v")
+      plots_ii <- do.call(ggpubr::ggarrange, c(plots_i, chiPlot, plotArgs))
+      ggpubr::annotate_figure(plots_ii,
+                              top=ggpubr::text_grob(id_i, color="black", face="bold", size=15))
+    }
   },
-  etaSmooth_spl, errSmooth_spl, latChi_spl, chi_lat_shk_spl,
+  etaSmooth_spl, errSmooth_spl, latChi_spl, chi_lat_shk_spl, personID, numSubj_idx, idtoPlot_idx,
   SIMPLIFY=FALSE)
   
   # N.B. out pdf file name
-  ggpubr::ggexport(plots, filename = "state_shock.pdf")
+  if ( is.null(file) ) file <- "state_shock"
+  ggpubr::ggexport(plots, filename=paste0(file, ".pdf"))
   #####################################
   
   list(lat_shock=chi_lat_shk_spl,
@@ -230,16 +271,16 @@ dynr.taste <- function(cookDebug, dynrModel, conf.level=0.99) {
 
 
 computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
-	envList <- as.list(params)
-	for(i in 1:length(stateName)) envList[[stateName[i]]] <- cookDebug$eta_smooth_final[i, time]
-	
-	J <- matrix(NA, length(stateName), length(stateName), dimnames=list(stateName, stateName))
-	for(i in 1:(length(stateName))^2){
-		cj <- as.character(jacobian[[i]])
-		rc <- strsplit(cj[2], ' ~ ')[[1]]
-		J[rc[1], rc[2]] <- eval(parse(text=cj[3]), envList)
-	}
-	return(J)
+  envList <- as.list(params)
+  for(i in 1:length(stateName)) envList[[stateName[i]]] <- cookDebug$eta_smooth_final[i, time]
+  
+  J <- matrix(NA, length(stateName), length(stateName), dimnames=list(stateName, stateName))
+  for(i in 1:(length(stateName))^2){
+    cj <- as.character(jacobian[[i]])
+    rc <- strsplit(cj[2], ' ~ ')[[1]]
+    J[rc[1], rc[2]] <- eval(parse(text=cj[3]), envList)
+  }
+  return(J)
 }
 
 # example use from demo/NonlinearODE.R
