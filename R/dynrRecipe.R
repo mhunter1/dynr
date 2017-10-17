@@ -705,7 +705,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	  
 	  if (object@isContinuousTime){
 	    #function_dx_dt
-	    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+	    ret="void  function_dx_dt(double t, size_t regime, const vec *x, double *param, size_t n_param, const vec *co_variate, vec *F_dx_dt){"
 	    
 	    if (nregime>1){
 	      ret=paste(ret,"switch (regime) {",sep="\n\t")
@@ -713,9 +713,10 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
 	        for (i in 1:n[r]){
 	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
+	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("(*x)(",j-1,")"),rhs[[r]][[i]])
 	          }
-	          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
+	          #ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")   
+              ret=paste(ret,paste0("\t(*F_dx_dt)(",i-1,") =",rhs[[r]][[i]],";"),sep="\n\t")  
 	        }
 	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
 	        
@@ -725,9 +726,10 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    }else{
 	      for (i in 1:n){
 	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[1]][[i]])
+	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("(*x)(",j-1,")"),rhs[[1]][[i]])
 	        }
-	        ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
+	        #ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")  
+            ret=paste(ret,paste0("\tF_dx_dt(",i-1,")=",rhs[[1]][[i]],";"),sep="\n\t")            
 	      }
 	    }
 	    
@@ -851,6 +853,7 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 		hasCovariates <- length(values.exo) > 0
 		hasIntercepts <- length(values.int) > 0
 		
+        #HJ: Do we have continuous time in SAEM?
 		time <- ifelse(isContinuousTime, 'continuous', 'discrete')
 		if(time == 'continuous'){
 			# Construct matrices for A and B with A ~ dyn, B ~ exo
