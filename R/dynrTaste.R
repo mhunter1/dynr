@@ -21,7 +21,7 @@
 ##' @param conf.level a numeric of confidence level. The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
 ##' must be one of ``two.sided'' (default), ``greater''  or ``less''
-##' @return an object of `dynr.taste' class.
+##' @return an object of `dynrTaste' class.
 ##' The function summary is used to obtain a shock detection summary and optional plots.
 ##' 
 ##' @references 
@@ -191,7 +191,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   # output data.frame for each subject
   time_sp <- split(dynrModel$data$time, id)
-  res <- mapply(FUN=function(time, chiLat, chiLat_pval, chiLat_shk, 
+  res1 <- mapply(FUN=function(time, chiLat, chiLat_pval, chiLat_shk, 
                              chiObs, chiObs_pval, chiObs_shk, 
                              tval, t_pval, t_shk, delta) {
     colnames(tval) <- paste0("t_", colnames(tval))
@@ -218,10 +218,44 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   t_sp, t_pval_sp, t_shk_sp, delta_sp)
   
   # TODO. display output for users
+  res <- list(res=res1, cookTaste=dynrCook)
   class(res) <- "dynrTaste"
   invisible(res)
 }
 
+##' @param dynrModel an object of dynrModel class.
+##' @param dynrTaste an object of dynrTaste class
+dynr.detox <- function(dynrModel, dynrTaste) {
+  # combine delta through subjects
+  delta <- do.call("rbind",
+                   lapply(dynrTaste$res, function(taste_i) {
+                     taste_i$delta.dtx
+                   }) )
+  # modify dynrModel@data
+  stateName <- names(delta)
+  dynrModel@data$covariate.names <- stateName
+  dynrModel@data$original.data <- data.frame(
+    dynrModel@data$original.data, 
+    delta)
+  # modify dynr.matrixDynamics
+  dynrModel@dynamics@covariates <- stateName
+  nState <- ncol(delta)
+  values.exo <- list(matrix(1, nrow=nState, ncol=1))
+  params.exo <- list(matrix(0, nrow=nState, ncol=1))
+  dynrModel@dynamics@values.exo <- lapply(values.exo, dynr:::preProcessValues)
+  dynrModel@dynamics@params.exo <- lapply(params.exo, dynr:::preProcessParams)
+  
+  names(delta) <- paste0("covar", 1:nState)
+  dynrModel@data$covariates <- delta
+  
+  # cook!
+  dynrDetox <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
+  # RMSEA
+  #loglikDetox <- logLik(dynrDetox)
+  #loglikTaste <- logLik(dynrTaste$cookTaste)
+  #dynrModel
+  list(dynrModelDetox=dynrModel, dynrDetox=dynrDetox)
+}
 
 computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
   envList <- as.list(params)
