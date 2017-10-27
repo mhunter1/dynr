@@ -191,7 +191,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   # output data.frame for each subject
   time_sp <- split(dynrModel$data$time, id)
-  res1 <- mapply(FUN=function(time, chiLat, chiLat_pval, chiLat_shk, 
+  res <- mapply(FUN=function(time, chiLat, chiLat_pval, chiLat_shk, 
                              chiObs, chiObs_pval, chiObs_shk, 
                              tval, t_pval, t_shk, delta) {
     colnames(tval) <- paste0("t_", colnames(tval))
@@ -218,7 +218,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   t_sp, t_pval_sp, t_shk_sp, delta_sp)
   
   # TODO. display output for users
-  res <- list(res=res1, cookTaste=dynrCook)
+  # res <- list(res=res1, cookTaste=dynrCook)
   class(res) <- "dynrTaste"
   invisible(res)
 }
@@ -229,7 +229,10 @@ dynr.detox <- function(dynrModel, dynrTaste) {
   # combine delta through subjects
   delta <- do.call("rbind",
                    lapply(dynrTaste$res, function(taste_i) {
-                     taste_i$delta.dtx
+                     delta_i <- taste_i$delta.dtx
+                     # apply delta to 'shock.time + 1', so called 
+                     # 'the time the shock appears'
+                     rbind( rep(0, ncol(delta_i)), delta_i[-nrow(delta_i),]  )
                    }) )
   # modify dynrModel@data
   stateName <- names(delta)
@@ -240,8 +243,8 @@ dynr.detox <- function(dynrModel, dynrTaste) {
   # modify dynr.matrixDynamics
   dynrModel@dynamics@covariates <- stateName
   nState <- ncol(delta)
-  values.exo <- list(matrix(1, nrow=nState, ncol=1))
-  params.exo <- list(matrix(0, nrow=nState, ncol=1))
+  values.exo <- list(diag(1, nrow=nState, ncol=nState))
+  params.exo <- list(matrix("fixed", nrow=nState, ncol=nState))
   dynrModel@dynamics@values.exo <- lapply(values.exo, dynr:::preProcessValues)
   dynrModel@dynamics@params.exo <- lapply(params.exo, dynr:::preProcessParams)
   
@@ -254,7 +257,7 @@ dynr.detox <- function(dynrModel, dynrTaste) {
   #loglikDetox <- logLik(dynrDetox)
   #loglikTaste <- logLik(dynrTaste$cookTaste)
   #dynrModel
-  list(dynrModelDetox=dynrModel, dynrDetox=dynrDetox)
+  list(dynrModelDetox=dynrModel, dynrCookDetox=dynrDetox)
 }
 
 computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
