@@ -21,6 +21,7 @@ LazyData: yes
 Collate:
     'dynrData.R'
     'dynrRecipe.R'
+    'dynrArmadillo.R'
     'dynrModelInternal.R'
     'dynrModel.R'
     'dynrCook.R'
