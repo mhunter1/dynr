@@ -540,7 +540,7 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, armadillo=FALSE){
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
@@ -626,7 +626,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
   # writeCcode on each recipe
-  inputs <- sapply(inputs, writeCcode, data$covariate.names) 
+  if(armadillo==FALSE){
+    inputs <- sapply(inputs, writeCcode, data$covariate.names)
+  } else if(armadillo==TRUE){
+    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
+  } else {stop("Invalid value passed to 'armadillo' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   

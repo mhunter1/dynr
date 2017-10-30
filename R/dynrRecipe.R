@@ -2175,7 +2175,10 @@ prep.regimes <- function(values, params, covariates, deviation=FALSE, refRow){
 }
 
 
-
+# Automatic differentiation function
+# TODO generalize this function or write a similar function for Fisher scoring to get the 
+#  analytic gradient and Hessian of the dynamics formula with respect to the free parameters.
+#  This is key for the SAEM algorithm.
 autojacob<-function(formula,n){
   #formula=list(x1~a*x1,x2~b*x2)
   tuple=lapply(formula,as.list)
