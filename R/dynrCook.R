@@ -395,7 +395,22 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' time-varying predicted latent variable mean estimates, predicted error covariance matrix estimates, the error/residual estimates (innovation vector),
 ##' and the error/residual covariance matrix estimates.
 ##' 
-##' The exit flag given after optimization has finished is from the SLSQP optimizer.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values}
+##' The exit flag given after optimization has finished is from the SLSQP optimizer.  Generally, error codes have negative values and successful codes have positive values.  However, codes 5 and 6 do not indicate the model converged, but rather simply ran out of iterations or time, respectively.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values} and is also listed in the table below.
+##' 
+##' \tabular{lcl}{
+##' NLOPT Term \tab Numeric Code \tab Description \cr
+##' SUCCESS \tab 1 \tab Generic success return value. \cr
+##' STOPVAL_REACHED \tab 2 \tab Optimization stopped because stopval (above) was reached. \cr
+##' FTOL_REACHED \tab 3 \tab Optimization stopped because ftol_rel or ftol_abs (above) was reached. \cr
+##' XTOL_REACHED \tab 4 \tab Optimization stopped because xtol_rel or xtol_abs (above) was reached. \cr
+##' MAXEVAL_REACHED \tab 5 \tab Optimization stopped because maxeval (above) was reached. \cr
+##' MAXTIME_REACHED \tab 6 \tab Optimization stopped because maxtime (above) was reached. \cr
+##' FAILURE \tab -1 \tab Generic failure code. \cr
+##' INVALID_ARGS \tab -2 \tab Invalid arguments (e.g. lower bounds are bigger than upper bounds, an unknown algorithm was specified, etcetera). \cr
+##' OUT_OF_MEMORY \tab -3 \tab Ran out of memory. \cr
+##' ROUNDOFF_LIMITED \tab -4 \tab Halted because roundoff errors limited progress. (In this case, the optimization still typically returns a useful result.) \cr
+##' FORCED_STOP \tab -5 \tab Halted because of a forced termination: the user called nlopt_force_stop(opt) on the optimization’s nlopt_opt object opt from the user’s objective function or constraints. \cr
+##' }
 ##' 
 ##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
