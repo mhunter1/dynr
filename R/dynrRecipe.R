@@ -1679,7 +1679,6 @@ extractValues <- function(v, p, symmetric=FALSE){
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
 
-# TODO add ability to use covariates in these functions
 
 #--------------------------------------
 # brief input version
@@ -2385,7 +2384,15 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	params.exo <- lapply(params.exo, preProcessParams)
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
-
+	
+	# Check that the number of covariates implied by the 'covariates' arg is the same as that
+	#  implied by the number of columns in the 'values.exo' arg.
+	matCovariates <- lapply(lapply(values.exo, dim), "[[", 2)
+	argCovariates <- length(covariates)
+	if(!all(matCovariates == argCovariates)){
+		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates, collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
+		stop(msg)
+	}
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.dyn), extractParams(params.exo), extractParams(params.int))
