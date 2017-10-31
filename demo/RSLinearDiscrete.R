@@ -15,13 +15,15 @@ require(dynr)
 data(EMGsim)
 dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
 
+hist(EMGsim$EMG)
+# Note: one peak around 3 with another peak around 5.5
 
 #---- (3) Specify recipes for all model pieces ----
 
 #---- (3a) Measurement ----
 recMeas <- prep.measurement(
 	values.load=rep(list(matrix(1, 1, 1)), 2),
-	values.int=list(matrix(0, 1, 1), matrix(1, 1, 1)),
+	values.int=list(matrix(3, 1, 1), matrix(5.5, 1, 1)),
 	params.int=list(matrix('mu_0', 1, 1), matrix('mu_1', 1, 1)),
 	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
 	params.exo=list(matrix('beta_0', 1, 1), matrix('beta_1', 1, 1)),
@@ -134,6 +136,8 @@ dynr.ggplot(yum, dynrModel = rsmod, style = 2,
 #ggsave("RSLinearDiscreteggPlot2.pdf")
 plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
 plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
+
+
 #---- End of demo ---- 
 #save(rsmod,yum,file="RSLinearDiscrete.RData")
 
