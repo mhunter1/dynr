@@ -186,12 +186,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   })
   # split delta 
   # [time, dimLat] data.frame, for each subject
-  rownames(delta) <- paste0("delta_", rownames(delta))
+  rownames(delta) <- paste0("del_", rownames(delta))
   delta_sp <- split(as.data.frame(t(delta)), id)
   
   # output data.frame for each subject
   time_sp <- split(dynrModel$data$time, id)
-  res <- mapply(FUN=function(time, chiLat, chiLat_pval, chiLat_shk, 
+  res <- mapply(FUN=function(id_i, time, 
+                             chiLat, chiLat_pval, chiLat_shk, 
                              chiObs, chiObs_pval, chiObs_shk, 
                              tval, t_pval, t_shk, delta) {
     colnames(tval) <- paste0("t_", colnames(tval))
@@ -205,7 +206,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     
     list(
       taste=data.frame(
-        time=time,
+        id=id_i, time=time,
         chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
         chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
         tval, t_pval, t_shk, chi.by=chi_t_shk, delta
@@ -213,7 +214,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       delta.dtx=delta_dtx
     )
   }, SIMPLIFY=FALSE,
-  time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
+  unique(id), time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
   chiObs_sp, chiObs_pval_sp, chiObs_shk_sp, 
   t_sp, t_pval_sp, t_shk_sp, delta_sp)
   
@@ -228,29 +229,73 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 dynr.detox <- function(dynrModel, dynrTaste) {
   # combine delta through subjects
   delta <- do.call("rbind",
-                   lapply(dynrTaste$res, function(taste_i) {
+                   lapply(dynrTaste, function(taste_i) {
                      delta_i <- taste_i$delta.dtx
                      # apply delta to 'shock.time + 1', so called 
                      # 'the time the shock appears'
                      rbind( rep(0, ncol(delta_i)), delta_i[-nrow(delta_i),]  )
                    }) )
-  # modify dynrModel@data
-  stateName <- names(delta)
-  dynrModel@data$covariate.names <- stateName
-  dynrModel@data$original.data <- data.frame(
-    dynrModel@data$original.data, 
-    delta)
-  # modify dynr.matrixDynamics
-  dynrModel@dynamics@covariates <- stateName
-  nState <- ncol(delta)
-  values.exo <- list(diag(1, nrow=nState, ncol=nState))
-  params.exo <- list(matrix("fixed", nrow=nState, ncol=nState))
-  dynrModel@dynamics@values.exo <- lapply(values.exo, dynr:::preProcessValues)
-  dynrModel@dynamics@params.exo <- lapply(params.exo, dynr:::preProcessParams)
+  # all parameter names + "fixed", to be used for params.xxx
+  parNames <- c(names(dynrModel), "fixed")
+  # to substitute 'fixed'
+  numForFixed <- length(parNames)
   
+  deltaName <- names(delta)
+  nState <- ncol(delta)
+  # modify dynr.matrixDynamics
+  padyn <- dynrModel@dynamics@params.dyn[[1]]
+  padyn[padyn==0] <- numForFixed
+  paramsDyn <- parNames[padyn]# vector
+  dim(paramsDyn) <- dim(padyn)# to matrix
+  new_dynamics <- prep.matrixDynamics(
+    values.dyn=dynrModel@dynamics@values.dyn[[1]],
+    params.dyn=paramsDyn,
+    values.exo=diag(1, nrow=nState, ncol=nState),
+    params.exo=matrix("fixed", nrow=nState, ncol=nState),
+    covariates=deltaName,
+    isContinuousTime=FALSE)
+  
+  # modify dynrModel@data
+  dynrModel@data$covariate.names <- deltaName
   names(delta) <- paste0("covar", 1:nState)
   dynrModel@data$covariates <- delta
   
+  # build measurement
+  measParLoad <- dynrModel@measurement@params.load[[1]]
+  measParLoad[measParLoad==0] <- numForFixed
+  paramsLoad <- parNames[measParLoad]# vector
+  dim(paramsLoad) <- dim(measParLoad)# to matrix
+  new_measurement <- prep.measurement(
+    values.load=dynrModel@measurement@values.load[[1]],
+    params.load=paramsLoad, 
+    state.names=dynrModel@measurement@state.names,
+    obs.names=dynrModel@measurement@obs.names
+  )
+  
+  # build noise
+  noParLat <- dynrModel@noise@params.latent[[1]]
+  noParLat[noParLat==0] <- numForFixed
+  paramsLatent <- parNames[noParLat]# vector
+  dim(paramsLatent) <- dim(noParLat)# to matrix
+  
+  noParObs <- dynrModel@noise@params.observed[[1]]
+  noParObs[noParObs==0] <- numForFixed
+  paramsObserved <- parNames[noParObs]# vector
+  dim(paramsObserved) <- dim(noParObs)# to matrix
+  new_noise <- prep.noise(
+    values.latent=dynrModel@noise@values.latent[[1]], 
+    params.latent=paramsLatent, 
+    values.observed=dynrModel@noise@values.observed[[1]], 
+    params.observed=paramsObserved
+  )
+  
+  new_dynrModel <- dynr.model(
+    dynamics = new_dynamics,
+    measurement = recMeas,
+    noise = recNoise,
+    initial = recIni,
+    data = dynrModel@data,
+    outfile = "RSLinearDiscrete.c")
   # cook!
   dynrDetox <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
   # RMSEA
