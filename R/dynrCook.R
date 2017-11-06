@@ -577,7 +577,7 @@ endProcessing <- function(x, transformation, conf.level){
 	#bad.SE <- apply(bad.evecj,1,function(x){ifelse(length(x[x=="TRUE"]) > 0, TRUE,FALSE)}) #Flag parameters that have been identified as problematic at least once
 	
 	#Numerical Jacobian
-	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
+	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
 	iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
 	bad.SE <- diag(iHess0) < 0
 	
