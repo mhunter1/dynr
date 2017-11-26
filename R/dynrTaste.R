@@ -242,7 +242,7 @@ dynr.detox <- function(dynrModel, dynrTaste) {
   
   deltaName <- names(delta)
   nState <- ncol(delta)
-  # modify dynr.matrixDynamics
+  # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
   padyn[padyn==0] <- numForFixed
   paramsDyn <- parNames[padyn]# vector
@@ -291,18 +291,14 @@ dynr.detox <- function(dynrModel, dynrTaste) {
   
   new_dynrModel <- dynr.model(
     dynamics = new_dynamics,
-    measurement = recMeas,
-    noise = recNoise,
-    initial = recIni,
+    measurement = new_measurement,
+    noise = new_noise,
+    initial = dynrModel@initial,
     data = dynrModel@data,
-    outfile = "RSLinearDiscrete.c")
+    outfile = "new_taste.c")
   # cook!
-  dynrDetox <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
-  # RMSEA
-  #loglikDetox <- logLik(dynrDetox)
-  #loglikTaste <- logLik(dynrTaste$cookTaste)
-  #dynrModel
-  list(dynrModelDetox=dynrModel, dynrCookDetox=dynrDetox)
+  dynrDetox <- dynr.cook(new_dynrModel, verbose=FALSE, debug_flag=TRUE)
+  return(dynrDetox)
 }
 
 computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
