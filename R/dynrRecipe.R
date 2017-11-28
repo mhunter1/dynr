@@ -2714,7 +2714,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	}
 	
 	
-	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
+	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov, symmetric=TRUE), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
