@@ -141,7 +141,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       delta[,j] <- S_j_inv %*% s_j
     }
   }
-  rownames(t_value) <- stateName
   
   # N.B. 'data.table' can solve combersome conversions and splits
   ############ chi-square test ############################
@@ -203,6 +202,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # delta that will be input to 'dynr.detox'
     delta_dtx <- delta
     delta_dtx[!chi_t_shk] <- 0
+    row.names(delta_dtx) <- 1:nrow(delta_dtx)
     
     list(
       taste=data.frame(
@@ -226,7 +226,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 
 ##' @param dynrModel an object of dynrModel class.
 ##' @param dynrTaste an object of dynrTaste class
-dynr.detox <- function(dynrModel, dynrTaste) {
+dynr.taste2 <- function(dynrModel, dynrTaste) {
   # combine delta through subjects
   delta <- do.call("rbind",
                    lapply(dynrTaste, function(taste_i) {
