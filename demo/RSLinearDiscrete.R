@@ -42,16 +42,16 @@ recNoise <- prep.noise(
 # ---- (3c) Regimes-switching model ----
 
 recReg <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(1, -1, 0, 0), 2, 2),
 	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
 
 recReg2 <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(2, -1, 0, 0), 2, 2),
 	params=matrix(c('dev1', 'base1', 'fixed', 'fixed'), 2, 2),
 	deviation=TRUE) # refRow gets set to refCol=2
 
 recReg1 <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(1, -2, 0, 0), 2, 2),
 	params=matrix(c('base1', 'dev2', 'fixed', 'fixed'), 2, 2),
 	deviation=TRUE, refRow=1) #refRow get set to non-default 1
 
