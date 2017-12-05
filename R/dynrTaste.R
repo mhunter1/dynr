@@ -74,8 +74,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   # For each person, loop backward from their final time to their first time
   # computing r and N
-  r <- matrix(NA, dimLat, dimTime)
-  N <- array(NA, c(dimLat, dimLat, dimTime))
+  r <- matrix(0, dimLat, dimTime)
+  N <- array(0, c(dimLat, dimLat, dimTime))
+  # save Ninv to calculate W_t (for delta)
+  Ninv <- array(0, c(dimLat, dimLat, dimTime))
   u <- matrix(0, dimObs, dimTime)
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
@@ -85,8 +87,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
     
     # set endTime r and N to 0
-    r[,endTime] <- 0
-    N[,,endTime] <- 0
+    #  --> set r and N 0 at first when allocate
+    #r[,endTime] <- 0
+    #N[,,endTime] <- 0
     
     for(i in endTime:(beginTime+1)){
       # Probably could/should compute shocks in this same loop!!!
@@ -96,35 +99,32 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       Li <- B - Ki %*% Lambda
       obsInfI <- matrix(F_inv[,,i], dimObs, dimObs) #TODO check for off by one index
       vi <- matrix(v[,i], nrow=dimObs, ncol=1) #TODO check for off by one index
-      ui <- obsInfI %*% vi - t(Ki) %*% ri 
+      ui <- obsInfI %*% vi - t(Ki) %*% ri
       u[, i] <- ui
       # Could also just compute shocks in this loop
       rnew <- t_Lambda %*% ui + t(B) %*% ri
       r[,i-1] <- rnew
       Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
       N[,,i-1] <- Nnew
-      Ninv <- try(solve(Nnew), silent=TRUE)
-      if(class(Ninv) == "try-error"){Ninv <- MASS::ginv(Nnew)}
-      chiLat[i-1] <- t(rnew) %*% Ninv %*% rnew
+      Ninv_i <- try(solve(Nnew), silent=TRUE)
+      if(class(Ninv) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+      Ninv[,,i-1] <- Ninv_i 
+      chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
     }
-  }
-
-  # t-values
-  t_value <- matrix(NA, dimLat, dimTime)
-  rownames(t_value) <- stateName
-  for (t in 1:dimTime) {# CHOW, HAMAKER, ALLAIRE (2009) eq. (27)
-    t_value[,t] <- r[,t] / sqrt(diag(N[,,t]))  
   }
   
   ################ delta estimate #############################
-  delta <- matrix(NA, dimLat, dimTime)
-  rownames(delta) <- stateName
-  # assume independent shock indicator, TODO: function arguments??
-  # assume delta [latentDim,1]
-  # p 469. delta = [q, 1]. how to choose q??
-  W_t <- diag(1, dimLat)
-  # no measurement shock assumed, TODO: function arguments??
-  X_t <- matrix(0, dimObs, dimLat)
+  # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
+  # delta <- matrix(NA, dimLat, dimTime)
+  # rownames(delta) <- stateName
+  delta <- matrix(NA, dimObs+dimLat, dimTime)
+  # (X',W') = I. (De Jong and Penzer, 1988)
+  XW <- diag(1, dimObs+dimLat)
+  X_t <- XW[1:dimObs, ]
+  W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
+  
+  # t-values
+  t_value <- matrix(NA, dimObs+dimLat, dimTime)
   
   for(i in 1:nID){
     beginTime <- tstart[i] + 1
@@ -139,10 +139,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       S_j_inv <- try(solve(S_j), silent=TRUE)
       if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
       delta[,j] <- S_j_inv %*% s_j
+      t_value[,j] <- s_j / sqrt(diag(S_j))
     }
   }
   
-  # N.B. 'data.table' can solve combersome conversions and splits
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
   chiLat_sp <- split(chiLat, id)
@@ -159,11 +159,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   chiObs_shk_sp <- split(chiObs_shk, id)
   
   ################### t-test ###############################
-  # [time, dimLat] matrix, for each subject
-  t_sp <- split(as.data.frame(t(t_value)), id)
   # assign function calculating p-values
   alternative <- match.arg(alternative)
-  t_calcPval <- if (alternative=="two.sided") {
+  tLat_calcPval <- if (alternative=="two.sided") {
     function(subj) {
       2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimLat) )
     }
@@ -176,47 +174,93 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=TRUE )
     }
   }
-  # [time, dimLat] matrix, for each subject
-  t_pval_sp <- lapply(t_sp, FUN=t_calcPval)
+  
+  tObs_calcPval <- if (alternative=="two.sided") {
+    function(subj) {
+      2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimObs) )
+    }
+  }	else if (alternative=="greater") {
+    function(subj) {
+      pt( as.matrix(subj), df=(nrow(subj)-dimObs), lower.tail=FALSE )
+    }
+  }	else {
+    function(subj) {
+      pt( as.matrix(subj), df=(nrow(subj)-dimObs), lower.tail=TRUE )
+    }
+  }
+  
+  # t_value for observed
+  t_X <- t_value[1:dimObs, ]
+  # t_value for latent
+  t_W <- t_value[(dimObs+1):(dimObs+dimLat), ]
+  
+  # [time_i, dimObs] matrix, for each subject
+  t_X_sp <- split(as.data.frame(t(t_X)), id)
+  # [time_i, dimLat] matrix, for each subject
+  t_W_sp <- split(as.data.frame(t(t_W)), id)
+  
+  # [time_i, dimObs] matrix, for each subject
+  t_X_pval_sp <- lapply(t_X_sp, FUN=tObs_calcPval)
+  # [time_i, dimLat] matrix, for each subject
+  t_W_pval_sp <- lapply(t_W_sp, FUN=tLat_calcPval)
+  
   # locate shocks from t-test
-  # [time, dimLat] matrix, for each subject
-  t_shk_sp <- lapply(t_pval_sp, function(subj) {
+  # [time_i, dimObs] matrix, for each subject
+  t_X_shk_sp <- lapply(t_X_pval_sp, function(subj) {
     subj < (1 - conf.level)
   })
-  # split delta 
-  # [time, dimLat] data.frame, for each subject
-  rownames(delta) <- paste0("del_", rownames(delta))
-  delta_sp <- split(as.data.frame(t(delta)), id)
+  t_W_shk_sp <- lapply(t_W_pval_sp, function(subj) {
+    subj < (1 - conf.level)
+  })
+
+  # rownames(delta) <- paste0("d_", rownames(delta))
+  # delta for observed
+  delta_X <- delta[1:dimObs, ]
+  # delta for latent
+  delta_W <- delta[(dimObs+1):(dimObs+dimLat), ]
+  # split delta  
+  # [time_i, dimObs] data.frame, for each subject
+  delta_X_sp <- split(as.data.frame(t(delta_X)), id)
+  # [time_i, dimLat] data.frame, for each subject
+  delta_W_sp <- split(as.data.frame(t(delta_W)), id)
   
   # output data.frame for each subject
+  # T-TESTS ARE NOT CORRECT WITH CURRENT W AND X
   time_sp <- split(dynrModel$data$time, id)
   res <- mapply(FUN=function(id_i, time, 
                              chiLat, chiLat_pval, chiLat_shk, 
-                             chiObs, chiObs_pval, chiObs_shk, 
-                             tval, t_pval, t_shk, delta) {
-    colnames(tval) <- paste0("t_", colnames(tval))
-    colnames(t_pval) <- paste0("t.p_", colnames(t_pval))
-    colnames(t_shk) <- paste0("t.shk_", colnames(t_shk))
+                             chiObs, chiObs_pval, chiObs_shk,
+                             t_X, t_W, t_X_pval, t_W_pval, 
+                             t_X_shk, t_W_shk, delta_X, delta_W) 
+    {
     # t shock that pass chi shock
-    chi_t_shk <- sweep(t_shk, 1, chiLat_shk, FUN="&")
+    # [time_i, dimObs]
+    chiObs_t_shk <- sweep(t_X_shk, 1, chiObs_shk, FUN="&")
+    # [time_i, dimLat]
+    chiLat_t_shk <- sweep(t_W_shk, 1, chiLat_shk, FUN="&")
     # delta that will be input to 'dynr.detox'
-    delta_dtx <- delta
-    delta_dtx[!chi_t_shk] <- 0
-    row.names(delta_dtx) <- 1:nrow(delta_dtx)
+    delta_X[!chiObs_t_shk] <- 0
+    delta_W[!chiLat_t_shk] <- 0
+    row.names(delta_X) <- 1:nrow(delta_X)
+    row.names(delta_W) <- 1:nrow(delta_W)
     
     list(
       taste=data.frame(
         id=id_i, time=time,
         chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
         chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
-        tval, t_pval, t_shk, chi.by=chi_t_shk, delta
+        t.L=t_W, t.O=t_X, t.L.p=t_W_pval, t.O.p=t_X_pval,
+        t_W_shk, t_X_shk, 
+        final.L.shk=chiLat_t_shk, final.O.shk=chiObs_t_shk 
       ),
-      delta.dtx=delta_dtx
+      delta.L=delta_W,
+      delta.O=delta_X
     )
   }, SIMPLIFY=FALSE,
   unique(id), time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
   chiObs_sp, chiObs_pval_sp, chiObs_shk_sp, 
-  t_sp, t_pval_sp, t_shk_sp, delta_sp)
+  t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
+  delta_X_sp, delta_W_sp)
   
   # TODO. display output for users
   # res <- list(res=res1, cookTaste=dynrCook)
