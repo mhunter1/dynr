@@ -39,8 +39,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     dynrCook <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
   }
   stateName <- dynrModel$measurement$state.names
+  obsName <- dynrModel$measurement$obs.names
   dimLat <- length(stateName)
-  dimObs <- length(dynrModel$measurement$obs.names)
+  dimObs <- length(obsName)
   dimTime <- length(dynrModel$data$time)
   IDs <- unique(dynrModel$data$id)
   nID <- length(IDs)
@@ -213,7 +214,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     subj < (1 - conf.level)
   })
 
-  # rownames(delta) <- paste0("d_", rownames(delta))
+  rownames(delta) <- paste0("d_", c(obsName, stateName))
   # delta for observed
   delta_X <- delta[1:dimObs, ]
   # delta for latent
@@ -271,21 +272,38 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' @param dynrModel an object of dynrModel class.
 ##' @param dynrTaste an object of dynrTaste class
 dynr.taste2 <- function(dynrModel, dynrTaste) {
+  if ( length(dynrModel@dynamics@values.exo) != 0 ||
+       length(dynrModel@measurement@values.exo) != 0) {
+    stop("Currently, a model without covariates can be used.")
+  }
+  
   # combine delta through subjects
-  delta <- do.call("rbind",
-                   lapply(dynrTaste, function(taste_i) {
-                     delta_i <- taste_i$delta.dtx
-                     # apply delta to 'shock.time + 1', so called 
-                     # 'the time the shock appears'
-                     rbind( rep(0, ncol(delta_i)), delta_i[-nrow(delta_i),]  )
-                   }) )
+  deltaLat <- do.call("rbind",
+                      lapply(dynrTaste, function(taste_i) {
+                        deltaL_i <- taste_i$delta.L
+                        # apply delta to 'shock.time + 1', so called 
+                        # 'the time the shock appears'
+                        rbind( rep(0, ncol(deltaL_i)), deltaL_i[-nrow(deltaL_i),]  )
+                        #rbind( deltaL_i[-1,], rep(0, ncol(deltaL_i)) )
+                        #deltaL_i
+                      }) )
+  deltaObs <- do.call("rbind",
+                      lapply(dynrTaste, function(taste_i) {
+                        taste_i$delta.O
+                      }) )
+  
   # all parameter names + "fixed", to be used for params.xxx
   parNames <- c(names(dynrModel), "fixed")
   # to substitute 'fixed'
   numForFixed <- length(parNames)
   
-  deltaName <- names(delta)
-  nState <- ncol(delta)
+  deltaLatName <- names(deltaLat)
+  nDeltaLat <- length(deltaLatName)
+  deltaObsName <- names(deltaObs)
+  nDeltaObs <- length(deltaObs)
+  #######
+  print(deltaObsName)
+  #######
   # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
   padyn[padyn==0] <- numForFixed
@@ -294,15 +312,30 @@ dynr.taste2 <- function(dynrModel, dynrTaste) {
   new_dynamics <- prep.matrixDynamics(
     values.dyn=dynrModel@dynamics@values.dyn[[1]],
     params.dyn=paramsDyn,
-    values.exo=diag(1, nrow=nState, ncol=nState),
-    params.exo=matrix("fixed", nrow=nState, ncol=nState),
-    covariates=deltaName,
+    values.exo=diag(1, nrow=nDeltaLat, ncol=nDeltaLat),
+    params.exo=matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat),
+    covariates=deltaLatName,
     isContinuousTime=FALSE)
   
   # modify dynrModel@data
-  dynrModel@data$covariate.names <- deltaName
-  names(delta) <- paste0("covar", 1:nState)
-  dynrModel@data$covariates <- delta
+  if ( is.null(dynrModel@data$covariate.names) ) {#no orginal covariates
+    dynrModel@data$covariate.names <- c(deltaLatName, deltaObsName)
+    deltaLatCopy <- deltaLat
+    names(deltaLatCopy) <- paste0("covar", 1:nDeltaLat)
+    deltaObsCopy <- deltaObs
+    names(deltaObsCopy) <- paste0("covar", (1:nDeltaObs) + nDeltaLat)
+    dynrModel@data$covariates <- cbind(deltaLatCopy, deltaObsCopy)
+  } else {# original covariates exist
+  nPreCovariate <- length(dynrModel@data$covariate.names)
+  dynrModel@data$covariate.names <- c(dynrModel@data$covariate.names,
+                                      deltaLatName, deltaObsName)
+  names(deltaLat) <- paste0("covar", 
+                            (1:nDeltaLat) + nPreCovariate)
+  names(deltaObs) <- paste0("covar", 
+                            (1:nDeltaObs) + nPreCovariate + nDeltaLat)
+  dynrModel@data$covariates <- cbind(dynrModel@data$covariates,
+                                     deltaLat, deltaObs)
+  }
   
   # build measurement
   measParLoad <- dynrModel@measurement@params.load[[1]]
@@ -311,7 +344,10 @@ dynr.taste2 <- function(dynrModel, dynrTaste) {
   dim(paramsLoad) <- dim(measParLoad)# to matrix
   new_measurement <- prep.measurement(
     values.load=dynrModel@measurement@values.load[[1]],
-    params.load=paramsLoad, 
+    params.load=paramsLoad,
+    values.exo=diag(1, nrow=nDeltaObs, ncol=nDeltaObs),
+    params.exo=matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs),
+    exo.names=deltaObsName,
     state.names=dynrModel@measurement@state.names,
     obs.names=dynrModel@measurement@obs.names
   )
