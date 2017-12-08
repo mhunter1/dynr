@@ -224,6 +224,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   delta_X_sp <- split(as.data.frame(t(delta_X)), id)
   # [time_i, dimLat] data.frame, for each subject
   delta_W_sp <- split(as.data.frame(t(delta_W)), id)
+  # id vector
+  idv <- unique(id)
   
   # output data.frame for each subject
   # T-TESTS ARE NOT CORRECT WITH CURRENT W AND X
@@ -258,11 +260,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       delta.O=delta_X
     )
   }, SIMPLIFY=FALSE,
-  unique(id), time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
+  idv, time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
   chiObs_sp, chiObs_pval_sp, chiObs_shk_sp, 
   t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
   delta_X_sp, delta_W_sp)
   
+  names(res) <- idv
   # TODO. display output for users
   # res <- list(res=res1, cookTaste=dynrCook)
   class(res) <- "dynrTaste"
