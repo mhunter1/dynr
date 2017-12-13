@@ -63,6 +63,7 @@ setMethod("writeArmadilloCode", "dynrFormulaDynamics",
                   rhsj <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhsj), function(x){eval(parse(text=x))})
               }
               
+              #HJ: Do we have continuous time in SAEM?
               if (object@isContinuousTime){
                   #function_dx_dt
                   ret="void  function_dx_dt(double t, size_t regime, const vec *x, double *param, size_t n_param, const vec *co_variate, vec *F_dx_dt){"
