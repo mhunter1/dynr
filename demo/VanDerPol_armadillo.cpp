@@ -1,9 +1,15 @@
 #include <math.h>
 #include <armadillo>
-#include <armadillo/include/armadillo_bits/mul_gemm.hpp>
+//#include <armadillo/include/armadillo_bits/mul_gemm.hpp>
 
-/*Tested: mathfunction_logistic, mathfunction_softmax*/
-/*Converted (included in dynrRecipe.R): mathfunction_softmax (done), function_dx_dt(in progress)*/
+using namespace arma ;
+#define omega 61.68503
+
+//#include <armadillo/include/armadillo_bits/mul_gemm.hpp>
+
+
+/*Tested: mathfunction_logistic, mathfunction_softmax, function_dx_dt, function_dF_dx, function_noise_cov*/
+/*Converted done: done (compiled successfully)*/
 
 /**
  * This function takes a double and gives back a double
@@ -43,17 +49,20 @@ void function_dx_dt(double t, size_t regime, const vec *x, double *param, size_t
 }
 
 
+
 /**
 * The dF/dx function
 * The partial derivative of the jacobian of the DE function with respect to the variable x
 * @param param includes at the end the current state estimates in the same order as the states following the model parameters
 */
-void function_dF_dx(double t, size_t regime, double *param, const vec *co_variate, gsl_matrix *F_dx_dt_dx){
-	F_dx_dt_dx(0,0) = 0;
-    F_dx_dt_dx(0,1) = 1;
-    F_dx_dt_dx(1,0) = -(param[0] * (2 * param[9+0]) * param[9+1] + omega);
-    F_dx_dt_dx(1,0) = param[0] * (1 - pow(param[9+0], 2));
+void function_dF_dx(double t, size_t regime, double *param, const vec *co_variate, mat *F_dx_dt_dx){
+	(*F_dx_dt_dx)(0,0) = 0;
+    (*F_dx_dt_dx)(0,1) = 1;
+    (*F_dx_dt_dx)(1,0) = -(param[0] * (2 * param[9+0]) * param[9+1] + omega);
+    (*F_dx_dt_dx)(1,1) = param[0] * (1 - pow(param[9+0], 2));
 }
+
+
 
 void function_measurement(size_t t, size_t regime, double *param, const vec *eta, const vec *co_variate, mat *Ht, vec *y){
 
@@ -66,7 +75,7 @@ void function_measurement(size_t t, size_t regime, double *param, const vec *eta
     //gsl_matrix_set(Ht, 1, 0, param[1]);
 	(*Ht)(1, 0) = param[1];
     //gsl_matrix_set(Ht, 2, 0, param[2]);
-    (*Ht)(2,0) = param[2]
+    (*Ht)(2,0) = param[2];
     
 	//gsl_vector_set(intVector, 0, param[3]);
     intVector(0) = param[3];
@@ -77,7 +86,7 @@ void function_measurement(size_t t, size_t regime, double *param, const vec *eta
  
 	//HJ: the function is a wrapper for GSL to call BLAS functions. Armadiilo also use BLAS, so we need to find/write the wrapper for armadillo.
     //gsl_blas_dgemv(CblasNoTrans, 1.0, Ht, eta, 0.0, y);
-    dgemv_arma::apply(y, Ht, eta, 1.0, 0.0);
+    //dgemv_arma::apply(y, Ht, eta, 1.0, 0.0);
  
 	//gsl_vector_add(y, intVector);
     (*y) = (*y) + intVector;
@@ -92,21 +101,85 @@ void function_noise_cov(size_t t, size_t regime, double *param, mat *y_noise_cov
 
 
 	//gsl_matrix_set(eta_noise_cov, 0, 0, -13.8155105579643);
-    eta_noise_cov(0, 0) = -13.8155105579643;
+    (*eta_noise_cov)(0, 0) = -13.8155105579643;
 	//gsl_matrix_set(eta_noise_cov, 1, 1, -13.8155105579643);
-    eta_noise_cov(1, 1) = -13.8155105579643;
+    (*eta_noise_cov)(1, 1) = -13.8155105579643;
     
 	//gsl_matrix_set(y_noise_cov, 0, 0, param[6]);
     (*y_noise_cov)(0, 0) = param[6];
 	//gsl_matrix_set(y_noise_cov, 1, 1, param[7]);
     (*y_noise_cov)(1, 1) = param[7];
-	//gsl_matrix_set(y_noise_cov, 2, 2, param[8]);
+	//gsl_matrix_sdet(y_noise_cov, 2, 2, param[8]);
     (*y_noise_cov)(2, 2) = param[8];
  
 }
 
+int main(){
+    /*
+    testing function_dx_dt 
+    double t = 1;
+    size_t regime =0; 
+    vec x(2);
+    x(0) = 1;
+    x(1) = 2;
+    
+    double param[2] = {2, 2}; 
+    size_t n_param = 2;
+    vec co_variate(2);
+    vec F_dx_dt(2);
+    F_dx_dt.zeros();
+    
+    x.print("x");
+    function_dx_dt(t, regime, &x, param, n_param, &co_variate, &F_dx_dt);
+    F_dx_dt.print("F_dx_dt");
+    */
+    
+    /*
+    //testing F_dx_dt_dx
+    double t = 1;
+    size_t regime =0; 
+    mat F_dx_dt_dx(2,2);
+    vec x(2);
+    x(0) = 1;
+    x(1) = 2;
+    
+    double param[16] = {1,1,2,3,4,5,6,7,8,9,2}; 
+    size_t n_param = 2;
+    vec co_variate(2);
+    
+    
+    F_dx_dt_dx.zeros();
+    
+    x.print("x");
+    function_dF_dx( t,  regime,  param,  &co_variate, &F_dx_dt_dx);
+    F_dx_dt_dx.print("F_dx_dt_dx");
+    */
+    
+    /*
+    //testing function_noise_cov
+    double t = 1;
+    size_t regime =0; 
+    mat F_dx_dt_dx(2,2);
+    vec x(2);
+    x(0) = 1;
+    x(1) = 2;
+    
+    double param[16] = {1,1,2,3,4,5,6,7,8,9,2}; 
+    size_t n_param = 2;
+    mat eta_noise_cov(2,2), y_noise_cov(3,3); 
+    eta_noise_cov.zeros();
+    y_noise_cov.zeros();
+    
+    function_noise_cov(t, regime, param, &y_noise_cov, &eta_noise_cov);
+    eta_noise_cov.print("eta_noise_cov");
+    y_noise_cov.print("y_noise_cov");
+    */
+    
+    return 0; 
+}
 
-//why there is **?
+
+
 void function_initial_condition(double *param, vec **co_variate, vec **pr_0, vec **eta_0, mat **error_cov_0, size_t *index_sbj){
 	
 	//gsl_vector *Pvector = gsl_vector_calloc(1);
@@ -129,11 +202,11 @@ void function_initial_condition(double *param, vec **co_variate, vec **pr_0, vec
     Preset = Preset + Pintercept;
 	
 	//size_t num_regime=pr_0[0]->size;
-    size_t num_regime=(**pr_0).n_elem;
+    size_t num_regime=(*pr_0[0]).n_elem;
 	//size_t dim_latent_var=error_cov_0[0]->size1;
-    size_t dim_latent_var=(**error_cov_0)(0).n_elem;
+    size_t dim_latent_var=(*error_cov_0[0]).n_elem;
 	//size_t num_sbj=(eta_0[0]->size)/(dim_latent_var);
-    size_t num_sbj=((**eta_0)(0).n_elem)/(dim_latent_var);
+    size_t num_sbj=((**eta_0).n_elem)/(dim_latent_var);
 	size_t i;
 	size_t regime;
 	for(regime=0; regime < num_regime; regime++){
@@ -143,20 +216,20 @@ void function_initial_condition(double *param, vec **co_variate, vec **pr_0, vec
 			//gsl_vector_set(eta_local, 1, 1);
             eta_local(1) = 1;
 			//gsl_vector_set(eta_0[regime], i*dim_latent_var+0, gsl_vector_get(eta_local, 0));
-            (*eta_0)(regime, i*dim_latent_var+0) = eta_local(0);
+            (*eta_0[regime])(regime, i*dim_latent_var+0) = eta_local(0);
 			//gsl_vector_set(eta_0[regime], i*dim_latent_var+1, gsl_vector_get(eta_local, 1));
-            (*eta_0)(regime, i*dim_latent_var+1) = eta_local(1);
+            (*eta_0[regime])(regime, i*dim_latent_var+1) = eta_local(1);
 			//gsl_vector_set_zero(eta_local);
             eta_local.zeros();
 		}
         //gsl_matrix_set((error_cov_0)[regime], 0, 0, -4.60517018598809);
-        (*error_cov_0)(regime)(0, 0) = -4.60517018598809;
+        (*error_cov_0[regime])(0, 0) = -4.60517018598809;
         //gsl_matrix_set((error_cov_0)[regime], 1, 1, -4.60517018598809);
-        (*error_cov_0)(regime)(1, 1) = -4.60517018598809;
+        (*error_cov_0[regime])(1, 1) = -4.60517018598809;
 	}
 	for(i=0; i < num_sbj; i++){
         //HJ: [to be checked] row vector or column vector?
-		mathfunction_softmax(&Padd, (*pr_0)(i));
+		mathfunction_softmax(&Padd, pr_0[i]);
 	}
     
 	//gsl_vector_free(Pvector);
@@ -195,30 +268,31 @@ void mathfunction_mat_to_vec(const mat *mat_, vec *vec_){
 	/*convert matrix to vector*/
 	for(i=0; i<nx; i++){
 		//gsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));
-        (*vec_)vec_(i) = (*mat)mat(i, i);
+        (*vec_)(i) = (*mat_)(i, i);
 		for (j=i+1;j<nx;j++){
 			//gsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));
-            (*vec_)(i+j+nx-1) = (*mat)(i, j);
+            (*vec_)(i+j+nx-1) = (*mat_)(i, j);
 			/*printf("%lu",i+j+nx-1);}*/
 		}
 	}
 }
-void mathfunction_vec_to_mat(const vec *vec_, mat *mat){
+void mathfunction_vec_to_mat(const vec *vec_, mat *mat_){
 	size_t i,j;
 	//size_t nx=mat->size1;
     size_t nx=(*mat_).n_rows;
 	/*convert vector to matrix*/
 	for(i=0; i<nx; i++){
 		//gsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));
-        (*mat_)mat_(i,i) = vec_(i);
+        (*mat_)(i,i) = (*vec_)(i);
 		for (j=i+1;j<nx;j++){
 			//gsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));
-            (*mat_)(i,j) = vec_(i+j+nx-1);
+            (*mat_)(i,j) = (*vec_)(i+j+nx-1);
 			//gsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));
-            (*mat_)(j,i) = vec_(i+j+nx-1);
+            (*mat_)(j,i) = (*vec_)(i+j+nx-1);
 		}
 	}
 }
+
 void function_dP_dt(double t, size_t regime, const vec *p, double *param, size_t n_param, const vec *co_variate, vec *F_dP_dt, int flag){
 	
 	size_t nx;
@@ -231,14 +305,14 @@ void function_dP_dt(double t, size_t regime, const vec *p, double *param, size_t
     //gsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);
     mat F_dx_dt_dx(nx,nx);
     // function_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);
-	function_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);
+	function_dF_dx(t, regime, param, co_variate, &F_dx_dt_dx);
 	//gsl_matrix *dFP=gsl_matrix_calloc(nx,nx);
     mat dFP(nx,nx);
 	//gsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);
     mat dP_dt(nx,nx);
     //HJ: the function is a wrapper for GSL to call BLAS functions. Armadiilo also use BLAS, so we need to find/write the wrapper for armadillo.
 	//gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);
-    dgemm_arma::apply(dFP, F_dx_dt_dx, P_mat, 1.0, 0.0);
+    //dgemm_arma::apply(dFP, F_dx_dt_dx, P_mat, 1.0, 0.0);
 	//gsl_matrix_transpose_memcpy(dP_dt, dFP);
     dP_dt = dFP.t();
 	//gsl_matrix_add(dP_dt, dFP);
@@ -258,7 +332,7 @@ void function_dP_dt(double t, size_t regime, const vec *p, double *param, size_t
 	//gsl_matrix_add(dP_dt, Q_mat);
     dP_dt = dP_dt + Q_mat;
 	//mathfunction_mat_to_vec(dP_dt, F_dP_dt);
-    mathfunction_mat_to_vec(&dP_dt, &F_dP_dt);
+    mathfunction_mat_to_vec(&dP_dt, F_dP_dt);
 	
     //gsl_matrix_free(P_mat);
 	//gsl_matrix_free(F_dx_dt_dx);
@@ -267,3 +341,5 @@ void function_dP_dt(double t, size_t regime, const vec *p, double *param, size_t
 	//gsl_vector_free(Q_vec);
 	//gsl_matrix_free(Q_mat);
 }
+
+

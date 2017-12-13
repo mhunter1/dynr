@@ -202,3 +202,7 @@ void function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param,
 	gsl_vector_free(Q_vec);
 	gsl_matrix_free(Q_mat);
 }
+
+int main(){
+   return 0; 
+}
