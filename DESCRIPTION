@@ -1,4 +1,5 @@
 Package: dynr
+Date: 2017-10-03
 Title: Dynamic Modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mhunter.ou@gmail.com"),
@@ -30,4 +31,5 @@ Collate:
     'dataDoc.R'
 RdMacros: Rdpack
 Biarch: true
+Version: 0.1.11-30
 
