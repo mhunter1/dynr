@@ -8,8 +8,8 @@ using namespace arma ;
 //#include <armadillo/include/armadillo_bits/mul_gemm.hpp>
 
 
-/*Tested: mathfunction_logistic, mathfunction_softmax, function_dx_dt, function_dF_dx, function_noise_cov*/
-/*Converted done: done (compiled successfully)*/
+/*Tested: mathfunction_logistic, mathfunction_softmax, function_dx_dt, function_dF_dx, function_noise_cov mathfunction_mat_to_vec, mathfunction_vec_to_mat, function_regime_switch*/
+/*Converted done: almost done (compiled successfully), except three lines noted by "HJ:..."*/
 
 /**
  * This function takes a double and gives back a double
@@ -203,6 +203,9 @@ void mathfunction_mat_to_vec(const mat *mat_, vec *vec_){
 	//size_t nx=mat->size1;
     size_t nx=(*mat_).n_rows;
     
+    // GSL will initialize vectors and matrices as zero ones
+    (*vec_).zeros();
+    
 	/*convert matrix to vector*/
 	for(i=0; i<nx; i++){
 		//gsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));
@@ -210,7 +213,7 @@ void mathfunction_mat_to_vec(const mat *mat_, vec *vec_){
 		for (j=i+1;j<nx;j++){
 			//gsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));
             (*vec_)(i+j+nx-1) = (*mat_)(i, j);
-			/*printf("%lu",i+j+nx-1);}*/
+			//printf("%lu",i+j+nx-1);
 		}
 	}
 }
@@ -219,6 +222,10 @@ void mathfunction_vec_to_mat(const vec *vec_, mat *mat_){
 	//size_t nx=mat->size1;
     size_t nx=(*mat_).n_rows;
 	/*convert vector to matrix*/
+    
+    // GSL will initialize vectors and matrices as zero ones
+    (*mat_).zeros();
+    
 	for(i=0; i<nx; i++){
 		//gsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));
         (*mat_)(i,i) = (*vec_)(i);
@@ -343,33 +350,43 @@ int main(){
     
     mat mat_(3,3);
     vec vec_(9);
+    vec_.zeros();
     
-    mat(0, 0) = 1;
-    mat(1, 0) = 2;
-    mat(2, 0) = 3;
-    mat(0, 1) = 4;
-    mat(1, 1) = 5;
-    mat(2, 1) = 6;
-    mat(0, 2) = 7;
-    mat(1, 2) = 8;
-    mat(2, 2) = 9;
+    //mathfunction_mat_to_vec
+    mat_(0, 0) = 1;
+    mat_(1, 0) = 2;
+    mat_(2, 0) = 3;
+    mat_(0, 1) = 2;
+    mat_(1, 1) = 5;
+    mat_(2, 1) = 6;
+    mat_(0, 2) = 3;
+    mat_(1, 2) = 6;
+    mat_(2, 2) = 9;
     mathfunction_mat_to_vec(&mat_, &vec_);
     mat_.print("mat_");
     vec_.print("vec_");
     
-    vec(8)= 1;
-    vec(7)= 2;
-    vec(6)= 3;
-    vec(5)= 4;
-    vec(4)= 5;
-    vec(3)= 6;
-    vec(2)= 7;
-    vec(1)= 8;
-    vec(0)= 9;
+    //mathfunction_vec_to_mat
+    mat_.zeros();
+    vec_(8)= 1;
+    vec_(7)= 2;
+    vec_(6)= 3;
+    vec_(5)= 4;
+    vec_(4)= 5;
+    vec_(3)= 6;
+    vec_(2)= 7;
+    vec_(1)= 8;
+    vec_(0)= 9;
     mathfunction_vec_to_mat(&vec_, &mat_);
-    mat_.print("mat_");
     vec_.print("vec_");
+    mat_.print("mat_");
     
+    size_t regime =0;
+    double param[2] = {2, 2}; 
+    vec co_variate(2);
+    mat regime_switch_mat(4,4);
+    function_regime_switch(regime, regime, param, &co_variate, &regime_switch_mat);
+    regime_switch_mat.print("regime_switch_mat");
     
     return 0; 
 }
