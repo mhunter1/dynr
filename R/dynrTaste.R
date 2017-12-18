@@ -85,7 +85,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   # save Ninv to calculate W_t (for delta)
   Ninv <- array(0, c(dimLat, dimLat, dimTime))
   u <- matrix(0, dimObs, dimTime)
-  M <- array(0, c(dimObs, dimObs, dimTime))
+  #M <- array(0, c(dimObs, dimObs, dimTime))
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
   
@@ -108,7 +108,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       vi <- matrix(v[,i], nrow=dimObs, ncol=1) #TODO check for off by one index
       ui <- obsInfI %*% vi - t(Ki) %*% ri
       u[, i] <- ui
-      M[,,i] <- obsInfI + t(Ki) %*% Ni %*% Ki
+      #M[,,i] <- obsInfI + t(Ki) %*% Ni %*% Ki
       # Could also just compute shocks in this loop
       rnew <- t_Lambda %*% ui + t(B) %*% ri
       r[,i-1] <- rnew
@@ -174,9 +174,18 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     }
   }
 
-  
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
+  if (outliers=="both") {
+    chiBoth <- chiLat + chiObs
+    chiLat_sp <- split(chiBoth, id)
+    chiObs_sp <- split(chiBoth, id)
+    # p-values of chi-sqaure
+    chiLat_pval <- pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
+    chiLat_pval_sp <- split(chiLat_pval, id)
+    chiObs_pval <- pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
+    chiObs_pval_sp <- split(chiObs_pval, id)
+  }
   chiLat_sp <- split(chiLat, id)
   chiObs_sp <- split(chiObs, id)
   # p-values of chi-sqaure
@@ -248,7 +257,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   } else if (outliers=="innovative") {
     # t_value for observed
     t_X <- matrix(NA, 1, dimTime)
-    rownames(t_X) <- "t.O"
+    rownames(t_X) <- "t.L"
     # t_value for latent
     t_W <- t_value
     
@@ -273,7 +282,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     t_X <- t_value
     # t_value for latent
     t_W <- matrix(NA, 1, dimTime)
-    rownames(t_W) <- "t.L"
+    rownames(t_W) <- "t.O"
     
     # [time_i, dimObs] matrix, for each subject
     t_X_sp <- split(as.data.frame(t(t_X)), id)
@@ -324,7 +333,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     delta_X <- delta
     # delta for latent
     delta_W <- matrix(0, dimLat, dimTime)
-    rownames(delta_W) <- "d_L"
+    rownames(delta_W) <- stateName
     # split delta  
     # [time_i, dimObs] data.frame, for each subject
     delta_X_sp <- split(as.data.frame(t(delta_X)), id)
