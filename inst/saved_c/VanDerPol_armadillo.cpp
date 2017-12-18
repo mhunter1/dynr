@@ -9,7 +9,7 @@ using namespace arma ;
 //#include <armadillo/include/armadillo_bits/mul_gemm.hpp>
 
 
-/*Tested: mathfunction_logistic, mathfunction_softmax, function_dx_dt, function_dF_dx, function_noise_cov mathfunction_mat_to_vec, mathfunction_vec_to_mat,  function_regime_switch, function_measurement, function_dP_dt*/
+/*Tested: mathfunction_logistic, mathfunction_softmax, function_dx_dt, function_dF_dx, function_noise_cov mathfunction_mat_to_vec, mathfunction_vec_to_mat,  function_regime_switch, function_measurement, function_dP_dt, function_initial_condition(done)*/
 /*Converted done:  done (compiled successfully)*/
 
 /**
@@ -148,13 +148,16 @@ void function_initial_condition(double *param, vec *co_variate, vec *pr_0, vec *
     Preset = Preset + Pvector;
 	//gsl_vector_add(Preset, Pintercept);
     Preset = Preset + Pintercept;
-	
+	//Preset.print("Preset");
+    
 	//size_t num_regime=pr_0[0]->size;
     size_t num_regime=(pr_0[0]).n_elem;
 	//size_t dim_latent_var=error_cov_0[0]->size1;
     size_t dim_latent_var=(error_cov_0[0]).n_elem;
 	//size_t num_sbj=(eta_0[0]->size)/(dim_latent_var);
     size_t num_sbj=((eta_0[0]).n_elem)/(dim_latent_var);
+    
+    //printf("%d %d %d\n",int(num_regime),int(dim_latent_var), int (num_sbj));
 	size_t i;
 	size_t regime;
 	for(regime=0; regime < num_regime; regime++){
@@ -417,41 +420,52 @@ int main(){
     regime_switch_mat.print("regime_switch_mat");
     */
     
-    /*
+    //function_initial_condition
+    //printf("beginning");
     //mat error_cov_0[10];
     vec *co_variate;
     //co_variate = (vec **)malloc(sizeof(vec*));
-    co_variate = (vec *)malloc(10* sizeof(vec));
+    co_variate = (vec *)malloc(5* sizeof(vec));
+    co_variate[0].set_size(2,2);
+    co_variate[0].ones();
+    //co_variate[0].print("co_variate");
     
     vec *pr_0;
     //pr_0 = (vec **)malloc(sizeof(vec*));
-    pr_0 = (vec *)malloc(10* sizeof(vec));
+    pr_0 = (vec *)malloc(5* sizeof(vec));
     pr_0[0].set_size(2);
     (pr_0[0])(0) = 2;
     (pr_0[0])(1) = 2;
+    //pr_0[0].print("pr_0[0]");
     
     vec *eta_0;
     //eta_0 = (vec **)malloc(sizeof(vec*));
-    eta_0 = (vec *)malloc(10* sizeof(vec));
+    eta_0 = (vec *)malloc(5 * sizeof(vec));
     eta_0[0].set_size(2);
-    (eta_0[0])(0) = 2;
+    eta_0[0].zeros();
+    eta_0[0](0) = 2;
     (eta_0[0])(1) = 2;
- 
+    //eta_0[0].print("(eta_0[0])");
+    
     mat *error_cov_0;
     //error_cov_0 = (mat **)malloc(sizeof(mat*));
-    error_cov_0 = (mat *)malloc(10* sizeof(mat));
-    error_cov_0[0].set_size(2);
-    (error_cov_0[0])(0) = 2;
-    (error_cov_0[0])(1) = 2; 
+    error_cov_0 = (mat *)malloc(5* sizeof(mat));
+    error_cov_0[0].set_size(2,2);
+    error_cov_0[1].set_size(2,2);
+    error_cov_0[0].zeros(2,2);
+    error_cov_0[1].zeros(2,2);
+    //(error_cov_0[0])(0,0) = 2;
+    //(error_cov_0[0])(1,0) = 2; 
+    //error_cov_0[0].print("error_cov_0");
     
     double param[16] = {1,1,2,3,4,5,6,7,8,9,2}; 
     size_t index_sbj[10] = {1,1,1,1,1,1,1,1,1};
 
-    
+    //printf("here\n");
     function_initial_condition(param, co_variate, pr_0, eta_0, error_cov_0, index_sbj);
     error_cov_0[0].print("error");
     error_cov_0[1].print("error2");
-    */
+    
     
     /*
     //function_measurement
@@ -470,6 +484,7 @@ int main(){
     Ht.print("Ht");
     */
     
+    /*
     //function_dP_dt
     double t = 1;
     size_t regime = 0, n_param = 16;
@@ -486,7 +501,7 @@ int main(){
     
     function_dP_dt(t,  regime, &p, param, n_param, &co_variate, &F_dP_dt, 0);
     F_dP_dt.print("F_dP_dt");
-    
+    */
     return 0; 
 }
 
