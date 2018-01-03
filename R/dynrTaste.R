@@ -172,26 +172,31 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       delta[,j] <- S_j_inv %*% s_j
       t_value[,j] <- s_j / sqrt(diag(S_j))
     }
+    # 0/0 at endTime
+    t_value[,endTime] <- 0
   }
 
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
   if (outliers=="both") {
+    # de Jong's method.
     chiBoth <- chiLat + chiObs
-    chiLat_sp <- split(chiBoth, id)
-    chiObs_sp <- split(chiBoth, id)
+    #chiBoth_sp <- split(chiBoth, id)
+    chiLat_sp <- chiObs_sp <- split(chiBoth, id)
+    #chiBoth_pval <- pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
+    chiLat_pval <- chiObs_pval <- 
+      pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
+    #chiBoth_pval_sp <- split(chiBoth_pval, id)
+    #chiBoth_shk <- chiBoth_pval < (1 - conf.level)
+    #chiBoth_shk_sp <- split(chiBoth_shk, id) 
+  } else {
+    chiLat_sp <- split(chiLat, id)
+    chiObs_sp <- split(chiObs, id)
     # p-values of chi-sqaure
-    chiLat_pval <- pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
-    chiLat_pval_sp <- split(chiLat_pval, id)
-    chiObs_pval <- pchisq(chiBoth, df=dimLat+dimObs, lower.tail=FALSE)
-    chiObs_pval_sp <- split(chiObs_pval, id)
+    chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
+    chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
   }
-  chiLat_sp <- split(chiLat, id)
-  chiObs_sp <- split(chiObs, id)
-  # p-values of chi-sqaure
-  chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
   chiLat_pval_sp <- split(chiLat_pval, id)
-  chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
   chiObs_pval_sp <- split(chiObs_pval, id)
   # locate shock points, TRUE for significance
   chiLat_shk <- chiLat_pval < (1 - conf.level)
@@ -346,7 +351,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   # output data.frame for each subject
   # T-TESTS ARE NOT CORRECT WITH CURRENT W AND X
   time_sp <- split(dynrModel$data$time, id)
-  res <- mapply(FUN=function(id_i, time, 
+  res <- mapply(FUN=function(id_i, time,
+                             #chiBoth, chiBoth_pval, chiBoth_shk,
                              chiLat, chiLat_pval, chiLat_shk, 
                              chiObs, chiObs_pval, chiObs_shk,
                              t_X, t_W, t_X_pval, t_W_pval, 
@@ -355,10 +361,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     if (outliers=="both") {
       # t shock that pass chi shock
       # [time_i, dimObs]
+      #chiBothX_t_shk <- sweep(t_X_shk, 1, chiBoth_shk, FUN="&")
+      # [time_i, dimLat]
+      #chiBothW_t_shk <- sweep(t_W_shk, 1, chiBoth_shk, FUN="&")
+      # [time_i, dimObs]
       chiObs_t_shk <- sweep(t_X_shk, 1, chiObs_shk, FUN="&")
       # [time_i, dimLat]
       chiLat_t_shk <- sweep(t_W_shk, 1, chiLat_shk, FUN="&")
       # delta that will be input to 'dynr.detox'
+      #deltaBoth_X <- delta_X
+      #deltaBoth_W <- delta_W
+      #deltaBoth_X[!chiBothX_t_shk] <- 0
+      #deltaBoth_W[!chiBothW_t_shk] <- 0
+      #row.names(deltaBoth_X) <- 1:nrow(delta_X)
+      #row.names(deltaBoth_W) <- 1:nrow(delta_W)
       delta_X[!chiObs_t_shk] <- 0
       delta_W[!chiLat_t_shk] <- 0
       row.names(delta_X) <- 1:nrow(delta_X)
@@ -367,12 +383,15 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       list(
         taste=data.frame(
           id=id_i, time=time,
+          #chi.B=chiBoth, chi.B.p=chiBoth_pval, chi.B.shk=chiBoth_shk,
           chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
           chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
           t.L=t_W, t.O=t_X, t.L.p=t_W_pval, t.O.p=t_X_pval,
           t.L.shk=t_W_shk, t.O.shk=t_X_shk, 
           final.L.shk=chiLat_t_shk, final.O.shk=chiObs_t_shk 
         ),
+        #delta.L.B=deltaBoth_W,
+        #delta.O.B=deltaBoth_X,
         delta.L=delta_W,
         delta.O=delta_X
       )
@@ -420,7 +439,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       )
     }
   }, SIMPLIFY=FALSE,
-  idv, time_sp, chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
+  idv, time_sp,
+  #chiBoth_sp, chiBoth_pval_sp, chiBoth_shk_sp,
+  chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
   chiObs_sp, chiObs_pval_sp, chiObs_shk_sp, 
   t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
   delta_X_sp, delta_W_sp)
