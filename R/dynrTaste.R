@@ -379,8 +379,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       row.names(delta_X) <- 1:nrow(delta_X)
       delta_W_t <- delta_W_chi <- delta_W
       delta_X_t <- delta_X_chi <- delta_X
-      delta_W_chi[!chiLat_shk] <- 0
-      delta_X_chi[!chiObs_shk] <- 0
+      delta_W_chi[!chiLat_shk,] <- 0
+      delta_X_chi[!chiObs_shk,] <- 0
       delta_W_t[!t_W_shk] <- 0
       delta_X_t[!t_X_shk] <- 0
       
@@ -393,10 +393,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           t.L.shk=t_W_shk, t.O.shk=t_X_shk, 
           final.L.shk=chiLat_t_shk, final.O.shk=chiObs_t_shk 
         ),
-        delta_chi=data.frame(
+        delta_chi=list(
           delta.L=delta_W_chi,
           delta.O=delta_X_chi),
-        delta_t=data.frame(
+        delta_t=list(
           delta.L=delta_W_t,
           delta.O=delta_X_t)
       )
@@ -408,7 +408,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       # [time_i, dimLat]
       chiLat_t_shk <- sweep(t_W_shk, 1, chiLat_shk, FUN="&")
       delta_W_t <- delta_W_chi <- delta_W
-      delta_W_chi[!chiLat_shk] <- 0
+      delta_X_t <- delta_X_chi <- delta_X
+      delta_W_chi[!chiLat_shk,] <- 0
       delta_W_t[!t_W_shk] <- 0
       
       list(
@@ -419,10 +420,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           t.L.shk=t_W_shk,  
           final.L.shk=chiLat_t_shk 
         ),
-        delta_chi=data.frame(
+        delta_chi=list(
           delta.L=delta_W_chi,
           delta.O=delta_X_chi),
-        delta_t=data.frame(
+        delta_t=list(
           delta.L=delta_W_t,
           delta.O=delta_X_t)
       )
@@ -434,11 +435,11 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       # [time_i, dimObs]
       chiObs_t_shk <- sweep(t_X_shk, 1, chiObs_shk, FUN="&")
       # delta that will be input to 'dynr.detox'
+      delta_W_t <- delta_W_chi <- delta_W
       delta_X_t <- delta_X_chi <- delta_X
-      delta_X_chi[!chiObs_shk] <- 0
+      delta_X_chi[!chiObs_shk,] <- 0
       delta_X_t[!t_X_shk] <- 0
 
-      
       list(
         taste=data.frame(
           id=id_i, time=time,
@@ -447,10 +448,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           t.O.shk=t_X_shk, 
           final.O.shk=chiObs_t_shk 
         ),
-        delta_chi=data.frame(
+        delta_chi=list(
           delta.L=delta_W_chi,
           delta.O=delta_X_chi),
-        delta_t=data.frame(
+        delta_t=list(
           delta.L=delta_W_t,
           delta.O=delta_X_t)
       )
@@ -471,17 +472,26 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 }
 
 ##' @param dynrModel an object of dynrModel class.
-##' @param dynrTaste an object of dynrTaste class
-dynr.taste2 <- function(dynrModel, dynrTaste) {
+##' @param dynrTaste an object of dynrTaste class.
+##' @param outlierTest a character string specifying the test 
+##'   used to detect outliers (Chi-squared or t test), 
+##'   must be one of ``chi'' (default), ``t''.
+##' @param newOutfile a character string for `outfile' argument 
+##'   of new dynr.model that is an output of dynr.taste2.
+##'   The default is "new_taste.c". 
+dynr.taste2 <- function(dynrModel, dynrTaste,
+                        outlierTest=c("chi", "t"),
+                        newOutfile="new_taste.c") {
   if ( length(dynrModel@dynamics@values.exo) != 0 ||
        length(dynrModel@measurement@values.exo) != 0) {
     stop("Currently, a model without covariates can be used.")
   }
-  
+  outlierTest <- match.arg(outlierTest)
+  deltaTest <- paste0("delta_", outlierTest)
   # combine delta through subjects
   deltaLat <- do.call("rbind",
                       lapply(dynrTaste, function(taste_i) {
-                        deltaL_i <- taste_i$delta.L
+                        deltaL_i <- taste_i[[deltaTest]]$delta.L
                         # apply delta to 'shock.time + 1', so called 
                         # 'the time the shock appears'
                         rbind( rep(0, ncol(deltaL_i)), deltaL_i[-nrow(deltaL_i),]  )
@@ -490,7 +500,7 @@ dynr.taste2 <- function(dynrModel, dynrTaste) {
                       }) )
   deltaObs <- do.call("rbind",
                       lapply(dynrTaste, function(taste_i) {
-                        taste_i$delta.O
+                        taste_i[[deltaTest]]$delta.O
                       }) )
   
   # all parameter names + "fixed", to be used for params.xxx
@@ -576,7 +586,7 @@ dynr.taste2 <- function(dynrModel, dynrTaste) {
     noise = new_noise,
     initial = dynrModel@initial,
     data = dynrModel@data,
-    outfile = "new_taste.c")
+    outfile = newOutfile)
   # cook!
   new_dynrCook <- dynr.cook(new_dynrModel, verbose=FALSE, debug_flag=TRUE)
   list(new_dynrModel=new_dynrModel,
