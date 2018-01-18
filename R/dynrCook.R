@@ -424,6 +424,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
+	if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
+		if(verbose){
+			message("'verbose' argument to dynr.cook() function did not agree with 'verbose' model slot.\nUsing function argument: verbose = TRUE\n")
+		}
+		dynrModel@verbose <- verbose
+		# Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
+	}
 	
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
