@@ -62,7 +62,7 @@ double function_neg_log_like(const double *params, void *data){
 	for(i=0; i < data_model.pc.num_func_param; i++){
 		par.func_param[i] = params[i];
 	}
-	// TODO Carry verbose argument from mainR.c into this function and only print the vector of
+	// Carry verbose argument from mainR.c into this function and only print the vector of
 	//  free parameters here if requested.
 	if(data_model.pc.verbose_flag){
 		print_array(par.func_param, data_model.pc.num_func_param);
@@ -82,7 +82,7 @@ double function_neg_log_like(const double *params, void *data){
 	model_constraint_init(&data_model.pc, &pi);
 	
 	neg_log_like = brekfis(data_model.y, data_model.co_variate, data_model.pc.total_obs, data_model.y_time, &data_model.pc, &pi, &par);
-	// TODO Carry verbose argument from mainR.c into this function and only print the likelihood
+	// Carry verbose argument from mainR.c into this function and only print the likelihood
 	//  here if requested.
 	if(data_model.pc.verbose_flag){
 		MYPRINT("%lf\n", neg_log_like);
