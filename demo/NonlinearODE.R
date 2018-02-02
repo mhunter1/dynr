@@ -10,7 +10,7 @@ require(dynr)
 
 # ---- Read in the data ----
 data(PPsim)
-data <- dynr.data(PPsim, id="id", time="time", observed=c("x","y"))
+PPdata <- dynr.data(PPsim, id = "id", time = "time", observed = c("x", "y"))
 
 #---- Prepare the recipes (i.e., specifies modeling functions) ----
 
@@ -31,7 +31,7 @@ meas <- prep.measurement(
 initial <- prep.initial(
 	values.inistate=c(3, 1),
 	params.inistate=c("fixed", "fixed"),
-	values.inicov=diag(c(0.01,0.01)), 
+	values.inicov=diag(c(0.01, 0.01)),
 	params.inicov=diag("fixed",2)
 )
 
@@ -44,32 +44,33 @@ mdcov <- prep.noise(
 )
 
 # dynamics
-formula=list(list(prey~ a*prey - b*prey*predator,
-             predator~ -c*predator + d*prey*predator))
-dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
-                           isContinuousTime=TRUE)
+preyFormula <- prey ~ a * prey - b * prey * predator
+predFormula <- predator ~ - c * predator + d * prey * predator
+ppFormula <- list(preyFormula, predFormula)
+ppDynamics <- prep.formulaDynamics(formula = ppFormula,
+    startval = c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
+    isContinuousTime = TRUE)
+
 #constraints
-trans<-prep.tfun(formula.trans=list(a~exp(a), 
-                                    b~exp(b),
-                                    c~exp(c),
-                                    d~exp(d)),
-                 formula.inv=list(a~log(a),
-                                  b~log(b),
-                                  c~log(c),
-                                  d~log(d)))
+trans <- prep.tfun(formula.trans = list(a ~ exp(a), b ~ exp(b),
+                                        c ~ exp(c), d ~ exp(d)),
+    formula.inv = list(a ~ log(a), b ~ log(b),
+                       c ~ log(c), d ~ log(d)))
 
 #------------------------------------------------------------------------------
 # Cooking materials
 
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial,
-                    transform=trans, data=data,
-                    outfile="NonlinearODE.c")
+model <-  dynr.model(dynamics = ppDynamics,
+    measurement = meas, noise = mdcov,
+    initial = initial, transform = trans,
+    data = PPdata,
+    outfile = "NonlinearODE.c")
 
-printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
-        outFile="NonlinearODE.tex")
+printex(model,
+    ParameterAs = model$param.names,
+    show = FALSE, printInit = TRUE,
+    outFile="NonlinearODE.tex")
 #tools::texi2pdf("NonlinearODE.tex")
 #system(paste(getOption("pdfviewer"), "NonlinearODE.pdf"))
 
@@ -77,13 +78,19 @@ printex(model, ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
 testthat::expect_equal(nobs(model), 1000)
 
 # Estimate free parameters
-res <- dynr.cook(dynrModel=model)
+res <- dynr.cook(dynrModel = model)
 
 # Examine results
+# True parameter values a = 2, b = 2, c = 1, d = 1
 summary(res)
 
-plot(res,dynrModel=model,style=1)
-plot(res,dynrModel=model,style=2)
+# Overview multicomponent plot quickly showing
+#  (1) latent states with regimes or predicted trajectories with obversed values
+#  (2) regime histogram
+#  (3) typeset model specification
+
+plot(res, dynrModel = model, style = 1)
+plot(res, dynrModel = model, style = 2)
 
 testthat::expect_equal(nobs(res), 1000)
 
