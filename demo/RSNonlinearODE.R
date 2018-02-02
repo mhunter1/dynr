@@ -10,8 +10,8 @@ require(dynr)
 
 # ---- Read in the data ----
 data(RSPPsim)
-data <- dynr.data(RSPPsim, id="id", time="time",
-                  observed=c("x","y"),covariate="cond")
+data <- dynr.data(RSPPsim, id = "id", time = "time",
+    observed = c("x", "y"), covariate = "cond")
 
 # ---- Prepare the recipes (i.e., specifies modeling functions) ----
 
@@ -30,13 +30,12 @@ meas <- prep.measurement(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-  values.inistate=c(3, 1),
-  params.inistate=c("fixed", "fixed"),
-  values.inicov=diag(c(0.01,0.01)), 
-  params.inicov=diag("fixed",2),
-	values.regimep=c(.8475, 0),
-	params.regimep=c("fixed", "fixed")
-)
+    values.inistate = c(3, 1),
+    params.inistate = c("fixed", "fixed"),
+    values.inicov = diag(c(0.01, 0.01)),
+    params.inicov = diag("fixed", 2),
+    values.regimep = c(.7, .3),
+    params.regimep = c("fixed", "fixed"))
 
 # Regime-switching function
 # The RS model assumes that each element of the transition probability 
@@ -49,92 +48,105 @@ initial <- prep.initial(
 # nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
 
 regimes <- prep.regimes(
-  values=matrix(c(0,0,-1,1.5,
-                  0,0,-1,1.5),
-                nrow=2, ncol=4,byrow=T), 
-  params=matrix(c("fixed","fixed","int_1","slp_1",
-                  "fixed","fixed","int_2","slp_2"), 
-                nrow=2, ncol=4,byrow=T), 
-  covariates="cond")
+    values = matrix(c(0, 0, -1, 1.5,
+                      0, 0, -1, 1.5),
+                nrow = 2, ncol = 4, byrow = T),
+    params = matrix(c("fixed", "fixed", "int_1", "slp_1",
+                      "fixed", "fixed", "int_2", "slp_2"),
+                nrow = 2, ncol = 4, byrow = T),
+    covariates = "cond")
 
 #measurement and dynamics covariances
 mdcov <- prep.noise(
-  values.latent=diag(0, 2),
-  params.latent=diag(c("fixed","fixed"), 2),
-  values.observed=diag(rep(0.5,2)),
-  params.observed=diag(rep("var_epsilon",2),2)
+  values.latent = diag(0, 2),
+  params.latent = diag(c("fixed", "fixed"), 2),
+  values.observed = diag(rep(0.5, 2)),
+  params.observed = diag(rep("var_epsilon", 2), 2)
 )
 
 # dynamics
-formula=list(
-  list(prey~ a*prey - b*prey*predator,
-       predator~ -c*predator + d*prey*predator),
-  list(prey~ a*prey - e*prey^2 - b*prey*predator,
-       predator~ f*predator - c*predator^2 + d*prey*predator ))
+preyFormula <- prey ~ a * prey - b * prey * predator
+predFormula <- predator ~ - c * predator + d * prey * predator
+ppFormula <- list(preyFormula, predFormula)
+cPreyFormula <- prey ~ a * prey - e * prey ^ 2 - b * prey * predator
+cPredFormula <- predator ~
+    f * predator - c * predator ^ 2 + d * prey * predator
+cpFormula <- list(cPreyFormula, cPredFormula)
+rsFormula <- list(ppFormula, cpFormula)
 
-dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(a = 2.1, c = 3, b = 1.2, d = 1.2,
-                                      e = 1, f = 2),
-                           isContinuousTime=TRUE)
+dynm <- prep.formulaDynamics(formula = rsFormula,
+    startval = c(a = 2.1, c = 3, b = 1.2, d = 1.2, e = 1, f = 2),
+    isContinuousTime = TRUE)
 
 #constraints
-trans<-prep.tfun(formula.trans=list(a~exp(a), 
-                                    b~exp(b),
-                                    c~exp(c),
-                                    d~exp(d),
-                                    e~exp(e),
-                                    f~exp(f)),
-                 formula.inv=list(a~log(a),
-                                  b~log(b),
-                                  c~log(c),
-                                  d~log(d),
-                                  e~log(e),
-                                  f~log(f))
-                 )
+tformList <- list(a ~ exp(a), b ~ exp(b), c ~ exp(c),
+    d ~ exp(d), e ~ exp(e), f ~ exp(f))
+tformInvList <- list(a ~ log(a), b ~ log(b), c ~ log(c),
+    d ~ log(d), e ~ log(e), f ~ log(f))
+trans <- prep.tfun(
+    formula.trans = tformList,
+    formula.inv = tformInvList)
 
 #------------------------------------------------------------------------------
 # Cooking materials
 
 # Put all the recipes together in a Model Specification
-model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial,
-                    regimes=regimes, transform=trans,
-                    data=data,
-                    outfile="RSNonlinearODE_1.c")
+model <- dynr.model(dynamics = dynm, measurement = meas,
+    noise = mdcov, initial = initial,
+    regimes = regimes, transform = trans,
+    data = data,
+    outfile = "RSNonlinearODE_1.c")
 
-printex(model, ParameterAs = model@param.names, printInit=TRUE, printRS=TRUE,
-        outFile="RSNonlinearODE_1.tex")
+printex(model, ParameterAs = model@param.names, printInit = TRUE, printRS = TRUE,
+    outFile = "RSNonlinearODE_1.tex")
 #tools::texi2pdf("RSNonlinearODE_1.tex")
 #system(paste(getOption("pdfviewer"), "RSNonlinearODE_1.pdf"))
 
-model$ub[c("int_1", "int_2", "slp_1", "slp_2")] <- c(0,0,10,10)
-model$lb[c("int_1", "int_2", "slp_1", "slp_2")] <- c(-10,-10,0,0)
+model$ub[ c("int_1", "int_2", "slp_1", "slp_2") ] <- c(0, 0, 10, 10)
+model$lb[ c("int_1", "int_2", "slp_1", "slp_2") ] <- c(-10, -10, 0, 0)
+
 # Estimate free parameters
 res <- dynr.cook(model)
 
 # Examine results
 summary(res)
 
+#Plot of model equations in terms of parameter names
+plotFormula(model, ParameterAs = names(model)) +
+    ggtitle("(A)") +
+    theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16))
 
-plotFormula(model, ParameterAs=model@param.names)+ggtitle("(A)")+theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
-plotFormula(model, ParameterAs=res@transformed.parameters)+ggtitle("(B)")+theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16))
+# Plot of model equations in terms of parameter values
+plotFormula(model, ParameterAs = coef(res)) +
+    ggtitle("(B)") +
+    theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16))
 
+
+# Plot showing the latent state estimates along with
+# which regime is most likely.
 
 dynr.ggplot(res, model, style = 1,
-            names.regime=c("Free","Constrained"),
-            title="", numSubjDemo=1, idtoPlot = 11,
-            shape.values = c(1,2),
-            text=element_text(size=16))
+            names.regime = c("Summer", "Winter"),
+            title = "", idtoPlot = 11,
+            text = element_text(size = 16))
 #ggsave("RSNonlinearODEggPlot1.pdf")
 
-dynr.ggplot(res, model, style=2, 
-            names.regime=c("Free","Constrained"),
-            title="", idtoPlot = 9,
-            text=element_text(size=16))
+# Figure 3 from R Journal paper
+# Built-in plotting feature for the predicted trajectories with observed values
+
+dynr.ggplot(res, model, style = 2,
+            names.regime = c("Summer", "Winter"),
+            title = "", idtoPlot = 9,
+            text = element_text(size = 16))
 #ggsave("RSNonlinearODEggPlot2.pdf")
 
-plot(res, dynrModel = model, style=1)
-plot(res, dynrModel = model, style=2)
+# Overview multicomponent plot quickly showing
+#  (1) latent states with regimes or predicted trajectories with observed values
+#  (2) regime histogram
+#  (3) typeset model specification
+
+plot(res, dynrModel = model, style = 1)
+plot(res, dynrModel = model, style = 2)
 #------------------------------------------------------------------------------
 # some miscellaneous nice functions
 
