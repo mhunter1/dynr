@@ -86,7 +86,7 @@ printex(rsmod,
 
 #---- (4c) Create model and cook it all up  ----
 
-yum <- dynr.cook(rsmod)
+yum <- dynr.cook(rsmod, verbose = FALSE)
 
 #---- (5) Serve it! ----
 

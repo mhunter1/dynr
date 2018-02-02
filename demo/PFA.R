@@ -72,7 +72,7 @@ printex(model.n50, ParameterAs = coef(model.n50), printInit = TRUE, printRS = FA
 #tools::texi2pdf("PFAdemo.tex")
 #system(paste(getOption("pdfviewer"), "PFAdemo.pdf"))
 
-res.n50 <- dynr.cook(model.n50)
+res.n50 <- dynr.cook(model.n50, verbose = FALSE)
 coef(res.n50)
 summary(res.n50)
 

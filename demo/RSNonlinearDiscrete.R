@@ -95,7 +95,7 @@ printex(model,ParameterAs=model$param.names,printInit=TRUE, printRS=TRUE,
 #tools::texi2pdf("RSNonlinearDiscrete.tex")
 #system(paste(getOption("pdfviewer"), "RSNonlinearDiscrete.pdf"))
 
-res <- dynr.cook(model)
+res <- dynr.cook(model, verbose = FALSE)
 
 #---- Examine and "serve" the results
 summary(res)

@@ -113,9 +113,9 @@ printex(rsmod2, ParameterAs=rsmod2$param.names, printInit=TRUE,printRS=TRUE,
 #system(paste(getOption("pdfviewer"), "RSLinearDiscrete2.pdf"))
 
 
-yum <- dynr.cook(rsmod, debug_flag=TRUE)
-yum1 <- dynr.cook(rsmod1)
-yum2 <- dynr.cook(rsmod2)
+yum <- dynr.cook(rsmod, debug_flag=TRUE, verbose = FALSE)
+yum1 <- dynr.cook(rsmod1, verbose = FALSE)
+yum2 <- dynr.cook(rsmod2, verbose = FALSE)
 
 
 

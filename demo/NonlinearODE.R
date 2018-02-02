@@ -78,7 +78,7 @@ printex(model,
 testthat::expect_equal(nobs(model), 1000)
 
 # Estimate free parameters
-res <- dynr.cook(dynrModel = model)
+res <- dynr.cook(dynrModel = model, verbose = FALSE)
 
 # Examine results
 # True parameter values a = 2, b = 2, c = 1, d = 1

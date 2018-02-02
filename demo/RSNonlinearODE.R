@@ -34,7 +34,7 @@ initial <- prep.initial(
     params.inistate = c("fixed", "fixed"),
     values.inicov = diag(c(0.01, 0.01)),
     params.inicov = diag("fixed", 2),
-    values.regimep = c(.7, .3),
+    values.regimep = c(.8473, 0), #initial regime log odds
     params.regimep = c("fixed", "fixed"))
 
 # Regime-switching function
@@ -106,7 +106,8 @@ model$ub[ c("int_1", "int_2", "slp_1", "slp_2") ] <- c(0, 0, 10, 10)
 model$lb[ c("int_1", "int_2", "slp_1", "slp_2") ] <- c(-10, -10, 0, 0)
 
 # Estimate free parameters
-res <- dynr.cook(model)
+# Warning: This could take more than 30 minutes to finish.
+res <- dynr.cook(model, verbose = FALSE)
 
 # Examine results
 summary(res)
