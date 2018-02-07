@@ -1,3 +1,19 @@
+dynr 0.1.12
+--------------
+
+2018-02-08
+
+New features include:
+* New 'verbose' argument to dynr.cook turns off printing of optimization history
+* New demo for Process Factor Analysis (PFA)
+* Regime-switching printing in plotFormula() with new 'printRS' argument
+
+Bug fixes and performance tweaks include:
+* Greatly improved convergence rates for all models
+* Allow full initial covariance estimation
+* Fixed major bug in regime-switching matrix dynamics that formerly crashed R
+
+
 dynr 0.1.11-8
 --------------
 
