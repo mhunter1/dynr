@@ -420,7 +420,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debugFlag=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
