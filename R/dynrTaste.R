@@ -117,7 +117,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
       N[,,i-1] <- Nnew
       Ninv_i <- try(solve(Nnew), silent=TRUE)
-      if(class(Ninv) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+      if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
       Ninv[,,i-1] <- Ninv_i 
       chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
     }
