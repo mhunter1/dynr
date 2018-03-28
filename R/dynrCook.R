@@ -22,10 +22,12 @@ setClass(Class =  "dynrCook",
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
+           standard.errors.untransformed = "numeric",
            bad.standard.errors = "logical",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
+           conf.intervals.endpoint.trans = "matrix",
            exitflag = "numeric", #
            neg.log.likelihood = "numeric", #
            pr_t_given_T  = "matrix", # RxT
@@ -45,10 +47,12 @@ setMethod("initialize", "dynrCook",
             .Object@fitted.parameters <- x$fitted.parameters
             .Object@transformed.parameters <- x$transformed.parameters
             .Object@standard.errors <- x$standard.errors
+            .Object@standard.errors.untransformed <- x$standard.errors.untransformed
             .Object@bad.standard.errors <- x$bad.standard.errors
             .Object@hessian <- x$hessian.matrix
             .Object@transformed.inv.hessian <- x$transformed.inv.hessian
             .Object@conf.intervals <- x$conf.intervals
+            .Object@conf.intervals.endpoint.trans <- x$conf.intervals.endpoint.trans
             .Object@exitflag <- x$exitflag
             .Object@neg.log.likelihood <- x$neg.log.likelihood
             .Object@pr_t_given_T <- x$pr_t_given_T
@@ -66,10 +70,12 @@ setClass(Class =  "dynrDebug",
            fitted.parameters =  "numeric", #Can return
            transformed.parameters =  "numeric", #
            standard.errors =  "numeric",
+           standard.errors.untransformed='numeric',
            bad.standard.errors = "logical",
            hessian =  "matrix",
            transformed.inv.hessian =  "matrix",
            conf.intervals = "matrix",
+           conf.intervals.endpoint.trans="matrix",
            exitflag = "numeric", #
            neg.log.likelihood = "numeric", #
            #Everything else from this point on
@@ -395,22 +401,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, ...){
 ##' time-varying predicted latent variable mean estimates, predicted error covariance matrix estimates, the error/residual estimates (innovation vector),
 ##' and the error/residual covariance matrix estimates.
 ##' 
-##' The exit flag given after optimization has finished is from the SLSQP optimizer.  Generally, error codes have negative values and successful codes have positive values.  However, codes 5 and 6 do not indicate the model converged, but rather simply ran out of iterations or time, respectively.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values} and is also listed in the table below.
-##' 
-##' \tabular{lcl}{
-##' NLOPT Term \tab Numeric Code \tab Description \cr
-##' SUCCESS \tab 1 \tab Generic success return value. \cr
-##' STOPVAL_REACHED \tab 2 \tab Optimization stopped because stopval (above) was reached. \cr
-##' FTOL_REACHED \tab 3 \tab Optimization stopped because ftol_rel or ftol_abs (above) was reached. \cr
-##' XTOL_REACHED \tab 4 \tab Optimization stopped because xtol_rel or xtol_abs (above) was reached. \cr
-##' MAXEVAL_REACHED \tab 5 \tab Optimization stopped because maxeval (above) was reached. \cr
-##' MAXTIME_REACHED \tab 6 \tab Optimization stopped because maxtime (above) was reached. \cr
-##' FAILURE \tab -1 \tab Generic failure code. \cr
-##' INVALID_ARGS \tab -2 \tab Invalid arguments (e.g. lower bounds are bigger than upper bounds, an unknown algorithm was specified, etcetera). \cr
-##' OUT_OF_MEMORY \tab -3 \tab Ran out of memory. \cr
-##' ROUNDOFF_LIMITED \tab -4 \tab Halted because roundoff errors limited progress. (In this case, the optimization still typically returns a useful result.) \cr
-##' FORCED_STOP \tab -5 \tab Halted because of a forced termination: the user called nlopt_force_stop(opt) on the optimization's nlopt_opt object opt from the user's objective function or constraints. \cr
-##' }
+##' The exit flag given after optimization has finished is from the SLSQP optimizer.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values}
 ##' 
 ##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
@@ -424,13 +415,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
-	if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
-		if(verbose){
-			message("'verbose' argument to dynr.cook() function did not agree with 'verbose' model slot.\nUsing function argument: verbose = TRUE\n")
-		}
-		dynrModel@verbose <- verbose
-		# Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
-	}
 	
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
@@ -584,7 +568,7 @@ endProcessing <- function(x, transformation, conf.level){
 	#bad.SE <- apply(bad.evecj,1,function(x){ifelse(length(x[x=="TRUE"]) > 0, TRUE,FALSE)}) #Flag parameters that have been identified as problematic at least once
 	
 	#Numerical Jacobian
-	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
+	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters)
 	iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
 	bad.SE <- diag(iHess0) < 0
 	
@@ -592,6 +576,14 @@ endProcessing <- function(x, transformation, conf.level){
 	tSE <- sqrt(diag(iHess))
 	tParam <- transformation(x$fitted.parameters) #Can do
 	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
+	
+	# EndPoint Transformation
+	tSEalt<-sqrt(diag(V1))
+	x$standard.errors.untransformed <- tSEalt
+	CIalt <- c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx))
+	x$conf.intervals.endpoint.trans <- matrix(CIalt, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	
+	
 	x$transformed.parameters <- tParam #Can do
 	x$standard.errors <- tSE
 	x$transformed.inv.hessian <- iHess
