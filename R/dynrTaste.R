@@ -187,7 +187,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       t_value[,endTime] <- 0
     }
     
-    ## TEMPORAL: T-REALTED. MUST BE DELETED!
+    ## TEMPORAL: T-REALTED!
     Q_sp <- vector("list", length=nID)
     S_sp <- vector("list", length=nID)
     s_sp <- vector("list", length=nID)
@@ -369,7 +369,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # [time_i, dimObs] data.frame, for each subject
     delta_X_sp <- split(as.data.frame(t(delta_X)), id)
     # [time_i, dimLat] data.frame, for each subject
-    delta_W_sp <- split(as.data.frame(t(delta_W)), id)  
+    delta_W_sp <- split(as.data.frame(t(delta_W)), id)
   
   } else if (outliers=="innovative") {
     rownames(delta) <- paste0("d_", stateName)
@@ -614,23 +614,57 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   invisible(res)
 }
 
+##' @description 
+##' The function \code{dynr.taste2{}} update the \code{dynrModel}
+##' object applying outliers from the \code{dynrTaste} object, 
+##' or outliers from users. The function then re-cook the model.
+##' 
 ##' @param dynrModel an object of dynrModel class.
-##' @param dynrTaste an object of dynrTaste class.
+##' @param dynrTaste an object of dynrTaste class. The default is NULL.
 ##' @param outlierTest a character string specifying the test 
 ##'   used to detect outliers (Chi-squared or t test), 
 ##'   must be one of ``chi'' (default), ``t''.
-##' @param newOutfile a character string for `outfile' argument 
-##'   of new dynr.model that is an output of dynr.taste2.
-##'   The default is "new_taste.c". 
-dynr.taste2 <- function(dynrModel, dynrTaste,
+##' @param newOutfile a character string for \code{outfile}
+##'  argument of \code{dynr.model} function 
+##'  to create new \code{dynrModel} object.
+##'  The default is "new_taste.c". 
+##' @param delta_L a data.frame containing user-specified latent outliers. 
+##' The number of rows should equal to the total time points, and the number of columns should equal to the number of latent variables. 
+##' @param delta_O a data.frame containing user-specified observed outliers.
+##' The number of rows should equal to the total time points, and the number of columns should equal to the number of observed variables.
+##' 
+##' @details 
+##' The argument \code{dynrTaste} should be the dynrTaste object
+##' that is output of the \code{dynr.taste} function the argument \code{dynrModel} is applied. 
+##' 
+##' The argument \code{dynrTaste} can be \code{NULL},
+##' if user-specified outliers are offered by the arguments
+##' \code{delta_L} and \code{delta_O}.
+##' 
+##' @return a list with the two arguments; 
+##' a new \code{dynrModel} object the outliers are applied, 
+##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked. 
+dynr.taste2 <- function(dynrModel, dynrTaste=NULL,
                         outlierTest=c("chi", "t"),
-                        newOutfile="new_taste.c") {
+                        newOutfile="new_taste.c",
+                        delta_L=NULL, delta_O=NULL) {
   if ( length(dynrModel@dynamics@values.exo) != 0 ||
        length(dynrModel@measurement@values.exo) != 0) {
     stop("Currently, a model without covariates can be used.")
   }
   outlierTest <- match.arg(outlierTest)
   deltaTest <- paste0("delta_", outlierTest)
+  # all parameter names + "fixed", to be used for params.xxx
+  parNames <- c(names(dynrModel), "fixed")
+  # to substitute 'fixed'
+  numForFixed <- length(parNames)
+  
+  stateName <- dynrModel$measurement$state.names
+  obsName <- dynrModel$measurement$obs.names
+  nDeltaLat <- length(stateName)
+  nDeltaObs <- length(obsName)
+  
+  if ( !is.null(dynrTaste) ) {
   # combine delta through subjects
   deltaLat <- do.call("rbind",
                       lapply(dynrTaste, function(taste_i) {
@@ -641,23 +675,26 @@ dynr.taste2 <- function(dynrModel, dynrTaste,
                         #rbind( deltaL_i[-1,], rep(0, ncol(deltaL_i)) )
                         #deltaL_i
                       }) )
-  deltaObs <- do.call("rbind",
-                      lapply(dynrTaste, function(taste_i) {
-                        taste_i[[deltaTest]]$delta.O
-                      }) )
+  } else {
+    if ( is.null(delta_L) ) stop("Both 'dynrTaste' and 'delta_L' are NULL.")
+    if (nDeltaLat != ncol(delta_L) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the latent variables.")
+    deltaLat <- delta_L
+  }
   
-  # all parameter names + "fixed", to be used for params.xxx
-  parNames <- c(names(dynrModel), "fixed")
-  # to substitute 'fixed'
-  numForFixed <- length(parNames)
+  if ( !is.null(dynrTaste) ) {
+    deltaObs <- do.call("rbind",
+                        lapply(dynrTaste, function(taste_i) {
+                          taste_i[[deltaTest]]$delta.O
+                        }) )
+  } else {
+    if ( is.null(delta_O) ) stop("Both 'dynrTast' and 'delta_O' are NULL.")
+    if (nDeltaObs != ncol(delta_O) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the observed variables.")
+    deltaObs <- delta_O
+  }
   
   deltaLatName <- names(deltaLat)
-  nDeltaLat <- length(deltaLatName)
   deltaObsName <- names(deltaObs)
-  nDeltaObs <- length(deltaObs)
-  #######
-  print(deltaObsName)
-  #######
+  
   # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
   padyn[padyn==0] <- numForFixed
