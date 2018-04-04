@@ -11,30 +11,44 @@
 
 
 #------------------------------------------------------------------------------
-##' Detect discrete shifts in in time series
+##' Detect outliers in state space models.
 ##'
 ##' @param dynrModel an object of `dynrModel' class.
 ##' @param dynrCook the `dynrCook' object fitted with `debug_flag=TRUE' for the `dynrModel' object. The default is NULL. 
 ##' If the dynrCook object were not provided, or the object were cooked
 ##' with `debug_flag=FALSE', 
-##' \code{"dynr.taste"} will fit the dynrModel object with `debug_flag=TRUE' internally.
-##' @param conf.level a numeric of confidence level. The default is 0.99.
+##' \code{dynr.taste} will fit the dynrModel object with `debug_flag=TRUE' internally.
+##' @param conf.level a numeric of confidence level that is used for 
+##' outliers detection tests (chi-square test and t-test). The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
 ##' must be one of ``two.sided'' (default), ``greater''  or ``less''
 ##' @param outliers a character string specifying the outlier detection
-##' method. must be one of ``both'' (default), ``state'' or ``measure''.
-##' When ``both'' is selected, dynr.taste detects innovative and additive outliers together.
+##' method. must be one of ``joint'' (default), ``innovative'' or ``additive''.
+##' When ``joint'' is selected, dynr.taste detects innovative and additive outliers together.
 ##' @param debug_flag a logical. 'TRUE' for output of by-products related to t-value calculation
 ##' 
-##' @return an object of `dynrTaste' class.
-##' The function summary is used to obtain a shock detection summary and optional plots.
+##' @return an object of `dynrTaste' class
+##' that is a list containing results lists for each participant.
+##' The result list for a paticipant includes
+##' a data.frame called `taste', 
+##' a list called `delta_chi' for detected magnitude outliers when the chi-square test was used,
+##' a list called `delta_t' for detected magnitude outliers when the t-test was used,
+##' and a list called `debug' for additional information,
+##' which are Q, S, s, F_inv, N, u, r. 
+##' See the reference for definition of the notations.
+##' 
+##' The `debug' will be saved only when the argument \code{debug_flag=TRUE}.
+##' The `delta_chi' list comprises magnitude of innovative (Latent) and additive (Observed) outliers, `delta.L' and `delta.O',
+##' when chi-square statitics is used to detect outliers.
+##' The `delta_t' list comprises magnitude of innovative (Latent) and additive (Observed) outliers, `delta.L' and `delta.O',
+##' when t statitics is used to detect outliers.
 ##' 
 ##' @references 
 ##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009). 
 ##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate BehavioralResearch_, 44, 465–496. 
 dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
-                       outliers=c("both", "innovative", "additive"),
+                       outliers=c("joint", "innovative", "additive"),
                        debug_flag=FALSE) {
   # check for non-regime switching
   if (dynrModel$num_regime > 2) {
@@ -87,7 +101,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   # save Ninv to calculate W_t (for delta)
   Ninv <- array(0, c(dimLat, dimLat, dimTime))
   u <- matrix(0, dimObs, dimTime)
-  #M <- array(0, c(dimObs, dimObs, dimTime))
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
   
@@ -101,17 +114,14 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     #N[,,endTime] <- 0
     
     for(i in endTime:(beginTime+1)){
-      # Probably could/should compute shocks in this same loop!!!
       ri <- matrix(r[,i], dimLat, 1)
       Ni <- matrix(N[,,i], dimLat, dimLat)
       Ki <- matrix(K[,,i], dimLat, dimObs)
       Li <- B - Ki %*% Lambda
-      obsInfI <- matrix(F_inv[,,i], dimObs, dimObs) #TODO check for off by one index
-      vi <- matrix(v[,i], nrow=dimObs, ncol=1) #TODO check for off by one index
+      obsInfI <- matrix(F_inv[,,i], dimObs, dimObs) 
+      vi <- matrix(v[,i], nrow=dimObs, ncol=1) 
       ui <- obsInfI %*% vi - t(Ki) %*% ri
       u[, i] <- ui
-      #M[,,i] <- obsInfI + t(Ki) %*% Ni %*% Ki
-      # Could also just compute shocks in this loop
       rnew <- t_Lambda %*% ui + t(B) %*% ri
       r[,i-1] <- rnew
       Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
@@ -125,7 +135,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   ################ delta estimate #############################
   outliers <- match.arg(outliers)
-  if (outliers=="both") {
+  if (outliers=="joint") {
     # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
     delta <- matrix(NA, dimObs+dimLat, dimTime)
     rownames(delta) <- c(obsName, stateName)
@@ -230,7 +240,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
-  if (outliers=="both") {
+  if (outliers=="joint") {
     # de Jong's method.
     chiBoth <- chiLat + chiObs
     #chiBoth_sp <- split(chiBoth, id)
@@ -287,7 +297,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     }
   }
   # t-values for each 'outliers' option
-  if (outliers=="both") {
+  if (outliers=="joint") {
     # t_value for observed
     t_X <- t_value[1:dimObs, ]
     # t_value for latent
@@ -359,7 +369,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     t_W_shk_sp <- t_W_sp
   }
 
-  if (outliers=="both") {
+  if (outliers=="joint") {
     rownames(delta) <- paste0("d_", c(obsName, stateName))
     # delta for observed
     delta_X <- delta[1:dimObs, ]
@@ -411,8 +421,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                                t_X_shk, t_W_shk, delta_X, delta_W,
                                Q, S, s, F_inv, N, u, r) 
     {
-      if (outliers=="both") {
-        # delta that will be input to 'dynr.detox'
+      if (outliers=="joint") {
+        # delta that will be input to 'dynr.taste2'
         row.names(delta_W) <- 1:nrow(delta_W)
         row.names(delta_X) <- 1:nrow(delta_X)
         delta_W_t <- delta_W_chi <- delta_W
@@ -436,7 +446,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           delta_t=list(
             delta.L=delta_W_t,
             delta.O=delta_X_t),
-          t_related=list(
+          debug=list(
             Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r
           )
         )
@@ -445,12 +455,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
         # t shock that pass chi shock
         row.names(delta_X) <- 1:nrow(delta_X)
         row.names(delta_W) <- 1:nrow(delta_W)
-        # [time_i, dimLat]
-        #chiLat_t_shk <- sweep(t_W_shk, 1, chiLat_shk, FUN="&")
         delta_W_t <- delta_W_chi <- delta_W
         delta_X_t <- delta_X_chi <- delta_X
         delta_W_chi[!chiLat_shk,] <- 0
+        delta_X_chi[] <- 0
         delta_W_t[!t_W_shk] <- 0
+        delta_X_t[] <- 0
         
         list(
           taste=data.frame(
@@ -465,7 +475,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           delta_t=list(
             delta.L=delta_W_t,
             delta.O=delta_X_t),
-          t_related=list(
+          debug=list(
             Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r
           )
         )
@@ -473,13 +483,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       } else {#outliers=="additive"
         row.names(delta_X) <- 1:nrow(delta_X)
         row.names(delta_W) <- 1:nrow(delta_W)
-        # t shock that pass chi shock
-        # [time_i, dimObs]
-        #chiObs_t_shk <- sweep(t_X_shk, 1, chiObs_shk, FUN="&")
-        # delta that will be input to 'dynr.detox'
+        # delta that will be input to 'dynr.taste2'
         delta_W_t <- delta_W_chi <- delta_W
         delta_X_t <- delta_X_chi <- delta_X
+        delta_W_chi[] <- 0
         delta_X_chi[!chiObs_shk,] <- 0
+        delta_W_t[] <- 0
         delta_X_t[!t_X_shk] <- 0
         
         list(
@@ -488,7 +497,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
             chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
             t.O=t_X, t.O.p=t_X_pval,
             t.O.shk=t_X_shk
-            #final.O.shk=chiObs_t_shk 
           ),
           delta_chi=list(
             delta.L=delta_W_chi,
@@ -496,14 +504,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
           delta_t=list(
             delta.L=delta_W_t,
             delta.O=delta_X_t),
-          t_related=list(
+          debug=list(
             Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r
           )
         )
       }
     }, SIMPLIFY=FALSE,
     idv, time_sp,
-    #chiBoth_sp, chiBoth_pval_sp, chiBoth_shk_sp,
     chiLat_sp, chiLat_pval_sp, chiLat_shk_sp, 
     chiObs_sp, chiObs_pval_sp, chiObs_shk_sp, 
     t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
@@ -512,14 +519,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     
   } else {
     res <- mapply(FUN=function(id_i, time,
-                               #chiBoth, chiBoth_pval, chiBoth_shk,
                                chiLat, chiLat_pval, chiLat_shk, 
                                chiObs, chiObs_pval, chiObs_shk,
                                t_X, t_W, t_X_pval, t_W_pval, 
                                t_X_shk, t_W_shk, delta_X, delta_W) 
     {
-      if (outliers=="both") {
-        # delta that will be input to 'dynr.detox'
+      if (outliers=="joint") {
+        # delta that will be input to 'dynr.taste2'
         row.names(delta_W) <- 1:nrow(delta_W)
         row.names(delta_X) <- 1:nrow(delta_X)
         delta_W_t <- delta_W_chi <- delta_W
@@ -536,7 +542,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
             chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
             t.L=t_W, t.O=t_X, t.L.p=t_W_pval, t.O.p=t_X_pval,
             t.L.shk=t_W_shk, t.O.shk=t_X_shk
-            #final.L.shk=chiLat_t_shk, final.O.shk=chiObs_t_shk 
           ),
           delta_chi=list(
             delta.L=delta_W_chi,
@@ -550,12 +555,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
         # t shock that pass chi shock
         row.names(delta_X) <- 1:nrow(delta_X)
         row.names(delta_W) <- 1:nrow(delta_W)
-        # [time_i, dimLat]
-        #chiLat_t_shk <- sweep(t_W_shk, 1, chiLat_shk, FUN="&")
         delta_W_t <- delta_W_chi <- delta_W
         delta_X_t <- delta_X_chi <- delta_X
         delta_W_chi[!chiLat_shk,] <- 0
+        delta_X_chi[] <- 0
         delta_W_t[!t_W_shk] <- 0
+        delta_X_t[] <- 0
         
         list(
           taste=data.frame(
@@ -563,7 +568,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
             chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
             t.L=t_W, t.L.p=t_W_pval,
             t.L.shk=t_W_shk
-            #final.L.shk=chiLat_t_shk 
           ),
           delta_chi=list(
             delta.L=delta_W_chi,
@@ -576,13 +580,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       } else {#outliers=="additive"
         row.names(delta_X) <- 1:nrow(delta_X)
         row.names(delta_W) <- 1:nrow(delta_W)
-        # t shock that pass chi shock
-        # [time_i, dimObs]
-        #chiObs_t_shk <- sweep(t_X_shk, 1, chiObs_shk, FUN="&")
-        # delta that will be input to 'dynr.detox'
+        # delta that will be input to 'dynr.taste2'
         delta_W_t <- delta_W_chi <- delta_W
         delta_X_t <- delta_X_chi <- delta_X
+        delta_W_chi[] <- 0
         delta_X_chi[!chiObs_shk,] <- 0
+        delta_W_t[] <- 0
         delta_X_t[!t_X_shk] <- 0
         
         list(
@@ -591,7 +594,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
             chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
             t.O=t_X, t.O.p=t_X_pval,
             t.O.shk=t_X_shk
-            #final.O.shk=chiObs_t_shk 
           ),
           delta_chi=list(
             delta.L=delta_W_chi,
