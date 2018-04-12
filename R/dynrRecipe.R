@@ -2172,20 +2172,32 @@ prep.regimes <- function(values, params, covariates, deviation=FALSE, refRow){
 }
 
 
-
-autojacob<-function(formula,n){
-  #formula=list(x1~a*x1,x2~b*x2)
+#autojacob: obtain differentiation of formula by diff.variables); if diff.variables are not given, do differentiation by left-hand-side of variables by formula
+autojacob <- function(formula, n , diff.variables){
   tuple=lapply(formula,as.list)
   lhs=sapply(tuple,function(x){deparse(x[[2]])})
   rhs=sapply(tuple,function(x){x[[3]]})
-  rhsj=vector("list", n*n)
-  jacob=vector("list", n*n)
+  
+  if(missing(diff.variables)){
+    # default setting, differentiate formula by the varibles in lhs
+    n.diff = n
+	diff.variables = lhs
+  }
+  else{
+    # differentiate by the varialbes by diff.variables
+	n.diff = length(diff.variables)
+  }
+  
+  rhsj=vector("list", n*n.diff)
+  jacob=vector("list", n*n.diff)
   for (i in 1:n){
-    for (j in 1:n){
-      rhsj[[(i-1)*n+j]]=paste0(deparse(D(rhs[[i]],lhs[[j]]),width.cutoff = 500L),collapse="")
-      jacob[[(i-1)*n+j]]=as.formula(paste0(lhs[[i]],"~",lhs[[j]],"~",rhsj[[(i-1)*n+j]],collapse=""))
+    for (j in 1:n.diff){
+	  #jacob[[(i-1)*n.par+j]] = df[i]/dpar[j], column-major order	
+      rhsj[[(i-1)*n.diff+j]]=paste0(deparse(D(rhs[[i]],diff.variables[[j]]),width.cutoff = 500L),collapse="")
+      jacob[[(i-1)*n.diff+j]]=as.formula(paste0(lhs[[i]],"~",diff.variables[[j]],"~",rhsj[[(i-1)*n.diff+j]],collapse=""))
     }
   }
+  
   return(list(row=as.list(rep(lhs,each=2)),col=as.list(rep(lhs,2)),rhsj=rhsj,jacob=jacob))
 }
 
