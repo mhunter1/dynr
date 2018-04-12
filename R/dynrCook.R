@@ -357,7 +357,8 @@ setMethod("$", "dynrCook",
 ##' @examples
 ##' # Let cookedModel be the output from dynr.cook
 ##' #confint(cookedModel)
-confint.dynrCook <- function(object, parm, level = 0.95, method = "delta.method", transformation= NULL, ...){
+confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method","endpoint.transformation"), transformation= NULL, ...){
+  type<-match.arg(type)
   tlev <- (1-level)/2
   confx <- qnorm(1-tlev)
   
@@ -367,14 +368,14 @@ confint.dynrCook <- function(object, parm, level = 0.95, method = "delta.method"
 	}
 	vals <- vals[parm]
 
-	if(method == "delta.method"){
+	if(type == "delta.method"){
   	iHess <- vcov(object)[parm, parm, drop=FALSE]
   	SE <- sqrt(diag(iHess))
   	CI <- matrix(c(vals - SE*confx, vals + SE*confx), ncol=2)
 	}
-	if(method == "endpoint.trans"){
+	if(type == "endpoint.transformation"){
 	  tSEalt<-sqrt(diag(object$inv.hessian))
-	  CI <- matrix(c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx)),ncol=2)
+	  CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
 	}
 	dimnames(CI) <- list(names(vals), c(paste(tlev*100, "%"), paste((1 - tlev)*100, "%")) )
 	return(CI)
