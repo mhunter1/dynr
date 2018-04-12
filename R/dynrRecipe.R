@@ -1637,10 +1637,17 @@ checkMultipleStart <- function(values, params, symmetric=FALSE){
 }
 
 
-preProcessNames <- function(x,rnames=character(0),cnames=character(0)){
-  rownames(x) <- rnames
-  if (!length(cnames)==0) colnames(x) <- cnames
-  return(x)
+preProcessNames <- function(x, rnames=character(0), cnames=character(0), xname=character(0), rarg=character(0), carg=character(0)){
+	d <- dim(x)
+	if(d[1] != length(rnames)){
+		stop(paste0("Matrix ", xname, " has ", d[1], " rows and ", length(rnames), " ", rarg, " (i.e., row names).\nHint: they should match.\nNot even the King of Pop could set these row names."), call.=FALSE)
+	}
+	rownames(x) <- rnames
+	if(!(length(cnames)==0 & length(carg)==0) && d[2] != length(cnames)){
+	stop(paste0("Matrix ", xname, " has ", d[2], " columns and ", length(cnames), " ", carg, " (i.e., column names).\nHint: they should match.\nNot even the King of Soul could set these column names."), call.=FALSE)
+	}
+	if(!length(cnames)==0 & length(carg)==0) colnames(x) <- cnames
+	return(x)
 }
 
 extractWhichParams <- function(p){
@@ -1870,6 +1877,15 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	if(missing(exo.names)){
 		exo.names = character(0)
 	}
+	if(any(duplicated(obs.names))){
+		stop("'obs.names' uses some of the same names more than once.\n  I repeat myself when under stress.  I repeat myself when under stress.  I repeat myself when under stress.\nI repeat myself when under stress.  I repeat myself when under stress.")
+	}
+	if(any(duplicated(state.names))){
+		stop("'state.names' uses some of the same names more than once.\n  Sensei says this lacks discipline.")
+	}
+	if(any(duplicated(exo.names))){
+		stop("'exo.names' uses some of the same names more than once.\n  You cannot be the King of Crimson with this indiscipline.")
+	}
 	
 	values.load <- lapply(values.load, preProcessValues)
 	params.load <- lapply(params.load, preProcessParams)
@@ -1878,12 +1894,12 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
 	
-	values.load <- lapply(values.load, preProcessNames,obs.names,state.names)
-	#params.load <- lapply(params.load, preProcessNames,obs.names,state.names)
-	values.exo <- lapply(values.exo, preProcessNames,obs.names,exo.names)
-	#params.exo <- lapply(params.exo, preProcessNames,obs.names,exo.names)
-	values.int <- lapply(values.int, preProcessNames,obs.names)
-	#params.int <- lapply(params.int, preProcessNames,obs.names)
+	values.load <- lapply(values.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
+	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
+	values.exo <- lapply(values.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
+	#params.exo <- lapply(params.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
+	values.int <- lapply(values.int, preProcessNames, obs.names, 'values.int', 'obs.names')
+	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
 	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
