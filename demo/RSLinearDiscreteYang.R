@@ -86,14 +86,22 @@ printex(rsmod,
 
 #---- (4c) Create model and cook it all up  ----
 
-yum <- dynr.cook(rsmod)
+yum <- dynr.cook(rsmod, verbose = FALSE)
 
 #---- (5) Serve it! ----
 
 summary(yum)
 
+
+# Overview multicomponent plot quickly showing
+#  (1) latent states with regimes
+#  (2) regime histogram
+#  (3) typeset model specification
 plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
 
+# Figure 1 (B) from R Journal paper
+# Plot showing the latent state estimates along with
+#  which regime is most likely.
 dynr.ggplot(yum, dynrModel = rsmod, style = 1,
             names.regime = c("Deactivated", "Activated"),
             title = "(B) Results from RS-AR model", numSubjDemo = 1,
@@ -101,11 +109,15 @@ dynr.ggplot(yum, dynrModel = rsmod, style = 1,
             text = element_text(size=16),
             is.bw = TRUE)
 
-plotFormula(dynrModel = rsmod, ParameterAs = rsmod$param.names,
+# Figure 2 (A) from R Journal paper
+# Plot of model equations in terms of parameter names
+plotFormula(dynrModel = rsmod, ParameterAs = names(rsmod),
             printDyn = TRUE, printMeas = TRUE) +
   ggtitle("(A)")+
   theme(plot.title = element_text(hjust = 0.5, vjust=0.01, size=16)) 
 
+# Figure 2 (B) from R Journal paper
+# Plot of model equations in terms of parameter values
 plotFormula(dynrModel = rsmod, ParameterAs = coef(yum),
             printDyn = TRUE, printMeas = TRUE) +
   ggtitle("(B)")+

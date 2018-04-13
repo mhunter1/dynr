@@ -1637,10 +1637,17 @@ checkMultipleStart <- function(values, params, symmetric=FALSE){
 }
 
 
-preProcessNames <- function(x,rnames=character(0),cnames=character(0)){
-  rownames(x) <- rnames
-  if (!length(cnames)==0) colnames(x) <- cnames
-  return(x)
+preProcessNames <- function(x, rnames=character(0), cnames=character(0), xname=character(0), rarg=character(0), carg=character(0)){
+	d <- dim(x)
+	if(d[1] != length(rnames)){
+		stop(paste0("Matrix ", xname, " has ", d[1], " rows and ", length(rnames), " ", rarg, " (i.e., row names).\nHint: they should match.\nNot even the King of Pop could set these row names."), call.=FALSE)
+	}
+	rownames(x) <- rnames
+	if(!(length(cnames)==0 & length(carg)==0) && d[2] != length(cnames)){
+	stop(paste0("Matrix ", xname, " has ", d[2], " columns and ", length(cnames), " ", carg, " (i.e., column names).\nHint: they should match.\nNot even the King of Soul could set these column names."), call.=FALSE)
+	}
+	if(!length(cnames)==0 & length(carg)==0) colnames(x) <- cnames
+	return(x)
 }
 
 extractWhichParams <- function(p){
@@ -1679,7 +1686,6 @@ extractValues <- function(v, p, symmetric=FALSE){
 #------------------------------------------------------------------------------
 # Create recipe for function measurement
 
-# TODO add ability to use covariates in these functions
 
 #--------------------------------------
 # brief input version
@@ -1871,6 +1877,15 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	if(missing(exo.names)){
 		exo.names = character(0)
 	}
+	if(any(duplicated(obs.names))){
+		stop("'obs.names' uses some of the same names more than once.\n  I repeat myself when under stress.  I repeat myself when under stress.  I repeat myself when under stress.\nI repeat myself when under stress.  I repeat myself when under stress.")
+	}
+	if(any(duplicated(state.names))){
+		stop("'state.names' uses some of the same names more than once.\n  Sensei says this lacks discipline.")
+	}
+	if(any(duplicated(exo.names))){
+		stop("'exo.names' uses some of the same names more than once.\n  You cannot be the King of Crimson with this indiscipline.")
+	}
 	
 	values.load <- lapply(values.load, preProcessValues)
 	params.load <- lapply(params.load, preProcessParams)
@@ -1879,12 +1894,12 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
 	
-	values.load <- lapply(values.load, preProcessNames,obs.names,state.names)
-	#params.load <- lapply(params.load, preProcessNames,obs.names,state.names)
-	values.exo <- lapply(values.exo, preProcessNames,obs.names,exo.names)
-	#params.exo <- lapply(params.exo, preProcessNames,obs.names,exo.names)
-	values.int <- lapply(values.int, preProcessNames,obs.names)
-	#params.int <- lapply(params.int, preProcessNames,obs.names)
+	values.load <- lapply(values.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
+	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
+	values.exo <- lapply(values.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
+	#params.exo <- lapply(params.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
+	values.int <- lapply(values.int, preProcessNames, obs.names, character(0), 'values.int', 'obs.names')
+	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
 	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
@@ -2397,7 +2412,15 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	params.exo <- lapply(params.exo, preProcessParams)
 	values.int <- lapply(values.int, preProcessValues)
 	params.int <- lapply(params.int, preProcessParams)
-
+	
+	# Check that the number of covariates implied by the 'covariates' arg is the same as that
+	#  implied by the number of columns in the 'values.exo' arg.
+	matCovariates <- lapply(lapply(values.exo, dim), "[[", 2)
+	argCovariates <- length(covariates)
+	if(!all(matCovariates == argCovariates)){
+		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates, collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
+		stop(msg)
+	}
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.dyn), extractParams(params.exo), extractParams(params.int))
@@ -2719,7 +2742,7 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	}
 	
 	
-	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov), extractValues(values.regimep, params.regimep))
+	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov, symmetric=TRUE), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)

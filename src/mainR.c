@@ -77,6 +77,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     /** =======================Interface : Start to Set up the data and the model========================= **/
 
     static Data_and_Model data_model;
+	data_model.pc.verbose_flag = (bool) verbose_flag;
 
     /* From the SEXP called model_list, get the list element named "num_sbj" */
 	/*number of subjects*/
@@ -289,24 +290,24 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     double lb[6] = {-4,-4,-4,-4,-12, -12}; */
     /*double params[]={log(1),log(2),0,0,-10,-10};*//* some initial guess*/
     /*log(1.2)=0.1823216,log(1.8)=0.5877867,-0.5,-0.5,log(0.0001)=-9.21034,log(0.0001)=-9.21034*//* lower bounds */
-
-
-    /** =======================Interface: Model and data set up========================= **/
-
-    /** =================Optimization: start======================**/
-    gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
+	
+	
+	/** =======================Interface: Model and data set up========================= **/
+	
+	/** =================Optimization: start======================**/
+	gsl_matrix *Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
 	int status;
 	if (optimization_flag){
-    double minf; /* the minimum objective value, upon return */
-	
-    gsl_matrix *inv_Hessian_mat=gsl_matrix_calloc(data_model.pc.num_func_param,data_model.pc.num_func_param);
-    	status=opt_nlopt(&data_model,data_model.pc.num_func_param,ub,lb,&minf,fittedpar,Hessian_mat,inv_Hessian_mat,xtol_rel,stopval,ftol_rel,ftol_abs,maxeval, maxtime);
-	
-	gsl_matrix_free(inv_Hessian_mat);
+		double minf; /* the minimum objective value, upon return */
+		
+		gsl_matrix *inv_Hessian_mat = gsl_matrix_calloc(data_model.pc.num_func_param, data_model.pc.num_func_param);
+		status = opt_nlopt(&data_model, data_model.pc.num_func_param, ub, lb, &minf, fittedpar, Hessian_mat, inv_Hessian_mat, xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, maxtime);
+		
+		gsl_matrix_free(inv_Hessian_mat);
 	}else{
 		status = 0;
 	}
-
+	
 	/*DYNRPRINT(verbose_flag, "Optimization done.\n");*/
     /** =================Optimization: done======================**/
     

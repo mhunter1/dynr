@@ -15,13 +15,15 @@ require(dynr)
 data(EMGsim)
 dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
 
+hist(EMGsim$EMG)
+# Note: one peak around 3 with another peak around 5.5
 
 #---- (3) Specify recipes for all model pieces ----
 
 #---- (3a) Measurement ----
 recMeas <- prep.measurement(
 	values.load=rep(list(matrix(1, 1, 1)), 2),
-	values.int=list(matrix(0, 1, 1), matrix(1, 1, 1)),
+	values.int=list(matrix(3, 1, 1), matrix(5.5, 1, 1)),
 	params.int=list(matrix('mu_0', 1, 1), matrix('mu_1', 1, 1)),
 	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
 	params.exo=list(matrix('beta_0', 1, 1), matrix('beta_1', 1, 1)),
@@ -40,16 +42,16 @@ recNoise <- prep.noise(
 # ---- (3c) Regimes-switching model ----
 
 recReg <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(1, -1, 0, 0), 2, 2),
 	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
 
 recReg2 <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(2, -1, 0, 0), 2, 2),
 	params=matrix(c('dev1', 'base1', 'fixed', 'fixed'), 2, 2),
 	deviation=TRUE) # refRow gets set to refCol=2
 
 recReg1 <- prep.regimes(
-	values=matrix(0, 2, 2),
+	values=matrix(c(1, -2, 0, 0), 2, 2),
 	params=matrix(c('base1', 'dev2', 'fixed', 'fixed'), 2, 2),
 	deviation=TRUE, refRow=1) #refRow get set to non-default 1
 
@@ -111,9 +113,9 @@ printex(rsmod2, ParameterAs=rsmod2$param.names, printInit=TRUE,printRS=TRUE,
 #system(paste(getOption("pdfviewer"), "RSLinearDiscrete2.pdf"))
 
 
-yum <- dynr.cook(rsmod, debug_flag=TRUE)
-yum1 <- dynr.cook(rsmod1)
-yum2 <- dynr.cook(rsmod2)
+yum <- dynr.cook(rsmod, debug_flag=TRUE, verbose = FALSE)
+yum1 <- dynr.cook(rsmod1, verbose = FALSE)
+yum2 <- dynr.cook(rsmod2, verbose = FALSE)
 
 
 
@@ -134,6 +136,8 @@ dynr.ggplot(yum, dynrModel = rsmod, style = 2,
 #ggsave("RSLinearDiscreteggPlot2.pdf")
 plot(yum, dynrModel = rsmod, style = 1, textsize = 5)
 plot(yum, dynrModel = rsmod, style = 2, textsize = 5)
+
+
 #---- End of demo ---- 
 #save(rsmod,yum,file="RSLinearDiscrete.RData")
 
