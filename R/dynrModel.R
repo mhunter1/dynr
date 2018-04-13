@@ -550,11 +550,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       stop("Formulas should be specified in the same order for different regimes.")
     }
     if (!all(measurement@state.names == states.dyn)){
-      stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
   }
   if (!all(measurement@obs.names == data$observed.names)){
-    stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
+    stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
+  }
+  if (!is.null(data$covariate.names) & !all(measurement@exo.names %in% data$covariate.names)){
+    stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
   }
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
