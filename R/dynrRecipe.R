@@ -1898,7 +1898,7 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	values.exo <- lapply(values.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
 	#params.exo <- lapply(params.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
-	values.int <- lapply(values.int, preProcessNames, obs.names, 'values.int', 'obs.names')
+	values.int <- lapply(values.int, preProcessNames, obs.names, character(0), 'values.int', 'obs.names')
 	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
 	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
