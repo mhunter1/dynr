@@ -622,14 +622,17 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' or outliers from users. The function then re-cook the model.
 ##' 
 ##' @param dynrModel an object of dynrModel class.
+##' @param dynrCook an object of dynrCook class.
 ##' @param dynrTaste an object of dynrTaste class. The default is NULL.
 ##' @param outlierTest a character string specifying the test 
 ##'   used to detect outliers (Chi-squared or t test), 
-##'   must be one of ``chi'' (default), ``t''.
+##'   must be one of ``t'' (default), ``chi''.
 ##' @param newOutfile a character string for \code{outfile}
 ##'  argument of \code{dynr.model} function 
 ##'  to create new \code{dynrModel} object.
 ##'  The default is "new_taste.c". 
+##' @param verbose a logical specifying the verbose argument
+##'  of the new cook object. The default is FALSE. 
 ##' @param delta_L a data.frame containing user-specified latent outliers. 
 ##' The number of rows should equal to the total time points, and the number of columns should equal to the number of latent variables. 
 ##' @param delta_O a data.frame containing user-specified observed outliers.
@@ -646,14 +649,17 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' @return a list with the two arguments; 
 ##' a new \code{dynrModel} object the outliers are applied, 
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked. 
-dynr.taste2 <- function(dynrModel, dynrTaste=NULL,
-                        outlierTest=c("chi", "t"),
+dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
+                        outlierTest=c("t", "chi"),
                         newOutfile="new_taste.c",
+                        verbose=FALSE,
                         delta_L=NULL, delta_O=NULL) {
   if ( length(dynrModel@dynamics@values.exo) != 0 ||
        length(dynrModel@measurement@values.exo) != 0) {
     stop("Currently, a model without covariates can be used.")
   }
+  coefx <- coef(dynrCook)
+  coef(dynrModel) <- coefx # modifies all values throughout dynrModel
   outlierTest <- match.arg(outlierTest)
   deltaTest <- paste0("delta_", outlierTest)
   # all parameter names + "fixed", to be used for params.xxx
@@ -696,6 +702,21 @@ dynr.taste2 <- function(dynrModel, dynrTaste=NULL,
   
   deltaLatName <- names(deltaLat)
   deltaObsName <- names(deltaObs)
+  
+  # build prep.initial
+  paInis <- dynrModel@initial@params.inistate[[1]]
+  paInis[paInis==0] <- numForFixed
+  paramInis <- parNames[paInis]# vector
+  dim(paramInis) <- dim(paInis)# to matrix
+  paInic <- dynrModel@initial@params.inicov[[1]]
+  paInic[paInic==0] <- numForFixed
+  paramInic <- parNames[paInic]# vector
+  dim(paramInic) <- dim(paInic)# to matrix
+  new_initial <- prep.initial(
+    values.inistate=dynrModel@initial@values.inistate[[1]],
+    params.inistate=paramInis,
+    values.inicov=dynrModel@initial@values.inicov[[1]],
+    params.inicov=paramInic)
   
   # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
@@ -766,11 +787,11 @@ dynr.taste2 <- function(dynrModel, dynrTaste=NULL,
     dynamics = new_dynamics,
     measurement = new_measurement,
     noise = new_noise,
-    initial = dynrModel@initial,
+    initial = new_initial,
     data = dynrModel@data,
     outfile = newOutfile)
   # cook!
-  new_dynrCook <- dynr.cook(new_dynrModel, verbose=FALSE, debug_flag=TRUE)
+  new_dynrCook <- dynr.cook(new_dynrModel, verbose=verbose, debug_flag=TRUE)
   list(new_dynrModel=new_dynrModel,
        new_dynrCook=new_dynrCook)
 }
@@ -788,8 +809,8 @@ computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
   return(J)
 }
 
-# example use from demo/NonlinearODE.R
-#computeJacobian(res, model$dynamics$jacobianOriginal[[1]], model$measurement$state.names, coef(res), 1)
-
+#example use from demo/NonlinearODE.R
+#computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 50)
+#cf t=1 vs t=50
 
 
