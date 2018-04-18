@@ -335,7 +335,9 @@ setMethod("$", "dynrCook",
 ##' @param object a fitted model object
 ##' @param parm which parameters are to be given confidence intervals
 ##' @param level the confidence level
-##' @param ... further names arguments. Ignored.
+##' @param type The type of confidence interval to compute. See details. Partial name matching is used.
+##' @param transformation For \code{type='endpoint.transformation'} the transformation function used.
+##' @param ... further named arguments. Ignored.
 ##' 
 ##' @details
 ##' The \code{parm} argument can be a numeric vector or a vector of names. If it is missing then it defaults to using all the parameters.
@@ -357,25 +359,25 @@ setMethod("$", "dynrCook",
 ##' @examples
 ##' # Let cookedModel be the output from dynr.cook
 ##' #confint(cookedModel)
-confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method","endpoint.transformation"), transformation= NULL, ...){
-  type<-match.arg(type)
-  tlev <- (1-level)/2
-  confx <- qnorm(1-tlev)
-  
-  vals <- coef(object)
+confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
+	type <- match.arg(type)
+	tlev <- (1-level)/2
+	confx <- qnorm(1-tlev)
+	
+	vals <- coef(object)
 	if(missing(parm)){
 		parm <- names(vals)
 	}
 	vals <- vals[parm]
-
+	
 	if(type == "delta.method"){
-  	iHess <- vcov(object)[parm, parm, drop=FALSE]
-  	SE <- sqrt(diag(iHess))
-  	CI <- matrix(c(vals - SE*confx, vals + SE*confx), ncol=2)
+		iHess <- vcov(object)[parm, parm, drop=FALSE]
+		SE <- sqrt(diag(iHess))
+		CI <- matrix(c(vals - SE*confx, vals + SE*confx), ncol=2)
 	}
 	if(type == "endpoint.transformation"){
-	  tSEalt<-sqrt(diag(object$inv.hessian))
-	  CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
+		tSEalt <- sqrt(diag(object$inv.hessian))
+		CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
 	}
 	dimnames(CI) <- list(names(vals), c(paste(tlev*100, "%"), paste((1 - tlev)*100, "%")) )
 	return(CI)
