@@ -304,6 +304,16 @@ vcov.dynrCook <- function(object, ...){
 	dimnames(rt) <- list(nm, nm)
 	return(rt)
 }
+# TODO redefine this method as MDH proposed
+#vcov.dynrCook <- function(object, transformed=TRUE, ...){
+#	nm <- names(coef(object))
+#	 if(transformed){
+#  	    rt <- object@transformed.inv.hessian
+#	 } else {
+#	   rt <- object@inv.hessian}
+#	dimnames(rt) <- list(nm, nm)
+#	return(rt)
+#}
 
 ##' Extract the free parameter names of a dynrCook object
 ##' 
@@ -378,6 +388,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 	if(type == "endpoint.transformation"){
 		tSEalt <- sqrt(diag(object$inv.hessian))
 		CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
+		# TODO Fix the above to use the vcov method to extract the inverse Hessian instead
+		#  and especially give the User the ability to only get SOME of the free parameters via the 'param' argument
 	}
 	dimnames(CI) <- list(names(vals), c(paste(tlev*100, "%"), paste((1 - tlev)*100, "%")) )
 	return(CI)
