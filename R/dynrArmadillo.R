@@ -11,7 +11,7 @@
 # Define Generic
 
 setGeneric("writeArmadilloCode", 
-           function(object, covariates, show=TRUE) { 
+           function(object, covariates, show=TRUE, ...) { 
              return(standardGeneric("writeArmadilloCode")) 
            })
 
@@ -29,7 +29,7 @@ setMethod("writeArmadilloCode", "dynrMeasurement",
 #------------------------------------------------------------------------------
 # Define method for dynrMatrixDynamics class
 
-setMethod("writeArmadilloCode", "dynrMatrixDynamics",
+setMethod("writeArmadilloCode", "dynrDynamicsMatrix",
 	function(object, covariates){
 		ret <- ""
 		object@c.string <- ret
@@ -40,7 +40,7 @@ setMethod("writeArmadilloCode", "dynrMatrixDynamics",
 #------------------------------------------------------------------------------
 # Define method for dynrFormulaDynamics class
 
-setMethod("writeArmadilloCode", "dynrFormulaDynamics",
+setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	function(object, covariate.names, beta.names){
         formula <- object$formula
 		formula2 <- object$formula2

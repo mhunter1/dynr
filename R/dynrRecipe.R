@@ -2304,17 +2304,27 @@ autojacob <- function(formula, n , diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian){
+#function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
+
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector')
   }
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
     formula <- list(formula)
+	if(saem == TRUE){
+		#formula2: substitute the content withing theta.formula
+		formula2 <- lapply(formula,function(x){parseFormulaTheta(x, theta.formula)})
+	}
   }
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
+  
+    
+  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, state.names=state.names, theta.formula=theta.formula, theta.names=theta.names)
+  
+  #jacobian = dfdx
   if (missing(jacobian)){
-    autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+    autojcb=try(lapply(formula2,autojacob,length(formula[[1]])))
     if (class(autojcb) == "try-error") {
       stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
            Please provide the analytic jacobian functions.")
@@ -2324,6 +2334,83 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   }
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
+  
+  if(saem == FALSE)
+	return(new("dynrDynamicsFormula", x))
+	
+  #the following parts are only used for saem	
+  formula_onlystate=retriveStateFormula(formula[[1]],state.names)
+  
+  #if (missing(dfdtheta)){
+    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),theta.names))
+    if (class(autojcb) == "try-error") {
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
+    }else{
+      dfdtheta = lapply(autojcb, "[[", "jacob")
+    }
+  #}
+  x$dfdtheta <- dfdtheta
+  x$theta.names<-theta.names
+  
+  #formula_onlystate=retriveStateFormula(formula,state.names)
+  #if (missing(dfdx2)){
+    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),state.names))
+    if (class(autojcb) == "try-error" ) {
+        stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+             Please provide the analytic jacobian functions.")
+    }else{
+        dfdx = lapply(autojcb, "[[", "jacob")
+    }
+    autojcb2=try(lapply(dfdx,autojacob,length(dfdx[[1]]),state.names))
+    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
+    }else{
+      dfdx2 = lapply(autojcb2, "[[", "jacob")
+    }
+  #}
+  x$dfdx2 <- dfdx2
+  
+  #if (missing(dfdxdtheta)){
+    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),state.names))
+    if (class(autojcb) == "try-error" ) {
+        stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+             Please provide the analytic jacobian functions.")
+    }else{
+        dfdx = lapply(autojcb, "[[", "jacob")
+    }
+    autojcb2=try(lapply(dfdx,autojacob,length(dfdx[[1]]),theta.names))
+    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
+    }else{
+      dfdxdtheta = lapply(autojcb2, "[[", "jacob")
+    }
+  #}
+  x$dfdxdtheta <- dfdxdtheta
+  
+  #if (missing(dfdthetadx)){
+    autojcb2=try(lapply(dfdtheta,autojacob,length(dfdtheta[[1]]),state.names))
+    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
+    }else{
+      dfdthetadx = lapply(autojcb2, "[[", "jacob")
+    }
+  #}
+  x$dfdthetadx <- dfdthetadx
+  
+  #if (missing(dfdtheta2)){
+    autojcb2=try(lapply(dfdtheta,autojacob,length(dfdtheta[[1]]),theta.names))
+    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
+      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+           Please provide the analytic jacobian functions.")
+    }else{
+      dfdtheta2 = lapply(autojcb2, "[[", "jacob")
+    }
+  #}
+  x$dfdtheta2 <- dfdtheta2
   return(new("dynrDynamicsFormula", x))
 }
 
@@ -3019,3 +3106,62 @@ gslcovariate.front <- function(selected, covariates){
 	gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
 }
 
+#------------------------------------------------------------------------------
+# functions that are used in only SAEM
+
+#retriveStateFormula: remains only formulas whose LHS is in state.names 
+retriveStateFormula <- function(formula, state.names){
+	#fun
+    fml=lapply(formula, as.character)
+	lhs=lapply(fml,function(x){x[[2]]})
+	rhs=lapply(fml,function(x){x[[3]]})
+	
+	isStateVariables <- 1:length(lhs)
+	for(i in 1:length(formula[[1]])){
+		isStateVariables[[i]] = FALSE;
+	    formula[[i]]=as.character(formula[[i]])
+	    for (j in 1:length(state.names)){
+    		if(lhs[[i]] == state.names[[j]]){
+    		    isStateVariables[[i]] = TRUE;
+    		    break;
+    		}
+	    }
+	    #formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+	}
+	
+		
+	j = 1;
+	formula2= list();
+	for(i in 1:length(formula)){
+    	if(isStateVariables[[i]] == TRUE){
+    		formula2[[j]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))   
+			j = j +1
+	    }
+	}
+	return(list(formula2))
+}
+
+#parseFormulaTheta: retrieve the LHS and RHS of the theta.formula
+parseFormulaTheta <- function(formula, theta.formula){
+	#fun
+    fml=lapply(formula, as.character)
+	lhs=lapply(fml,function(x){x[[2]]})
+	rhs=lapply(fml,function(x){x[[3]]})
+	
+	#thetai
+	fmlt=lapply(theta.formula, as.character)
+	lhst=lapply(fmlt,function(x){x[[2]]})
+	rhst=lapply(fmlt,function(x){x[[3]]})
+
+	for(i in 1:length(formula)){
+	    formula[[i]]=as.character(formula[[i]])
+	    for (j in 1:length(lhst)){
+    		# gsub (a, b, c) : in c replace a with b
+    		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
+	    }
+	    formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+	}
+    
+
+	return(formula)
+}
