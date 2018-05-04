@@ -95,7 +95,8 @@ setClass(Class = "dynrDynamicsFormula",
 		   dfdx2= "list",
 		   dfdxdtheta= "list", 
 		   dfdthetadx= "list", 
-		   dfdtheta2= "list"
+		   dfdtheta2= "list",
+		   formula2 = "list"
            ),
          contains = "dynrDynamics"
 )
