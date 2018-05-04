@@ -87,7 +87,15 @@ setClass(Class = "dynrDynamicsFormula",
            paramnames = "character",
            formula = "list",
            jacobian = "list",
-           isContinuousTime = "logical"
+		   state.names = "character",
+		   theta.names = "character",
+		   theta.formula = "list",
+           isContinuousTime = "logical",
+		   dfdtheta= "list", 
+		   dfdx2= "list",
+		   dfdxdtheta= "list", 
+		   dfdthetadx= "list", 
+		   dfdtheta2= "list"
            ),
          contains = "dynrDynamics"
 )
