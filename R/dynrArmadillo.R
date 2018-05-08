@@ -15,6 +15,7 @@ setGeneric("writeArmadilloCode",
              return(standardGeneric("writeArmadilloCode")) 
            })
 
+		   
 #------------------------------------------------------------------------------
 # Define method for dynrMeasurement class
 
@@ -41,7 +42,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsMatrix",
 # Define method for dynrFormulaDynamics class
 
 setMethod("writeArmadilloCode", "dynrDynamicsFormula",
-	function(object, covariate.names, beta.names){
+	function(object, covariates){
         formula <- object$formula
 		formula2 <- object$formula2
         jacob <- object$jacobian
@@ -57,7 +58,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
         n=sapply(formula,length) #NxState+Nbeta (Nx)
 		n.theta = length(object$theta.names)
 		n.state = length(state.names) #NxState
-        
+		covariate.names <- covariates
+        beta.names<- object$beta.names
+		
 		#Parse dyfun
         fml=lapply(formula,processFormula)
         lhs=lapply(fml,function(x){lapply(x,"[[",1)})

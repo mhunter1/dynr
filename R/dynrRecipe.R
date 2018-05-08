@@ -89,6 +89,7 @@ setClass(Class = "dynrDynamicsFormula",
            jacobian = "list",
 		   state.names = "character",
 		   theta.names = "character",
+		   beta.names = "character",
 		   theta.formula = "list",
            isContinuousTime = "logical",
 		   dfdtheta= "list", 
@@ -638,7 +639,6 @@ setGeneric("writeCcode",
            function(object, covariates, show=TRUE) { 
              return(standardGeneric("writeCcode")) 
            })
-
 
 
 setMethod("writeCcode", "dynrMeasurement",
@@ -2313,7 +2313,7 @@ autojacob <- function(formula, n , diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, beta.names, jacobian){
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
 
   if(length(startval) > 0 & is.null(names(startval))){
@@ -2420,6 +2420,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     }
   #}
   x$dfdtheta2 <- dfdtheta2
+  x$beta.names <- beta.names
   return(new("dynrDynamicsFormula", x))
 }
 
