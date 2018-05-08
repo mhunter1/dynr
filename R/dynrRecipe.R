@@ -832,6 +832,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 	    
 	    ret=paste0(ret,"\n\t}")
 	  }
+	  #browser()
 	  object@c.string <- ret
 	  return(object)
 	}
@@ -968,6 +969,7 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 				"}\n\n",
 				sep="\n")
 		}
+		
 		object@c.string <- ret
 		return(object)
 	}
