@@ -543,7 +543,7 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, armadillo=FALSE){
-  #check the order of the names 
+  # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
@@ -624,11 +624,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
                                  values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
                                  values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
   }
-  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+  
   
   # writeCcode on each recipe
   if(armadillo==FALSE){
+    # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
+    inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   } else if(armadillo==TRUE){
     inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
@@ -656,20 +657,26 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
-  includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
-  body <- paste(cparts, collapse="\n\n")
-  if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
-    body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
+  if(armadillo==FALSE){
+	  includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
+	  body <- paste(cparts, collapse="\n\n")
+	  if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
+		body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
+	  }
+	  body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
+	#   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
+	#     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
+	#   }
+	  glom <- paste(includes, .cfunctions, body, sep="\n\n")
+	  if (obj.dynrModel@dynamics@isContinuousTime){
+		glom <- paste(glom, dP_dt, sep="\n\n")
+	  }
+	  cat(glom, file=obj.dynrModel@outfile)
   }
-  body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
-#   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
-#     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
-#   }
-  glom <- paste(includes, .cfunctions, body, sep="\n\n")
-  if (obj.dynrModel@dynamics@isContinuousTime){
-    glom <- paste(glom, dP_dt, sep="\n\n")
-  }
-  cat(glom, file=obj.dynrModel@outfile)
+  else if(armadillo==TRUE){
+    glom <- paste(cparts)
+    cat(glom, file=obj.dynrModel@outfile)
+  } else {stop("Invalid value passed to 'armadillo' argument. It should be TRUE or FALSE.")}
   
   return(obj.dynrModel)
   #modify the object slot, including starting values, etc.

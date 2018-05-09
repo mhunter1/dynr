@@ -28,7 +28,7 @@ setMethod("writeArmadilloCode", "dynrMeasurement",
 )
 
 #------------------------------------------------------------------------------
-# Define method for dynrMeasurement class
+# Define method for dynrTrans class
 
 setMethod("writeArmadilloCode", "dynrTrans",
 	function(object, covariates){
@@ -176,7 +176,6 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		# [todo] replace the initial condition by information from prep.initial
 		ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
-		
 		
 		ret = paste0(ret,"\telse{\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){")
         for (i in 1:n){
