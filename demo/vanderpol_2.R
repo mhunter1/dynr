@@ -1,3 +1,4 @@
+
 library('dynr')
 #vdPdata <- read.table('directory')
 state.names = c('x1', 'x2')
@@ -7,6 +8,7 @@ covariate.names = c('u1', 'u2')
 theta.names = c('zeta_i', 'zeta_i_2', 'zeta_i_3')
 #[todo] Z*b's b
 random.names = c('b1')
+DV.names = c('y1', 'y2', 'y3')
 
 
 NxState = length(state.names)
@@ -14,22 +16,30 @@ Nbeta = length(beta.names)
 Nx = NxState + Nbeta
 Ntheta = length(theta.names)
 
-N = 100
-T = 300
-vdpData <- data.frame(id=rep(1:N,each=T), time=rep(0:299,N), 
-                      y=rnorm(100*300),
-                      u1 = rnorm(100*300), u2 = rnorm(100*300))
-colnames(vdpData) <- c("id","time","y","u1", "u2") # try
+#random data
+#N = 100
+#T = 300
+#vdpData <- data.frame(id=rep(1:N,each=T), time=rep(0:299,N), 
+#                      y=rnorm(100*300),
+#                      u1 = rnorm(100*300), u2 = rnorm(100*300))
+#colnames(vdpData) <- c("id","time","y","u1", "u2") # try
 
+N = 200
+T = 300
+table = read.csv("TrueInitY1.txt",head=FALSE)
+colnames(table) <- union(union(c('batch', 'kk', 'trueInit', 'time'), DV.names), covariate.names)
+vdpData <- data.frame(id=rep(1:N,each=T), time=table['time'], 
+                      y1=table['y1'],y2=table['y2'], y3=table['y3'],
+                      u1 = table['u1'], u2 = table['u2'])
 data <- dynr.data(vdpData, id="id", time="time", 
-                  observed=c('y'),
-                  covariates=c('u1', 'u2'))
+                  observed=DV.names,
+                  covariates=covariate.names)
 
 #????
 meas <- prep.measurement(
     values.load=matrix(c(1,0), 1, 2),
     params.load=matrix(c('fixed'), 1, 2),
-    obs.names = c('y'),
+    obs.names = DV.names,
     state.names=state.names)
 
 
