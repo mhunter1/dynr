@@ -23,7 +23,7 @@ colnames(vdpData) <- c("id","time","y","u1", "u2") # try
 
 data <- dynr.data(vdpData, id="id", time="time", 
                   observed=c('y'),
-                  covariates=c('U1'))
+                  covariates=c('u1', 'u2'))
 
 #????
 meas <- prep.measurement(
