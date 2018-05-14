@@ -37,8 +37,8 @@ data <- dynr.data(vdpData, id="id", time="time",
 
 #????
 meas <- prep.measurement(
-    values.load=matrix(c(1,0), 1, 2),
-    params.load=matrix(c('fixed'), 1, 2),
+    values.load=matrix(c(1,0), 3, 2),
+    params.load=matrix(c('fixed'), 3, 2),
     obs.names = DV.names,
     state.names=state.names)
 
