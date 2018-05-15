@@ -55,25 +55,25 @@
 ##' z <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 ##' dz <- dynr.data(z)
 dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates){
-  if (is.ts(dataframe)){
-    # ts class 
-    # single or multivariate time series
-    # one subject
-    tsp=attributes(dataframe)$tsp
-    dataframe = as.data.frame(dataframe)
-    if (missing(observed)){
-      observed = colnames(dataframe)
-    }
-    dataframe[ , id] <- 1
-    dataframe[ , time] <- seq(from = tsp[1], to = tsp[2], length.out = nrow(dataframe))
-  }
+	if (is.ts(dataframe)){
+		# ts class
+		# single or multivariate time series
+		# one subject
+		tsp=attributes(dataframe)$tsp
+		dataframe = as.data.frame(dataframe)
+		if (missing(observed)){
+			observed = colnames(dataframe)
+		}
+		dataframe[ , id] <- 1
+		dataframe[ , time] <- seq(from = tsp[1], to = tsp[2], length.out = nrow(dataframe))
+	}
 	ids <- unique(dataframe[ , id])
 	tstart <- c(
 		sapply(1:length(ids),
 			function(i){
 				min(which(dataframe[,id] %in% ids[i]))
 			}
-		)-1,
+		) -1 ,
 		dim(dataframe)[1])
 	data.object <- list(
 		id=dataframe[,id],
@@ -84,7 +84,7 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates)
 		original.data=dataframe
 		)
 	if(!missing(covariates)){
-	  data.object$covariate.names <- covariates
+		data.object$covariate.names <- covariates
 		data.object$covariates <- data.frame(apply(dataframe[,covariates, drop=FALSE], 2, as.double))
 		names(data.object$covariates) <- paste0("covar", 1:length(covariates))
 	}
