@@ -76,22 +76,22 @@ mdcov <- prep.noise(
 	values.observed=diag(rep(0.3,2)),
 	params.observed=diag(c("var_1","var_2"),2)
 )
-		 
+
 
 formula=
     list(x1 ~ x2,
          x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2,
-         zeta0 ~0,
-         zeta1 ~0,
-         zeta2 ~0,
-         mu1 ~0,
-         mu2 ~0
+         zeta0 ~ 0,
+         zeta1 ~ 0,
+         zeta2 ~ 0,
+         mu1 ~ 0,
+         mu2 ~ 0
     )
-theta.formula  = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2)
+theta.formula = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2)
 
 
 #beta.names = c('param[0]', 'param[1]', 'param[2]', 'mu1', 'mu2')
-dynm<-prep.formulaDynamics(formula=formula,
+dynm <- prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                       zeta1=.5,
                                       zeta2=.2),
@@ -107,7 +107,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 meas@state.names = c('x1', 'x2', 'zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data,armadillo=TRUE,
+                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.c")
 
 
