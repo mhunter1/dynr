@@ -2245,6 +2245,8 @@ autojacob <- function(formula, n , diff.variables){
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
+##' @param ... Further named arguments to be passed.  Valid examples are \code{state.names},
+##' \code{theta.formula}, \code{theta.names}, and \code{beta.names}
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -2315,7 +2317,8 @@ autojacob <- function(formula, n , diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, beta.names, jacobian){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE, jacobian, ...){
+#state.names, theta.formula, theta.names, beta.names
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
 
   if(length(startval) > 0 & is.null(names(startval))){
@@ -2331,7 +2334,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   }
   
     
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, state.names=state.names, theta.formula=theta.formula, theta.names=theta.names)
+  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, ...)
   
 
   #jacobian = dfdx
