@@ -1,3 +1,10 @@
+#------------------------------------------------------------------------------
+# Author: Hui-Ju Hung
+# Date: 2018-05-15
+# Filename: vanderpol_2.R
+# Purpose: Fit van der Pol oscillator model with SAEM
+#------------------------------------------------------------------------------
+
 
 library('dynr')
 #vdPdata <- read.table('directory')
