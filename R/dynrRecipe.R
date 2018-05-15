@@ -2333,15 +2333,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, state.names=state.names, theta.formula=theta.formula, theta.names=theta.names)
   
+
   #jacobian = dfdx
   if (missing(jacobian)){
-    autojcb=try(lapply(formula2,autojacob,length(formula[[1]])))
-    if (class(autojcb) == "try-error") {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      jacobian=lapply(autojcb,"[[","jacob")
-    }
+	jacobian <- autojacobTry(formula, formula2)
   }
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
@@ -2424,6 +2419,17 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$dfdtheta2 <- dfdtheta2
   x$beta.names <- beta.names
   return(new("dynrDynamicsFormula", x))
+}
+
+
+autojacobTry <- function(formula, formula2){
+	autojcb <- try( lapply(formula2, autojacob, length(formula[[1]])) )
+	if (class(autojcb) == "try-error") {
+		stop("Automatic differentiation is not supported for part of the dynamic functions.\n 
+			Please provide the analytic jacobian functions.")
+	}else{
+		return(lapply(autojcb,"[[", "jacob"))
+	}
 }
 
 ##' Recipe function for creating Linear Dynamcis using matrices
