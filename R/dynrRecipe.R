@@ -2199,7 +2199,7 @@ prep.regimes <- function(values, params, covariates, deviation=FALSE, refRow){
 
 
 #autojacob: obtain differentiation of formula by diff.variables); if diff.variables are not given, do differentiation by left-hand-side of variables by formula
-autojacob <- function(formula, n , diff.variables){
+autojacob <- function(formula, n, diff.variables){
   tuple=lapply(formula,as.list)
   lhs=sapply(tuple,function(x){deparse(x[[2]])})
   rhs=sapply(tuple,function(x){x[[3]]})
@@ -2320,7 +2320,19 @@ autojacob <- function(formula, n , diff.variables){
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE, jacobian, ...){
 #state.names, theta.formula, theta.names, beta.names
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
-
+	dots <- list(...)
+	if(length(dots) > 0){
+		if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names'))){
+			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+		}
+		if(length(dots) == 4){
+			state.names <- dots$state.names
+			theta.names <- dots$theta.names
+			beta.names <- dots$beta.names
+			theta.formula <- dots$theta.formula
+		}
+	}
+	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector')
   }
@@ -2350,76 +2362,33 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	return(new("dynrDynamicsFormula", x))
 	
   #the following parts are only used for saem	
-  formula_onlystate=retriveStateFormula(formula[[1]],state.names)
+  formula_onlystate=retriveStateFormula(formula[[1]], state.names)
   
   #if (missing(dfdtheta)){
-    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),theta.names))
-    if (class(autojcb) == "try-error") {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      dfdtheta = lapply(autojcb, "[[", "jacob")
-    }
+	dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
   #}
   x$dfdtheta <- dfdtheta
   x$theta.names<-theta.names
   
   #formula_onlystate=retriveStateFormula(formula,state.names)
   #if (missing(dfdx2)){
-    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),state.names))
-    if (class(autojcb) == "try-error" ) {
-        stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-             Please provide the analytic jacobian functions.")
-    }else{
-        dfdx = lapply(autojcb, "[[", "jacob")
-    }
-    autojcb2=try(lapply(dfdx,autojacob,length(dfdx[[1]]),state.names))
-    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      dfdx2 = lapply(autojcb2, "[[", "jacob")
-    }
+	dfdx <- autojacobTry(formula_onlystate, diff.variables=state.names)
+	dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
   #}
   x$dfdx2 <- dfdx2
   
   #if (missing(dfdxdtheta)){
-    autojcb=try(lapply(formula_onlystate,autojacob,length(formula_onlystate[[1]]),state.names))
-    if (class(autojcb) == "try-error" ) {
-        stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-             Please provide the analytic jacobian functions.")
-    }else{
-        dfdx = lapply(autojcb, "[[", "jacob")
-    }
-    autojcb2=try(lapply(dfdx,autojacob,length(dfdx[[1]]),theta.names))
-    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      dfdxdtheta = lapply(autojcb2, "[[", "jacob")
-    }
+	dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
   #}
   x$dfdxdtheta <- dfdxdtheta
   
   #if (missing(dfdthetadx)){
-    autojcb2=try(lapply(dfdtheta,autojacob,length(dfdtheta[[1]]),state.names))
-    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      dfdthetadx = lapply(autojcb2, "[[", "jacob")
-    }
+	dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
   #}
   x$dfdthetadx <- dfdthetadx
   
   #if (missing(dfdtheta2)){
-    autojcb2=try(lapply(dfdtheta,autojacob,length(dfdtheta[[1]]),theta.names))
-    if (class(autojcb) == "try-error" || class(autojcb2) == "try-error" ) {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      dfdtheta2 = lapply(autojcb2, "[[", "jacob")
-    }
+	dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
   #}
   x$dfdtheta2 <- dfdtheta2
   x$beta.names <- beta.names
@@ -2427,10 +2396,11 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 }
 
 
-autojacobTry <- function(formula, formula2){
+autojacobTry <- function(formula, formula2, ...){
 	if(missing(formula2)) formula2 <- formula
-	autojcb <- try( lapply(formula2, autojacob, length(formula[[1]])) )
+	autojcb <- try( lapply(formula2, autojacob, length(formula[[1]]), ...) )
 	if (class(autojcb) == "try-error") {
+		# TODO Add more specific feedback about which formula(s) failed automatic differentiation
 		stop("Automatic differentiation is not supported for part of the dynamic functions.\n 
 			Please provide the analytic jacobian functions.")
 	}else{
