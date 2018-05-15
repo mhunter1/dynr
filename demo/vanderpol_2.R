@@ -33,12 +33,10 @@ Ntheta = length(theta.names)
 
 nPeople = 200
 nTimes = 300
-table = read.csv("TrueInitY1.txt", header=FALSE)
-colnames(table) <- union(union(c('batch', 'kk', 'trueInit', 'time'), DV.names), covariate.names)
-vdpData <- data.frame(id=rep(1:N, each=nTimes), time=table['time'],
-                      y1=table['y1'], y2=table['y2'], y3=table['y3'],
-                      u1 = table['u1'], u2 = table['u2'])
-data <- dynr.data(vdpData, id="id", time="time", 
+vdpData <- read.csv("TrueInitY1.txt", header=FALSE)
+colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', DV.names, covariate.names)
+vdpData$id <- rep(1:nPeople, each=nTimes)
+data <- dynr.data(vdpData, id="id", time="time",
                   observed=DV.names,
                   covariates=covariate.names)
 
