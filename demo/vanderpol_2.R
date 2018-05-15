@@ -31,12 +31,12 @@ Ntheta = length(theta.names)
 #                      u1 = rnorm(100*300), u2 = rnorm(100*300))
 #colnames(vdpData) <- c("id","time","y","u1", "u2") # try
 
-N = 200
-T = 300
-table = read.csv("TrueInitY1.txt",head=FALSE)
+nPeople = 200
+nTimes = 300
+table = read.csv("TrueInitY1.txt", header=FALSE)
 colnames(table) <- union(union(c('batch', 'kk', 'trueInit', 'time'), DV.names), covariate.names)
-vdpData <- data.frame(id=rep(1:N,each=T), time=table['time'], 
-                      y1=table['y1'],y2=table['y2'], y3=table['y3'],
+vdpData <- data.frame(id=rep(1:N, each=nTimes), time=table['time'],
+                      y1=table['y1'], y2=table['y2'], y3=table['y3'],
                       u1 = table['u1'], u2 = table['u2'])
 data <- dynr.data(vdpData, id="id", time="time", 
                   observed=DV.names,
@@ -44,10 +44,10 @@ data <- dynr.data(vdpData, id="id", time="time",
 
 #????
 meas <- prep.measurement(
-    values.load=matrix(c(1,0), 3, 2),
-    params.load=matrix(c('fixed'), 3, 2),
+    values.load = matrix(c(1, 0), 3, 2),
+    params.load = matrix(c('fixed'), 3, 2),
     obs.names = DV.names,
-    state.names=state.names)
+    state.names = state.names)
 
 
 #TODO adjust initial condition
@@ -95,9 +95,9 @@ theta.formula  = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2)
 #beta.names = c('param[0]', 'param[1]', 'param[2]', 'mu1', 'mu2')
 dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
-                                           zeta1=.5,
-                                           zeta2=.2),
-                                isContinuousTime=FALSE,
+                                      zeta1=.5,
+                                      zeta2=.2),
+								isContinuousTime=FALSE,
 								state.names=state.names,
 								theta.formula=theta.formula,
 								theta.names=theta.names,
