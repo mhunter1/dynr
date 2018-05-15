@@ -2328,8 +2328,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
     formula <- list(formula)
 	if(saem == TRUE){
-		#formula2: substitute the content withing theta.formula
+		#formula2: substitute the content within theta.formula
 		formula2 <- lapply(formula,function(x){parseFormulaTheta(x, theta.formula)})
+	} else {
+		formula2 <- formula
 	}
   }
   
@@ -2339,7 +2341,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   #jacobian = dfdx
   if (missing(jacobian)){
-	jacobian <- autojacobTry(formula, formula2)
+	jacobian <- autojacobTry(formula) ##??? formula2 ???
   }
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
@@ -2426,6 +2428,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
 
 autojacobTry <- function(formula, formula2){
+	if(missing(formula2)) formula2 <- formula
 	autojcb <- try( lapply(formula2, autojacob, length(formula[[1]])) )
 	if (class(autojcb) == "try-error") {
 		stop("Automatic differentiation is not supported for part of the dynamic functions.\n 
