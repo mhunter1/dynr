@@ -652,12 +652,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
                         outlierTest=c("t", "chi"),
                         newOutfile="new_taste.c",
-                        verbose=FALSE,
+                        verbose=TRUE,
                         delta_L=NULL, delta_O=NULL) {
-  if ( length(dynrModel@dynamics@values.exo) != 0 ||
-       length(dynrModel@measurement@values.exo) != 0) {
-    stop("Currently, a model without covariates can be used.")
-  }
+  # if ( length(dynrModel@dynamics@values.exo) != 0 ||
+  #      length(dynrModel@measurement@values.exo) != 0) {
+  #   stop("Currently, a model without covariates can be used.")
+  # }
   coefx <- coef(dynrCook)
   coef(dynrModel) <- coefx # modifies all values throughout dynrModel
   outlierTest <- match.arg(outlierTest)
@@ -672,6 +672,10 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   nDeltaLat <- length(stateName)
   nDeltaObs <- length(obsName)
   
+  if ( !is.null(delta_L) ) {
+    if (nDeltaLat != ncol(delta_L) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the latent variables.")
+    deltaLat <- delta_L
+  } else
   if ( !is.null(dynrTaste) ) {
   # combine delta through subjects
   deltaLat <- do.call("rbind",
@@ -684,24 +688,36 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
                         #deltaL_i
                       }) )
   } else {
-    if ( is.null(delta_L) ) stop("Both 'dynrTaste' and 'delta_L' are NULL.")
-    if (nDeltaLat != ncol(delta_L) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the latent variables.")
-    deltaLat <- delta_L
+    stop("Both 'dynrTaste' and 'delta_L' are NULL.")
   }
   
+  if ( !is.null(delta_O) ) {
+    if (nDeltaObs != ncol(delta_O) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the observed variables.")
+    deltaObs <- delta_O
+  } else
   if ( !is.null(dynrTaste) ) {
     deltaObs <- do.call("rbind",
                         lapply(dynrTaste, function(taste_i) {
                           taste_i[[deltaTest]]$delta.O
                         }) )
   } else {
-    if ( is.null(delta_O) ) stop("Both 'dynrTast' and 'delta_O' are NULL.")
-    if (nDeltaObs != ncol(delta_O) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the observed variables.")
-    deltaObs <- delta_O
+    stop("Both 'dynrTast' and 'delta_O' are NULL.")
   }
   
   deltaLatName <- names(deltaLat)
   deltaObsName <- names(deltaObs)
+  
+  # build dynr.data
+  data_org <- as.data.frame(dynrModel@data$original.data)
+  id_org <- dynrModel@data$id
+  time_org <- dynrModel@data$time
+  obsName_org <- dynrModel@data$observed.names
+  covName_org <- dynrModel@data$covariate.names
+  data_all <- data.frame(id=id_org, time=time_org,
+                         data_org[, c(obsName_org, covName_org), drop=FALSE],
+                         deltaLat, deltaObs)
+  new_data <- dynr.data(data_all, observed=obsName_org,
+                        covariates=c(covName_org, deltaLatName, deltaObsName))
   
   # build prep.initial
   paInis <- dynrModel@initial@params.inistate[[1]]
@@ -728,28 +744,28 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     params.dyn=paramsDyn,
     values.exo=diag(1, nrow=nDeltaLat, ncol=nDeltaLat),
     params.exo=matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat),
-    covariates=deltaLatName,
+    covariates=c(dynrModel@dynamics@covariates, deltaLatName),
     isContinuousTime=FALSE)
   
-  # modify dynrModel@data
-  if ( is.null(dynrModel@data$covariate.names) ) {#no orginal covariates
-    dynrModel@data$covariate.names <- c(deltaLatName, deltaObsName)
-    deltaLatCopy <- deltaLat
-    names(deltaLatCopy) <- paste0("covar", 1:nDeltaLat)
-    deltaObsCopy <- deltaObs
-    names(deltaObsCopy) <- paste0("covar", (1:nDeltaObs) + nDeltaLat)
-    dynrModel@data$covariates <- cbind(deltaLatCopy, deltaObsCopy)
-  } else {# original covariates exist
-  nPreCovariate <- length(dynrModel@data$covariate.names)
-  dynrModel@data$covariate.names <- c(dynrModel@data$covariate.names,
-                                      deltaLatName, deltaObsName)
-  names(deltaLat) <- paste0("covar", 
-                            (1:nDeltaLat) + nPreCovariate)
-  names(deltaObs) <- paste0("covar", 
-                            (1:nDeltaObs) + nPreCovariate + nDeltaLat)
-  dynrModel@data$covariates <- cbind(dynrModel@data$covariates,
-                                     deltaLat, deltaObs)
-  }
+  # # modify dynrModel@data
+  # if ( is.null(dynrModel@data$covariate.names) ) {#no orginal covariates
+  #   dynrModel@data$covariate.names <- c(deltaLatName, deltaObsName)
+  #   deltaLatCopy <- deltaLat
+  #   names(deltaLatCopy) <- paste0("covar", 1:nDeltaLat)
+  #   deltaObsCopy <- deltaObs
+  #   names(deltaObsCopy) <- paste0("covar", (1:nDeltaObs) + nDeltaLat)
+  #   dynrModel@data$covariates <- cbind(deltaLatCopy, deltaObsCopy)
+  # } else {# original covariates exist
+  # nPreCovariate <- length(dynrModel@data$covariate.names)
+  # dynrModel@data$covariate.names <- c(dynrModel@data$covariate.names,
+  #                                     deltaLatName, deltaObsName)
+  # names(deltaLat) <- paste0("covar",
+  #                           (1:nDeltaLat) + nPreCovariate)
+  # names(deltaObs) <- paste0("covar",
+  #                           (1:nDeltaObs) + nPreCovariate + nDeltaLat)
+  # dynrModel@data$covariates <- cbind(dynrModel@data$covariates,
+  #                                    deltaLat, deltaObs)
+  # }
   
   # build measurement
   measParLoad <- dynrModel@measurement@params.load[[1]]
@@ -761,7 +777,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     params.load=paramsLoad,
     values.exo=diag(1, nrow=nDeltaObs, ncol=nDeltaObs),
     params.exo=matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs),
-    exo.names=deltaObsName,
+    exo.names=c(dynrModel@measurement@exo.names, deltaObsName),
     state.names=dynrModel@measurement@state.names,
     obs.names=dynrModel@measurement@obs.names
   )
@@ -788,7 +804,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     measurement = new_measurement,
     noise = new_noise,
     initial = new_initial,
-    data = dynrModel@data,
+    data = new_data,#dynrModel@data,
     outfile = newOutfile)
   # cook!
   new_dynrCook <- dynr.cook(new_dynrModel, verbose=verbose, debug_flag=TRUE)
