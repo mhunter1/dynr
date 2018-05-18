@@ -578,6 +578,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
+		covariate.names = data$covariate.names
         data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
       }else{
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
@@ -632,7 +633,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   } else if(armadillo==TRUE){
-    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
+    inputs <- sapply(inputs, writeArmadilloCode, covariate.names)
   } else {stop("Invalid value passed to 'armadillo' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
