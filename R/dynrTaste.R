@@ -68,8 +68,24 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   nID <- length(IDs)
   
   # fitted parameters
-  coefx <- coef(dynrCook)
-  coef(dynrModel) <- coefx # modifies all values throughout dynrModel
+  coefCook <- coef(dynrCook)
+  # test positive definite
+  isPos <- try(coef(dynrModel) <- coefCook, silent=TRUE)
+  if(class(isPos) == "try-error") {
+    paraministate <- dynrModel$initial@params.inistate[[1]]
+    paraminicov <- dynrModel$initial@params.inicov[[1]]
+    # if all fixed initial 
+    if ( length(paraministate)==1 && paraministate==0 &&
+         length(paraminicov)==1 && paraminicov==0) {
+      coef(dynrModel) <- coefCook
+    } else {
+      numInit <- paraministate[1]
+      coefModel <- coef(dynrModel)
+      coefx <- c(coefCook[1:(numInit-1)], 
+                 coefModel[numInit:(length(coefModel))])
+      coef(dynrModel) <- coefx
+    }
+  }
   Lambda <- dynrModel$measurement$values.load[[1]]
   B <- dynrModel$dynamics$values.dyn[[1]]
   
@@ -631,6 +647,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##'  argument of \code{dynr.model} function 
 ##'  to create new \code{dynrModel} object.
 ##'  The default is "new_taste.c". 
+##'  @param cook a logical specifying whether the newly built model
+##'   would be cooked by 'dynr.cook' function.
+##'   The default is TRUE. When 'cook=FALSE', only the newly built model will be saved for the output.
 ##' @param verbose a logical specifying the verbose argument
 ##'  of the new cook object. The default is FALSE. 
 ##' @param delta_L a data.frame containing user-specified latent outliers. 
@@ -652,6 +671,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
                         outlierTest=c("t", "chi"),
                         newOutfile="new_taste.c",
+                        cook=TRUE,
                         verbose=TRUE,
                         delta_L=NULL, delta_O=NULL) {
   # if ( length(dynrModel@dynamics@values.exo) != 0 ||
@@ -659,7 +679,10 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   #   stop("Currently, a model without covariates can be used.")
   # }
   coefx <- coef(dynrCook)
-  coef(dynrModel) <- coefx # modifies all values throughout dynrModel
+  isPos <- try(coef(dynrModel) <- coefx, silent=TRUE)
+  # basically do nothing
+  if(class(isPos) == "try-error"){coefx <- coef(dynrCook)}
+  
   outlierTest <- match.arg(outlierTest)
   deltaTest <- paste0("delta_", outlierTest)
   # all parameter names + "fixed", to be used for params.xxx
@@ -739,11 +762,27 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   padyn[padyn==0] <- numForFixed
   paramsDyn <- parNames[padyn]# vector
   dim(paramsDyn) <- dim(padyn)# to matrix
+  if ( length(dynrModel@dynamics@values.exo) ) {
+    dynValExo <- cbind( dynrModel@dynamics@values.exo[[1]],
+                         diag(1, nrow=nDeltaLat, ncol=nDeltaLat) )
+  } else {
+    dynValExo <- diag(1, nrow=nDeltaLat, ncol=nDeltaLat) 
+  }
+  if ( length(dynrModel@dynamics@params.exo) ) {
+    dynParExo1 <- dynrModel@dynamics@params.exo[[1]]
+    dynParExo1[dynParExo1==0] <- numForFixed
+    dynParExo2 <- parNames[dynParExo1]# vector
+    dim(dynParExo2) <- dim(dynParExo1)# to matrix
+    dynParExo <- cbind(dynParExo2,
+                       matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat) )
+  } else {
+    dynParExo <- matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat)
+  }
   new_dynamics <- prep.matrixDynamics(
     values.dyn=dynrModel@dynamics@values.dyn[[1]],
     params.dyn=paramsDyn,
-    values.exo=diag(1, nrow=nDeltaLat, ncol=nDeltaLat),
-    params.exo=matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat),
+    values.exo=dynValExo,
+    params.exo=dynParExo,
     covariates=c(dynrModel@dynamics@covariates, deltaLatName),
     isContinuousTime=FALSE)
   
@@ -772,11 +811,27 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   measParLoad[measParLoad==0] <- numForFixed
   paramsLoad <- parNames[measParLoad]# vector
   dim(paramsLoad) <- dim(measParLoad)# to matrix
+  if ( length(dynrModel@measurement@values.exo) ) {
+    measValExo <- cbind( dynrModel@measurement@values.exo[[1]],
+                         diag(1, nrow=nDeltaObs, ncol=nDeltaObs) )
+  } else {
+    measValExo <- diag(1, nrow=nDeltaObs, ncol=nDeltaObs) 
+  }
+  if ( length(dynrModel@measurement@params.exo) ) {
+    measParExo1 <- dynrModel@measurement@params.exo[[1]]
+    measParExo1[measParExo1==0] <- numForFixed
+    measParExo2 <- parNames[measParExo1]# vector
+    dim(measParExo2) <- dim(measParExo1)# to matrix
+    measParExo <- cbind(measParExo2,
+                        matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs) )
+  } else {
+    measParExo <- matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs)
+  }
   new_measurement <- prep.measurement(
     values.load=dynrModel@measurement@values.load[[1]],
     params.load=paramsLoad,
-    values.exo=diag(1, nrow=nDeltaObs, ncol=nDeltaObs),
-    params.exo=matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs),
+    values.exo=measValExo,
+    params.exo=measParExo,
     exo.names=c(dynrModel@measurement@exo.names, deltaObsName),
     state.names=dynrModel@measurement@state.names,
     obs.names=dynrModel@measurement@obs.names
@@ -806,10 +861,14 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     initial = new_initial,
     data = new_data,#dynrModel@data,
     outfile = newOutfile)
-  # cook!
-  new_dynrCook <- dynr.cook(new_dynrModel, verbose=verbose, debug_flag=TRUE)
-  list(new_dynrModel=new_dynrModel,
-       new_dynrCook=new_dynrCook)
+  # cook?
+  if (cook) {
+    new_dynrCook <- dynr.cook(new_dynrModel, verbose=verbose, debug_flag=TRUE)
+    list(new_dynrModel=new_dynrModel,
+         new_dynrCook=new_dynrCook)
+  } else {
+    list(new_dynrModel=new_dynrModel)
+  }
 }
 
 computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
@@ -829,4 +888,8 @@ computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 50)
 #cf t=1 vs t=50
 
-
+shockSignature <- function(dynrModel, dynrCook) {
+  coef(dynrModel) <- coef(dynrCook)
+  bob$dynamics@values.dyn[[1]]
+  bob$measurement@values.load[[1]]
+}
