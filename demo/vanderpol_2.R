@@ -33,7 +33,7 @@ Ntheta = length(theta.names)
 
 nPeople = 200
 nTimes = 300
-vdpData <- read.csv("TrueInitY1.txt", header=FALSE)
+vdpData <- read.csv("..//data//TrueInitY1.txt", header=FALSE)
 colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', DV.names, covariate.names)
 vdpData$id <- rep(1:nPeople, each=nTimes)
 data <- dynr.data(vdpData, id="id", time="time",
@@ -110,6 +110,4 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.c")
 
-
-#covariate.names=covariate.names,beta.names=beta.names,
 
