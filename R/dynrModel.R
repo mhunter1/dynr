@@ -551,8 +551,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }else{
       stop("Formulas should be specified in the same order for different regimes.")
     }
-    if (!all(measurement@state.names == states.dyn)){
+    if (armadillo==FALSE && !all(measurement@state.names == states.dyn)){
       stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+    }
+	else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
+      stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
     }
   }
   if (!all(measurement@obs.names == data$observed.names)){

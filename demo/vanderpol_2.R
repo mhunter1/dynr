@@ -104,7 +104,7 @@ dynm <- prep.formulaDynamics(formula=formula,
 
 
 
-meas@state.names = c('x1', 'x2', 'zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
+#meas@state.names = c('x1', 'x2', 'zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
