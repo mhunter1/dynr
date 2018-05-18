@@ -2353,7 +2353,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   #jacobian = dfdx
   if (missing(jacobian)){
-	jacobian <- autojacobTry(formula) ##??? formula2 ???
+	jacobian <- autojacobTry(formula2) ##??? formula2 ???
   }
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
