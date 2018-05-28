@@ -67,25 +67,16 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   IDs <- unique(dynrModel$data$id)
   nID <- length(IDs)
   
-  # fitted parameters
+  # replace values.xx in dynrModel with coef(dynrCook)
   coefCook <- coef(dynrCook)
-  # test positive definite
-  isPos <- try(coef(dynrModel) <- coefCook, silent=TRUE)
-  if(class(isPos) == "try-error") {
-    paraministate <- dynrModel$initial@params.inistate[[1]]
-    paraminicov <- dynrModel$initial@params.inicov[[1]]
-    # if all fixed initial 
-    if ( length(paraministate)==1 && paraministate==0 &&
-         length(paraminicov)==1 && paraminicov==0) {
-      coef(dynrModel) <- coefCook
-    } else {
-      numInit <- paraministate[1]
-      coefModel <- coef(dynrModel)
-      coefx <- c(coefCook[1:(numInit-1)], 
-                 coefModel[numInit:(length(coefModel))])
-      coef(dynrModel) <- coefx
-    }
-  }
+  tryCatch(coef(dynrModel) <- coefCook,
+           error=function(e) {
+             stop(paste0("The estimated initial covariance matrix
+                         are not positive definite. Please re-fit (re-cook) 
+                         the model with a modified initial condition using 'prep.initial' function, and then re-run 'dynr.taste'.", 
+                         "\n", e))
+           })
+
   Lambda <- dynrModel$measurement$values.load[[1]]
   B <- dynrModel$dynamics$values.dyn[[1]]
   
@@ -147,6 +138,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       Ninv[,,i-1] <- Ninv_i 
       chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
     }
+    ri <- matrix(r[,beginTime], dimLat, 1)
+    Ki <- matrix(K[,,beginTime], dimLat, dimObs)
+    Li <- B - Ki %*% Lambda
+    obsInfI <- matrix(F_inv[,,beginTime], dimObs, dimObs)
+    vi <- matrix(v[,beginTime], nrow=dimObs, ncol=1)
+    ui <- obsInfI %*% vi - t(Ki) %*% ri
+    u[, beginTime] <- ui
   }
   
   ################ delta estimate #############################
@@ -679,9 +677,11 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   #   stop("Currently, a model without covariates can be used.")
   # }
   coefx <- coef(dynrCook)
-  isPos <- try(coef(dynrModel) <- coefx, silent=TRUE)
-  # basically do nothing
-  if(class(isPos) == "try-error"){coefx <- coef(dynrCook)}
+  tryCatch(coef(dynrModel) <- coefx,
+           error=function(e) {
+             # do nothing, and re-fit with the initial of dynrModel
+             coefx <- coefx
+           })
   
   outlierTest <- match.arg(outlierTest)
   deltaTest <- paste0("delta_", outlierTest)
@@ -888,8 +888,92 @@ computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 50)
 #cf t=1 vs t=50
 
-shockSignature <- function(dynrModel, dynrCook) {
+shockSignature <- function(dynrModel, dynrCook, 
+                           T=20, shockTime=5, W=NULL) {
+  if ( T <= shockTime ) {
+    stop("'shockTime' must be smaller than 'T'.")
+    }
   coef(dynrModel) <- coef(dynrCook)
-  bob$dynamics@values.dyn[[1]]
-  bob$measurement@values.load[[1]]
+  B <- dynrModel$dynamics@values.dyn[[1]]
+  L <- dynrModel$measurement@values.load[[1]]
+  nameLat <- dynrModel$measurement@state.names
+  nameObs <- dynrModel$measurement@obs.names
+  dimL <- dim(L)
+  if ( is.null(W) ) {
+    W <- diag(1, dimL[2])
+  } else {
+    if ( !all.equal(rep(dimL[2], 2) , dim(W)) ) {
+      stop("Please check the dimension of W.")
+    }
+  }
+  # if ( is.null(X) ) {
+  #   X <- diag(1, dimL[1])
+  # } else {
+  #   if ( !all.equal(rep(dimL[1], 2) , dim(X)) ) {
+  #     stop("Please check the dimension of X.")
+  #   }
+  # }
+  # D_A <- array(NA, c(dimL, T), 
+  #              dimnames=list(nameObs, nameLat, 1:T))
+  # D <- L %*% B
+  # D_A[,,1] <- D
+  # for (i in 2:time) {
+  #   D <- D %*% B
+  #   D_A[,,i] <- D
+  # }
+  dimB <- dim(B)
+  B_all <- array(NA, c(dimB, (T-shockTime)))
+  B_all[,,1] <- diag(1, dimB[1], dimB[2])
+  BB <- B
+  B_all[,,2] <- BB
+  for ( t in 3:(T-shockTime) ) {
+    BB <- BB %*% B
+    B_all[,,t] <- BB
+  }
+  D_all <- array(NA, c(dimL, (T-shockTime)))
+  for ( t in 1:(T-shockTime) ) {
+    D_all[,,t] <- L %*% B_all[,,t] %*% W
+  }
+  invisible(D_all)
 }
+
+# panaModelc <- panaModel
+# coef(panaModelc) <- coef(panaCook)
+# B <- panaModelc$dynamics@values.dyn[[1]]
+# L <- panaModelc$measurement@values.load[[1]]
+# B
+# L
+# L %*% matrix(c(1, 0, 0, 1), ncol=2)
+# nameLat <- panaModel$measurement@state.names
+# aa <- shockSignature(panaModel, panaCook)
+# stime <- 5
+# ttime <- 20
+# bb <- data.frame(
+# rbind(
+# cbind(matrix(0, nrow=stime, ncol=2), 1:stime),
+# cbind(t(aa[1,,]), (stime+1):ttime)
+# ) )
+#  before <- data.frame(value=rep(0, stime), T=1:stime)
+# # bb1 <- data.frame(t(aa[4,,]), T=(stime+1):ttime)
+# names(bb) <- c(nameLat, "T")
+# ttext <- min(t(aa[4,,])) + max(t(aa[4,,])) / 2
+# # aa[1,3,]
+# aaa <- reshape2::melt(bb, id='T')
+# aaa
+# ggplot(aaa, aes(x=T, y=value)) +
+#   geom_line(aes(colour=variable)) +
+#   theme_bw() + theme_minimal() +
+#   geom_line(data=before, aes(x=T, y=value)) +
+#   labs(y="Shock Coefficient", colour="States") +
+#   geom_vline(xintercept=stime, linetype="dotted") +
+#   theme(panel.grid.major=element_blank(), 
+#         panel.grid.minor=element_blank(),
+#         axis.line=element_line(colour="grey60"),
+#         axis.ticks=element_blank()) +
+#   geom_text(aes(x=5, y=ttext, label="Shock"), colour="grey40", angle=90, vjust = -0.5) +
+#   scale_x_continuous(breaks=c(5, 30), limits=c(0, 30))
+# plotArgs <- list(ncol=1, nrow=4, align="v")
+# latchi <- do.call(ggpubr::ggarrange, c(list(chipana, chipana_I, 
+#                                             tPA, tNA), plotArgs))
+# ggpubr::annotate_figure(latchi,
+#                         bottom=ggpubr::text_grob("time", color="black", size=11))
