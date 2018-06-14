@@ -2984,6 +2984,133 @@ addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
   return(list_list_formulae)
 }
 
+
+#------------------------------------------------------------------------------
+# Formula to matrix functions
+
+# TODO interpret strict as character with match.arg.  strict=c('allowOne' let's people fly with x without writing 1*x, 'convent' let's no one get away with anything, 'hippie' is very loose
+formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, process=TRUE){
+	if(process){
+		pf <- dynr:::processFormula(list(formula))[[1]]
+		lhs <- pf[1]
+		rhs <- pf[2]
+		lhs2 <- sapply(lhs, strsplit, split=' + ', fixed=TRUE)[[1]]
+		rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)[[1]]
+		rhs3 <- strsplit(rhs2, split=" * ", fixed=TRUE)
+		if(strict == FALSE){
+			rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+		} else {rhs4 <- rhs3}
+	} else {
+		lhs2 <- formula[[1]]
+		rhs4 <- formula[[2]]
+	}
+	lens <- sapply(rhs4, length)
+	if(any(lens > 2)){
+		stop(paste0("I spy with my little eye terms in the right hand side of your formula with more than two parts.\n",
+			"This function can only handle linear formulas.\nOffending term has: ",
+			paste(rhs4[lens > 2], collapse=", ")))
+	}
+	if(any(lens < 2)){
+		stop(paste0("I spy with my little eye terms in the right hand side of your formula with less than two parts.\n",
+			"Perhaps you forgot to multiply by 1.\nOffending term has: ",
+			paste(rhs4[lens < 2], collapse=", ")))
+	}
+	
+	eleNames <- sapply(rhs4, function(x) {x[!(x %in% variables)]} )
+	ncol <- ifelse(col.match, length(variables), length(eleNames))
+	cnam <- if(col.match) variables else eleNames
+	
+	rmat <- matrix("0", nrow=length(lhs2), ncol=ncol, dimnames=list(lhs2, cnam))
+	for(aterm in 1:length(rhs4)){
+		x <- rhs4[[aterm]]
+		if(sum(x %in% colnames(rmat)) == 2){stop("Both parts of term are in the 'variables'")}
+		# TODO warning/error if strict = TRUE and trying to overwrite nonzero element
+		# if strict = FALSE try to write next nonzero element that matches
+		if(x[2] %in% colnames(rmat)){
+			if(strict==TRUE & !all(rmat[, x[2]] %in% "0")){
+				warning(paste0("Overwriting element in column ", x[2], ". It was ", rmat[1, x[2]], " and now will be ", x[1], "."))
+			}
+			rmat[, colnames(rmat) %in% x[2]] <- x[1]
+		} else if(x[1] %in% colnames(rmat)){
+			if(strict==TRUE & !all(rmat[, x[1]] %in% "0")){
+				warning(paste0("Overwriting element in column ", x[1], ". It was ", rmat[1, x[1]], " and now will be ", x[2], "."))
+			}
+			rmat[, colnames(rmat) %in% x[1]] <- x[2]
+		}
+	}
+	return(rmat)
+}
+
+
+# Example useage
+#formula2matrix(theta1 ~ x1 + x2 + mylabel*x3, variables=c('x1', 'x2', 'x3'), strict=FALSE)
+
+#formula2matrix(theta1 ~ x1 + x2 + mylabel*x3, variables=c('1', 'mylabel'), strict=FALSE)
+
+#formula2matrix(theta1 + theta2 ~ x1 + x2 + mylabel*x3, variables=c('x1', 'x2', 'x3'), strict=FALSE)
+
+## Factor model
+#formula2matrix(x1 + x2 + x3 + x4 + x5 ~ F, variables="F", strict=FALSE)
+#t(formula2matrix(F ~ x1 + x2 + x3 + x4 + x5, variables=paste0('x', 1:5), strict=FALSE))
+#t(formula2matrix(F ~ x1 + load2*x2 + load3*x3 + load4*x4 + load5*x5, variables=paste0('x', 1:5), strict=FALSE))
+
+## Regression among latent variables
+#formula2matrix(F1 ~ F2 + F3, variables=c("F2", "F3"), strict=FALSE)
+
+
+formula2design <- function(..., covariates, random.names){
+	dots <- list(...)
+	
+	pf <- list(dynr:::processFormula(dots))
+	lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
+	rhs <- lapply(pf,function(x){lapply(x,"[[",2)})[[1]]
+	rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
+	rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
+	#rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+	eleNames <- unique(unlist(sapply(rhs3, function(rlist){ sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
+	
+	dots <- cbind(lhs, rhs3)
+	
+	fmat <- t(apply(dots, 1, formula2matrix, variables=eleNames, strict=TRUE, process=FALSE))
+	rmat <- t(apply(dots, 1, formula2matrix, variables=random.names, strict=TRUE, process=FALSE))
+	dimnames(fmat) <- list(lhs, eleNames)
+	dimnames(rmat) <- list(lhs, random.names)
+	return(list(fixed=fmat, random=rmat))
+}
+
+
+# Example useage
+#formula2design(
+#	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+#	theta2 ~ mu_x1*1 + 1*b_x1,
+#	theta3 ~ mu_x2*1 + 1*b_x2,
+#	covariates=c('1', 'u1', 'u2'),
+#	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+
+
+multiformula2matrix <- function(..., variables){
+	dots <- list(...)
+	
+	pf <- list(dynr:::processFormula(dots))
+	lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
+	rhs <- lapply(pf,function(x){lapply(x,"[[",2)})[[1]]
+	rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
+	rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
+	#rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+	
+	dots <- cbind(lhs, rhs3)
+	
+	fmat <- t(apply(dots, 1, formula2matrix, variables=variables, strict=TRUE, process=FALSE))
+	dimnames(fmat) <- list(lhs, variables)
+	return(fmat)
+}
+
+# Example useage
+# Regression among latent variables
+#multiformula2matrix(F1 ~ a*F2 + b*F3, F2 ~ 0*F2, F3 ~ c*F2, variables=c("F1", "F2", "F3"))
+
+
 #------------------------------------------------------------------------------
 dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
 
