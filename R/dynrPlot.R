@@ -303,14 +303,60 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
     if (any(dim(dynrModel@regimes@params) == 0)) {
       warning("No Regime-switching Model. Please turn off 'printRS'.")
     } else {
-      pos.rs.params <- which(dynrModel@regimes@params != 0, arr.ind=TRUE)
+      # helper function to make sub. e.g., a_111 to a_{111}
+      to_sub <- function(parnames) {
+        idx_sub <- grepl('_', parnames)
+        if ( sum(idx_sub)==0 ) { return(parnames) }
+        subs <- parnames[idx_sub]
+        subs_spl <- strsplit(subs, '_')
+        subbed <- sapply(subs_spl, function(sub) {
+          paste0(sub[1], '_', paste0('{', sub[2], '}') )
+        })
+        parnames[idx_sub] <- subbed
+        parnames 
+      }
+      covars <- dynrModel@regimes@covariates
+      if ( length(covars) == 0 ) {
+        covars <- c("")
+      } else {
+        covars <- c("", paste0("*", covars) )
+      }
+      covars_n <- length(covars)
+      # TODO: check nregime to fit with others
+      nregime <- nrow(dynrModel@regimes@params)
+      # column index for the intercepts of regimes
+      inter_col <- cumsum(c(1, rep(covars_n, nregime-2)))
+      # i:(i+ncov-1)
+      parnames <- to_sub( dynrModel@regimes@paramnames )
+      param_rs <- matrix(parnames, nregime)
+      param_inter <- param_rs[, inter_col, drop=FALSE]# intercepts
+      refrow <- dynrModel@regimes@refRow
+      if (length(refrow) != 0) {
+        for ( co in inter_col ) {
+          param_rs[-refrow, co] <- 
+            paste0(param_rs[refrow, co], ' + ', param_rs[-refrow, co])
+        }
+      }
+      param_rs <- matrix(sweep(param_rs, 2, covars, FUN=paste0), 
+                            nrow=nregime)
+      ll <- vector('list', length=length(inter_col))
+      for ( i in 1:length(inter_col) ) {
+        ll[[i]] <- 
+          param_rs[, inter_col[i]:(inter_col[i]+covars_n-1), 
+                   drop=FALSE]
+      }
+      sl <- sapply(ll, function(l) {
+        apply(l, 1, paste, collapse=" + ")
+      })
+      # transition probability subs
+      transub <- array(c(row(sl), col(sl)), c(nrow(sl), ncol(sl), 2))
+      transubed <- apply(transub, c(1,2), paste, collapse="")
       rs.df <- rbind(rs.df,
                      plotdf(paste0("Log-odds(p_{",
-                                   apply(pos.rs.params, 1, paste0, collapse=""),
-                                   "}) = ",
-                                   dynrModel@regimes@values[pos.rs.params])))
-    }
-  } else {
+                                   transubed, "}) = ",
+                                   sl)))
+  } 
+    } else {
     rs.df <- plotdf("")
   }
   
