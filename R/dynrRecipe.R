@@ -3028,12 +3028,12 @@ formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, proc
 		# if strict = FALSE try to write next nonzero element that matches
 		if(x[2] %in% colnames(rmat)){
 			if(strict==TRUE & !all(rmat[, x[2]] %in% "0")){
-				warning(paste0("Overwriting element in column ", x[2], ". It was ", rmat[1, x[2]], " and now will be ", x[1], "."))
+				warning(paste0("Overwriting element in column ", x[2], ". It was ", rmat[1, x[2]], " and now will be ", x[1], "."), call.=FALSE)
 			}
 			rmat[, colnames(rmat) %in% x[2]] <- x[1]
 		} else if(x[1] %in% colnames(rmat)){
 			if(strict==TRUE & !all(rmat[, x[1]] %in% "0")){
-				warning(paste0("Overwriting element in column ", x[1], ". It was ", rmat[1, x[1]], " and now will be ", x[2], "."))
+				warning(paste0("Overwriting element in column ", x[1], ". It was ", rmat[1, x[1]], " and now will be ", x[2], "."), call.=FALSE)
 			}
 			rmat[, colnames(rmat) %in% x[1]] <- x[2]
 		}
@@ -3066,7 +3066,7 @@ formula2design <- function(..., covariates, random.names){
 	rhs <- lapply(pf,function(x){lapply(x,"[[",2)})[[1]]
 	rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
 	rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
-	#rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+	rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
 	eleNames <- unique(unlist(sapply(rhs3, function(rlist){ sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
 	
 	dots <- cbind(lhs, rhs3)
@@ -3080,12 +3080,69 @@ formula2design <- function(..., covariates, random.names){
 
 
 # Example useage
-#formula2design(
-#	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
-#	theta2 ~ mu_x1*1 + 1*b_x1,
-#	theta3 ~ mu_x2*1 + 1*b_x2,
-#	covariates=c('1', 'u1', 'u2'),
-#	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+	theta2 ~ mu_x1*1 + 1*b_x1,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+# lme4::lmer style interface
+#theta1 ~ u1 + u2 + (1 + u2 | Subject)
+#theta2 ~ 1 + (1 | Subject)
+#theta3 ~ 1 + (1 | Subject)
+
+#TODO catch the redundant fixed effects in the below
+#TODO print explicitly what the found fixed effects names are.
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta + u2*b_x3,
+	theta2 ~ mu_x1*1 + 1*b_x1,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + u1*zeta_2 + 1*b_zeta + u2*b_x3,
+	theta2 ~ mu_x1*1 + 1*b_x1,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+# print("Ca-cha!  These are your fixed effects names.")
+
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+	theta2 ~ mu_x1*1 + 1*b_x1 + u1*b_x2,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+formula2design( #N.B. drop multiplication by 1
+	theta1 ~ zeta_0 + u1*zeta_1 + u2*zeta_2 + b_zeta,
+	theta2 ~ mu_x1 + b_x1,
+	theta3 ~ mu_x2 + b_x2,
+	covariates=c('u1', 'u2'), # N.B. drop the 1 from covariates (add internally as needed)
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+formula2design( #N.B. drop multiplication by 1
+	theta1 ~ zeta_0 + u1*zeta_1 + u2*zeta_2 + b_zeta + u2*b_x3,
+	theta2 ~ mu_x1 + b_x1,
+	theta3 ~ mu_x2 + b_x2,
+	covariates=c('u1', 'u2'), # N.B. drop the 1 from covariates (add internally as needed)
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2,
+	theta2 ~ mu_x1*1 + 1*b_x1,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+
+formula2design(
+	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2,
+	theta2 ~ mu_x1*1 + 1*b_x1,
+	theta3 ~ mu_x2*1 + 1*b_x2,
+	covariates=c('1', 'u1', 'u2'),
+	random.names=c('b_x1', 'b_x2'))
 
 
 
