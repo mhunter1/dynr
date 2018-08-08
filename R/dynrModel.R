@@ -505,7 +505,7 @@ setMethod("printex", "dynrModel",
 ##' a dynrRegimes object prepared with \code{\link{prep.regimes}} and argument transform is for 
 ##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
 ##' @param outfile a character string of the name of the output C script of model functions to be compiled 
-##' for parameter estimation.
+##' for parameter estimation. The default is the name for a potential temporary file returned by tempfile().
 ##' 
 ##' @details
 ##' A \code{dynrModel} is a collection of recipes.  The recipes are constructed with the functions \code{\link{prep.measurement}}, \code{\link{prep.noise}}, \code{\link{prep.formulaDynamics}}, \code{\link{prep.matrixDynamics}}, \code{\link{prep.initial}}, and in the case of regime-switching models \code{\link{prep.regimes}}.  Additionally, data must be prepared with \code{\link{dynr.data}} and added to the model.
@@ -540,7 +540,7 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
