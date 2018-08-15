@@ -183,7 +183,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     rownames(t_value) <- c(obsName)
   }
   ###### save by-products related to t ############
-  if (debug_flag) {
+  # if (debug_flag) {
     Q <- array(0, c(dim(W_t)[1], dim(W_t)[2], dimTime))
     S <- array(0, c(dim(W_t)[2], dim(W_t)[2], dimTime))
     s <- matrix(0, dim(W_t)[2], dimTime)
@@ -191,7 +191,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     for(i in 1:nID){
       beginTime <- tstart[i] + 1
       endTime <- tstart[i+1]
-      time_i <- endTime - tstart[i]
 
       for (j in beginTime:endTime) {
         Q_j <- W_t - K[,,j] %*% X_t
@@ -229,26 +228,25 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       u_sp[[i]] <- u[,beginTime:endTime]
       r_sp[[i]] <- r[,beginTime:endTime]
     }
-  } else {
-    for(i in 1:nID){
-      beginTime <- tstart[i] + 1
-      endTime <- tstart[i+1]
-      time_i <- endTime - tstart[i]
-
-      for (j in beginTime:endTime) {
-        Q_j <- W_t - K[,,j] %*% X_t
-        S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
-          t(Q_j) %*% N[,,j] %*% Q_j
-        s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
-        S_j_inv <- try(solve(S_j), silent=TRUE)
-        if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
-        delta[,j] <- S_j_inv %*% s_j
-        t_value[,j] <- s_j / sqrt(diag(S_j))
-      }
-      # 0/0 at endTime
-      t_value[,endTime] <- 0
-    }
-  }
+  # } else {
+  #   for(i in 1:nID){
+  #     beginTime <- tstart[i] + 1
+  #     endTime <- tstart[i+1]
+  # 
+  #     for (j in beginTime:endTime) {
+  #       Q_j <- W_t - K[,,j] %*% X_t
+  #       S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
+  #         t(Q_j) %*% N[,,j] %*% Q_j
+  #       s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
+  #       S_j_inv <- try(solve(S_j), silent=TRUE)
+  #       if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
+  #       delta[,j] <- S_j_inv %*% s_j
+  #       t_value[,j] <- s_j / sqrt(diag(S_j))
+  #     }
+  #     # 0/0 at endTime
+  #     t_value[,endTime] <- 0
+  #   }
+  # }
 
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
@@ -308,6 +306,21 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       pt( as.matrix(subj), df=(nrow(subj)-dimObs), lower.tail=TRUE )
     }
   }
+  
+  tLat_calcPval <- if (alternative=="two.sided") {
+    function(subj) {
+      2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimLat) )
+    }
+  }	else if (alternative=="greater") {
+    function(subj) {
+      pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=FALSE )
+    }
+  }	else {
+    function(subj) {
+      pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=TRUE )
+    }
+  }
+  
   # t-values for each 'outliers' option
   if (outliers=="joint") {
     # t_value for observed
@@ -333,6 +346,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     t_W_shk_sp <- lapply(t_W_pval_sp, function(subj) {
       subj < (1 - conf.level)
     })
+    
   } else if (outliers=="innovative") {
     # t_value for observed
     t_X <- matrix(NA, 1, dimTime)
@@ -380,6 +394,95 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     })
     t_W_shk_sp <- t_W_sp
   }
+  
+  ###################################
+  # p-values of t-test (matrix version)
+  ###################################
+  t_O_calcp <- if (alternative=="two.sided") {
+    function(subj) {
+      2 * pt( -abs(subj), df=(ncol(subj)-dimObs) )
+    }
+  }	else if (alternative=="greater") {
+    function(subj) {
+      pt( subj, df=(ncol(subj)-dimObs), lower.tail=FALSE )
+    }
+  }	else {
+    function(subj) {
+      pt( subj, df=(ncol(subj)-dimObs), lower.tail=TRUE )
+    }
+  }
+  
+  t_L_calcp <- if (alternative=="two.sided") {
+    function(subj) {
+      2 * pt( -abs(subj), df=(ncol(subj)-dimLat) )
+    }
+  }	else if (alternative=="greater") {
+    function(subj) {
+      pt( subj, df=(ncol(subj)-dimLat), lower.tail=FALSE )
+    }
+  }	else {
+    function(subj) {
+      pt( subj, df=(ncol(subj)-dimLat), lower.tail=TRUE )
+    }
+  }
+  
+  # t-values for each 'outliers' option
+  if (outliers=="joint") {
+    # t_value for observed
+    t_O <- t_value[1:dimObs, ]
+    # t_value for latent
+    t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
+    
+    t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
+    t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
+    for(i in 1:nID){
+      begT <- tstart[i] + 1
+      endT <- tstart[i+1]
+      t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
+      t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
+    }
+    
+    # locate shocks from t-test
+    t_O_shk <- t_O_pval < (1 - conf.level)
+    t_L_shk <- t_L_pval < (1 - conf.level)
+    
+  } else if (outliers=="innovative") {
+    # t_value for observed
+    t_O <- matrix(NA, 1, dimTime)
+    rownames(t_O) <- "t.L"
+    # t_value for latent
+    t_L <- t_value
+    
+    t_O_pval <- t_O
+    t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
+    for(i in 1:nID){
+      begT <- tstart[i] + 1
+      endT <- tstart[i+1]
+      t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
+    }
+    
+    # locate shocks from t-test
+    t_L_shk <- t_L_pval < (1 - conf.level)
+
+  } else {#outliers=="additive"
+    # t_value for observed
+    t_O <- t_value
+    # t_value for latent
+    t_L <- matrix(NA, 1, dimTime)
+    rownames(t_W) <- "t.O"
+    
+    t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
+    t_L_pval <- t_L
+    for(i in 1:nID){
+      begT <- tstart[i] + 1
+      endT <- tstart[i+1]
+      t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
+    }
+    
+    # locate shocks from t-test
+    t_O_shk <- t_O_pval < (1 - conf.level)
+  }
+  ############# end of t-test matrix version ###############
 
   if (outliers=="joint") {
     rownames(delta) <- paste0("d_", c(obsName, stateName))
@@ -628,7 +731,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   #   t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
   #   delta_X_sp, delta_W_sp)
   # }
-
   names(res) <- idv
   class(res) <- "dynrTaste"
   invisible(res)
