@@ -103,11 +103,11 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 
   # For each person, loop backward from their final time to their first time
   # computing r and N
-  r <- matrix(0, dimLat, dimTime)
-  N <- array(0, c(dimLat, dimLat, dimTime))
+  r <- matrix(NA, dimLat, dimTime)
+  N <- array(NA, c(dimLat, dimLat, dimTime))
   # save Ninv to calculate W_t (for delta)
-  Ninv <- array(0, c(dimLat, dimLat, dimTime))
-  u <- matrix(0, dimObs, dimTime)
+  Ninv <- array(NA, c(dimLat, dimLat, dimTime))
+  u <- matrix(NA, dimObs, dimTime)
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
   tpoint <- dynrModel$data$time
@@ -118,8 +118,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 
     # set endTime r and N to 0
     #  --> set r and N 0 at first when allocate
-    #r[,endTime] <- 0
-    #N[,,endTime] <- 0
+    r[,endTime] <- 0
+    N[,,endTime] <- 0
 
     for(i in endTime:(beginTime+1)){
       ri <- matrix(r[,i], dimLat, 1)
@@ -184,10 +184,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     rownames(t_value) <- c(obsName)
   }
   ###### save by-products related to t ############
-  # if (debug_flag) {
-    Q <- array(0, c(dim(W_t)[1], dim(W_t)[2], dimTime))
-    S <- array(0, c(dim(W_t)[2], dim(W_t)[2], dimTime))
-    s <- matrix(0, dim(W_t)[2], dimTime)
+  if (debug_flag) {
+    Q <- array(0, c(nrow(W_t), ncol(W_t), dimTime))
+    S <- array(0, c(ncol(W_t), ncol(W_t), dimTime))
+    s <- matrix(0, ncol(W_t), dimTime)
 
     for(i in 1:nID){
       beginTime <- tstart[i] + 1
@@ -210,44 +210,25 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       t_value[,endTime] <- 0
     }
 
-    # Q_sp <- vector("list", length=nID)
-    # S_sp <- vector("list", length=nID)
-    # s_sp <- vector("list", length=nID)
-    # F_inv_sp <- vector("list", length=nID)
-    # N_sp <- vector("list", length=nID)
-    # u_sp <- vector("list", length=nID)
-    # r_sp <- vector("list", length=nID)
-    # for(i in 1:nID){
-    #   beginTime <- tstart[i] + 1
-    #   endTime <- tstart[i+1]
-    # 
-    #   Q_sp[[i]] <- Q[,,beginTime:endTime]
-    #   S_sp[[i]] <- S[,,beginTime:endTime]
-    #   s_sp[[i]] <- s[,beginTime:endTime]
-    #   F_inv_sp[[i]] <- F_inv[,,beginTime:endTime]
-    #   N_sp[[i]] <- N[,,beginTime:endTime]
-    #   u_sp[[i]] <- u[,beginTime:endTime]
-    #   r_sp[[i]] <- r[,beginTime:endTime]
-    # }
-  # } else {
-  #   for(i in 1:nID){
-  #     beginTime <- tstart[i] + 1
-  #     endTime <- tstart[i+1]
-  # 
-  #     for (j in beginTime:endTime) {
-  #       Q_j <- W_t - K[,,j] %*% X_t
-  #       S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
-  #         t(Q_j) %*% N[,,j] %*% Q_j
-  #       s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
-  #       S_j_inv <- try(solve(S_j), silent=TRUE)
-  #       if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
-  #       delta[,j] <- S_j_inv %*% s_j
-  #       t_value[,j] <- s_j / sqrt(diag(S_j))
-  #     }
-  #     # 0/0 at endTime
-  #     t_value[,endTime] <- 0
-  #   }
-  # }
+  } else {
+    for(i in 1:nID){
+      beginTime <- tstart[i] + 1
+      endTime <- tstart[i+1]
+
+      for (j in beginTime:endTime) {
+        Q_j <- W_t - K[,,j] %*% X_t
+        S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
+          t(Q_j) %*% N[,,j] %*% Q_j
+        s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
+        S_j_inv <- try(solve(S_j), silent=TRUE)
+        if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
+        delta[,j] <- S_j_inv %*% s_j
+        t_value[,j] <- s_j / sqrt(diag(S_j))
+      }
+      # 0/0 at endTime
+      t_value[,endTime] <- 0
+    }
+  }
 
   ############ chi-square test ############################
   id <- as.factor(dynrModel$data$id)
@@ -255,150 +236,18 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # de Jong's method.
     chiJoint <- chiLat + chiObs
 
-    # chiLat_sp <- chiObs_sp <- split(chiJoint, id)
-    # chiJoint_pval <- pchisq(chiJoint, df=dimLat+dimObs, lower.tail=FALSE)
     chiLat_pval <- chiObs_pval <-
       pchisq(chiJoint, df=dimLat+dimObs, lower.tail=FALSE)
-    #chiJoint_pval_sp <- split(chiJoint_pval, id)
-    #chiJoint_shk <- chiJoint_pval < (1 - conf.level)
-    #chiJoint_shk_sp <- split(chiJoint_shk, id)
   } else {
-    # chiLat_sp <- split(chiLat, id)
-    # chiObs_sp <- split(chiObs, id)
     # p-values of chi-sqaure
     chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
     chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
   }
-  # chiLat_pval_sp <- split(chiLat_pval, id)
-  # chiObs_pval_sp <- split(chiObs_pval, id)
   # locate shock points, TRUE for significance
   chiLat_shk <- chiLat_pval < (1 - conf.level)
-  # chiLat_shk_sp <- split(chiLat_shk, id)
   chiObs_shk <- chiObs_pval < (1 - conf.level)
-  # chiObs_shk_sp <- split(chiObs_shk, id)
 
   ################### t-test ###############################
-  # assign function calculating p-values
-  # alternative <- match.arg(alternative)
-  # tLat_calcPval <- if (alternative=="two.sided") {
-  #   function(subj) {
-  #     2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimLat) )
-  #   }
-  # }	else if (alternative=="greater") {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=FALSE )
-  #   }
-  # }	else {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=TRUE )
-  #   }
-  # }
-  # 
-  # tObs_calcPval <- if (alternative=="two.sided") {
-  #   function(subj) {
-  #     2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimObs) )
-  #   }
-  # }	else if (alternative=="greater") {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimObs), lower.tail=FALSE )
-  #   }
-  # }	else {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimObs), lower.tail=TRUE )
-  #   }
-  # }
-  # 
-  # tLat_calcPval <- if (alternative=="two.sided") {
-  #   function(subj) {
-  #     2 * pt( -abs(as.matrix(subj)), df=(nrow(subj)-dimLat) )
-  #   }
-  # }	else if (alternative=="greater") {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=FALSE )
-  #   }
-  # }	else {
-  #   function(subj) {
-  #     pt( as.matrix(subj), df=(nrow(subj)-dimLat), lower.tail=TRUE )
-  #   }
-  # }
-  # 
-  # # t-values for each 'outliers' option
-  # if (outliers=="joint") {
-  #   # t_value for observed
-  #   t_X <- t_value[1:dimObs, ]
-  #   # t_value for latent
-  #   t_W <- t_value[(dimObs+1):(dimObs+dimLat), ]
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_sp <- split(as.data.frame(t(t_X)), id)
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_sp <- split(as.data.frame(t(t_W)), id)
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_pval_sp <- lapply(t_X_sp, FUN=tObs_calcPval)
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_pval_sp <- lapply(t_W_sp, FUN=tLat_calcPval)
-  # 
-  #   # locate shocks from t-test
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_shk_sp <- lapply(t_X_pval_sp, function(subj) {
-  #     subj < (1 - conf.level)
-  #   })
-  #   t_W_shk_sp <- lapply(t_W_pval_sp, function(subj) {
-  #     subj < (1 - conf.level)
-  #   })
-  #   
-  # } else if (outliers=="innovative") {
-  #   # t_value for observed
-  #   t_X <- matrix(NA, 1, dimTime)
-  #   rownames(t_X) <- "t.L"
-  #   # t_value for latent
-  #   t_W <- t_value
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_sp <- split(as.data.frame(t(t_X)), id)
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_sp <- split(as.data.frame(t(t_W)), id)
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_pval_sp <- t_X_sp
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_pval_sp <- lapply(t_W_sp, FUN=tLat_calcPval)
-  # 
-  #   # locate shocks from t-test
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_shk_sp <- t_X_sp
-  #   t_W_shk_sp <- lapply(t_W_pval_sp, function(subj) {
-  #     subj < (1 - conf.level)
-  #   })
-  # } else {#outliers=="additive"
-  #   # t_value for observed
-  #   t_X <- t_value
-  #   # t_value for latent
-  #   t_W <- matrix(NA, 1, dimTime)
-  #   rownames(t_W) <- "t.O"
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_sp <- split(as.data.frame(t(t_X)), id)
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_sp <- split(as.data.frame(t(t_W)), id)
-  # 
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_pval_sp <- lapply(t_X_sp, FUN=tObs_calcPval)
-  #   # [time_i, dimLat] matrix, for each subject
-  #   t_W_pval_sp <- t_W_sp
-  # 
-  #   # locate shocks from t-test
-  #   # [time_i, dimObs] matrix, for each subject
-  #   t_X_shk_sp <- lapply(t_X_pval_sp, function(subj) {
-  #     subj < (1 - conf.level)
-  #   })
-  #   t_W_shk_sp <- t_W_sp
-  # }
-  
-  ###################################
-  # p-values of t-test (matrix version)
-  ###################################
   alternative <- match.arg(alternative)
   t_O_calcp <- if (alternative=="two.sided") {
     function(subj) {
@@ -484,19 +333,14 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # locate shocks from t-test
     t_O_shk <- t_O_pval < (1 - conf.level)
   }
-  ############# end of t-test matrix version ###############
 
+  ####### delta structure ######################
   if (outliers=="joint") {
     rownames(delta) <- paste0("d_", c(obsName, stateName))
     # delta for observed
     delta_O <- delta[1:dimObs, ]
     # delta for latent
     delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
-    # split delta
-    # [time_i, dimObs] data.frame, for each subject
-    # delta_O_sp <- split(as.data.frame(t(delta_O)), id)
-    # [time_i, dimLat] data.frame, for each subject
-    # delta_L_sp <- split(as.data.frame(t(delta_L)), id)
 
   } else if (outliers=="innovative") {
     rownames(delta) <- paste0("d_", stateName)
@@ -505,11 +349,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     rownames(delta_O) <- obsName
     # delta for latent
     delta_L <- delta
-    # split delta
-    # [time_i, dimObs] data.frame, for each subject
-    # delta_O_sp <- split(as.data.frame(t(delta_O)), id)
-    # [time_i, dimLat] data.frame, for each subject
-    # delta_L_sp <- split(as.data.frame(t(delta_L)), id)
 
   } else {#outliers=="additive"
     rownames(delta) <- paste0("d_", obsName)
@@ -518,231 +357,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # delta for latent
     delta_L <- matrix(0, dimLat, dimTime)
     rownames(delta_L) <- stateName
-    # split delta
-    # [time_i, dimObs] data.frame, for each subject
-    # delta_O_sp <- split(as.data.frame(t(delta_O)), id)
-    # [time_i, dimLat] data.frame, for each subject
-    # delta_L_sp <- split(as.data.frame(t(delta_L)), id)
   }
-  # id vector
-  idv <- unique(id)
 
-  # output data.frame for each subject
-  # time_sp <- split(dynrModel$data$time, id)
-  # if (debug_flag) {
-    # res <- mapply(FUN=function(id_i, time,
-    #                            #chiJoint, chiJoint_pval, chiJoint_shk,
-    #                            chiLat, chiLat_pval, chiLat_shk,
-    #                            chiObs, chiObs_pval, chiObs_shk,
-    #                            t_X, t_W, t_X_pval, t_W_pval,
-    #                            t_X_shk, t_W_shk, delta_O, delta_L,
-    #                            Q, S, s, F_inv, N, u, r)
-    # {
-    #   if (outliers=="joint") {
-    #     # delta that will be input to 'dynr.taste2'
-    #     row.names(delta_L) <- 1:nrow(delta_L)
-    #     row.names(delta_O) <- 1:nrow(delta_O)
-    #     delta_L_t <- delta_L_chi <- delta_L
-    #     delta_O_t <- delta_O_chi <- delta_O
-    #     delta_L_chi[!chiLat_shk,] <- 0
-    #     delta_O_chi[!chiObs_shk,] <- 0
-    #     delta_L_t[!t_W_shk] <- 0
-    #     delta_O_t[!t_X_shk] <- 0
-    # 
-    #     res_i <- list(
-    #       taste=data.frame(
-    #         id=id_i, time=time,
-    #         chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
-    #         chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
-    #         t.L=t_W, t.O=t_X, t.L.p=t_W_pval, t.O.p=t_X_pval,
-    #         t.L.shk=t_W_shk, t.O.shk=t_X_shk
-    #       ),
-    #       delta_chi=list(
-    #         delta.L=delta_L_chi,
-    #         delta.O=delta_O_chi),
-    #       delta_t=list(
-    #         delta.L=delta_L_t,
-    #         delta.O=delta_O_t) )
-    #     
-    #     if (debug_flag) {
-    #       res_i[['debug']] <- list(
-    #         Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r)
-    #     }
-    #     res_i  
-    #     
-    #   } else if (outliers=="innovative") {
-    #     # t shock that pass chi shock
-    #     row.names(delta_O) <- 1:nrow(delta_O)
-    #     row.names(delta_L) <- 1:nrow(delta_L)
-    #     delta_L_t <- delta_L_chi <- delta_L
-    #     delta_O_t <- delta_O_chi <- delta_O
-    #     delta_L_chi[!chiLat_shk,] <- 0
-    #     delta_O_chi[] <- 0
-    #     delta_L_t[!t_W_shk] <- 0
-    #     delta_O_t[] <- 0
-    # 
-    #     res_i <- list(
-    #       taste=data.frame(
-    #         id=id_i, time=time,
-    #         chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
-    #         t.L=t_W, t.L.p=t_W_pval,
-    #         t.L.shk=t_W_shk
-    #       ),
-    #       delta_chi=list(
-    #         delta.L=delta_L_chi,
-    #         delta.O=delta_O_chi),
-    #       delta_t=list(
-    #         delta.L=delta_L_t,
-    #         delta.O=delta_O_t) )
-    #     
-    #     if (debug_flag) {
-    #       res_i[['debug']] <- list(
-    #         Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r)
-    #     }
-    #     res_i  
-    # 
-    #   } else {#outliers=="additive"
-    #     row.names(delta_O) <- 1:nrow(delta_O)
-    #     row.names(delta_L) <- 1:nrow(delta_L)
-    #     # delta that will be input to 'dynr.taste2'
-    #     delta_L_t <- delta_L_chi <- delta_L
-    #     delta_O_t <- delta_O_chi <- delta_O
-    #     delta_L_chi[] <- 0
-    #     delta_O_chi[!chiObs_shk,] <- 0
-    #     delta_L_t[] <- 0
-    #     delta_O_t[!t_X_shk] <- 0
-    # 
-    #     res_i <- list(
-    #       taste=data.frame(
-    #         id=id_i, time=time,
-    #         chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
-    #         t.O=t_X, t.O.p=t_X_pval,
-    #         t.O.shk=t_X_shk
-    #       ),
-    #       delta_chi=list(
-    #         delta.L=delta_L_chi,
-    #         delta.O=delta_O_chi),
-    #       delta_t=list(
-    #         delta.L=delta_L_t,
-    #         delta.O=delta_O_t) )
-    #       
-    #     if (debug_flag) {
-    #       res_i[['debug']] <- list(
-    #         Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r)
-    #     }
-    #     res_i
-    #   }
-    # }, SIMPLIFY=FALSE,
-    # idv, time_sp,
-    # chiLat_sp, chiLat_pval_sp, chiLat_shk_sp,
-    # chiObs_sp, chiObs_pval_sp, chiObs_shk_sp,
-    # t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
-    # delta_O_sp, delta_L_sp,
-    # Q_sp, S_sp, s_sp, F_inv_sp, N_sp, u_sp, r_sp)
-    # 
-  # } else {
-  #   res <- mapply(FUN=function(id_i, time,
-  #                              chiLat, chiLat_pval, chiLat_shk,
-  #                              chiObs, chiObs_pval, chiObs_shk,
-  #                              t_X, t_W, t_X_pval, t_W_pval,
-  #                              t_X_shk, t_W_shk, delta_O, delta_L)
-  #   {
-  #     if (outliers=="joint") {
-  #       # delta that will be input to 'dynr.taste2'
-  #       row.names(delta_L) <- 1:nrow(delta_L)
-  #       row.names(delta_O) <- 1:nrow(delta_O)
-  #       delta_L_t <- delta_L_chi <- delta_L
-  #       delta_O_t <- delta_O_chi <- delta_O
-  #       delta_L_chi[!chiLat_shk,] <- 0
-  #       delta_O_chi[!chiObs_shk,] <- 0
-  #       delta_L_t[!t_W_shk] <- 0
-  #       delta_O_t[!t_X_shk] <- 0
-  # 
-  #       list(
-  #         taste=data.frame(
-  #           id=id_i, time=time,
-  #           chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
-  #           chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
-  #           t.L=t_W, t.O=t_X, t.L.p=t_W_pval, t.O.p=t_X_pval,
-  #           t.L.shk=t_W_shk, t.O.shk=t_X_shk
-  #         ),
-  #         delta_chi=list(
-  #           delta.L=delta_L_chi,
-  #           delta.O=delta_O_chi),
-  #         delta_t=list(
-  #           delta.L=delta_L_t,
-  #           delta.O=delta_O_t)
-  #       )
-  # 
-  #     } else if (outliers=="innovative") {
-  #       # t shock that pass chi shock
-  #       row.names(delta_O) <- 1:nrow(delta_O)
-  #       row.names(delta_L) <- 1:nrow(delta_L)
-  #       delta_L_t <- delta_L_chi <- delta_L
-  #       delta_O_t <- delta_O_chi <- delta_O
-  #       delta_L_chi[!chiLat_shk,] <- 0
-  #       delta_O_chi[] <- 0
-  #       delta_L_t[!t_W_shk] <- 0
-  #       delta_O_t[] <- 0
-  # 
-  #       list(
-  #         taste=data.frame(
-  #           id=id_i, time=time,
-  #           chi.L=chiLat, chi.L.p=chiLat_pval, chi.L.shk=chiLat_shk,
-  #           t.L=t_W, t.L.p=t_W_pval,
-  #           t.L.shk=t_W_shk
-  #         ),
-  #         delta_chi=list(
-  #           delta.L=delta_L_chi,
-  #           delta.O=delta_O_chi),
-  #         delta_t=list(
-  #           delta.L=delta_L_t,
-  #           delta.O=delta_O_t)
-  #       )
-  # 
-  #     } else {#outliers=="additive"
-  #       row.names(delta_O) <- 1:nrow(delta_O)
-  #       row.names(delta_L) <- 1:nrow(delta_L)
-  #       # delta that will be input to 'dynr.taste2'
-  #       delta_L_t <- delta_L_chi <- delta_L
-  #       delta_O_t <- delta_O_chi <- delta_O
-  #       delta_L_chi[] <- 0
-  #       delta_O_chi[!chiObs_shk,] <- 0
-  #       delta_L_t[] <- 0
-  #       delta_O_t[!t_X_shk] <- 0
-  # 
-  #       list(
-  #         taste=data.frame(
-  #           id=id_i, time=time,
-  #           chi.O=chiObs, chi.O.p=chiObs_pval, chi.O.shk=chiObs_shk,
-  #           t.O=t_X, t.O.p=t_X_pval,
-  #           t.O.shk=t_X_shk
-  #         ),
-  #         delta_chi=list(
-  #           delta.L=delta_L_chi,
-  #           delta.O=delta_O_chi),
-  #         delta_t=list(
-  #           delta.L=delta_L_t,
-  #           delta.O=delta_O_t)
-  #       )
-  #     }
-  #   }, SIMPLIFY=FALSE,
-  #   idv, time_sp,
-  #   chiLat_sp, chiLat_pval_sp, chiLat_shk_sp,
-  #   chiObs_sp, chiObs_pval_sp, chiObs_shk_sp,
-  #   t_X_sp, t_W_sp, t_X_pval_sp, t_W_pval_sp, t_X_shk_sp, t_W_shk_sp,
-  #   delta_O_sp, delta_L_sp)
-  # }
-    res <- list(
-      id=id, time=tpoint,
+  res <- list(
+    id=id, time=tpoint,
     chi.lat=chiLat, chi.lat.p=chiLat_pval, chi.lat.shock=chiLat_shk,
     chi.obs=chiObs, chi.obs.p=chiObs_pval, chi.obs.shock=chiObs_shk,
     t.O=t_O, t.L=t_L, t.O.p=t_O_pval, t.L.p=t_L_pval,
     t.O.shock=t_O_shk, t.L.shock=t_L_shk, 
-    delta.O=delta_O, delta.L=delta_L,
-    O=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r)
-    
-  # names(res) <- idv
+    delta.O=delta_O, delta.L=delta_L)
+  if (debug_flag) {
+    res <- c(res, 
+             list(Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r))
+  }
+
   class(res) <- "dynrTaste"
   invisible(res)
 }
