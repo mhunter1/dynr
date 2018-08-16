@@ -48,7 +48,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        #outliers=c("joint", "innovative", "additive"),
                        debug_flag=FALSE) {
-  if ( !is(dynrModel, 'dynrModel') ) {
+  if ( !inherits(dynrModel, 'dynrModel') ) {
     stop("dynrModel object is required.") }
   
   # check for non-regime switching
@@ -60,13 +60,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # N.B. 'optimization_flag=FALSE' produces different logLik with 'TRUE'
     dynrCook <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
   } else {
-    if ( !is(dynrCook, 'dynrCook') ) {
+    if ( !inherits(dynrCook, 'dynrCook') ) {
       stop("dynrCook object is required.") }
   }
-  latName <- dynrModel$measurement$state.names
-  obsName <- dynrModel$measurement$obs.names
-  dimLat <- length(latName)
-  dimObs <- length(obsName)
+  lat_name <- dynrModel$measurement$state.names
+  obs_name <- dynrModel$measurement$obs.names
+  dimLat <- length(lat_name)
+  dimObs <- length(obs_name)
   dimTime <- length(dynrModel$data$time)
   id <- dynrModel$data$id
   IDs <- unique(id)
@@ -156,14 +156,14 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   ################ delta estimate #############################
   # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
   delta <- matrix(NA, dimObs+dimLat, dimTime)
-  rownames(delta) <- c(obsName, latName)
+  rownames(delta) <- c(obs_name, lat_name)
   # (X',W') = I. (De Jong and Penzer, 1988)
   XW <- diag(1, dimObs+dimLat)
   X_t <- XW[1:dimObs, ]
   W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
   # t-values
   t_value <- matrix(NA, dimObs+dimLat, dimTime)
-  rownames(t_value) <- c(obsName, latName)
+  rownames(t_value) <- c(obs_name, lat_name)
   
   ###### save by-products related to t ############
   if (debug_flag) {
@@ -215,7 +215,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   ############ chi-square test ############################
   # de Jong's method.
   chiJnt <- chiLat + chiObs
-  
   chiJnt_pval <- pchisq(chiJnt, df=dimLat+dimObs, lower.tail=FALSE)
   # p-values of chi-sqaure
   chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
@@ -262,9 +261,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
   
   t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
-  rownames(t_O_pval) <- obsName
+  rownames(t_O_pval) <- obs_name
   t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
-  rownames(t_L_pval) <- latName
+  rownames(t_L_pval) <- lat_name
   for(i in 1:nID){
     begT <- tstart[i] + 1
     endT <- tstart[i+1]
@@ -274,19 +273,16 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   
   # locate shocks from t-test
   t_O_shk <- t_O_pval < (1 - conf.level)
-  # rownames(t_O_shk) <- obsName
   t_L_shk <- t_L_pval < (1 - conf.level)
-  # rownames(t_L_shk) <- latName
   
   ####### delta structure ######################
-  rownames(delta) <- paste0("d_", c(obsName, latName))
+  rownames(delta) <- paste0("d_", c(obs_name, lat_name))
   # delta for observed
   delta_O <- delta[1:dimObs, ]
   # delta for latent
   delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
   
   res <- list(
-    tstart=tstart, id=id, time=tpoint,
     chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.outlier=chiJnt_shk,
     chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.outlier=chiLat_shk,
     chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.outlier=chiObs_shk,
@@ -355,8 +351,10 @@ if (outliers=="joint") {
 ##' @param verbose a logical specifying the verbose argument
 ##'  of the new cook object. The default is FALSE.
 ##' @param delta_L a data.frame containing user-specified latent outliers.
+##' The delta estimates from \code{dynrTaste} will be ignored.
 ##' The number of rows should equal to the total time points, and the number of columns should equal to the number of latent variables.
 ##' @param delta_O a data.frame containing user-specified observed outliers.
+##' The delta estimates from \code{dynrTaste} will be ignored.
 ##' The number of rows should equal to the total time points, and the number of columns should equal to the number of observed variables.
 ##'
 ##' @details
@@ -376,11 +374,17 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
                         cook=TRUE,
                         verbose=TRUE,
                         delta_L=NULL, delta_O=NULL) {
-  if ( !is(dynrModel, 'dynrModel') ) {
+  if ( !inherits(dynrModel, 'dynrModel') ) {
     stop("dynrModel object is required.") }
-  if ( !is(dynrCook, 'dynrCook') ) {
+  if ( !inherits(dynrCook, 'dynrCook') ) {
     stop("dynrCook object is required.") }
-
+  
+  id <- dynrModel$data$id
+  id_unq <- unique(id) 
+  id_n <- length(id_unq)
+  tstart <- dynrModel$data$tstart
+  tpoint <- dynrModel$data$time
+  
   coefx <- coef(dynrCook)
   tryCatch(coef(dynrModel) <- coefx,
            error=function(e) {
@@ -391,74 +395,85 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   outlierTest <- match.arg(outlierTest)
   deltaTest <- paste0("delta_", outlierTest)
   # all parameter names + "fixed", to be used for params.xxx
-  parNames <- c(names(dynrModel), "fixed")
+  par_name <- c(names(dynrModel), "fixed")
   # to substitute 'fixed'
-  numForFixed <- length(parNames)
+  fixed_pos <- length(par_name)
 
-  latName <- dynrModel$measurement$state.names
-  obsName <- dynrModel$measurement$obs.names
-  nDeltaLat <- length(latName)
-  nDeltaObs <- length(obsName)
+  lat_name <- dynrModel$measurement$state.names
+  obs_name <- dynrModel$measurement$obs.names
+  n_lat <- length(lat_name)
+  n_obs <- length(obs_name)
 
   if ( !is.null(delta_L) ) {
-    if (nDeltaLat != ncol(delta_L) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the latent variables.")
+    if ( !is.data.frame(delta_L) ) {
+      stop("'delta_L' must be a data.frame. ") }
+    if ( n_lat != ncol(delta_L) ) {
+      stop("The number of columns of 'delta_L' differs with the number of the latent variables.") }
+    if ( length(tpoint) != nrow(delta_L) ) {
+      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
     deltaLat <- delta_L
-  } else
-  if ( !is.null(dynrTaste) ) {
-    if ( !is(dynrTaste, 'dynrTaste') ) {
-      stop("dynrTaste object is required.") }
-  # combine delta through subjects
-  deltaLat <- do.call("rbind",
-                      lapply(dynrTaste, function(taste_i) {
-                        deltaL_i <- taste_i[[deltaTest]]$delta.L
-                        # apply delta to 'shock.time + 1', so called
-                        # 'the time the shock appears'
-                        rbind( rep(0, ncol(deltaL_i)), deltaL_i[-nrow(deltaL_i),]  )
-                        #rbind( deltaL_i[-1,], rep(0, ncol(deltaL_i)) )
-                        #deltaL_i
-                      }) )
+    
   } else {
-    stop("Both 'dynrTaste' and 'delta_L' are NULL.")
+    if ( is.null(dynrTaste) ) {
+      stop("Both 'dynrTaste' and 'delta_L' cannot be NULL.")
+    } else {
+      if ( !inherits(dynrTaste, "dynrTaste") ) {
+        stop("dynrTaste object is required.") }
+      
+      # apply delta_L to 'shock.time + 1', so called
+      # 'the time the shock appears'
+      deltaLat <- dynrTaste$delta.inn
+      for(j in 1:id_n) {
+        begT <- tstart[j] + 1
+        endT <- tstart[j+1]
+        deltaLat[, begT:endT] <- 
+          cbind(rep(0, n_lat), deltaLat[, begT:(endT-1)]
+      }
+    }
   }
-
+  
   if ( !is.null(delta_O) ) {
-    if (nDeltaObs != ncol(delta_O) || length(dynrModel@data$time) != nrow(delta_L)) stop("The number of column differs with the number of the observed variables.")
+    if ( !is.data.frame(delta_O) ) {
+      stop("'delta_O' must be a data.frame. ") }
+    if ( n_obs != ncol(delta_O) ) {
+      stop("The number of columns of 'delta_O' differs with the number of the measured variables.") }
+    if ( length(tpoint) != nrow(delta_O) ) {
+      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
     deltaObs <- delta_O
-  } else
-  if ( !is.null(dynrTaste) ) {
-    if ( !is(dynrTaste, 'dynrTaste') ) {
-      stop("dynrTaste object is required.") }
-    deltaObs <- do.call("rbind",
-                        lapply(dynrTaste, function(taste_i) {
-                          taste_i[[deltaTest]]$delta.O
-                        }) )
+    
   } else {
-    stop("Both 'dynrTast' and 'delta_O' are NULL.")
+    if ( is.null(dynrTaste) ) {
+      stop("Both 'dynrTaste' and 'delta_O' cannot be NULL.")
+    } else {
+      if ( !inherits(dynrTaste, "dynrTaste") ) {
+        stop("dynrTaste object is required.") }
+      deltaObs <- dynrTaste$delta.add
+    }
   }
 
-  deltaLatName <- names(deltaLat)
-  deltaObsName <- names(deltaObs)
+  name_delta_lat <- names(deltaLat)
+  name_delta_obs <- names(deltaObs)
 
   # build dynr.data
   data_org <- as.data.frame(dynrModel@data$original.data)
   id_org <- dynrModel@data$id
   time_org <- dynrModel@data$time
-  obsName_org <- dynrModel@data$observed.names
+  obs_name_org <- dynrModel@data$observed.names
   covName_org <- dynrModel@data$covariate.names
   data_all <- data.frame(id=id_org, time=time_org,
-                         data_org[, c(obsName_org, covName_org), drop=FALSE],
+                         data_org[, c(obs_name_org, covName_org), drop=FALSE],
                          deltaLat, deltaObs)
-  new_data <- dynr.data(data_all, observed=obsName_org,
-                        covariates=c(covName_org, deltaLatName, deltaObsName))
+  new_data <- dynr.data(data_all, observed=obs_name_org,
+                        covariates=c(covName_org, name_delta_lat, name_delta_obs))
 
   # build prep.initial
   paInis <- dynrModel@initial@params.inistate[[1]]
-  paInis[paInis==0] <- numForFixed
-  paramInis <- parNames[paInis]# vector
+  paInis[paInis==0] <- fixed_pos
+  paramInis <- par_name[paInis]# vector
   dim(paramInis) <- dim(paInis)# to matrix
   paInic <- dynrModel@initial@params.inicov[[1]]
-  paInic[paInic==0] <- numForFixed
-  paramInic <- parNames[paInic]# vector
+  paInic[paInic==0] <- fixed_pos
+  paramInic <- par_name[paInic]# vector
   dim(paramInic) <- dim(paInic)# to matrix
   new_initial <- prep.initial(
     values.inistate=dynrModel@initial@values.inistate[[1]],
@@ -468,93 +483,93 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
 
   # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
-  padyn[padyn==0] <- numForFixed
-  paramsDyn <- parNames[padyn]# vector
+  padyn[padyn==0] <- fixed_pos
+  paramsDyn <- par_name[padyn]# vector
   dim(paramsDyn) <- dim(padyn)# to matrix
   if ( length(dynrModel@dynamics@values.exo) ) {
     dynValExo <- cbind( dynrModel@dynamics@values.exo[[1]],
-                         diag(1, nrow=nDeltaLat, ncol=nDeltaLat) )
+                         diag(1, nrow=n_lat, ncol=n_lat) )
   } else {
-    dynValExo <- diag(1, nrow=nDeltaLat, ncol=nDeltaLat)
+    dynValExo <- diag(1, nrow=n_lat, ncol=n_lat)
   }
   if ( length(dynrModel@dynamics@params.exo) ) {
     dynParExo1 <- dynrModel@dynamics@params.exo[[1]]
-    dynParExo1[dynParExo1==0] <- numForFixed
-    dynParExo2 <- parNames[dynParExo1]# vector
+    dynParExo1[dynParExo1==0] <- fixed_pos
+    dynParExo2 <- par_name[dynParExo1]# vector
     dim(dynParExo2) <- dim(dynParExo1)# to matrix
     dynParExo <- cbind(dynParExo2,
-                       matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat) )
+                       matrix("fixed", nrow=n_lat, ncol=n_lat) )
   } else {
-    dynParExo <- matrix("fixed", nrow=nDeltaLat, ncol=nDeltaLat)
+    dynParExo <- matrix("fixed", nrow=n_lat, ncol=n_lat)
   }
   new_dynamics <- prep.matrixDynamics(
     values.dyn=dynrModel@dynamics@values.dyn[[1]],
     params.dyn=paramsDyn,
     values.exo=dynValExo,
     params.exo=dynParExo,
-    covariates=c(dynrModel@dynamics@covariates, deltaLatName),
+    covariates=c(dynrModel@dynamics@covariates, name_delta_lat),
     isContinuousTime=FALSE)
 
   # # modify dynrModel@data
   # if ( is.null(dynrModel@data$covariate.names) ) {#no orginal covariates
-  #   dynrModel@data$covariate.names <- c(deltaLatName, deltaObsName)
+  #   dynrModel@data$covariate.names <- c(name_delta_lat, name_delta_obs)
   #   deltaLatCopy <- deltaLat
-  #   names(deltaLatCopy) <- paste0("covar", 1:nDeltaLat)
+  #   names(deltaLatCopy) <- paste0("covar", 1:n_lat)
   #   deltaObsCopy <- deltaObs
-  #   names(deltaObsCopy) <- paste0("covar", (1:nDeltaObs) + nDeltaLat)
+  #   names(deltaObsCopy) <- paste0("covar", (1:n_obs) + n_lat)
   #   dynrModel@data$covariates <- cbind(deltaLatCopy, deltaObsCopy)
   # } else {# original covariates exist
   # nPreCovariate <- length(dynrModel@data$covariate.names)
   # dynrModel@data$covariate.names <- c(dynrModel@data$covariate.names,
-  #                                     deltaLatName, deltaObsName)
+  #                                     name_delta_lat, name_delta_obs)
   # names(deltaLat) <- paste0("covar",
-  #                           (1:nDeltaLat) + nPreCovariate)
+  #                           (1:n_lat) + nPreCovariate)
   # names(deltaObs) <- paste0("covar",
-  #                           (1:nDeltaObs) + nPreCovariate + nDeltaLat)
+  #                           (1:n_obs) + nPreCovariate + n_lat)
   # dynrModel@data$covariates <- cbind(dynrModel@data$covariates,
   #                                    deltaLat, deltaObs)
   # }
 
   # build measurement
   measParLoad <- dynrModel@measurement@params.load[[1]]
-  measParLoad[measParLoad==0] <- numForFixed
-  paramsLoad <- parNames[measParLoad]# vector
+  measParLoad[measParLoad==0] <- fixed_pos
+  paramsLoad <- par_name[measParLoad]# vector
   dim(paramsLoad) <- dim(measParLoad)# to matrix
   if ( length(dynrModel@measurement@values.exo) ) {
     measValExo <- cbind( dynrModel@measurement@values.exo[[1]],
-                         diag(1, nrow=nDeltaObs, ncol=nDeltaObs) )
+                         diag(1, nrow=n_obs, ncol=n_obs) )
   } else {
-    measValExo <- diag(1, nrow=nDeltaObs, ncol=nDeltaObs)
+    measValExo <- diag(1, nrow=n_obs, ncol=n_obs)
   }
   if ( length(dynrModel@measurement@params.exo) ) {
     measParExo1 <- dynrModel@measurement@params.exo[[1]]
-    measParExo1[measParExo1==0] <- numForFixed
-    measParExo2 <- parNames[measParExo1]# vector
+    measParExo1[measParExo1==0] <- fixed_pos
+    measParExo2 <- par_name[measParExo1]# vector
     dim(measParExo2) <- dim(measParExo1)# to matrix
     measParExo <- cbind(measParExo2,
-                        matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs) )
+                        matrix("fixed", nrow=n_obs, ncol=n_obs) )
   } else {
-    measParExo <- matrix("fixed", nrow=nDeltaObs, ncol=nDeltaObs)
+    measParExo <- matrix("fixed", nrow=n_obs, ncol=n_obs)
   }
   new_measurement <- prep.measurement(
     values.load=dynrModel@measurement@values.load[[1]],
     params.load=paramsLoad,
     values.exo=measValExo,
     params.exo=measParExo,
-    exo.names=c(dynrModel@measurement@exo.names, deltaObsName),
+    exo.names=c(dynrModel@measurement@exo.names, name_delta_obs),
     state.names=dynrModel@measurement@state.names,
     obs.names=dynrModel@measurement@obs.names
   )
 
   # build noise
   noParLat <- dynrModel@noise@params.latent[[1]]
-  noParLat[noParLat==0] <- numForFixed
-  paramsLatent <- parNames[noParLat]# vector
+  noParLat[noParLat==0] <- fixed_pos
+  paramsLatent <- par_name[noParLat]# vector
   dim(paramsLatent) <- dim(noParLat)# to matrix
 
   noParObs <- dynrModel@noise@params.observed[[1]]
-  noParObs[noParObs==0] <- numForFixed
-  paramsObserved <- parNames[noParObs]# vector
+  noParObs[noParObs==0] <- fixed_pos
+  paramsObserved <- par_name[noParObs]# vector
   dim(paramsObserved) <- dim(noParObs)# to matrix
   new_noise <- prep.noise(
     values.latent=dynrModel@noise@values.latent[[1]],
@@ -580,12 +595,12 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   }
 }
 
-computeJacobian <- function(cookDebug, jacobian, latName, params, time){
+computeJacobian <- function(cookDebug, jacobian, lat_name, params, time){
   envList <- as.list(params)
-  for(i in 1:length(latName)) envList[[latName[i]]] <- cookDebug$eta_smooth_final[i, time]
+  for(i in 1:length(lat_name)) envList[[lat_name[i]]] <- cookDebug$eta_smooth_final[i, time]
 
-  J <- matrix(NA, length(latName), length(latName), dimnames=list(latName, latName))
-  for(i in 1:(length(latName))^2){
+  J <- matrix(NA, length(lat_name), length(lat_name), dimnames=list(lat_name, lat_name))
+  for(i in 1:(length(lat_name))^2){
     cj <- as.character(jacobian[[i]])
     rc <- strsplit(cj[2], ' ~ ')[[1]]
     J[rc[1], rc[2]] <- eval(parse(text=cj[3]), envList)
