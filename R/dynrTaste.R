@@ -21,23 +21,21 @@
 ##' @param conf.level a numeric of confidence level that is used for
 ##' outliers detection tests (chi-square test and t-test). The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
-##' must be one of ``two.sided'' (default), ``greater''  or ``less''
-##' @param outliers a character string specifying the outlier detection
-##' method. must be one of ``joint'' (default), ``innovative'' or ``additive''.
-##' When ``joint'' is selected, dynr.taste detects innovative and additive outliers together.
+##' must be one of ``two.sided'' (default), ``greater''  or ``less''.
 ##' @param debug_flag a logical. 'TRUE' for output of by-products related to t-value calculation
 ##'
 ##' @return an object of `dynrTaste' class
-##' that is a list containing results lists for each participant.
-##' The result list for a paticipant includes
-##' a data.frame called `taste',
-##' a list called `delta_chi' for detected magnitude outliers when the chi-square test was used,
-##' a list called `delta_t' for detected magnitude outliers when the t-test was used,
-##' and a list called `debug' for additional information,
-##' which are Q, S, s, F_inv, N, u, r.
+##' that is a list containing results lists of results from the outlier detection process.
+##' Vectors of ID and measured time points are included for later use,
+##' such as in dynr.taste2.
+##' The values, p-values, and shock points related to 
+##' `joint' chi-square, `independent' chi-square, and t statistic
+##' for innovative and additive outliers are following in that order.
+##' The estimated delta for innovative and additive components are in the last.
+##' If \code{debug_flag} is \code{TRUE}, 
+##' Q, S, s, F_inv, N, u, r would be added at the end.
 ##' See the reference for definition of the notations.
 ##'
-##' The `debug' will be saved only when the argument \code{debug_flag=TRUE}.
 ##' The `delta_chi' list comprises magnitude of innovative (Latent) and additive (Observed) outliers, `delta.L' and `delta.O',
 ##' when chi-square statitics is used to detect outliers.
 ##' The `delta_t' list comprises magnitude of innovative (Latent) and additive (Observed) outliers, `delta.L' and `delta.O',
@@ -48,7 +46,7 @@
 ##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465–496.
 dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
-                       outliers=c("joint", "innovative", "additive"),
+                       #outliers=c("joint", "innovative", "additive"),
                        debug_flag=FALSE) {
   # check for non-regime switching
   if (dynrModel$num_regime > 2) {
@@ -59,12 +57,13 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     # N.B. 'optimization_flag=FALSE' produces different logLik with 'TRUE'
     dynrCook <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
   }
-  stateName <- dynrModel$measurement$state.names
+  latName <- dynrModel$measurement$state.names
   obsName <- dynrModel$measurement$obs.names
-  dimLat <- length(stateName)
+  dimLat <- length(latName)
   dimObs <- length(obsName)
   dimTime <- length(dynrModel$data$time)
-  IDs <- unique(dynrModel$data$id)
+  id <- dynrModel$data$id
+  IDs <- unique(id)
   nID <- length(IDs)
 
   # replace values.xx in dynrModel with coef(dynrCook)
@@ -149,40 +148,39 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   }
 
   ################ delta estimate #############################
-  outliers <- match.arg(outliers)
-  if (outliers=="joint") {
+  # outliers <- match.arg(outliers)
+  # if (outliers=="joint") {
     # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
     delta <- matrix(NA, dimObs+dimLat, dimTime)
-    rownames(delta) <- c(obsName, stateName)
+    rownames(delta) <- c(obsName, latName)
     # (X',W') = I. (De Jong and Penzer, 1988)
     XW <- diag(1, dimObs+dimLat)
     X_t <- XW[1:dimObs, ]
     W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
     # t-values
     t_value <- matrix(NA, dimObs+dimLat, dimTime)
-    rownames(t_value) <- c(obsName, stateName)
+    rownames(t_value) <- c(obsName, latName)
 
-  } else if (outliers=="innovative") {
-    delta <- matrix(NA, dimLat, dimTime)
-    rownames(delta) <- c(stateName)
-    # (X',W') = I. (De Jong and Penzer, 1988)
+  # } else if (outliers=="innovative") {
+    # delta <- matrix(NA, dimLat, dimTime)
+    # rownames(delta) <- c(latName)
     # care for dimensions
     # X: [dimObs, dimObs + dimLat], W: [dimLat, dimObs + dimLat]
-    X_t <- matrix(0, dimObs, dimLat)
-    W_t <- diag(1, dimLat)
+    # X_t <- matrix(0, dimObs, dimLat)
+    # W_t <- diag(1, dimLat)
     # t-values
-    t_value <- matrix(NA, dimLat, dimTime)
-    rownames(t_value) <- c(stateName)
+    # t_value_I <- matrix(NA, dimLat, dimTime)
+    # rownames(t_value_I) <- c(latName)
 
-  } else {#outliers=="additive"
-    delta <- matrix(NA, dimObs, dimTime)
-    rownames(delta) <- c(obsName)
-    X_t <- diag(1, dimObs)
-    W_t <- matrix(0, dimLat, dimObs)
+  # } else {#outliers=="additive"
+    # delta <- matrix(NA, dimObs, dimTime)
+    # rownames(delta) <- c(obsName)
+    # X_t <- diag(1, dimObs)
+    # W_t <- matrix(0, dimLat, dimObs)
     # t-values
-    t_value <- matrix(NA, dimObs, dimTime)
-    rownames(t_value) <- c(obsName)
-  }
+    # t_value_A <- matrix(NA, dimObs, dimTime)
+    # rownames(t_value_A) <- c(obsName)
+  # }
   ###### save by-products related to t ############
   if (debug_flag) {
     Q <- array(0, c(nrow(W_t), ncol(W_t), dimTime))
@@ -231,21 +229,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   }
 
   ############ chi-square test ############################
-  id <- as.factor(dynrModel$data$id)
-  if (outliers=="joint") {
+  # if (outliers=="joint") {
     # de Jong's method.
-    chiJoint <- chiLat + chiObs
+    chiJnt <- chiLat + chiObs
 
-    chiLat_pval <- chiObs_pval <-
-      pchisq(chiJoint, df=dimLat+dimObs, lower.tail=FALSE)
-  } else {
+    chiJnt_pval <- pchisq(chiJnt, df=dimLat+dimObs, lower.tail=FALSE)
+  # } else {
     # p-values of chi-sqaure
     chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
     chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
-  }
+  # }
   # locate shock points, TRUE for significance
-  chiLat_shk <- chiLat_pval < (1 - conf.level)
-  chiObs_shk <- chiObs_pval < (1 - conf.level)
+    chiJnt_shk <- chiJnt_pval < (1 - conf.level)
+    chiLat_shk <- chiLat_pval < (1 - conf.level)
+    chiObs_shk <- chiObs_pval < (1 - conf.level)
 
   ################### t-test ###############################
   alternative <- match.arg(alternative)
@@ -278,14 +275,16 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   }
   
   # t-values for each 'outliers' option
-  if (outliers=="joint") {
+  # if (outliers=="joint") {
     # t_value for observed
     t_O <- t_value[1:dimObs, ]
     # t_value for latent
     t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
     
     t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
+    rownames(t_O_pval) <- obsName
     t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
+    rownames(t_L_pval) <- latName
     for(i in 1:nID){
       begT <- tstart[i] + 1
       endT <- tstart[i+1]
@@ -295,77 +294,84 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     
     # locate shocks from t-test
     t_O_shk <- t_O_pval < (1 - conf.level)
+    # rownames(t_O_shk) <- obsName
     t_L_shk <- t_L_pval < (1 - conf.level)
+    # rownames(t_L_shk) <- latName
     
-  } else if (outliers=="innovative") {
-    # t_value for observed
-    t_O <- matrix(NA, 1, dimTime)
-    rownames(t_O) <- "t.L"
-    # t_value for latent
-    t_L <- t_value
-    
-    t_O_pval <- t_O
-    t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
-    for(i in 1:nID){
-      begT <- tstart[i] + 1
-      endT <- tstart[i+1]
-      t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
-    }
-    
-    # locate shocks from t-test
-    t_L_shk <- t_L_pval < (1 - conf.level)
+  # } else if (outliers=="innovative") {
+    # # t_value for observed
+    # t_O <- matrix(NA, 1, dimTime)
+    # rownames(t_O) <- "t.L"
+    # # t_value for latent
+    # t_L <- t_value
+    # 
+    # t_O_pval <- t_O
+    # t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
+    # rownames(t_L_pval) <- latName
+    # for(i in 1:nID){
+    #   begT <- tstart[i] + 1
+    #   endT <- tstart[i+1]
+    #   t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
+    # }
+    # 
+    # # locate shocks from t-test
+    # t_L_shk <- t_L_pval < (1 - conf.level)
+    # rownames(t_L_shk) <- latName
 
-  } else {#outliers=="additive"
-    # t_value for observed
-    t_O <- t_value
-    # t_value for latent
-    t_L <- matrix(NA, 1, dimTime)
-    rownames(t_W) <- "t.O"
-    
-    t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
-    t_L_pval <- t_L
-    for(i in 1:nID){
-      begT <- tstart[i] + 1
-      endT <- tstart[i+1]
-      t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
-    }
-    
-    # locate shocks from t-test
-    t_O_shk <- t_O_pval < (1 - conf.level)
-  }
+  # } else {#outliers=="additive"
+  #   # t_value for observed
+  #   t_O <- t_value
+  #   # t_value for latent
+  #   t_L <- matrix(NA, 1, dimTime)
+  #   rownames(t_W) <- "t.O"
+  #   
+  #   t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
+  #   rownames(t_O_pval) <- obsName
+  #   t_L_pval <- t_L
+  #   for(i in 1:nID){
+  #     begT <- tstart[i] + 1
+  #     endT <- tstart[i+1]
+  #     t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
+  #   }
+  #   
+  #   # locate shocks from t-test
+  #   t_O_shk <- t_O_pval < (1 - conf.level)
+  #   rownames(t_O_shk) <- obsName
+  # }
 
   ####### delta structure ######################
-  if (outliers=="joint") {
-    rownames(delta) <- paste0("d_", c(obsName, stateName))
+  # if (outliers=="joint") {
+    rownames(delta) <- paste0("d_", c(obsName, latName))
     # delta for observed
     delta_O <- delta[1:dimObs, ]
     # delta for latent
     delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
 
-  } else if (outliers=="innovative") {
-    rownames(delta) <- paste0("d_", stateName)
-    # delta for observed
-    delta_O <- matrix(0, dimObs, dimTime)
-    rownames(delta_O) <- obsName
-    # delta for latent
-    delta_L <- delta
-
-  } else {#outliers=="additive"
-    rownames(delta) <- paste0("d_", obsName)
-    # delta for observed
-    delta_O <- delta
-    # delta for latent
-    delta_L <- matrix(0, dimLat, dimTime)
-    rownames(delta_L) <- stateName
-  }
+  # } else if (outliers=="innovative") {
+  #   rownames(delta) <- paste0("d_", latName)
+  #   # delta for observed
+  #   delta_O <- matrix(0, dimObs, dimTime)
+  #   rownames(delta_O) <- obsName
+  #   # delta for latent
+  #   delta_L <- delta
+  # 
+  # } else {#outliers=="additive"
+  #   rownames(delta) <- paste0("d_", obsName)
+  #   # delta for observed
+  #   delta_O <- delta
+  #   # delta for latent
+  #   delta_L <- matrix(0, dimLat, dimTime)
+  #   rownames(delta_L) <- latName
+  # }
 
   res <- list(
     id=id, time=tpoint,
-    chi.lat=chiLat, chi.lat.p=chiLat_pval, chi.lat.shock=chiLat_shk,
-    chi.obs=chiObs, chi.obs.p=chiObs_pval, chi.obs.shock=chiObs_shk,
-    t.O=t_O, t.L=t_L, t.O.p=t_O_pval, t.L.p=t_L_pval,
-    t.O.shock=t_O_shk, t.L.shock=t_L_shk, 
-    delta.O=delta_O, delta.L=delta_L)
+    chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.outlier=chiJnt_shk,
+    chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.outlier=chiLat_shk,
+    chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.outlier=chiObs_shk,
+    t.inn=t_L, t.inn.pval=t_L_pval, t.inn.outlier=t_L_shk,
+    t.add=t_O, t.add.pval=t_O_pval, t.add.outlier=t_O_shk,
+    delta.inn=delta_L, delta.add=delta_O)
   if (debug_flag) {
     res <- c(res, 
              list(Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r))
@@ -435,9 +441,9 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   # to substitute 'fixed'
   numForFixed <- length(parNames)
 
-  stateName <- dynrModel$measurement$state.names
+  latName <- dynrModel$measurement$state.names
   obsName <- dynrModel$measurement$obs.names
-  nDeltaLat <- length(stateName)
+  nDeltaLat <- length(latName)
   nDeltaObs <- length(obsName)
 
   if ( !is.null(delta_L) ) {
@@ -616,12 +622,12 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   }
 }
 
-computeJacobian <- function(cookDebug, jacobian, stateName, params, time){
+computeJacobian <- function(cookDebug, jacobian, latName, params, time){
   envList <- as.list(params)
-  for(i in 1:length(stateName)) envList[[stateName[i]]] <- cookDebug$eta_smooth_final[i, time]
+  for(i in 1:length(latName)) envList[[latName[i]]] <- cookDebug$eta_smooth_final[i, time]
 
-  J <- matrix(NA, length(stateName), length(stateName), dimnames=list(stateName, stateName))
-  for(i in 1:(length(stateName))^2){
+  J <- matrix(NA, length(latName), length(latName), dimnames=list(latName, latName))
+  for(i in 1:(length(latName))^2){
     cj <- as.character(jacobian[[i]])
     rc <- strsplit(cj[2], ' ~ ')[[1]]
     J[rc[1], rc[2]] <- eval(parse(text=cj[3]), envList)
