@@ -48,14 +48,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        #outliers=c("joint", "innovative", "additive"),
                        debug_flag=FALSE) {
+  if ( !is(dynrModel, 'dynrModel') ) {
+    stop("dynrModel object is required.") }
+  
   # check for non-regime switching
   if (dynrModel$num_regime > 2) {
     stop("This test is for non-regime switching models.")
   }
   if ( is.null(dynrCook) ||
-    !("residual_cov" %in% slotNames(dynrCook)) ) {# re-cooking
+       !("residual_cov" %in% slotNames(dynrCook)) ) {# re-cooking
     # N.B. 'optimization_flag=FALSE' produces different logLik with 'TRUE'
     dynrCook <- dynr.cook(dynrModel, verbose=FALSE, debug_flag=TRUE)
+  } else {
+    if ( !is(dynrCook, 'dynrCook') ) {
+      stop("dynrCook object is required.") }
   }
   latName <- dynrModel$measurement$state.names
   obsName <- dynrModel$measurement$obs.names
@@ -65,7 +71,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   id <- dynrModel$data$id
   IDs <- unique(id)
   nID <- length(IDs)
-
+  
   # replace values.xx in dynrModel with coef(dynrCook)
   coefCook <- coef(dynrCook)
   tryCatch(coef(dynrModel) <- coefCook,
@@ -75,22 +81,22 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                          the model with a modified initial condition using 'prep.initial' function, and then re-run 'dynr.taste'.",
                          "\n", e))
            })
-
+  
   Lambda <- dynrModel$measurement$values.load[[1]]
   B <- dynrModel$dynamics$values.dyn[[1]]
-
+  
   # Array of inverse covariance matrices (i.e. information matrices) for the observed variables
   # F^-1  in Chow, Hamaker, and Allaire
   F_inv <- array(apply(dynrCook$residual_cov, 3, solve),
                  c(dimObs, dimObs, dimTime))
-
+  
   # Compute Kalman gain for every person/time combination
   P_pred <- dynrCook$error_cov_predicted
   t_Lambda <- t(Lambda)
   v <- dynrCook$innov_vec
   K <- array(NA, c(dimLat, dimObs, dimTime))
   chiObs <- numeric(dimTime)
-
+  
   for(i in 1:dimTime){
     F_inv_i <- F_inv[,,i]
     K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv_i # [lat, obs]
@@ -99,7 +105,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   }
   # N.B. the first element in P_pred is the initial, predicted latent covariance matrix, i.e. from dynrInitial
   #  The second element is the predicted cov for time=2 given the updated cov from time=1.
-
+  
   # For each person, loop backward from their final time to their first time
   # computing r and N
   r <- matrix(NA, dimLat, dimTime)
@@ -110,16 +116,16 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
   tpoint <- dynrModel$data$time
-
+  
   for(j in 1:nID){
     beginTime <- tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
     endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
-
+    
     # set endTime r and N to 0
     #  --> set r and N 0 at first when allocate
     r[,endTime] <- 0
     N[,,endTime] <- 0
-
+    
     for(i in endTime:(beginTime+1)){
       ri <- matrix(r[,i], dimLat, 1)
       Ni <- matrix(N[,,i], dimLat, dimLat)
@@ -146,51 +152,29 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     ui <- obsInfI %*% vi - t(Ki) %*% ri
     u[, beginTime] <- ui
   }
-
+  
   ################ delta estimate #############################
-  # outliers <- match.arg(outliers)
-  # if (outliers=="joint") {
-    # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
-    delta <- matrix(NA, dimObs+dimLat, dimTime)
-    rownames(delta) <- c(obsName, latName)
-    # (X',W') = I. (De Jong and Penzer, 1988)
-    XW <- diag(1, dimObs+dimLat)
-    X_t <- XW[1:dimObs, ]
-    W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
-    # t-values
-    t_value <- matrix(NA, dimObs+dimLat, dimTime)
-    rownames(t_value) <- c(obsName, latName)
-
-  # } else if (outliers=="innovative") {
-    # delta <- matrix(NA, dimLat, dimTime)
-    # rownames(delta) <- c(latName)
-    # care for dimensions
-    # X: [dimObs, dimObs + dimLat], W: [dimLat, dimObs + dimLat]
-    # X_t <- matrix(0, dimObs, dimLat)
-    # W_t <- diag(1, dimLat)
-    # t-values
-    # t_value_I <- matrix(NA, dimLat, dimTime)
-    # rownames(t_value_I) <- c(latName)
-
-  # } else {#outliers=="additive"
-    # delta <- matrix(NA, dimObs, dimTime)
-    # rownames(delta) <- c(obsName)
-    # X_t <- diag(1, dimObs)
-    # W_t <- matrix(0, dimLat, dimObs)
-    # t-values
-    # t_value_A <- matrix(NA, dimObs, dimTime)
-    # rownames(t_value_A) <- c(obsName)
-  # }
+  # De Jong and Penzer (1988) 80p. below eq 14 about X, W and delta
+  delta <- matrix(NA, dimObs+dimLat, dimTime)
+  rownames(delta) <- c(obsName, latName)
+  # (X',W') = I. (De Jong and Penzer, 1988)
+  XW <- diag(1, dimObs+dimLat)
+  X_t <- XW[1:dimObs, ]
+  W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
+  # t-values
+  t_value <- matrix(NA, dimObs+dimLat, dimTime)
+  rownames(t_value) <- c(obsName, latName)
+  
   ###### save by-products related to t ############
   if (debug_flag) {
     Q <- array(0, c(nrow(W_t), ncol(W_t), dimTime))
     S <- array(0, c(ncol(W_t), ncol(W_t), dimTime))
     s <- matrix(0, ncol(W_t), dimTime)
-
+    
     for(i in 1:nID){
       beginTime <- tstart[i] + 1
       endTime <- tstart[i+1]
-
+      
       for (j in beginTime:endTime) {
         Q_j <- W_t - K[,,j] %*% X_t
         Q[,,j] <- Q_j##
@@ -207,12 +191,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       # 0/0 at endTime
       t_value[,endTime] <- 0
     }
-
+    
   } else {
     for(i in 1:nID){
       beginTime <- tstart[i] + 1
       endTime <- tstart[i+1]
-
+      
       for (j in beginTime:endTime) {
         Q_j <- W_t - K[,,j] %*% X_t
         S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
@@ -227,23 +211,21 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
       t_value[,endTime] <- 0
     }
   }
-
+  
   ############ chi-square test ############################
-  # if (outliers=="joint") {
-    # de Jong's method.
-    chiJnt <- chiLat + chiObs
-
-    chiJnt_pval <- pchisq(chiJnt, df=dimLat+dimObs, lower.tail=FALSE)
-  # } else {
-    # p-values of chi-sqaure
-    chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
-    chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
-  # }
+  # de Jong's method.
+  chiJnt <- chiLat + chiObs
+  
+  chiJnt_pval <- pchisq(chiJnt, df=dimLat+dimObs, lower.tail=FALSE)
+  # p-values of chi-sqaure
+  chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
+  chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
+  
   # locate shock points, TRUE for significance
-    chiJnt_shk <- chiJnt_pval < (1 - conf.level)
-    chiLat_shk <- chiLat_pval < (1 - conf.level)
-    chiObs_shk <- chiObs_pval < (1 - conf.level)
-
+  chiJnt_shk <- chiJnt_pval < (1 - conf.level)
+  chiLat_shk <- chiLat_pval < (1 - conf.level)
+  chiObs_shk <- chiObs_pval < (1 - conf.level)
+  
   ################### t-test ###############################
   alternative <- match.arg(alternative)
   t_O_calcp <- if (alternative=="two.sided") {
@@ -274,98 +256,37 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     }
   }
   
-  # t-values for each 'outliers' option
-  # if (outliers=="joint") {
-    # t_value for observed
-    t_O <- t_value[1:dimObs, ]
-    # t_value for latent
-    t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
-    
-    t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
-    rownames(t_O_pval) <- obsName
-    t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
-    rownames(t_L_pval) <- latName
-    for(i in 1:nID){
-      begT <- tstart[i] + 1
-      endT <- tstart[i+1]
-      t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
-      t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
-    }
-    
-    # locate shocks from t-test
-    t_O_shk <- t_O_pval < (1 - conf.level)
-    # rownames(t_O_shk) <- obsName
-    t_L_shk <- t_L_pval < (1 - conf.level)
-    # rownames(t_L_shk) <- latName
-    
-  # } else if (outliers=="innovative") {
-    # # t_value for observed
-    # t_O <- matrix(NA, 1, dimTime)
-    # rownames(t_O) <- "t.L"
-    # # t_value for latent
-    # t_L <- t_value
-    # 
-    # t_O_pval <- t_O
-    # t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
-    # rownames(t_L_pval) <- latName
-    # for(i in 1:nID){
-    #   begT <- tstart[i] + 1
-    #   endT <- tstart[i+1]
-    #   t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
-    # }
-    # 
-    # # locate shocks from t-test
-    # t_L_shk <- t_L_pval < (1 - conf.level)
-    # rownames(t_L_shk) <- latName
-
-  # } else {#outliers=="additive"
-  #   # t_value for observed
-  #   t_O <- t_value
-  #   # t_value for latent
-  #   t_L <- matrix(NA, 1, dimTime)
-  #   rownames(t_W) <- "t.O"
-  #   
-  #   t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
-  #   rownames(t_O_pval) <- obsName
-  #   t_L_pval <- t_L
-  #   for(i in 1:nID){
-  #     begT <- tstart[i] + 1
-  #     endT <- tstart[i+1]
-  #     t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
-  #   }
-  #   
-  #   # locate shocks from t-test
-  #   t_O_shk <- t_O_pval < (1 - conf.level)
-  #   rownames(t_O_shk) <- obsName
-  # }
-
+  # t_value for observed
+  t_O <- t_value[1:dimObs, ]
+  # t_value for latent
+  t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
+  
+  t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
+  rownames(t_O_pval) <- obsName
+  t_L_pval <- matrix(NA, nrow(t_L), ncol(t_L))
+  rownames(t_L_pval) <- latName
+  for(i in 1:nID){
+    begT <- tstart[i] + 1
+    endT <- tstart[i+1]
+    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
+    t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
+  }
+  
+  # locate shocks from t-test
+  t_O_shk <- t_O_pval < (1 - conf.level)
+  # rownames(t_O_shk) <- obsName
+  t_L_shk <- t_L_pval < (1 - conf.level)
+  # rownames(t_L_shk) <- latName
+  
   ####### delta structure ######################
-  # if (outliers=="joint") {
-    rownames(delta) <- paste0("d_", c(obsName, latName))
-    # delta for observed
-    delta_O <- delta[1:dimObs, ]
-    # delta for latent
-    delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
-
-  # } else if (outliers=="innovative") {
-  #   rownames(delta) <- paste0("d_", latName)
-  #   # delta for observed
-  #   delta_O <- matrix(0, dimObs, dimTime)
-  #   rownames(delta_O) <- obsName
-  #   # delta for latent
-  #   delta_L <- delta
-  # 
-  # } else {#outliers=="additive"
-  #   rownames(delta) <- paste0("d_", obsName)
-  #   # delta for observed
-  #   delta_O <- delta
-  #   # delta for latent
-  #   delta_L <- matrix(0, dimLat, dimTime)
-  #   rownames(delta_L) <- latName
-  # }
-
+  rownames(delta) <- paste0("d_", c(obsName, latName))
+  # delta for observed
+  delta_O <- delta[1:dimObs, ]
+  # delta for latent
+  delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
+  
   res <- list(
-    id=id, time=tpoint,
+    tstart=tstart, id=id, time=tpoint,
     chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.outlier=chiJnt_shk,
     chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.outlier=chiLat_shk,
     chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.outlier=chiObs_shk,
@@ -376,9 +297,41 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
     res <- c(res, 
              list(Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r))
   }
-
+  
   class(res) <- "dynrTaste"
   invisible(res)
+}
+
+if (outliers=="joint") {
+  # delta that will be input to 'dynr.taste2'
+  row.names(delta_W) <- 1:nrow(delta_W)
+  row.names(delta_X) <- 1:nrow(delta_X)
+  delta_W_t <- delta_W_chi <- delta_W
+  delta_X_t <- delta_X_chi <- delta_X
+  delta_W_chi[!chiLat_shk,] <- 0
+  delta_X_chi[!chiObs_shk,] <- 0
+  delta_W_t[!t_W_shk] <- 0
+  delta_X_t[!t_X_shk] <- 0
+}   else if (outliers=="innovative") {
+  # t shock that pass chi shock
+  row.names(delta_X) <- 1:nrow(delta_X)
+  row.names(delta_W) <- 1:nrow(delta_W)
+  delta_W_t <- delta_W_chi <- delta_W
+  delta_X_t <- delta_X_chi <- delta_X
+  delta_W_chi[!chiLat_shk,] <- 0
+  delta_X_chi[] <- 0
+  delta_W_t[!t_W_shk] <- 0
+  delta_X_t[] <- 0
+} else {#outliers=="additive"
+  row.names(delta_X) <- 1:nrow(delta_X)
+  row.names(delta_W) <- 1:nrow(delta_W)
+  # delta that will be input to 'dynr.taste2'
+  delta_W_t <- delta_W_chi <- delta_W
+  delta_X_t <- delta_X_chi <- delta_X
+  delta_W_chi[] <- 0
+  delta_X_chi[!chiObs_shk,] <- 0
+  delta_W_t[] <- 0
+  delta_X_t[!t_X_shk] <- 0
 }
 
 ##' @description
@@ -423,10 +376,11 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
                         cook=TRUE,
                         verbose=TRUE,
                         delta_L=NULL, delta_O=NULL) {
-  # if ( length(dynrModel@dynamics@values.exo) != 0 ||
-  #      length(dynrModel@measurement@values.exo) != 0) {
-  #   stop("Currently, a model without covariates can be used.")
-  # }
+  if ( !is(dynrModel, 'dynrModel') ) {
+    stop("dynrModel object is required.") }
+  if ( !is(dynrCook, 'dynrCook') ) {
+    stop("dynrCook object is required.") }
+
   coefx <- coef(dynrCook)
   tryCatch(coef(dynrModel) <- coefx,
            error=function(e) {
@@ -451,6 +405,8 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     deltaLat <- delta_L
   } else
   if ( !is.null(dynrTaste) ) {
+    if ( !is(dynrTaste, 'dynrTaste') ) {
+      stop("dynrTaste object is required.") }
   # combine delta through subjects
   deltaLat <- do.call("rbind",
                       lapply(dynrTaste, function(taste_i) {
@@ -470,6 +426,8 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     deltaObs <- delta_O
   } else
   if ( !is.null(dynrTaste) ) {
+    if ( !is(dynrTaste, 'dynrTaste') ) {
+      stop("dynrTaste object is required.") }
     deltaObs <- do.call("rbind",
                         lapply(dynrTaste, function(taste_i) {
                           taste_i[[deltaTest]]$delta.O
