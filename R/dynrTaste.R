@@ -46,7 +46,6 @@
 ##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465–496.
 dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
-                       #outliers=c("joint", "innovative", "additive"),
                        debug_flag=FALSE) {
   if ( !inherits(dynrModel, 'dynrModel') ) {
     stop("dynrModel object is required.") }
@@ -115,7 +114,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   u <- matrix(NA, dimObs, dimTime)
   tstart <- dynrModel$data$tstart
   chiLat <- numeric(dimTime)
-  tpoint <- dynrModel$data$time
+  time <- dynrModel$data$time
   
   for(j in 1:nID){
     beginTime <- tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
@@ -276,18 +275,19 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   t_L_shk <- t_L_pval < (1 - conf.level)
   
   ####### delta structure ######################
-  rownames(delta) <- paste0("d_", c(obs_name, lat_name))
+  #rownames(delta) <- paste0("d_", c(obs_name, lat_name))
+  rownames(delta) <- c(obs_name, lat_name)
   # delta for observed
   delta_O <- delta[1:dimObs, ]
   # delta for latent
   delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
   
   res <- list(
-    chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.outlier=chiJnt_shk,
-    chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.outlier=chiLat_shk,
-    chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.outlier=chiObs_shk,
-    t.inn=t_L, t.inn.pval=t_L_pval, t.inn.outlier=t_L_shk,
-    t.add=t_O, t.add.pval=t_O_pval, t.add.outlier=t_O_shk,
+    chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.shock=chiJnt_shk,
+    chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.shock=chiLat_shk,
+    chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.shock=chiObs_shk,
+    t.inn=t_L, t.inn.pval=t_L_pval, t.inn.shock=t_L_shk,
+    t.add=t_O, t.add.pval=t_O_pval, t.add.shock=t_O_shk,
     delta.inn=delta_L, delta.add=delta_O)
   if (debug_flag) {
     res <- c(res, 
@@ -298,37 +298,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   invisible(res)
 }
 
-if (outliers=="joint") {
-  # delta that will be input to 'dynr.taste2'
-  row.names(delta_W) <- 1:nrow(delta_W)
-  row.names(delta_X) <- 1:nrow(delta_X)
-  delta_W_t <- delta_W_chi <- delta_W
-  delta_X_t <- delta_X_chi <- delta_X
-  delta_W_chi[!chiLat_shk,] <- 0
-  delta_X_chi[!chiObs_shk,] <- 0
-  delta_W_t[!t_W_shk] <- 0
-  delta_X_t[!t_X_shk] <- 0
-}   else if (outliers=="innovative") {
-  # t shock that pass chi shock
-  row.names(delta_X) <- 1:nrow(delta_X)
-  row.names(delta_W) <- 1:nrow(delta_W)
-  delta_W_t <- delta_W_chi <- delta_W
-  delta_X_t <- delta_X_chi <- delta_X
-  delta_W_chi[!chiLat_shk,] <- 0
-  delta_X_chi[] <- 0
-  delta_W_t[!t_W_shk] <- 0
-  delta_X_t[] <- 0
-} else {#outliers=="additive"
-  row.names(delta_X) <- 1:nrow(delta_X)
-  row.names(delta_W) <- 1:nrow(delta_W)
-  # delta that will be input to 'dynr.taste2'
-  delta_W_t <- delta_W_chi <- delta_W
-  delta_X_t <- delta_X_chi <- delta_X
-  delta_W_chi[] <- 0
-  delta_X_chi[!chiObs_shk,] <- 0
-  delta_W_t[] <- 0
-  delta_X_t[!t_X_shk] <- 0
-}
 
 ##' @description
 ##' The function \code{dynr.taste2{}} update the \code{dynrModel}
@@ -338,24 +307,34 @@ if (outliers=="joint") {
 ##' @param dynrModel an object of dynrModel class.
 ##' @param dynrCook an object of dynrCook class.
 ##' @param dynrTaste an object of dynrTaste class. The default is NULL.
-##' @param outlierTest a character string specifying the test
-##'   used to detect outliers (Chi-squared or t test),
-##'   must be one of ``t'' (default), ``chi''.
-##' @param newOutfile a character string for \code{outfile}
-##'  argument of \code{dynr.model} function
-##'  to create new \code{dynrModel} object.
-##'  The default is "new_taste.c".
+##' @param delta_inn a character string for a method detecting `inn'ovative outliers,
+##' which must be one of ``t'' (default), ``ind'', ``jnt'' or ``null''.
+##' According to the method,
+##' corresponding delta estimates (magnitude of estimated outliers) 
+##' will be included in the new dynrModel in output.
+##' `t' represents the t statistic, `ind' represents the independent chi-square statistic,
+##' `jnt' represents the joint chi-square statistic.
+##' If no outliers are assumed, ``null'' can be used. 
+##' @param delta_add a character string for a method detecting `add'itive outliers,
+##' which must be one of ``t'' (default), ``ind'', ``jnt'' or ``null''.
+##' According to the method,
+##' corresponding delta estimates will be included in the new dynrModel.
+##' @param delta_L a data.frame containing user-specified latent outliers.
+##' The delta estimates from \code{dynrTaste} will be ignored.
+##' The number of rows should equal to the total time points, and the number of columns should equal to the number of latent variables.
+##' @param delta_O a data.frame containing user-specified observed outliers.
+##' The delta estimates from \code{dynrTaste}, and 
+##' arguments of \code{delta_inn} and \code{delta_add} will be ignored.
+##' The number of rows should equal to the total time points, and the number of columns should equal to the number of observed variables.
 ##'  @param cook a logical specifying whether the newly built model
 ##'   would be cooked by 'dynr.cook' function.
 ##'   The default is TRUE. When 'cook=FALSE', only the newly built model will be saved for the output.
 ##' @param verbose a logical specifying the verbose argument
 ##'  of the new cook object. The default is FALSE.
-##' @param delta_L a data.frame containing user-specified latent outliers.
-##' The delta estimates from \code{dynrTaste} will be ignored.
-##' The number of rows should equal to the total time points, and the number of columns should equal to the number of latent variables.
-##' @param delta_O a data.frame containing user-specified observed outliers.
-##' The delta estimates from \code{dynrTaste} will be ignored.
-##' The number of rows should equal to the total time points, and the number of columns should equal to the number of observed variables.
+##' @param newOutfile a character string for \code{outfile}
+##'  argument of \code{dynr.model} function
+##'  to create new \code{dynrModel} object.
+##'  The default is "new_taste.c".
 ##'
 ##' @details
 ##' The argument \code{dynrTaste} should be the dynrTaste object
@@ -368,22 +347,31 @@ if (outliers=="joint") {
 ##' @return a list with the two arguments;
 ##' a new \code{dynrModel} object the outliers are applied,
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked.
-dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
-                        outlierTest=c("t", "chi"),
-                        newOutfile="new_taste.c",
-                        cook=TRUE,
-                        verbose=TRUE,
-                        delta_L=NULL, delta_O=NULL) {
+dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
+                        delta_inn=c("t", "ind", "jnt", "null"),
+                        delta_add=c("t", "ind", "jnt", "null"),
+                        delta_L=NULL, delta_O=NULL,
+                        cook=TRUE, verbose=TRUE,
+                        newOutfile="new_taste.c") {
   if ( !inherits(dynrModel, 'dynrModel') ) {
-    stop("dynrModel object is required.") }
+    stop("dynrModel object is required.")
+  }
   if ( !inherits(dynrCook, 'dynrCook') ) {
-    stop("dynrCook object is required.") }
+    stop("dynrCook object is required.") 
+  }
+  if ( !inherits(dynrTaste, "dynrTaste") ) {
+    stop("dynrTaste object is required.") 
+  }
   
   id <- dynrModel$data$id
   id_unq <- unique(id) 
   id_n <- length(id_unq)
   tstart <- dynrModel$data$tstart
-  tpoint <- dynrModel$data$time
+  time <- dynrModel$data$time
+  lat_name <- dynrModel$measurement$state.names
+  obs_name <- dynrModel$measurement$obs.names
+  lat_n <- length(lat_name)
+  obs_n <- length(obs_name)
   
   coefx <- coef(dynrCook)
   tryCatch(coef(dynrModel) <- coefx,
@@ -392,79 +380,87 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
              coefx <- coefx
            })
 
-  outlierTest <- match.arg(outlierTest)
-  deltaTest <- paste0("delta_", outlierTest)
+  deltaLat <- dynrTaste$delta.inn
+  delta_inn <- match.arg(delta_inn)
+  if (delta_inn == "t") {
+    deltaLat[!dynrTaste$t.inn.shock] <- 0
+    
+  } else if (delta_inn == "ind") {
+    deltaLat[!dynrTaste$chi.inn.shock] <- 0
+        
+  } else if (delta_inn == "jnt") {
+    deltaLat[!dynrTaste$chi.jnt.shock] <- 0
+  
+  } else {# "null"
+    deltaLat[] <- 0
+  }
+  # apply deltaLat to 'shock.time + 1', so called
+  # 'the time the shock appears'
+  for(j in 1:id_n) {
+    begT <- tstart[j] + 1
+    endT <- tstart[j+1]
+    deltaLat[, begT:endT] <- 
+      cbind( rep(0, lat_n), deltaLat[, begT:(endT-1)] )
+  }
+  deltaLat <- as.data.frame( t(deltaLat) )
+  
+  deltaObs <- dynrTaste$delta.add
+  delta_add <- match.arg(delta_add)
+  if (delta_add == "t") {
+    deltaObs[!dynrTaste$t.add.shock] <- 0
+    
+  } else if (delta_inn == "ind") {
+    deltaObs[!dynrTaste$chi.add.shock] <- 0
+    
+  } else if (delta_inn == "jnt") {
+    deltaObs[!dynrTaste$chi.jnt.shock] <- 0
+    
+  } else {# "null"
+    deltaObs[] <- 0
+  }
+  deltaObs <- as.data.frame( t(deltaObs) )
+  
+  if ( !is.null(delta_L) ) {
+    if ( !is.data.frame(delta_L) ) {
+      stop("'delta_L' must be a data.frame.") }
+    if ( lat_n != ncol(delta_L) ) {
+      stop("The number of columns of 'delta_L' differs with the number of the latent variables.") }
+    if ( length(time) != nrow(delta_L) ) {
+      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
+    deltaLat <- delta_L
+  }
+  dlname <- names(deltaLat)
+  names(deltaLat) <- paste0("d_", dlname)
+  
+  if ( !is.null(delta_O) ) {
+    if ( !is.data.frame(delta_O) ) {
+      stop("'delta_O' must be a data.frame. ") }
+    if ( obs_n != ncol(delta_O) ) {
+      stop("The number of columns of 'delta_O' differs with the number of the measured variables.") }
+    if ( length(time) != nrow(delta_O) ) {
+      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
+    deltaObs <- delta_O
+  }
+  doname <- names(deltaObs)
+  names(deltaObs) <- paste0("d_", doname)
+
+  delta_lat_name <- names(deltaLat)
+  delta_obs_name <- names(deltaObs)
+  
   # all parameter names + "fixed", to be used for params.xxx
   par_name <- c(names(dynrModel), "fixed")
   # to substitute 'fixed'
   fixed_pos <- length(par_name)
 
-  lat_name <- dynrModel$measurement$state.names
-  obs_name <- dynrModel$measurement$obs.names
-  n_lat <- length(lat_name)
-  n_obs <- length(obs_name)
-
-  if ( !is.null(delta_L) ) {
-    if ( !is.data.frame(delta_L) ) {
-      stop("'delta_L' must be a data.frame. ") }
-    if ( n_lat != ncol(delta_L) ) {
-      stop("The number of columns of 'delta_L' differs with the number of the latent variables.") }
-    if ( length(tpoint) != nrow(delta_L) ) {
-      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
-    deltaLat <- delta_L
-    
-  } else {
-    if ( is.null(dynrTaste) ) {
-      stop("Both 'dynrTaste' and 'delta_L' cannot be NULL.")
-    } else {
-      if ( !inherits(dynrTaste, "dynrTaste") ) {
-        stop("dynrTaste object is required.") }
-      
-      # apply delta_L to 'shock.time + 1', so called
-      # 'the time the shock appears'
-      deltaLat <- dynrTaste$delta.inn
-      for(j in 1:id_n) {
-        begT <- tstart[j] + 1
-        endT <- tstart[j+1]
-        deltaLat[, begT:endT] <- 
-          cbind(rep(0, n_lat), deltaLat[, begT:(endT-1)]
-      }
-    }
-  }
-  
-  if ( !is.null(delta_O) ) {
-    if ( !is.data.frame(delta_O) ) {
-      stop("'delta_O' must be a data.frame. ") }
-    if ( n_obs != ncol(delta_O) ) {
-      stop("The number of columns of 'delta_O' differs with the number of the measured variables.") }
-    if ( length(tpoint) != nrow(delta_O) ) {
-      stop("The number of rows of 'delta_L' differs with the number of the total time points.") }
-    deltaObs <- delta_O
-    
-  } else {
-    if ( is.null(dynrTaste) ) {
-      stop("Both 'dynrTaste' and 'delta_O' cannot be NULL.")
-    } else {
-      if ( !inherits(dynrTaste, "dynrTaste") ) {
-        stop("dynrTaste object is required.") }
-      deltaObs <- dynrTaste$delta.add
-    }
-  }
-
-  name_delta_lat <- names(deltaLat)
-  name_delta_obs <- names(deltaObs)
-
   # build dynr.data
   data_org <- as.data.frame(dynrModel@data$original.data)
-  id_org <- dynrModel@data$id
-  time_org <- dynrModel@data$time
   obs_name_org <- dynrModel@data$observed.names
-  covName_org <- dynrModel@data$covariate.names
-  data_all <- data.frame(id=id_org, time=time_org,
-                         data_org[, c(obs_name_org, covName_org), drop=FALSE],
+  cov_name_org <- dynrModel@data$covariate.names
+  data_all <- data.frame(id=id, time=time,
+                         data_org[, c(obs_name_org, cov_name_org), drop=FALSE],
                          deltaLat, deltaObs)
   new_data <- dynr.data(data_all, observed=obs_name_org,
-                        covariates=c(covName_org, name_delta_lat, name_delta_obs))
+                        covariates=c(cov_name_org, delta_lat_name, delta_obs_name))
 
   # build prep.initial
   paInis <- dynrModel@initial@params.inistate[[1]]
@@ -488,9 +484,9 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   dim(paramsDyn) <- dim(padyn)# to matrix
   if ( length(dynrModel@dynamics@values.exo) ) {
     dynValExo <- cbind( dynrModel@dynamics@values.exo[[1]],
-                         diag(1, nrow=n_lat, ncol=n_lat) )
+                         diag(1, nrow=lat_n, ncol=lat_n) )
   } else {
-    dynValExo <- diag(1, nrow=n_lat, ncol=n_lat)
+    dynValExo <- diag(1, nrow=lat_n, ncol=lat_n)
   }
   if ( length(dynrModel@dynamics@params.exo) ) {
     dynParExo1 <- dynrModel@dynamics@params.exo[[1]]
@@ -498,38 +494,18 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     dynParExo2 <- par_name[dynParExo1]# vector
     dim(dynParExo2) <- dim(dynParExo1)# to matrix
     dynParExo <- cbind(dynParExo2,
-                       matrix("fixed", nrow=n_lat, ncol=n_lat) )
+                       matrix("fixed", nrow=lat_n, ncol=lat_n) )
   } else {
-    dynParExo <- matrix("fixed", nrow=n_lat, ncol=n_lat)
+    dynParExo <- matrix("fixed", nrow=lat_n, ncol=lat_n)
   }
   new_dynamics <- prep.matrixDynamics(
     values.dyn=dynrModel@dynamics@values.dyn[[1]],
     params.dyn=paramsDyn,
     values.exo=dynValExo,
     params.exo=dynParExo,
-    covariates=c(dynrModel@dynamics@covariates, name_delta_lat),
+    covariates=c(dynrModel@dynamics@covariates, delta_lat_name),
     isContinuousTime=FALSE)
-
-  # # modify dynrModel@data
-  # if ( is.null(dynrModel@data$covariate.names) ) {#no orginal covariates
-  #   dynrModel@data$covariate.names <- c(name_delta_lat, name_delta_obs)
-  #   deltaLatCopy <- deltaLat
-  #   names(deltaLatCopy) <- paste0("covar", 1:n_lat)
-  #   deltaObsCopy <- deltaObs
-  #   names(deltaObsCopy) <- paste0("covar", (1:n_obs) + n_lat)
-  #   dynrModel@data$covariates <- cbind(deltaLatCopy, deltaObsCopy)
-  # } else {# original covariates exist
-  # nPreCovariate <- length(dynrModel@data$covariate.names)
-  # dynrModel@data$covariate.names <- c(dynrModel@data$covariate.names,
-  #                                     name_delta_lat, name_delta_obs)
-  # names(deltaLat) <- paste0("covar",
-  #                           (1:n_lat) + nPreCovariate)
-  # names(deltaObs) <- paste0("covar",
-  #                           (1:n_obs) + nPreCovariate + n_lat)
-  # dynrModel@data$covariates <- cbind(dynrModel@data$covariates,
-  #                                    deltaLat, deltaObs)
-  # }
-
+ 
   # build measurement
   measParLoad <- dynrModel@measurement@params.load[[1]]
   measParLoad[measParLoad==0] <- fixed_pos
@@ -537,9 +513,9 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
   dim(paramsLoad) <- dim(measParLoad)# to matrix
   if ( length(dynrModel@measurement@values.exo) ) {
     measValExo <- cbind( dynrModel@measurement@values.exo[[1]],
-                         diag(1, nrow=n_obs, ncol=n_obs) )
+                         diag(1, nrow=obs_n, ncol=obs_n) )
   } else {
-    measValExo <- diag(1, nrow=n_obs, ncol=n_obs)
+    measValExo <- diag(1, nrow=obs_n, ncol=obs_n)
   }
   if ( length(dynrModel@measurement@params.exo) ) {
     measParExo1 <- dynrModel@measurement@params.exo[[1]]
@@ -547,16 +523,16 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     measParExo2 <- par_name[measParExo1]# vector
     dim(measParExo2) <- dim(measParExo1)# to matrix
     measParExo <- cbind(measParExo2,
-                        matrix("fixed", nrow=n_obs, ncol=n_obs) )
+                        matrix("fixed", nrow=obs_n, ncol=obs_n) )
   } else {
-    measParExo <- matrix("fixed", nrow=n_obs, ncol=n_obs)
+    measParExo <- matrix("fixed", nrow=obs_n, ncol=obs_n)
   }
   new_measurement <- prep.measurement(
     values.load=dynrModel@measurement@values.load[[1]],
     params.load=paramsLoad,
     values.exo=measValExo,
     params.exo=measParExo,
-    exo.names=c(dynrModel@measurement@exo.names, name_delta_obs),
+    exo.names=c(dynrModel@measurement@exo.names, delta_obs_name),
     state.names=dynrModel@measurement@state.names,
     obs.names=dynrModel@measurement@obs.names
   )
@@ -578,7 +554,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     params.observed=paramsObserved
   )
 
-  new_dynrModel <- dynr.model(
+  dynrModel_new <- dynr.model(
     dynamics = new_dynamics,
     measurement = new_measurement,
     noise = new_noise,
@@ -587,11 +563,11 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste=NULL,
     outfile = newOutfile)
   # cook?
   if (cook) {
-    new_dynrCook <- dynr.cook(new_dynrModel, verbose=verbose, debug_flag=TRUE)
-    list(new_dynrModel=new_dynrModel,
-         new_dynrCook=new_dynrCook)
+    dynrCook_new <- dynr.cook(dynrModel_new, verbose=verbose, debug_flag=TRUE)
+    list(dynrModel_new=dynrModel_new,
+         dynrCook_new=dynrCook_new)
   } else {
-    list(new_dynrModel=new_dynrModel)
+    list(dynrModel_new=dynrModel_new)
   }
 }
 
@@ -723,3 +699,36 @@ shockSignature <- function(dynrModel, dynrCook,
 #                                             tPA, tNA), plotArgs))
 # ggpubr::annotate_figure(latchi,
 #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+
+### for reference:: 
+# if (outliers=="joint") {
+#   # delta that will be input to 'dynr.taste2'
+#   row.names(delta_W) <- 1:nrow(delta_W)
+#   row.names(delta_X) <- 1:nrow(delta_X)
+#   delta_W_t <- delta_W_chi <- delta_W
+#   delta_X_t <- delta_X_chi <- delta_X
+#   delta_W_chi[!chiLat_shk,] <- 0
+#   delta_X_chi[!chiObs_shk,] <- 0
+#   delta_W_t[!t_W_shk] <- 0
+#   delta_X_t[!t_X_shk] <- 0
+# } else if (outliers=="innovative") {
+#   # t shock that pass chi shock
+#   row.names(delta_X) <- 1:nrow(delta_X)
+#   row.names(delta_W) <- 1:nrow(delta_W)
+#   delta_W_t <- delta_W_chi <- delta_W
+#   delta_X_t <- delta_X_chi <- delta_X
+#   delta_W_chi[!chiLat_shk,] <- 0
+#   delta_X_chi[] <- 0
+#   delta_W_t[!t_W_shk] <- 0
+#   delta_X_t[] <- 0
+# } else {#outliers=="additive"
+#   row.names(delta_X) <- 1:nrow(delta_X)
+#   row.names(delta_W) <- 1:nrow(delta_W)
+#   # delta that will be input to 'dynr.taste2'
+#   delta_W_t <- delta_W_chi <- delta_W
+#   delta_X_t <- delta_X_chi <- delta_X
+#   delta_W_chi[] <- 0
+#   delta_X_chi[!chiObs_shk,] <- 0
+#   delta_W_t[] <- 0
+#   delta_X_t[!t_X_shk] <- 0
+# }  
