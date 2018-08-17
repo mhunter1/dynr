@@ -283,6 +283,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
   
   res <- list(
+    tstart=tstart, id=id,
     chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.shock=chiJnt_shk,
     chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.shock=chiLat_shk,
     chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.shock=chiObs_shk,
@@ -588,18 +589,41 @@ computeJacobian <- function(cookDebug, jacobian, lat_name, params, time){
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 50)
 #cf t=1 vs t=50
 
-##' @param numSubjDemo The number of subjects to be randomly selected for plotting.
+##' @param numSubjDemo The number of subjects, who have 
+##' largest joint chi-square statistic, to be selected  for plotting.
 ##' @param idtoPlot Values of the ID variable to plot.
 ##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
 ##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
-autoplot.dynrTaste(dynrtaste, numSubjDemo=2, idtoPlot=c(),
+autoplot.dynrTaste(dynrTaste, numSubjDemo=2, idtoPlot=NULL,
                    names.state, names.observed, ...) {
-
+  tstart <- dynrTaste$tstart
+  chi_jnt <- dynrTaste$chi.jnt
+  id <- dynrTaste$id
+  id_unq <- unique(id)
+  id_n <- length(id_unq)
+  lat_name <- rownames(dynrTaste$t.inn)
+  obs_name <- rownames(dynrTaste$t.add)
+  if ( !all(names.state %in% lat_name) ) {
+    stop("'names.state' should be a subset of the latent variables.")
+  }
+  if ( !all(names.observed %in% obs_name) ) {
+    stop("'names.observed' should be a subset of the observed variables.")
+  }
+  if ( is.null(idtoPlot) ) {
+  chi_max <- vector("numeric", id_n)
+  for(i in 1:id_n){
+    begT <- tstart[i] + 1
+    endT <- tstart[i+1]
+    chi_max[i] <- max( chi_jnt[begT:endT] )
+  }
+  id_to_plot <- id_unq[order(chi_max, decreasing=TRUE)][1:numSubjDemo]
+  } else {
+    id_to_plot <- idtoPlot
+    if ( !all(id_to_plot %in% id_unq) ) {
+      stop("Not all ID are in the data.")
+    }
+  }
 }
-
-rbind(id=taste_shk$`1`$taste[["id"]],
-           time=taste_shk$`1`$taste[["time"]],
-           taste_shk$`1`$delta_chi$delta.L)
 
 delta_chi_L <- function(tasteOut) {
   shocks <- lapply(tasteOut, function(tasteout_i) {
