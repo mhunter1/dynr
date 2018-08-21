@@ -241,7 +241,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss, innov_determinant);
 					
 					/** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
-					double tooSmallNumber = 1e-323;
+					double tooSmallNumber = 1e-322;
 					double tryP = exp(-neg_log_p);
 					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
 					
@@ -295,7 +295,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             	}/*end of k*/
 
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
-			double tooSmallRegimeNumber = 1e-323;
+			double tooSmallRegimeNumber = 1e-322;
 			if(gsl_vector_min(pr_t) < tooSmallRegimeNumber){
 				gsl_vector_add_constant(pr_t, tooSmallRegimeNumber);
 				mathfunction_vector_normalize(pr_t);
@@ -927,7 +927,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
                    neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], y_non_miss, innov_determinant);
 					
-					double tooSmallNumber = 1e-323;
+					double tooSmallNumber = 1e-322;
 					double tryP = exp(-neg_log_p);
 					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
 
@@ -971,7 +971,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
             }/*end of k*/
 			
             /** step 2.4.1: check whether there is zero probability. If so, a small amount of value is added. Again we do not like too small and zero probability **/
-			double tooSmallRegimeNumber = 1e-323;
+			double tooSmallRegimeNumber = 1e-322;
 			if(gsl_vector_min(pr_t[t]) < tooSmallRegimeNumber){
 	        	gsl_vector_add_constant(pr_t[t], tooSmallRegimeNumber);
 	        	mathfunction_vector_normalize(pr_t[t]);
