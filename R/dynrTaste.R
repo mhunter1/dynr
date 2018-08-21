@@ -608,6 +608,8 @@ autoplot.dynrTaste <- function(dynrTaste,
   id_n <- length(id_unq)
   lat_name <- rownames(dynrTaste$t.inn)
   obs_name <- rownames(dynrTaste$t.add)
+  lat_n <- length(lat_name)
+  obs_n <- length(obs_name)
   
   if( is.null(names.state) ) {
     lat_toplot <- lat_name
@@ -643,109 +645,116 @@ autoplot.dynrTaste <- function(dynrTaste,
     }
   }
 
+  ### create ggplot objects
+  ggadd_hline <- function(yintercept) {
+    geom_hline(yintercept=yintercept, 
+               colour="black", linetype="dashed", alpha=0.5)
+  }
+  ggadd_point <- function(data, aes_y) {
+    geom_point(data=data, aes_string(x="time", y=aes_y),
+               colour="red", size=2, alpha=0.5)
+  }
+  ggadd_theme <- function() {
+    theme(plot.title=element_text(size = rel(0.85)),
+          axis.title.x=element_blank(),
+          #axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          panel.background=element_blank(),
+          plot.margin = margin(0, 0, 0, 0),
+          axis.line=element_line(colour = "black"))
+  }
+  ggadd_ggpubr <- function(plots_list, nrow) {
+    plotArgs <- list(nrow=nrow, ncol=1, align="v")
+    plots_arr <- do.call(ggpubr::ggarrange, c(plots_list, plotArgs))
+    ggpubr::annotate_figure(plots_arr,
+                            bottom=ggpubr::text_grob("time", color="black", size=11))
+  }
+  
+  id_toplot_n <- length(id_toplot)
   time <- dynrTaste$time
   chi_df_jnt <- data.frame(id = id, time = time,
                            chi_jnt = dynrTaste$chi.jnt,
                            chi_jnt_shk = dynrTaste$chi.jnt.shock)
-  
   chi_df_jnt_plot <- subset(chi_df_jnt, is.element(id, id_toplot))
   chi_df_jnt_shk <- subset(chi_df_jnt_plot, chi_jnt_shk)
   
-  lat_n <- length(lat_name)
-  obs_n <- length(obs_name)
-  
+  qchi_jnt <- qchisq(conf_level, lat_n + obs_n)
   plots_jnt <- lapply(id_toplot, function(id_i) {
+    chi_df_jnt_shk_i <- subset(chi_df_jnt_shk, id == id_i)
     ggplot2::ggplot(subset(chi_df_jnt_plot, id == id_i), 
                                   aes(x=time, y=chi_jnt)) +
       geom_line(alpha=0.5) +
-      geom_hline(yintercept=qchisq(conf_level, lat_n + obs_n), 
-                 colour="black", linetype="dashed", alpha=0.5) +
-      geom_point(data=subset(chi_df_jnt_shk, id == id_i), 
-                 aes(x=time, y=chi_jnt),
-                 colour="red", size=2, alpha=0.5) +
       labs(title="") +
       ylab(expression(paste("Joint ", Chi^2))) +
-      theme(plot.title=element_text(size = rel(0.85)),
-            axis.title.x=element_blank(),
-            #axis.text.x=element_blank(),
-            axis.ticks.x=element_blank(),
-            panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),
-            panel.background=element_blank(),
-            plot.margin = margin(0, 0, 0, 0),
-            axis.line=element_line(colour = "black"))
+      list(ggadd_point(chi_df_jnt_shk_i, "chi_jnt"), 
+           ggadd_hline(qchi_jnt), ggadd_theme())
   })
-  # plotArgs <- list(nrow=2, ncol=1, align="v")
-  # latchi <- do.call(ggpubr::ggarrange, 
-  #                   c(plots_jnt, plotArgs))
-  # ggpubr::annotate_figure(latchi,
-  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+  # ggadd_ggpubr(plots_jnt, id_toplot_n)
   
   chi_df_inn <- data.frame(id = id, time = time,
                            chi_inn = dynrTaste$chi.inn,
                            chi_inn_shk = dynrTaste$chi.inn.shock)
   chi_df_inn_plot <- subset(chi_df_inn, is.element(id, id_toplot))
   chi_df_inn_shk <- subset(chi_df_inn_plot, chi_inn_shk)
-  
+
+  qchi_inn <- qchisq(conf_level, lat_n)
   plots_inn <- lapply(id_toplot, function(id_i) {
-    ggplot2::ggplot(subset(chi_df_inn_plot, id==id_i), 
+    chi_df_inn_shk_i <- subset(chi_df_inn_shk, id==id_i)
+    ggplot2::ggplot(subset(chi_df_inn_plot, id==id_i),
                     aes(x=time, y=chi_inn)) +
       geom_line(alpha=0.5) +
-      geom_hline(yintercept=qchisq(conf_level, lat_n), 
-                 colour="black", linetype="dashed", alpha=0.5) +
-      geom_point(data=subset(chi_df_inn_shk, id == id_i), 
-                 aes(x=time, y=chi_inn),
-                 colour="red", size=2, alpha=0.5) +
       labs(title="") +
       ylab(expression(paste("Indep.  ", Chi^2, " - innovative"))) +
-      theme(plot.title=element_text(size = rel(0.85)),
-            axis.title.x=element_blank(),
-            #axis.text.x=element_blank(),
-            axis.ticks.x=element_blank(),
-            panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),
-            panel.background=element_blank(),
-            plot.margin = margin(0, 0, 0, 0),
-            axis.line=element_line(colour = "black"))
+      list(ggadd_point(chi_df_inn_shk_i, "chi_inn"),
+           ggadd_hline(qchi_inn), ggadd_theme())
   })
-  plotArgs <- list(nrow=2, ncol=1, align="v")
-  plots_inn_list <- do.call(ggpubr::ggarrange,
-                     c(plots_inn, plotArgs))
-  # ggpubr::annotate_figure(plots_inn_list,
-  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
-  
+  # ggadd_ggpubr(plots_inn, id_toplot_n)
+
+  t_add <- dynrTaste$t.add
+  t_add_name <- row.names(t_add)
+  row.names(t_add) <- paste0(t_add_name, "_t")
+  t_df_add <- data.frame(id = id, time = time,
+                         t(t_add), t(dynrTaste$t.add.shock))
+
+  t_df_add_plot <- subset(t_df_add, is.element(id, id_toplot))
+
+  plots_t_add <- lapply(id_toplot, function(id_i) {
+    t_df_add_plot_i <- subset(t_df_add_plot, id==id_i)
+    t_add_df_i <- nrow(t_df_add_plot_i)
+    lapply(obs_toplot, function(obs_i) {
+      t_df_add_shk_i <- subset(t_df_add_plot_i,
+                               t_df_add_plot_i[[obs_i]])
+      qt_i <- qt(conf_level, t_add_df_i - obs_n)
+      ggplot2::ggplot(t_df_add_plot_i,
+                      aes_string(x="time", y=paste0(obs_i, "_t"))) +
+        geom_line(alpha=0.5) +
+        labs(title="") +
+        ylab(paste("t_[", obs_i, "]")) +
+        list(ggadd_point(t_df_add_shk_i, paste0(obs_i, "_t")),
+          ggadd_hline(qt_i), ggadd_hline(-qt_i), ggadd_theme())
+    })
+  })
+  # ggadd_ggpubr(plots_t_add[[1]], 6)
+
   chi_df_add <- data.frame(id = id, time = time,
                            chi_add = dynrTaste$chi.add,
                            chi_add_shk = dynrTaste$chi.add.shock)
   chi_df_add_plot <- subset(chi_df_add, is.element(id, id_toplot))
   chi_df_add_shk <- subset(chi_df_add_plot, chi_add_shk)
-  
+
   plots_add <- lapply(id_toplot, function(id_i) {
-    ggplot2::ggplot(subset(chi_df_add_plot, id==id_i), 
+    chi_df_add_shk_i <- subset(chi_df_add_shk, id==id_i)
+    ggplot2::ggplot(subset(chi_df_add_plot, id==id_i),
                     aes(x=time, y=chi_add)) +
       geom_line(alpha=0.5) +
-      geom_hline(yintercept=qchisq(conf_level, lat_n), 
-                 colour="black", linetype="dashed", alpha=0.5) +
-      geom_point(data=subset(chi_df_add_shk, id==id_i), 
-                 aes(x=time, y=chi_add),
-                 colour="red", size=2, alpha=0.5) +
       labs(title="") +
       ylab(expression(paste("Indep.  ", Chi^2, " - additive"))) +
-      theme(plot.title=element_text(size = rel(0.85)),
-            axis.title.x=element_blank(),
-            #axis.text.x=element_blank(),
-            axis.ticks.x=element_blank(),
-            panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),
-            panel.background=element_blank(),
-            plot.margin = margin(0, 0, 0, 0),
-            axis.line=element_line(colour = "black"))
+      list(ggadd_point(chi_df_add_shk_i, "chi_add"),
+        ggadd_hline(qchisq(conf_level, lat_n)), ggadd_theme())
   })
-  plotArgs <- list(nrow=2, ncol=1, align="v")
-  plots_add_list <- do.call(ggpubr::ggarrange,
-                            c(plots_add, plotArgs))
-  # ggpubr::annotate_figure(plots_add_list,
-  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+  # ggadd_ggpubr(plots_add, 6)
 
   t_inn <- dynrTaste$t.inn
   t_inn_name <- row.names(t_inn)
@@ -756,7 +765,6 @@ autoplot.dynrTaste <- function(dynrTaste,
                          t(dynrTaste$t.add))
   t_df_add_shk <- data.frame(id = id, time = time,
                              t(dynrTaste$t.add.shock))
-
   t_df_inn_plot <- subset(t_df_inn, is.element(id, id_toplot))
 
   plots_t_inn <- lapply(id_toplot, function(id_i) {
@@ -768,75 +776,13 @@ autoplot.dynrTaste <- function(dynrTaste,
       ggplot2::ggplot(t_df_inn_plot_i,
                       aes_string(x="time", y=paste0(lat_i, "_t"))) +
         geom_line(alpha=0.5) +
-        geom_hline(yintercept=qt_i, colour="black",
-                   linetype="dashed", alpha=0.5) +
-        geom_hline(yintercept=-qt_i, colour="black",
-                   linetype="dashed", alpha=0.5) +
-        geom_point(data=t_df_inn_shk_i,
-                   aes_string(x="time", y=paste0(lat_i, "_t")),
-                   colour="red", size=2, alpha=0.5) +
       labs(title="") +
       ylab(paste("t_[", lat_i, "]")) +
-      theme(plot.title=element_text(size = rel(0.85)),
-            axis.title.x=element_blank(),
-            #axis.text.x=element_blank(),
-            axis.ticks.x=element_blank(),
-            panel.grid.major=element_blank(),
-            panel.grid.minor=element_blank(),
-            panel.background=element_blank(),
-            plot.margin = margin(0, 0, 0, 0),
-            axis.line=element_line(colour = "black"))
+      list(ggadd_point(t_df_inn_shk_i, paste0(lat_i, "_t")),
+           ggadd_hline(qt_i), ggadd_hline(-qt_i), ggadd_theme())
     })
   })
-  plotArgs <- list(nrow=2, ncol=1, align="v")
-  plots_t_inn_list <- do.call(ggpubr::ggarrange,
-                              c(plots_t_inn[[1]], plotArgs))
-  # ggpubr::annotate_figure(plots_t_inn_list,
-  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
-  
-  t_add <- dynrTaste$t.add
-  t_add_name <- row.names(t_add)
-  row.names(t_add) <- paste0(t_add_name, "_t")
-  t_df_add <- data.frame(id = id, time = time,
-                         t(t_add), t(dynrTaste$t.add.shock))
-  
-  t_df_add_plot <- subset(t_df_add, is.element(id, id_toplot))
-  
-  plots_t_add <- lapply(id_toplot, function(id_i) {
-    t_df_add_plot_i <- subset(t_df_add_plot, id==id_i)
-    t_add_df_i <- nrow(t_df_add_plot_i)
-    lapply(obs_toplot, function(obs_i) {
-      t_df_add_shk_i <- subset(t_df_add_plot_i,
-                               t_df_add_plot_i[[obs_i]])
-      qt_i <- qt(conf_level, t_add_df_i - obs_n)
-      ggplot2::ggplot(t_df_add_plot_i,
-                      aes_string(x="time", y=paste0(obs_i, "_t"))) +
-        geom_line(alpha=0.5) +
-        geom_hline(yintercept=qt_i, colour="black",
-                   linetype="dashed", alpha=0.5) +
-        geom_hline(yintercept=-qt_i, colour="black",
-                   linetype="dashed", alpha=0.5) +
-        geom_point(data=t_df_add_shk_i,
-                   aes_string(x="time", y=paste0(obs_i, "_t")),
-                   colour="red", size=2, alpha=0.5) +
-        labs(title="") +
-        ylab(paste("t_[", obs_i, "]")) +
-        theme(plot.title=element_text(size = rel(0.85)),
-              axis.title.x=element_blank(),
-              #axis.text.x=element_blank(),
-              axis.ticks.x=element_blank(),
-              panel.grid.major=element_blank(),
-              panel.grid.minor=element_blank(),
-              panel.background=element_blank(),
-              plot.margin = margin(0, 0, 0, 0),
-              axis.line=element_line(colour = "black"))
-    })
-  })
-  plotArgs <- list(nrow=6, ncol=1, align="v")
-  plots_t_add_list <- do.call(ggpubr::ggarrange,
-                              c(plots_t_add[[1]], plotArgs))
-  ggpubr::annotate_figure(plots_t_add_list,
-                          bottom=ggpubr::text_grob("time", color="black", size=11))
+  #ggadd_ggpubr(plots_t_inn[[1]], 6)
 }
 
 
