@@ -283,7 +283,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
   
   res <- list(
-    tstart=tstart, id=id,
+    conf.level=conf.level, tstart=tstart, id=id, time=time,
     chi.jnt=chiJnt, chi.jnt.pval=chiJnt_pval, chi.jnt.shock=chiJnt_shk,
     chi.inn=chiLat, chi.inn.pval=chiLat_pval, chi.inn.shock=chiLat_shk,
     chi.add=chiObs, chi.add.pval=chiObs_pval, chi.add.shock=chiObs_shk,
@@ -594,8 +594,13 @@ computeJacobian <- function(cookDebug, jacobian, lat_name, params, time){
 ##' @param idtoPlot Values of the ID variable to plot.
 ##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel.
 ##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel.
-autoplot.dynrTaste(dynrTaste, numSubjDemo=2, idtoPlot=NULL,
-                   names.state, names.observed, ...) {
+autoplot.dynrTaste <- function(dynrTaste, 
+                               numSubjDemo=2, idtoPlot=NULL,
+                               names.state=NULL, names.observed=NULL, ...) {
+  if ( !inherits(dynrTaste, "dynrTaste") ) {
+    stop("dynrTaste object is required.") 
+  }
+  conf_level <- dynrTaste$conf.level
   tstart <- dynrTaste$tstart
   chi_jnt <- dynrTaste$chi.jnt
   id <- dynrTaste$id
@@ -603,36 +608,238 @@ autoplot.dynrTaste(dynrTaste, numSubjDemo=2, idtoPlot=NULL,
   id_n <- length(id_unq)
   lat_name <- rownames(dynrTaste$t.inn)
   obs_name <- rownames(dynrTaste$t.add)
-  if ( !all(names.state %in% lat_name) ) {
-    stop("'names.state' should be a subset of the latent variables.")
-  }
-  if ( !all(names.observed %in% obs_name) ) {
-    stop("'names.observed' should be a subset of the observed variables.")
-  }
-  if ( is.null(idtoPlot) ) {
-  chi_max <- vector("numeric", id_n)
-  for(i in 1:id_n){
-    begT <- tstart[i] + 1
-    endT <- tstart[i+1]
-    chi_max[i] <- max( chi_jnt[begT:endT] )
-  }
-  id_to_plot <- id_unq[order(chi_max, decreasing=TRUE)][1:numSubjDemo]
+  
+  if( is.null(names.state) ) {
+    lat_toplot <- lat_name
   } else {
-    id_to_plot <- idtoPlot
-    if ( !all(id_to_plot %in% id_unq) ) {
+    if ( !all(names.state %in% lat_name) ) {
+      stop("'names.state' should be a subset of the latent variables.")
+    }
+    lat_toplot <- names.state
+  }
+  
+  if( is.null(names.observed) ) {
+    obs_toplot <- obs_name
+  } else {
+    if ( !all(names.observed %in% obs_name) ) {
+      stop("'names.observed' should be a subset of the observed variables.")
+    }
+    obs_toplot <- names.observed
+  }
+  
+  if ( is.null(idtoPlot) ) {
+    chi_max <- vector("numeric", id_n)
+    for(i in 1:id_n){
+      begT <- tstart[i] + 1
+      endT <- tstart[i+1]
+      chi_max[i] <- max( chi_jnt[begT:endT] )
+    }
+    id_toplot <- id_unq[ order(chi_max, decreasing=TRUE) ][
+      1:numSubjDemo ]
+  } else {
+    id_toplot <- idtoPlot
+    if ( !all(id_toplot %in% id_unq) ) {
       stop("Not all ID are in the data.")
     }
   }
+
+  time <- dynrTaste$time
+  chi_df_jnt <- data.frame(id = id, time = time,
+                           chi_jnt = dynrTaste$chi.jnt,
+                           chi_jnt_shk = dynrTaste$chi.jnt.shock)
+  
+  chi_df_jnt_plot <- subset(chi_df_jnt, is.element(id, id_toplot))
+  chi_df_jnt_shk <- subset(chi_df_jnt_plot, chi_jnt_shk)
+  
+  lat_n <- length(lat_name)
+  obs_n <- length(obs_name)
+  
+  plots_jnt <- lapply(id_toplot, function(id_i) {
+    ggplot2::ggplot(subset(chi_df_jnt_plot, id == id_i), 
+                                  aes(x=time, y=chi_jnt)) +
+      geom_line(alpha=0.5) +
+      geom_hline(yintercept=qchisq(conf_level, lat_n + obs_n), 
+                 colour="black", linetype="dashed", alpha=0.5) +
+      geom_point(data=subset(chi_df_jnt_shk, id == id_i), 
+                 aes(x=time, y=chi_jnt),
+                 colour="red", size=2, alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Joint ", Chi^2))) +
+      theme(plot.title=element_text(size = rel(0.85)),
+            axis.title.x=element_blank(),
+            #axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank(),
+            panel.background=element_blank(),
+            plot.margin = margin(0, 0, 0, 0),
+            axis.line=element_line(colour = "black"))
+  })
+  # plotArgs <- list(nrow=2, ncol=1, align="v")
+  # latchi <- do.call(ggpubr::ggarrange, 
+  #                   c(plots_jnt, plotArgs))
+  # ggpubr::annotate_figure(latchi,
+  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+  
+  chi_df_inn <- data.frame(id = id, time = time,
+                           chi_inn = dynrTaste$chi.inn,
+                           chi_inn_shk = dynrTaste$chi.inn.shock)
+  chi_df_inn_plot <- subset(chi_df_inn, is.element(id, id_toplot))
+  chi_df_inn_shk <- subset(chi_df_inn_plot, chi_inn_shk)
+  
+  plots_inn <- lapply(id_toplot, function(id_i) {
+    ggplot2::ggplot(subset(chi_df_inn_plot, id==id_i), 
+                    aes(x=time, y=chi_inn)) +
+      geom_line(alpha=0.5) +
+      geom_hline(yintercept=qchisq(conf_level, lat_n), 
+                 colour="black", linetype="dashed", alpha=0.5) +
+      geom_point(data=subset(chi_df_inn_shk, id == id_i), 
+                 aes(x=time, y=chi_inn),
+                 colour="red", size=2, alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Indep.  ", Chi^2, " - innovative"))) +
+      theme(plot.title=element_text(size = rel(0.85)),
+            axis.title.x=element_blank(),
+            #axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank(),
+            panel.background=element_blank(),
+            plot.margin = margin(0, 0, 0, 0),
+            axis.line=element_line(colour = "black"))
+  })
+  plotArgs <- list(nrow=2, ncol=1, align="v")
+  plots_inn_list <- do.call(ggpubr::ggarrange,
+                     c(plots_inn, plotArgs))
+  # ggpubr::annotate_figure(plots_inn_list,
+  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+  
+  chi_df_add <- data.frame(id = id, time = time,
+                           chi_add = dynrTaste$chi.add,
+                           chi_add_shk = dynrTaste$chi.add.shock)
+  chi_df_add_plot <- subset(chi_df_add, is.element(id, id_toplot))
+  chi_df_add_shk <- subset(chi_df_add_plot, chi_add_shk)
+  
+  plots_add <- lapply(id_toplot, function(id_i) {
+    ggplot2::ggplot(subset(chi_df_add_plot, id==id_i), 
+                    aes(x=time, y=chi_add)) +
+      geom_line(alpha=0.5) +
+      geom_hline(yintercept=qchisq(conf_level, lat_n), 
+                 colour="black", linetype="dashed", alpha=0.5) +
+      geom_point(data=subset(chi_df_add_shk, id==id_i), 
+                 aes(x=time, y=chi_add),
+                 colour="red", size=2, alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Indep.  ", Chi^2, " - additive"))) +
+      theme(plot.title=element_text(size = rel(0.85)),
+            axis.title.x=element_blank(),
+            #axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank(),
+            panel.background=element_blank(),
+            plot.margin = margin(0, 0, 0, 0),
+            axis.line=element_line(colour = "black"))
+  })
+  plotArgs <- list(nrow=2, ncol=1, align="v")
+  plots_add_list <- do.call(ggpubr::ggarrange,
+                            c(plots_add, plotArgs))
+  # ggpubr::annotate_figure(plots_add_list,
+  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+
+  t_inn <- dynrTaste$t.inn
+  t_inn_name <- row.names(t_inn)
+  row.names(t_inn) <- paste0(t_inn_name, "_t")
+  t_df_inn <- data.frame(id = id, time = time,
+                         t(t_inn), t(dynrTaste$t.inn.shock))
+  t_df_add <- data.frame(id = id, time = time,
+                         t(dynrTaste$t.add))
+  t_df_add_shk <- data.frame(id = id, time = time,
+                             t(dynrTaste$t.add.shock))
+
+  t_df_inn_plot <- subset(t_df_inn, is.element(id, id_toplot))
+
+  plots_t_inn <- lapply(id_toplot, function(id_i) {
+    t_df_inn_plot_i <- subset(t_df_inn_plot, id==id_i)
+    lapply(lat_toplot, function(lat_i) {
+      t_df_inn_shk_i <- subset(t_df_inn_plot_i,
+                               t_df_inn_plot_i[[lat_i]])
+      qt_i <- qt(conf_level, nrow(t_df_inn_plot_i) - obs_n)
+      ggplot2::ggplot(t_df_inn_plot_i,
+                      aes_string(x="time", y=paste0(lat_i, "_t"))) +
+        geom_line(alpha=0.5) +
+        geom_hline(yintercept=qt_i, colour="black",
+                   linetype="dashed", alpha=0.5) +
+        geom_hline(yintercept=-qt_i, colour="black",
+                   linetype="dashed", alpha=0.5) +
+        geom_point(data=t_df_inn_shk_i,
+                   aes_string(x="time", y=paste0(lat_i, "_t")),
+                   colour="red", size=2, alpha=0.5) +
+      labs(title="") +
+      ylab(paste("t_[", lat_i, "]")) +
+      theme(plot.title=element_text(size = rel(0.85)),
+            axis.title.x=element_blank(),
+            #axis.text.x=element_blank(),
+            axis.ticks.x=element_blank(),
+            panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank(),
+            panel.background=element_blank(),
+            plot.margin = margin(0, 0, 0, 0),
+            axis.line=element_line(colour = "black"))
+    })
+  })
+  plotArgs <- list(nrow=2, ncol=1, align="v")
+  plots_t_inn_list <- do.call(ggpubr::ggarrange,
+                              c(plots_t_inn[[1]], plotArgs))
+  # ggpubr::annotate_figure(plots_t_inn_list,
+  #                         bottom=ggpubr::text_grob("time", color="black", size=11))
+  
+  t_add <- dynrTaste$t.add
+  t_add_name <- row.names(t_add)
+  row.names(t_add) <- paste0(t_add_name, "_t")
+  t_df_add <- data.frame(id = id, time = time,
+                         t(t_add), t(dynrTaste$t.add.shock))
+  
+  t_df_add_plot <- subset(t_df_add, is.element(id, id_toplot))
+  
+  plots_t_add <- lapply(id_toplot, function(id_i) {
+    t_df_add_plot_i <- subset(t_df_add_plot, id==id_i)
+    t_add_df_i <- nrow(t_df_add_plot_i)
+    lapply(obs_toplot, function(obs_i) {
+      t_df_add_shk_i <- subset(t_df_add_plot_i,
+                               t_df_add_plot_i[[obs_i]])
+      qt_i <- qt(conf_level, t_add_df_i - obs_n)
+      ggplot2::ggplot(t_df_add_plot_i,
+                      aes_string(x="time", y=paste0(obs_i, "_t"))) +
+        geom_line(alpha=0.5) +
+        geom_hline(yintercept=qt_i, colour="black",
+                   linetype="dashed", alpha=0.5) +
+        geom_hline(yintercept=-qt_i, colour="black",
+                   linetype="dashed", alpha=0.5) +
+        geom_point(data=t_df_add_shk_i,
+                   aes_string(x="time", y=paste0(obs_i, "_t")),
+                   colour="red", size=2, alpha=0.5) +
+        labs(title="") +
+        ylab(paste("t_[", obs_i, "]")) +
+        theme(plot.title=element_text(size = rel(0.85)),
+              axis.title.x=element_blank(),
+              #axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              panel.grid.major=element_blank(),
+              panel.grid.minor=element_blank(),
+              panel.background=element_blank(),
+              plot.margin = margin(0, 0, 0, 0),
+              axis.line=element_line(colour = "black"))
+    })
+  })
+  plotArgs <- list(nrow=6, ncol=1, align="v")
+  plots_t_add_list <- do.call(ggpubr::ggarrange,
+                              c(plots_t_add[[1]], plotArgs))
+  ggpubr::annotate_figure(plots_t_add_list,
+                          bottom=ggpubr::text_grob("time", color="black", size=11))
 }
 
-delta_chi_L <- function(tasteOut) {
-  shocks <- lapply(tasteOut, function(tasteout_i) {
-    data.frame(id=tasteout_i$taste[["id"]],
-               time=tasteout_i$taste[["time"]],
-               tasteout_i$delta_chi$delta.L)
-  } )
-  do.call(rbind.data.frame, )
-}
+
 
 shockSignature <- function(dynrModel, dynrCook,
                            T=20, shockTime=5, W=NULL) {
