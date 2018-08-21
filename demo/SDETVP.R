@@ -47,8 +47,10 @@ dynamicsLog<-prep.formulaDynamics(formula=formulaLogistic,startval=c(eta=-.1,dam
 modelLog <- dynr.model(dynamics=dynamicsLog, measurement=measLog, 
                        noise=ecovLog, initial=initialLog, #transform=trans,
                        data=dataLog, outfile="setpointLog.c")
-modelLog@ub<-rep(5,6)
-modelLog@lb<-rep(-5,6)
+
+modelLog$ub['pnoise'] <- 10
+
+
 resLog <- dynr.cook(modelLog)
 #---- (5) Serve it! ----
 
