@@ -603,13 +603,14 @@ autoplot.dynrCook <- function(object, dynrModel, style = 1,
                         mancolorPalette=mancolorPalette, manfillPalette=manfillPalette, ...)
 }
 
+##' The ggplot of the outliers estimates.
+##' 
 ##' @param dynrTaste A dynrTaste object.
 ##' @param numSubjDemo The number of subjects, who have 
 ##' largest joint chi-square statistic, to be selected  for plotting.
 ##' @param idtoPlot Values of the ID variable to plot.
 ##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all state variables will be included. 
 ##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all observed variables will be included.
-##' @param filename (optional) The name of the pdf file for output plots. Must be a string. It is recommended to include `.pdf' extension at the end.
 ##' 
 ##' @return a list of ggplot objects for each ID. 
 ##' The plots of chi-square statistics (joint and independent),
@@ -618,8 +619,7 @@ autoplot.dynrCook <- function(object, dynrModel, style = 1,
 ##' If a \code{filename} is provided, a pdf of plots will be saved additionally.
 autoplot.dynrTaste <- function(dynrTaste, 
                                numSubjDemo=2, idtoPlot=NULL,
-                               names.state=NULL, names.observed=NULL,
-                               filename=NULL, ...) {
+                               names.state=NULL, names.observed=NULL, ...) {
   if ( !inherits(dynrTaste, "dynrTaste") ) {
     stop("dynrTaste object is required.") 
   }
@@ -814,29 +814,29 @@ autoplot.dynrTaste <- function(dynrTaste,
   
   names(gg_objects) <- id_toplot
   
-  if ( !is.null(filename) && is.character(filename) ) {
-    gg_plots <- mapply(function(plots_i, id_toplot_i) {
-      plots_arr <- ggpubr::ggarrange(
-        plotlist=plots_i, nrow=length(plots_i), ncol=1, align="v")
-      ggpubr::annotate_figure(
-        plots_arr,
-        top=ggpubr::text_grob(paste0("ID: ", id_toplot_i), 
-                              color="black", face="bold", size=14),
-        bottom=ggpubr::text_grob("time", color="black", size=11))
-    }, 
-    gg_objects, id_toplot,
-    SIMPLIFY=FALSE)
-    
-    id_v <- chi_df_jnt_plot[["id"]]
-    id_time_length <- vector("numeric", id_toplot_n)
-    # time points for each id
-    for (i in 1:id_toplot_n) {
-      id_time_length[i] <- sum(is.element(id_v, id_toplot[i]))
-    }
-    # width: time/6, height: n of gg object * 2
-    ggpubr::ggexport(gg_plots, filename=filename, 
-                     width=mean(id_time_length)/6, 
-                     height=length(gg_objects[[1]])*2)
-  }
+  # if ( !is.null(filename) && is.character(filename) ) {
+  #   gg_plots <- mapply(function(plots_i, id_toplot_i) {
+  #     plots_arr <- ggpubr::ggarrange(
+  #       plotlist=plots_i, nrow=length(plots_i), ncol=1, align="v")
+  #     ggpubr::annotate_figure(
+  #       plots_arr,
+  #       top=ggpubr::text_grob(paste0("ID: ", id_toplot_i), 
+  #                             color="black", face="bold", size=14),
+  #       bottom=ggpubr::text_grob("time", color="black", size=11))
+  #   }, 
+  #   gg_objects, id_toplot,
+  #   SIMPLIFY=FALSE)
+  #   
+  #   id_v <- chi_df_jnt_plot[["id"]]
+  #   id_time_length <- vector("numeric", id_toplot_n)
+  #   # time points for each id
+  #   for (i in 1:id_toplot_n) {
+  #     id_time_length[i] <- sum(is.element(id_v, id_toplot[i]))
+  #   }
+  #   # width: time/6, height: n of gg object * 2
+  #   ggpubr::ggexport(gg_plots, filename=filename, 
+  #                    width=mean(id_time_length)/6, 
+  #                    height=length(gg_objects[[1]])*2)
+  # }
   invisible(gg_objects)
 }

@@ -13,6 +13,10 @@
 #------------------------------------------------------------------------------
 ##' Detect outliers in state space models.
 ##'
+##' Compute shocks and chi-squared diagnostics following
+##' Chow, Hamaker, and Allaire (2009).  Using Innovative Outliers to
+##' Detect Discrete Shifts in Dynamics in Group-Based State-Space Models
+##' 
 ##' @param dynrModel an object of `dynrModel' class.
 ##' @param dynrCook the `dynrCook' object fitted with `debug_flag=TRUE' for the `dynrModel' object. The default is NULL.
 ##' If the dynrCook object were not provided, or the object were cooked
@@ -44,6 +48,10 @@
 ##' @references
 ##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009).
 ##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465–496.
+##' 
+##' @example 
+##' # dynrCook <- dynr.cook(dynrModel)
+##' # dynrTaste <- dynr.taste(dynrModel, dynrCook)
 dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        debug_flag=FALSE) {
@@ -300,7 +308,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 }
 
 
-##' @description
+##' Re-fit state-space model using the estimated outliers.
+##' 
 ##' The function \code{dynr.taste2{}} update the \code{dynrModel}
 ##' object applying outliers from the \code{dynrTaste} object,
 ##' or outliers from users. The function then re-cook the model.
@@ -348,6 +357,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' @return a list with the two arguments;
 ##' a new \code{dynrModel} object the outliers are applied,
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked.
+##' 
+##' @example 
+##' # dynrTaste2 <- dynr.taste2(dynrModel, dynrCook, dynrTaste)
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
                         delta_inn=c("t", "ind", "jnt", "null"),
                         delta_add=c("t", "ind", "jnt", "null"),
