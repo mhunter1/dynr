@@ -295,24 +295,6 @@ The final step associated with \pkg{dynr} modeling is serving results (a \code{d
 #---- Serve it! ----
 summary(yum)
 @
-<<include = TRUE, cache = FALSE, echo = TRUE,eval=FALSE,size='footnotesize'>>=
-Coefficients:
-         Estimate Std. Error t value ci.lower ci.upper Pr(>|t|)    
-phi_1     0.26608    0.04953   5.372  0.16900  0.36315 5.33e-08 ***
-phi_2     0.47395    0.04425  10.711  0.38722  0.56068  < 2e-16 ***
-beta_2    0.46449    0.04394  10.571  0.37837  0.55061  < 2e-16 ***
-mu_1      4.55354    0.02782 163.658  4.49901  4.60807  < 2e-16 ***
-mu_2      4.74770    0.14250  33.318  4.46842  5.02699  < 2e-16 ***
-dynNoise  0.20896    0.01129  18.504  0.18683  0.23110  < 2e-16 ***
-c11       5.50199    0.70939   7.756  4.11160  6.89237  < 2e-16 ***
-c21      -5.16170    1.00424  -5.140 -7.12998 -3.19342 1.79e-07 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
--2 log-likelihood value at convergence = 1002.52
-AIC = 1018.52
-BIC = 1054.87
-@
 These parameter estimates, standard errors, and likelihood values closely mirror those reported in \cite[p. 755-756]{Yang10a}.  In the Deactivated Regime, the autoregressive parameter (\code{phi\_1}) and the intercept (\code{mu\_1}) are lower than in the Activated Regime. So, neighboring EMG measurements are more closely related in the Activated Regime and the overall level is slightly higher. This matches very well with the idea that the Activated Regime consists of bursts of facial muscular activities and an elevated emotional state. Similarly, the effect of the self-reported emotional level is positive in the Activated Regime and fixed to zero in the Deactivated Regime. In the nested model that freely estimated this covariate effect in the Deactivated Regime, it was estimated at -0.00258 with a $t$-value of -0.097 and thus was subsequently fixed at zero. So, in the Deactivated Regime there is no relationship between the self-reported emotional level and the facial muscular activity. Essentially, in the Activated Regime the facial EMG and the self-reported emotions become coupled, but in the Deactivated Regime they are unrelated. The dynamic noise parameter gives a sense of the size of the intrinsic unmeasured disturbances that act on the system. These forces perturb the system with a typical magnitude (i.e., standard deviation) of a little less than half a point on the EMG scale seen in Figure \ref{EMGdata}(A).  Lastly, the log-odds parameters (\code{c11} and \code{c21}) can be turned into the transition probability matrix yielding
 \begin{equation}
 \bordermatrix{ & Deactivated_{t_{i,j+1}} & Activated_{t_{i,j+1}} \cr
