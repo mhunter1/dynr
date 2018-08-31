@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------
 # Author: Dongjun You
 # Date: 2018-05-15
-# Filename: ShockDemo1.R
+# Filename: ShockDemo.R
 # Purpose: An illustrative example of using dynr.taste to detect
 #   outliers from a state space model
 #---------------------------------------------------------------------
