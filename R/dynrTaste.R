@@ -1,16 +1,8 @@
-#------------------------------------------------------------------------------
 # Author: Michael D. Hunter
 # Date: 2017-09-14
 # Filename: dynrTaste.R
-# Purpose: Compute shocks and chi-squared diagnostics following
-#  Chow, Hamaker, and Allaire (2009).  Using Innovative Outliers to
-#    Detect Discrete Shifts in Dynamics in Group-Based State-Space Models.
-#    Multivariate Behavioral research.  44:465–496.
-#    DOI: 10.1080/00273170903103324
-#------------------------------------------------------------------------------
+# Purpose: Compute shocks and chi-squared diagnostics
 
-
-#------------------------------------------------------------------------------
 ##' Detect outliers in state space models.
 ##'
 ##' Compute shocks and chi-squared diagnostics following
@@ -47,9 +39,9 @@
 ##'
 ##' @references
 ##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009).
-##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465–496.
+##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465-496.
 ##' 
-##' @example 
+##' @examples
 ##' # dynrCook <- dynr.cook(dynrModel)
 ##' # dynrTaste <- dynr.taste(dynrModel, dynrCook)
 dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
@@ -336,7 +328,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' The delta estimates from \code{dynrTaste}, and 
 ##' arguments of \code{delta_inn} and \code{delta_add} will be ignored.
 ##' The number of rows should equal to the total time points, and the number of columns should equal to the number of observed variables.
-##'  @param cook a logical specifying whether the newly built model
+##' @param cook a logical specifying whether the newly built model
 ##'   would be cooked by 'dynr.cook' function.
 ##'   The default is TRUE. When 'cook=FALSE', only the newly built model will be saved for the output.
 ##' @param verbose a logical specifying the verbose argument
@@ -358,7 +350,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
 ##' a new \code{dynrModel} object the outliers are applied,
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked.
 ##' 
-##' @example 
+##' @examples
 ##' # dynrTaste2 <- dynr.taste2(dynrModel, dynrCook, dynrTaste)
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
                         delta_inn=c("t", "ind", "jnt", "null"),
@@ -601,6 +593,32 @@ computeJacobian <- function(cookDebug, jacobian, lat_name, params, time){
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 50)
 #cf t=1 vs t=50
 
+cj <- function(cookDebug, jacobian, lat_name, params){
+  eta <- cookDebug$eta_smooth_final
+  rownames(eta) <- lat_name
+  tt <- ncol(eta)
+  lat_n <- length(lat_name)
+  pp <- matrix(params, nrow=length(params), ncol=tt)
+  rownames(pp) <- names(params)
+  ddenv <- as.data.frame( t(rbind(pp, eta)) )
+  jjl <- lapply(jacobian, function(jj) {
+    eval(jj[[3]], ddenv)
+  })
+  jjm <- do.call(rbind, jjl)
+  jja <- array(NA, dim=c(lat_n, lat_n, tt))
+  for (rr in 1:tt) {
+    jja[,,rr] <- matrix(jjm[,rr], nrow=lat_n, ncol=lat_n, byrow=TRUE)
+  }
+  jja
+}
+
+#example use from demo/NonlinearODE.R
+#computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 3)
+#aa <- cj(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res))
+#str(aa)
+#aa[,,3]
+#cf t=1 vs t=50
+
 shockSignature <- function(dynrModel, dynrCook,
                            T=20, shockTime=5, W=NULL) {
   if ( T <= shockTime ) {
@@ -649,77 +667,3 @@ shockSignature <- function(dynrModel, dynrCook,
   }
   invisible(D_all)
 }
-
-# panaModelc <- panaModel
-# coef(panaModelc) <- coef(panaCook)
-# B <- panaModelc$dynamics@values.dyn[[1]]
-# L <- panaModelc$measurement@values.load[[1]]
-# B
-# L
-# L %*% matrix(c(1, 0, 0, 1), ncol=2)
-# nameLat <- panaModel$measurement@state.names
-# aa <- shockSignature(panaModel, panaCook)
-# stime <- 5
-# ttime <- 20
-# bb <- data.frame(
-# rbind(
-# cbind(matrix(0, nrow=stime, ncol=2), 1:stime),
-# cbind(t(aa[1,,]), (stime+1):ttime)
-# ) )
-#  before <- data.frame(value=rep(0, stime), T=1:stime)
-# # bb1 <- data.frame(t(aa[4,,]), T=(stime+1):ttime)
-# names(bb) <- c(nameLat, "T")
-# ttext <- min(t(aa[4,,])) + max(t(aa[4,,])) / 2
-# # aa[1,3,]
-# aaa <- reshape2::melt(bb, id='T')
-# aaa
-# ggplot(aaa, aes(x=T, y=value)) +
-#   geom_line(aes(colour=variable)) +
-#   theme_bw() + theme_minimal() +
-#   geom_line(data=before, aes(x=T, y=value)) +
-#   labs(y="Shock Coefficient", colour="States") +
-#   geom_vline(xintercept=stime, linetype="dotted") +
-#   theme(panel.grid.major=element_blank(),
-#         panel.grid.minor=element_blank(),
-#         axis.line=element_line(colour="grey60"),
-#         axis.ticks=element_blank()) +
-#   geom_text(aes(x=5, y=ttext, label="Shock"), colour="grey40", angle=90, vjust = -0.5) +
-#   scale_x_continuous(breaks=c(5, 30), limits=c(0, 30))
-# plotArgs <- list(ncol=1, nrow=4, align="v")
-# latchi <- do.call(ggpubr::ggarrange, c(list(chipana, chipana_I,
-#                                             tPA, tNA), plotArgs))
-# ggpubr::annotate_figure(latchi,
-#                         bottom=ggpubr::text_grob("time", color="black", size=11))
-
-### for reference:: 
-# if (outliers=="joint") {
-#   # delta that will be input to 'dynr.taste2'
-#   row.names(delta_W) <- 1:nrow(delta_W)
-#   row.names(delta_X) <- 1:nrow(delta_X)
-#   delta_W_t <- delta_W_chi <- delta_W
-#   delta_X_t <- delta_X_chi <- delta_X
-#   delta_W_chi[!chiLat_shk,] <- 0
-#   delta_X_chi[!chiObs_shk,] <- 0
-#   delta_W_t[!t_W_shk] <- 0
-#   delta_X_t[!t_X_shk] <- 0
-# } else if (outliers=="innovative") {
-#   # t shock that pass chi shock
-#   row.names(delta_X) <- 1:nrow(delta_X)
-#   row.names(delta_W) <- 1:nrow(delta_W)
-#   delta_W_t <- delta_W_chi <- delta_W
-#   delta_X_t <- delta_X_chi <- delta_X
-#   delta_W_chi[!chiLat_shk,] <- 0
-#   delta_X_chi[] <- 0
-#   delta_W_t[!t_W_shk] <- 0
-#   delta_X_t[] <- 0
-# } else {#outliers=="additive"
-#   row.names(delta_X) <- 1:nrow(delta_X)
-#   row.names(delta_W) <- 1:nrow(delta_W)
-#   # delta that will be input to 'dynr.taste2'
-#   delta_W_t <- delta_W_chi <- delta_W
-#   delta_X_t <- delta_X_chi <- delta_X
-#   delta_W_chi[] <- 0
-#   delta_X_chi[!chiObs_shk,] <- 0
-#   delta_W_t[] <- 0
-#   delta_X_t[!t_X_shk] <- 0
-# }  
