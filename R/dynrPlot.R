@@ -605,35 +605,36 @@ autoplot.dynrCook <- function(object, dynrModel, style = 1,
 
 ##' The ggplot of the outliers estimates.
 ##' 
-##' @param dynrTaste A dynrTaste object.
+##' @param object A dynrTaste object.
 ##' @param numSubjDemo The number of subjects, who have 
 ##' largest joint chi-square statistic, to be selected  for plotting.
 ##' @param idtoPlot Values of the ID variable to plot.
 ##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all state variables will be included. 
 ##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all observed variables will be included.
+##' @param ... Place holder for other arguments. Please do not use.
 ##' 
 ##' @return a list of ggplot objects for each ID. 
 ##' The plots of chi-square statistics (joint and independent),
 ##' and the plots of t statistic for \code{names.state} and \code{names.observed} will be included.
 ##' Users can modify the ggplot objects using ggplot grammar.
 ##' If a \code{filename} is provided, a pdf of plots will be saved additionally.
-autoplot.dynrTaste <- function(dynrTaste, 
+autoplot.dynrTaste <- function(object, 
                                numSubjDemo=2, idtoPlot=NULL,
                                names.state=NULL, names.observed=NULL, ...) {
-  if ( !inherits(dynrTaste, "dynrTaste") ) {
+  if ( !inherits(object, "dynrTaste") ) {
     stop("dynrTaste object is required.") 
   }
   stopifnot(numSubjDemo >= 1)
   numSubjDemo <- as.integer(numSubjDemo)
   
-  conf_level <- dynrTaste$conf.level
-  tstart <- dynrTaste$tstart
-  chi_jnt <- dynrTaste$chi.jnt
-  id <- dynrTaste$id
+  conf_level <- object$conf.level
+  tstart <- object$tstart
+  chi_jnt <- object$chi.jnt
+  id <- object$id
   id_unq <- unique(id)
   id_n <- length(id_unq)
-  lat_name <- rownames(dynrTaste$t.inn)
-  obs_name <- rownames(dynrTaste$t.add)
+  lat_name <- rownames(object$t.inn)
+  obs_name <- rownames(object$t.add)
   lat_n <- length(lat_name)
   obs_n <- length(obs_name)
   
@@ -694,10 +695,11 @@ autoplot.dynrTaste <- function(dynrTaste,
   
   ## Joint chi-square
   id_toplot_n <- length(id_toplot)
-  time <- dynrTaste$time
+  time <- object$time
+  chi_jnt_shk <- NULL
   chi_df_jnt <- data.frame(id = id, time = time,
-                           chi_jnt = dynrTaste$chi.jnt,
-                           chi_jnt_shk = dynrTaste$chi.jnt.shock)
+                           chi_jnt = object$chi.jnt,
+                           chi_jnt_shk = object$chi.jnt.shock)
   # subset data for id to plot
   chi_df_jnt_plot <- subset(chi_df_jnt, is.element(id, id_toplot))
   # subset data only for shocks
@@ -716,9 +718,10 @@ autoplot.dynrTaste <- function(dynrTaste,
   })
   
   #### Independend chi-square for innovative ####
+  chi_inn <- chi_inn_shk <- NULL
   chi_df_inn <- data.frame(id = id, time = time,
-                           chi_inn = dynrTaste$chi.inn,
-                           chi_inn_shk = dynrTaste$chi.inn.shock)
+                           chi_inn = object$chi.inn,
+                           chi_inn_shk = object$chi.inn.shock)
   chi_df_inn_plot <- subset(chi_df_inn, is.element(id, id_toplot))
   chi_df_inn_shk <- subset(chi_df_inn_plot, chi_inn_shk)
   qchi_inn <- qchisq(conf_level, lat_n)
@@ -735,9 +738,10 @@ autoplot.dynrTaste <- function(dynrTaste,
   })
   
   #### Independent chi-square for additive ####
+  chi_add <- chi_add_shk <- NULL
   chi_df_add <- data.frame(id = id, time = time,
-                           chi_add = dynrTaste$chi.add,
-                           chi_add_shk = dynrTaste$chi.add.shock)
+                           chi_add = object$chi.add,
+                           chi_add_shk = object$chi.add.shock)
   chi_df_add_plot <- subset(chi_df_add, is.element(id, id_toplot))
   chi_df_add_shk <- subset(chi_df_add_plot, chi_add_shk)
   
@@ -753,11 +757,11 @@ autoplot.dynrTaste <- function(dynrTaste,
   })
   
   #### t-statistic for innovative ####
-  t_inn <- dynrTaste$t.inn
+  t_inn <- object$t.inn
   t_inn_name <- row.names(t_inn)
   row.names(t_inn) <- paste0(t_inn_name, "_t")
   t_df_inn <- data.frame(id = id, time = time,
-                         t(t_inn), t(dynrTaste$t.inn.shock))
+                         t(t_inn), t(object$t.inn.shock))
   t_df_inn_plot <- subset(t_df_inn, is.element(id, id_toplot))
   
   plots_t_inn <- lapply(id_toplot, function(id_i) {
@@ -777,11 +781,11 @@ autoplot.dynrTaste <- function(dynrTaste,
   })
   
   #### t-statistic for additive ####
-  t_add <- dynrTaste$t.add
+  t_add <- object$t.add
   t_add_name <- row.names(t_add)
   row.names(t_add) <- paste0(t_add_name, "_t")
   t_df_add <- data.frame(id = id, time = time,
-                         t(t_add), t(dynrTaste$t.add.shock))
+                         t(t_add), t(object$t.add.shock))
   t_df_add_plot <- subset(t_df_add, is.element(id, id_toplot))
   
   plots_t_add <- lapply(id_toplot, function(id_i) {
