@@ -33,7 +33,7 @@
 
 \usepackage[american]{babel}
 \usepackage{csquotes}
-\usepackage[backend=bibtex,sorting=none]{biblatex}
+\usepackage[backend=biber,sorting=none]{biblatex}
 \DeclareLanguageMapping{american}{american-apa}
 \addbibresource{ou-hunter-chow.bib}
 

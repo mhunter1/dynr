@@ -66,7 +66,7 @@
 
 \usepackage[american]{babel}
 \usepackage{csquotes}
-\usepackage[backend=bibtex,sorting=nyt]{biblatex}
+\usepackage[backend=biber,sorting=nyt]{biblatex}
 %Rstudio bibtex instead of biber, no apa style, use command cite
 \DeclareLanguageMapping{american}{american-apa}
 \addbibresource{ou-hunter-chow.bib}
