@@ -48,7 +48,7 @@ modelLog <- dynr.model(dynamics=dynamicsLog, measurement=measLog,
                        noise=ecovLog, initial=initialLog, #transform=trans,
                        data=dataLog, outfile="setpointLog.c")
 
-modelLog$ub['pnoise'] <- 10
+modelLog$ub[c('r', 'pnoise')] <- 10
 
 
 resLog <- dynr.cook(modelLog)
