@@ -65,6 +65,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
     LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+    LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
     gsl_cflags <- sprintf( "-I\"%s/include\"", LIB_GSL)
     gsl_libs   <- sprintf( "-L\"%s/lib/%s\" -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
   }else {
