@@ -11,74 +11,76 @@
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
 dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag){    #multiple lag; #factor  #get variable names
 	
-	data=model@data$original.data
-	k=length(model@param.names) #- length(model@initial@paramnames)             #number of parameters estimated
-	nolag=TRUE
+	data <- model$data$original.data
+	k <- length(coef(model)) #- length(model@initial@paramnames)             #number of parameters estimated
+	nolag <- TRUE
 	
 	
-	ynames=model@data$observed.names
-	xnames=model@data$covariate.names
-	y=data[,colnames(data)==ynames]
-	x=data[,colnames(data)==xnames]
-	ID=model@data$id
-	time=model@data$time
+	ynames <- model$data$observed.names
+	xnames <- model$data$covariate.names
+	y <- data[, colnames(data)==ynames]
+	x <- data[, colnames(data)==xnames]
+	ID <- model$data$id
+	time <- model$data$time
 	
-	au=data[,colnames(data)==aux.variable]  
+	au <- data[, colnames(data)==aux.variable]  
 	
-	dataforlag=cbind(ID,y,x)
+	dataforlag <- cbind(ID,y,x)
 	
-	#dataforlag=ts(dataforlag)
+	#dataforlag <- ts(dataforlag)
 	
-	#head(stats::lag(as.xts(dataforlag),2))
-	#head(lag(dataforlag,2))
+	#head(stats::lag(as.xts(dataforlag), 2))
+	#head(lag(dataforlag, 2))
 	
 	datalag <- dataforlag
 	#  dataforlag %>%
 	#  dplyr::group_by(ID) %>%
 	#  dplyr::mutate_all(lag) #Linying, what does this "lag" do?
 	
-	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
-	dataformice=data.frame(dataformice)
+	dataformice <- cbind(dataforlag[,-1], datalag[,-1], au)
+	dataformice <- data.frame(dataformice)
 	
 	colnames(dataformice)=c()
-	m=m
-	imp=mice::mice(dataformice,m=m)
+	m <- m
+	imp <- mice::mice(dataformice, m=m)
 	
 	
-	pmcarqhat=matrix(NA, nrow=m,ncol=k) #parameter estimates from each imputation
-	pmcaru=array(NA,dim=c(k,k,m)) #vcov of par estimates from each imputation
+	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
+	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
-	for (j in 1:m){
+	for(j in 1:m){
 		
-		completedata=mice::complete(imp,action=j)
-		colnames(completedata)=c(ynames,xnames,
-		                      paste("lag",ynames,sep=''),
-		                      paste("lag",xnames,sep=''),
+		completedata <- mice::complete(imp, action=j)
+		colnames(completedata) <- c(ynames, xnames,
+		                      paste0("lag", ynames),
+		                      paste0("lag", xnames),
 		                      colnames(au))
 		
-		if (imp.obs==TRUE){
-			imp.data.obs= completedata[,colnames(completedata)==ynames]  
-		}else{
-			imp.data.obs=y
+		if(imp.obs==TRUE){
+			imp.data.obs <- completedata[, colnames(completedata)==ynames]
+		} else{
+			imp.data.obs <- y
 		}
 		
-		if (imp.exo==TRUE){
-			imp.data.exo= completedata[,colnames(completedata)==xnames]  
-		}else{
-			imp.data.exo=x
+		if(imp.exo==TRUE){
+			imp.data.exo <- completedata[, colnames(completedata)==xnames]
+		} else{
+			imp.data.exo <- x
 		}
 		
-		newdata=cbind(ID,time,imp.data.obs,imp.data.exo)
+		newdata <- cbind(ID, time, imp.data.obs, imp.data.exo)
 		
+		#Whoa WFT is this?!?
 		save(newdata,file="test.rdata")
+		#Whoa WFT is this?!?
 		
-		colnames(newdata)=c("ID","Time","wp","hp","ca","cn")
+		colnames(newdata) <- c("ID", "Time", "wp", "hp", "ca", "cn")
 		
-		data <- dynr.data(newdata, id="ID", time="Time", 
-		                observed=c("wp","hp"),covariates=c("ca","cn"))
+		data <- dynr.data(newdata, id="ID", time="Time",
+		                observed=c("wp", "hp"), covariates=c("ca","cn"))
 		
-		modelnew=model
-		modelnew@data=data
+		modelnew <- model
+		modelnew$data <- data
 		#   model <- dynr.model(dynamics=model@dynamics, measurement=model@measurement,
 		#                      noise=model@noise, initial=model@initial, data=data, transform=model@transform,
 		#                     outfile=paste("trial4",i,".c",sep=""))
@@ -93,8 +95,8 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 		#summary(trial)
 		
 		#getting parameter estimates
-		pmcarqhat[j,]=coef(trial)
-		pmcaru[, ,j]= vcov(trial)
+		pmcarqhat[j,] <- coef(trial)
+		pmcaru[, ,j] <- vcov(trial)
 	}
 	
 	pqbarmcarimpute <- apply(pmcarqhat, 2, mean) 
@@ -103,16 +105,17 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	pe.mcarimpute <- pmcarqhat - matrix(pqbarmcarimpute, nrow = m, ncol = k, byrow = TRUE)
 	pb.mcarimpute <- (t(pe.mcarimpute) %*% pe.mcarimpute)/(m - 1)
 	pvcovmcarimpute <- pubarmcarimpute + (1 + 1/m) * pb.mcarimpute #vcov for estimates
-	psemcarimpute=sqrt(diag(pvcovmcarimpute))
+	psemcarimpute <- sqrt(diag(pvcovmcarimpute))
 	
-	t=pqbarmcarimpute/psemcarimpute
-	ci.upper=pqbarmcarimpute+2*psemcarimpute
-	ci.lower=pqbarmcarimpute-2*psemcarimpute
+	t <- pqbarmcarimpute/psemcarimpute
+	# TODO Don't just use 2 for the CIs !!!
+	ci.upper <- pqbarmcarimpute + 2*psemcarimpute
+	ci.lower <- pqbarmcarimpute - 2*psemcarimpute
 	p <- pt( abs(t), df=nobs(model) - k, lower.tail=FALSE)
 	
-	result=cbind(pqbarmcarimpute,psemcarimpute,t,ci.lower,ci.upper,p)
+	result <- cbind(pqbarmcarimpute, psemcarimpute, t, ci.lower, ci.upper,p)
 	
-	colnames(result) = c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper", #"",
+	colnames(result) <- c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper", #"",
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
