@@ -93,8 +93,8 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 		#summary(trial)
 		
 		#getting parameter estimates
-		pmcarqhat[j,]=coef(trial)[1:k]
-		pmcaru[, ,j]= vcov(trial)[c(1:k),c(1:k)]
+		pmcarqhat[j,]=coef(trial)
+		pmcaru[, ,j]= vcov(trial)
 	}
 	
 	pqbarmcarimpute <- apply(pmcarqhat, 2, mean) 
