@@ -55,18 +55,18 @@
 ##' z <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 ##' dz <- dynr.data(z)
 dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates){
-  if (is.ts(dataframe)){
-    # ts class 
-    # single or multivariate time series
-    # one subject
-    tsp=attributes(dataframe)$tsp
-    dataframe = as.data.frame(dataframe)
-    if (missing(observed)){
-      observed = colnames(dataframe)
-    }
-    dataframe[ , id] <- 1
-    dataframe[ , time] <- seq(from = tsp[1], to = tsp[2], length.out = nrow(dataframe))
-  }
+	if (is.ts(dataframe)){
+		# ts class 
+		# single or multivariate time series
+		# one subject
+		tsp=attributes(dataframe)$tsp
+		dataframe = as.data.frame(dataframe)
+		if (missing(observed)){
+			observed = colnames(dataframe)
+		}
+		dataframe[ , id] <- 1
+		dataframe[ , time] <- seq(from = tsp[1], to = tsp[2], length.out = nrow(dataframe))
+	}
 	ids <- unique(dataframe[ , id])
 	tstart <- c(
 		sapply(1:length(ids),
