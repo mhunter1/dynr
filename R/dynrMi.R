@@ -11,7 +11,6 @@
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
 dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag){    #multiple lag; #factor  #get variable names
 	
-	
 	data=model@data$original.data
 	k=length(model@param.names) #- length(model@initial@paramnames)             #number of parameters estimated
 	nolag=TRUE
@@ -40,7 +39,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	
 	dataformice=cbind(dataforlag[,-1],datalag[,-1],au)
 	dataformice=data.frame(dataformice)
-
+	
 	colnames(dataformice)=c()
 	m=m
 	imp=mice::mice(dataformice,m=m)
@@ -50,52 +49,52 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	pmcaru=array(NA,dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
 	for (j in 1:m){
-	  
-	  completedata=mice::complete(imp,action=j)
-	  colnames(completedata)=c(ynames,xnames,
-	                          paste("lag",ynames,sep=''),
-	                          paste("lag",xnames,sep=''),
-	                          colnames(au))
-	  
-	  if (imp.obs==TRUE){
-	  imp.data.obs= completedata[,colnames(completedata)==ynames]  
-	  }else{
-	    imp.data.obs=y
-	  }
-	 
-	  if (imp.exo==TRUE){
-	    imp.data.exo= completedata[,colnames(completedata)==xnames]  
-	  }else{
-	    imp.data.exo=x
-	  }
-	  
-	  newdata=cbind(ID,time,imp.data.obs,imp.data.exo)
-	  
-	  save(newdata,file="test.rdata")
-	  
-	  colnames(newdata)=c("ID","Time","wp","hp","ca","cn")
-	  
-	  data <- dynr.data(newdata, id="ID", time="Time", 
-	                    observed=c("wp","hp"),covariates=c("ca","cn"))
-	  
-	 modelnew=model
-	 modelnew@data=data
-	 #   model <- dynr.model(dynamics=model@dynamics, measurement=model@measurement,
-	 #                      noise=model@noise, initial=model@initial, data=data, transform=model@transform,
-	 #                     outfile=paste("trial4",i,".c",sep=""))
-	  
-	   
-	   # model <- dynr.model(dynamics=dynm, measurement=meas,
-	   #                     noise=mdcov, initial=initial, data=data,#transform=trans,
-	   #                     outfile=paste("trial2",i,".c",sep=""))
-	   
-	   
-	  trial <- dynr.cook(modelnew)  #names(trial) get names of the params
-	  #summary(trial)
-	  
-	  #getting parameter estimates
-	  pmcarqhat[j,]=coef(trial)[1:k]
-	  pmcaru[, ,j]= vcov(trial)[c(1:k),c(1:k)]
+		
+		completedata=mice::complete(imp,action=j)
+		colnames(completedata)=c(ynames,xnames,
+		                      paste("lag",ynames,sep=''),
+		                      paste("lag",xnames,sep=''),
+		                      colnames(au))
+		
+		if (imp.obs==TRUE){
+			imp.data.obs= completedata[,colnames(completedata)==ynames]  
+		}else{
+			imp.data.obs=y
+		}
+		
+		if (imp.exo==TRUE){
+			imp.data.exo= completedata[,colnames(completedata)==xnames]  
+		}else{
+			imp.data.exo=x
+		}
+		
+		newdata=cbind(ID,time,imp.data.obs,imp.data.exo)
+		
+		save(newdata,file="test.rdata")
+		
+		colnames(newdata)=c("ID","Time","wp","hp","ca","cn")
+		
+		data <- dynr.data(newdata, id="ID", time="Time", 
+		                observed=c("wp","hp"),covariates=c("ca","cn"))
+		
+		modelnew=model
+		modelnew@data=data
+		#   model <- dynr.model(dynamics=model@dynamics, measurement=model@measurement,
+		#                      noise=model@noise, initial=model@initial, data=data, transform=model@transform,
+		#                     outfile=paste("trial4",i,".c",sep=""))
+		
+		
+		# model <- dynr.model(dynamics=dynm, measurement=meas,
+		#                     noise=mdcov, initial=initial, data=data,#transform=trans,
+		#                     outfile=paste("trial2",i,".c",sep=""))
+		
+		
+		trial <- dynr.cook(modelnew)  #names(trial) get names of the params
+		#summary(trial)
+		
+		#getting parameter estimates
+		pmcarqhat[j,]=coef(trial)[1:k]
+		pmcaru[, ,j]= vcov(trial)[c(1:k),c(1:k)]
 	}
 	
 	pqbarmcarimpute <- apply(pmcarqhat, 2, mean) 
