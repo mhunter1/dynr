@@ -119,5 +119,8 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
+	#TODO the current 'result' should be what is printed by summary() on the thing returned from dynr.mi()
+	# This summary should use methods similar to summary.dynrCook and summary.lm
+	# TODO return a 'mi' object similar to rest of mice
 	return(result)
 }
