@@ -14,6 +14,9 @@
 ##' If the dynrCook object were not provided, or the object were cooked
 ##' with `debug_flag=FALSE',
 ##' \code{dynr.taste} will fit the dynrModel object with `debug_flag=TRUE' internally.
+##' @param dynrDynamics a dynrDynamicsFormula class.
+##'  If `prep.formulaDynamics' is used to model state equation,
+##'  the `dynrDynamicsFormula' object MUST be provided.
 ##' @param conf.level a numeric of confidence level that is used for
 ##' outliers detection tests (chi-square test and t-test). The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
@@ -21,7 +24,7 @@
 ##' @param debug_flag a logical. 'TRUE' for output of by-products related to t-value calculation
 ##'
 ##' @return an object of `dynrTaste' class
-##' that is a list containing results lists of results from the outlier detection process.
+##' that is a list containing lists of results from the outlier detection process.
 ##' Vectors of ID and measured time points are included for later use,
 ##' such as in dynr.taste2.
 ##' The values, p-values, and shock points related to 
@@ -44,7 +47,8 @@
 ##' @examples
 ##' # dynrCook <- dynr.cook(dynrModel)
 ##' # dynrTaste <- dynr.taste(dynrModel, dynrCook)
-dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
+dynr.taste <- function(dynrModel, dynrCook=NULL, dynrDynamics=NULL,
+                       conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        debug_flag=FALSE) {
   if ( !inherits(dynrModel, 'dynrModel') ) {
@@ -82,7 +86,6 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
            })
   
   Lambda <- dynrModel$measurement$values.load[[1]]
-  B <- dynrModel$dynamics$values.dyn[[1]]
   
   # Array of inverse covariance matrices (i.e. information matrices) for the observed variables
   # F^-1  in Chow, Hamaker, and Allaire
@@ -116,40 +119,115 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, conf.level=0.99,
   chiLat <- numeric(dimTime)
   time <- dynrModel$data$time
   
-  for(j in 1:nID){
-    beginTime <- tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
-    endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
+  if ( inherits(dynrModel$dynamics, 'dynrDynamicsMatrix') ) {
+    B <- dynrModel$dynamics$values.dyn[[1]]
     
-    # set endTime r and N to 0
-    #  --> set r and N 0 at first when allocate
-    r[,endTime] <- 0
-    N[,,endTime] <- 0
-    
-    for(i in endTime:(beginTime+1)){
-      ri <- matrix(r[,i], dimLat, 1)
-      Ni <- matrix(N[,,i], dimLat, dimLat)
-      Ki <- matrix(K[,,i], dimLat, dimObs)
+    for(j in 1:nID){
+      beginTime <- tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
+      endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
+      # set endTime r and N to 0
+      #  --> set r and N 0 at first when allocate
+      r[,endTime] <- 0
+      N[,,endTime] <- 0
+      for(i in endTime:(beginTime+1)){
+        ri <- matrix(r[,i], dimLat, 1)
+        Ni <- matrix(N[,,i], dimLat, dimLat)
+        Ki <- matrix(K[,,i], dimLat, dimObs)
+        Li <- B - Ki %*% Lambda
+        obsInfI <- matrix(F_inv[,,i], dimObs, dimObs)
+        vi <- matrix(v[,i], nrow=dimObs, ncol=1)
+        ui <- obsInfI %*% vi - t(Ki) %*% ri
+        u[, i] <- ui
+        rnew <- t_Lambda %*% ui + t(B) %*% ri
+        r[,i-1] <- rnew
+        Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
+        N[,,i-1] <- Nnew
+        Ninv_i <- try(solve(Nnew), silent=TRUE)
+        if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+        Ninv[,,i-1] <- Ninv_i
+        chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+      }
+      ri <- matrix(r[,beginTime], dimLat, 1)
+      Ki <- matrix(K[,,beginTime], dimLat, dimObs)
       Li <- B - Ki %*% Lambda
-      obsInfI <- matrix(F_inv[,,i], dimObs, dimObs)
-      vi <- matrix(v[,i], nrow=dimObs, ncol=1)
+      obsInfI <- matrix(F_inv[,,beginTime], dimObs, dimObs)
+      vi <- matrix(v[,beginTime], nrow=dimObs, ncol=1)
       ui <- obsInfI %*% vi - t(Ki) %*% ri
-      u[, i] <- ui
-      rnew <- t_Lambda %*% ui + t(B) %*% ri
-      r[,i-1] <- rnew
-      Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
-      N[,,i-1] <- Nnew
-      Ninv_i <- try(solve(Nnew), silent=TRUE)
-      if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
-      Ninv[,,i-1] <- Ninv_i
-      chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+      u[, beginTime] <- ui
     }
-    ri <- matrix(r[,beginTime], dimLat, 1)
-    Ki <- matrix(K[,,beginTime], dimLat, dimObs)
-    Li <- B - Ki %*% Lambda
-    obsInfI <- matrix(F_inv[,,beginTime], dimObs, dimObs)
-    vi <- matrix(v[,beginTime], nrow=dimObs, ncol=1)
-    ui <- obsInfI %*% vi - t(Ki) %*% ri
-    u[, beginTime] <- ui
+  }
+  if ( inherits(dynrModel$dynamics, 'dynrDynamicsFormula') ) {
+    if ( is.null(dynrDynamics) ) {
+      stop("The 'dynrDynamicsFormula' object MUST be provided, which was created by 'prep.formulaDynamics'.")
+    }
+    if ( !inherits(dynrDynamics, 'dynrDynamicsFormula') ) {
+      stop("dynrDynamics should be a 'dynrDynamicsFormula' object.") }
+    
+    eta <- dynrCook$eta_smooth_final
+    rownames(eta) <- lat_name
+    jacobian <- dynrDynamics$jacobian[[1]]
+    params <- coefCook[dynrModel$dynamics@paramnames]
+    pp <- matrix(params, nrow=length(params), ncol=dimTime)
+    rownames(pp) <- names(params)
+    # check the order of differential equations
+    jac_n1 <- lapply(jacobian, function(jj) {
+      jj[[2]]
+    })
+    jac_n2 <- vector("list", length=dimLat*dimLat)
+    ii <- 1
+    for (rr in lat_name) {
+      for (cc in lat_name) {
+        jac_n2[[ii]] <- as.formula(paste(c(rr, cc), collapse=" ~ "))
+        ii <- ii + 1
+      }}
+    stopifnot(all.equal(jac_n1, jac_n2))
+    
+    ddenv <- as.data.frame( t(rbind(pp, eta)) )
+    jac_l <- lapply(jacobian, function(jac) {
+      eval(jac[[3]], ddenv)
+    })
+    jac_m <- do.call(rbind, jac_l)
+    Bjac <- array(NA, dim=c(dimLat, dimLat, dimTime))
+    for (rr in 1:dimTime) {
+      Bjac[,,rr] <- matrix(jac_m[,rr],
+                           nrow=dimLat, ncol=dimLat, byrow=TRUE)
+    } 
+    for(j in 1:nID){
+      beginTime <- tstart[j] + 1 # Add 1 because model_tstart indexes from 0 rather than 1 for interface to C
+      endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
+      
+      # set endTime r and N to 0
+      #  --> set r and N 0 at first when allocate
+      r[,endTime] <- 0
+      N[,,endTime] <- 0
+      
+      for(i in endTime:(beginTime+1)){
+        ri <- matrix(r[,i], dimLat, 1)
+        Ni <- matrix(N[,,i], dimLat, dimLat)
+        Ki <- matrix(K[,,i], dimLat, dimObs)
+        B <- Bjac[,,i]
+        Li <- B - Ki %*% Lambda
+        obsInfI <- matrix(F_inv[,,i], dimObs, dimObs)
+        vi <- matrix(v[,i], nrow=dimObs, ncol=1)
+        ui <- obsInfI %*% vi - t(Ki) %*% ri
+        u[, i] <- ui
+        rnew <- t_Lambda %*% ui + t(B) %*% ri
+        r[,i-1] <- rnew
+        Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
+        N[,,i-1] <- Nnew
+        Ninv_i <- try(solve(Nnew), silent=TRUE)
+        if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+        Ninv[,,i-1] <- Ninv_i
+        chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+      }
+      ri <- matrix(r[,beginTime], dimLat, 1)
+      Ki <- matrix(K[,,beginTime], dimLat, dimObs)
+      Li <- Bjac[,,beginTime] - Ki %*% Lambda
+      obsInfI <- matrix(F_inv[,,beginTime], dimObs, dimObs)
+      vi <- matrix(v[,beginTime], nrow=dimObs, ncol=1)
+      ui <- obsInfI %*% vi - t(Ki) %*% ri
+      u[, beginTime] <- ui
+    }
   }
   
   ################ delta estimate #############################
@@ -601,20 +679,35 @@ cj <- function(cookDebug, jacobian, lat_name, params){
   pp <- matrix(params, nrow=length(params), ncol=tt)
   rownames(pp) <- names(params)
   ddenv <- as.data.frame( t(rbind(pp, eta)) )
-  jjl <- lapply(jacobian, function(jj) {
-    eval(jj[[3]], ddenv)
+  jac_n <- lapply(jacobian, function(jj) {
+    jj[[2]]
   })
-  jjm <- do.call(rbind, jjl)
-  jja <- array(NA, dim=c(lat_n, lat_n, tt))
-  for (rr in 1:tt) {
-    jja[,,rr] <- matrix(jjm[,rr], nrow=lat_n, ncol=lat_n, byrow=TRUE)
+  #paste(lat_name, collapse=" ~ ")
+  ff <- vector("list", length=4)
+  ii <- 1
+  for (rr in lat_name) {
+    for (cc in lat_name) {
+      ff[[ii]] <- as.formula(paste(c(rr, cc), collapse=" ~ "))
+      ii <- ii + 1
+    }
   }
-  jja
+  all.equal(jac_n, ff)
+  
+  # jjl <- lapply(jacobian, function(jj) {
+  #   eval(jj[[3]], ddenv)
+  # })
+  # jjm <- do.call(rbind, jjl)
+  # jja <- array(NA, dim=c(lat_n, lat_n, tt))
+  # for (rr in 1:tt) {
+  #   jja[,,rr] <- matrix(jjm[,rr], nrow=lat_n, ncol=lat_n, byrow=TRUE)
+  # }
+  # jja
 }
 
 #example use from demo/NonlinearODE.R
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 3)
-#aa <- cj(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res))
+aa <- cj(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res))
+aa
 #str(aa)
 #aa[,,3]
 #cf t=1 vs t=50
