@@ -198,10 +198,10 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
     for(index=0;index<data_model.pc.dim_obs_var;index++){
         sprintf(str_number, "%lu", (long unsigned int) index+1);
-        sprintf(str_name, "%s", "obs");
+        sprintf(str_name, "%s%lu", "obs", (long unsigned int) index+1);
         /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
         DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
-        ptr_index=REAL(PROTECT(getListElement(observed_sexp, strncat(str_name, str_number, strlen(str_number)))));
+        ptr_index=REAL(PROTECT(getListElement(observed_sexp, str_name)));
         for(t=0; t<data_model.pc.total_obs; t++){
             gsl_vector_set(data_model.y[t],index, ptr_index[t]);
         }
@@ -219,10 +219,10 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
         for(index=0;index<data_model.pc.dim_co_variate;index++){
             sprintf(str_number, "%lu", (long unsigned int) index+1);
-            sprintf(str_name, "%s", "covar");
+            sprintf(str_name, "%s%lu", "covar", (long unsigned int) index+1);
             /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
             DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
-	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
+	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, str_name)));
             for(t=0; t<data_model.pc.total_obs; t++){
                 gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
             }
