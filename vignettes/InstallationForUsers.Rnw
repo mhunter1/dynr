@@ -68,22 +68,23 @@ You may want to first go to the directory where Rtools is installed and check th
 
 \subsection{\Large Setting up the GSL Environment Variable}
 \label{sec:libgsl}
-Set the LIB\_GSL environment variable by using {\em one} of the following.
-\begin{enumerate}
- \item Use R to set LIB\_GSL.
- \begin{enumerate}
-  \item Open R
-  \item Copy paste the following into the R console\\
-  \texttt{Sys.setenv(LIB\_GSL=paste0(R.home(), "/../", "local323"))}
- \end{enumerate}
- \item Use Windows system to set LIB\_GSL.
+%Set the LIB\_GSL environment variable by using {\em one} of the following.
+%\begin{enumerate}
+% \item Use R to set LIB\_GSL.
+% \begin{enumerate}
+%  \item Open R
+%  \item Copy paste the following into the R console\\
+%  \texttt{Sys.setenv(LIB\_GSL=paste0(R.home(), "/../", "local323"))}
+% \end{enumerate}
+% \item
+Use Windows system to set LIB\_GSL.
  \begin{enumerate}
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
  \item Click on Advanced system settings and then click on ``Environment Variables''
  \item Add a new {\em system} variable by clicking on New.  Note that this should be a {\em System} environment variable, not a {\em User} environment variable.
  \item Name the new variable as LIB\_GSL and set the variable value to the 
- directory containing the local323 files downloaded in Section \ref{sec:gsl} or the directory where your GSL libraries are installed. Example \texttt{"C:\textbackslash Program Files\textbackslash R\textbackslash local323"} but please note that {\em the quotation marks should be included in the variable value}.
- \end{enumerate}
+ directory containing the local323 files downloaded in Section \ref{sec:gsl} or the directory where your GSL libraries are installed. Example \texttt{C:\textbackslash Program Files\textbackslash R\textbackslash local323} and note that the direction of the slashes should not matter for users.
+% \end{enumerate}
 \end{enumerate}
 
 
@@ -93,17 +94,17 @@ Set the LIB\_GSL environment variable by using {\em one} of the following.
 \begin{enumerate}
  \item Check if R can be run through CMD as follows. Put a simple R script (e.g., save a simple R command: print (``hello'') to a .R document as ``Hello.R'') to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.R'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.R''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
  \item Close your command prompt window.
- \item If the file did not run correctly, follow {\em one} of the following:
- \item Use R to set your PATH environment variable.
- \begin{enumerate}
-   \item Open R.  Look at your PATH variable by copying \texttt{Sys.getenv("PATH")} into the R console.
-   \item Copy-paste the below into the R console\\
-   \texttt{Sys.setenv(PATH=paste(\\
- "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash bin",\\
- "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash mingw\_64\textbackslash \textbackslash bin",\\
- R.home(component="bin"), Sys.getenv("PATH"), sep=";"))}
- \item Look at your PATH variable again by copying \texttt{Sys.getenv("PATH")} into the R console.
- \end{enumerate}
+ \item If the file did not run correctly, follow the following:
+% \item Use R to set your PATH environment variable.
+% \begin{enumerate}
+%   \item Open R.  Look at your PATH variable by copying \texttt{Sys.getenv("PATH")} into the R console.
+%   \item Copy-paste the below into the R console\\
+%   \texttt{Sys.setenv(PATH=paste(\\
+% "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash bin",\\
+% "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash mingw\_64\textbackslash \textbackslash bin",\\
+% R.home(component="bin"), Sys.getenv("PATH"), sep=";"))}
+% \item Look at your PATH variable again by copying \texttt{Sys.getenv("PATH")} into the R console.
+% \end{enumerate}
  \item Use the Windows system to set your PATH environment variable.
  \begin{enumerate}
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
