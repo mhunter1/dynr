@@ -544,7 +544,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	}else{
 		obj <- new("dynrCook", output2)
 	}
-	
 	obj@param.names <- dynrModel$param.names
 	#populate transformed estimates to dynrModel
 	#model<<-PopBackModel(model, obj@transformed.parameters)
@@ -555,12 +554,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	}
 	
 	frontendStop <- Sys.time()
-	totalTime <- frontendStop-frontendStart
-	backendTime <- backendStop-backendStart
-	frontendTime <- totalTime-backendTime
-	obj@run.times <- as.numeric(c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime))
-	cat('Total Time:', totalTime, '\n')
-	cat('Backend Time:', backendTime, '\n')
+	#totalTime <- frontendStop-frontendStart
+	#backendTime <- backendStop-backendStart
+	#frontendTime <- totalTime-backendTime
+	obj@run.times <- as.numeric(NA) #as.numeric(c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime))
+	#cat('Total Time:', totalTime, '\n')
+	#cat('Backend Time:', backendTime, '\n')
 	rm(output2)
 	rm(output)
 	gc()
