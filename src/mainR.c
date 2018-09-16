@@ -191,14 +191,16 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
         data_model.y[t]=gsl_vector_calloc(data_model.pc.dim_obs_var);/*y[t] corresponds to y(),which is a gsl_vector; loop through total_obj*/
 
     }
-
-    size_t enough_length=(ceil(log10((double)data_model.pc.dim_obs_var>data_model.pc.dim_co_variate?data_model.pc.dim_obs_var:data_model.pc.dim_co_variate))+1)*sizeof(char);
+	
+	// Create enough_length as number of digits ( ceil(log10(x)) ) in which ever is larger: numObs or numCovar
+	// Add a few for good measure
+    size_t enough_length = (ceil( log10( (double) data_model.pc.dim_obs_var > data_model.pc.dim_co_variate ? data_model.pc.dim_obs_var : data_model.pc.dim_co_variate )) + 7) * sizeof(char);
     char *str_number=(char *)malloc(enough_length);
-    char str_name[enough_length+7];
+    char *str_name=(char *)malloc(enough_length+7);
 
     for(index=0;index<data_model.pc.dim_obs_var;index++){
-        sprintf(str_number, "%lu", (long unsigned int) index+1);
-        sprintf(str_name, "%s%lu", "obs", (long unsigned int) index+1);
+        snprintf(str_number, enough_length, "%lu", (long unsigned int) index+1);
+        snprintf(str_name, enough_length, "%s%lu", "obs", (long unsigned int) index+1);
         /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
         DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
         ptr_index=REAL(PROTECT(getListElement(observed_sexp, str_name)));
@@ -218,8 +220,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
 
         for(index=0;index<data_model.pc.dim_co_variate;index++){
-            sprintf(str_number, "%lu", (long unsigned int) index+1);
-            sprintf(str_name, "%s%lu", "covar", (long unsigned int) index+1);
+            snprintf(str_number, enough_length, "%lu", (long unsigned int) index+1);
+            snprintf(str_name, enough_length, "%s%lu", "covar", (long unsigned int) index+1);
             /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
             DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
 	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, str_name)));

@@ -1,7 +1,7 @@
-dynr 0.1.13-2
+dynr 0.1.13-3
 --------------
 
-2018-09-14
+2018-09-16
 
 New features include:
 * You don't need to install R on Windows to C:/R anymore! The default (C:/Program Files/R) now works.
