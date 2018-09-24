@@ -1,7 +1,7 @@
-dynr 0.1.13-3
+dynr 0.1.13-4
 --------------
 
-2018-09-16
+2018-09-21
 
 New features include:
 * You don't need to install R on Windows to C:/R anymore! The default (C:/Program Files/R) now works.
@@ -11,6 +11,7 @@ New features include:
 Bug fixes and performance tweaks include:
 * The deviation form of regimes now displays properly in plotFormula
 * No longer require 'outfile' specification in dynr.model()
+* Fix a pointer addressing issue that could have caused crashes
 
 
 dynr 0.1.12-5

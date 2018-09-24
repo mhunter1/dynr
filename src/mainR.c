@@ -617,7 +617,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	     DYNRPRINT(verbose_flag, "error_cov_smooth_final created and copied.\n");
 
 		 SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
-		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
+		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}), 2*sizeof(int));
 		 SEXP pr_t_given_T = PROTECT(Rf_allocArray(REALSXP,dims_pr_t_given_T));
 		 index=0;
 		 ptr_index=REAL(pr_t_given_T);
@@ -651,7 +651,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		 	 
  		/*filtered state estimate*/
  		SEXP dims_eta_filtered=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_eta_filtered), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}),2*sizeof(INTEGER(dims_eta_filtered)));
+ 		memcpy(INTEGER(dims_eta_filtered), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(int));
  		SEXP eta_filtered = PROTECT(Rf_allocArray(REALSXP, dims_eta_filtered));
  		index = 0;
  		ptr_index = REAL(eta_filtered);
@@ -690,7 +690,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*predicted state estimate*/
  		SEXP dims_eta_predicted=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_eta_predicted), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_eta_predicted)));
+ 		memcpy(INTEGER(dims_eta_predicted), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(int));
  		SEXP eta_predicted = PROTECT(Rf_allocArray(REALSXP, dims_eta_predicted));
  		index = 0;
  		ptr_index = REAL(eta_predicted);
@@ -726,7 +726,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*innovation vector*/
  		SEXP dims_innov_vec=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_obs_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_innov_vec)));
+ 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_obs_var, data_model.pc.total_obs}), 2*sizeof(int));
  		SEXP innov_vec = PROTECT(Rf_allocArray(REALSXP, dims_innov_vec));
  		index = 0;
  		ptr_index = REAL(innov_vec);
