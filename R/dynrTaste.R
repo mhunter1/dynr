@@ -14,9 +14,6 @@
 ##' If the dynrCook object were not provided, or the object were cooked
 ##' with `debug_flag=FALSE',
 ##' \code{dynr.taste} will fit the dynrModel object with `debug_flag=TRUE' internally.
-##' @param dynrDynamics a dynrDynamicsFormula class.
-##'  If `prep.formulaDynamics' is used to model state equation,
-##'  the `dynrDynamicsFormula' object MUST be provided.
 ##' @param conf.level a numeric of confidence level that is used for
 ##' outliers detection tests (chi-square test and t-test). The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
@@ -47,7 +44,7 @@
 ##' @examples
 ##' # dynrCook <- dynr.cook(dynrModel)
 ##' # dynrTaste <- dynr.taste(dynrModel, dynrCook)
-dynr.taste <- function(dynrModel, dynrCook=NULL, dynrDynamics=NULL,
+dynr.taste <- function(dynrModel, dynrCook=NULL,
                        conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        debug_flag=FALSE) {
@@ -157,18 +154,35 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, dynrDynamics=NULL,
     }
   }
   if ( inherits(dynrModel$dynamics, 'dynrDynamicsFormula') ) {
-    if ( is.null(dynrDynamics) ) {
-      stop("The 'dynrDynamicsFormula' object MUST be provided, which was created by 'prep.formulaDynamics'.")
-    }
-    if ( !inherits(dynrDynamics, 'dynrDynamicsFormula') ) {
-      stop("dynrDynamics should be a 'dynrDynamicsFormula' object.") }
+    # if ( is.null(dynrDynamics) ) {
+    #   stop("The 'dynrDynamicsFormula' object MUST be provided, which was created by 'prep.formulaDynamics'.")
+    # }
+    # if ( !inherits(dynrDynamics, 'dynrDynamicsFormula') ) {
+    #   stop("dynrDynamics should be a 'dynrDynamicsFormula' object.") }
     
     eta <- dynrCook$eta_smooth_final
     rownames(eta) <- lat_name
-    jacobian <- dynrDynamics$jacobian[[1]]
-    params <- coefCook[dynrModel$dynamics@paramnames]
-    pp <- matrix(params, nrow=length(params), ncol=dimTime)
-    rownames(pp) <- names(params)
+    ## replace 'param[]' to parnames in jacobian formula
+    # formula to character
+    to_character <- function(x) {
+      Reduce( paste, deparse(x) )
+    }
+    mdj <- dynrModel@dynamics@jacobian[[1]]
+    parnames <- dynrModel@dynamics@paramnames
+    n_params <- length(parnames)
+    pch <- paste0("param\\[", 0:(n_params-1), "\\]")
+    jacobian <- lapply(mdj, function(ja) {
+      jac <- to_character(ja)
+      for (i in 1:n_params) {
+        jac <- sub(pch[i], parnames[i], jac)
+      }
+      as.formula(jac)
+    })
+    ####
+    #jacobian <- dynrDynamics$jacobian[[1]]
+    params <- coefCook[parnames]
+    pp <- matrix(params, nrow=n_params, ncol=dimTime)
+    rownames(pp) <- parnames
     # check the order of differential equations
     jac_n1 <- lapply(jacobian, function(jj) {
       jj[[2]]
@@ -368,6 +382,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL, dynrDynamics=NULL,
     t.inn=t_L, t.inn.pval=t_L_pval, t.inn.shock=t_L_shk,
     t.add=t_O, t.add.pval=t_O_pval, t.add.shock=t_O_shk,
     delta.inn=delta_L, delta.add=delta_O)
+  #if ( !is.null(dynrDynamics) ) {
+  #  res <- c(res, dynrDynamics=dynrDynamics)
+  #}
   if (debug_flag) {
     res <- c(res, 
              list(Q=Q, S=S, s=s, F_inv=F_inv, N=N, u=u, r=r))
@@ -456,12 +473,12 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
   lat_n <- length(lat_name)
   obs_n <- length(obs_name)
   
-  coefx <- coef(dynrCook)
-  tryCatch(coef(dynrModel) <- coefx,
-           error=function(e) {
-             # do nothing, and re-fit with the initial of dynrModel
-             coefx <- coefx
-           })
+  # coefx <- coef(dynrCook)
+  # tryCatch(coef(dynrModel) <- coefx,
+  #          error=function(e) {
+  #            # do nothing, and re-fit with the initial of dynrModel
+  #            coefx <- coefx
+  #          })
 
   deltaLat <- dynrTaste$delta.inn
   delta_inn <- match.arg(delta_inn)
@@ -535,31 +552,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
   # to substitute 'fixed'
   fixed_pos <- length(par_name)
 
-  # build dynr.data
-  data_org <- as.data.frame(dynrModel@data$original.data)
-  obs_name_org <- dynrModel@data$observed.names
-  cov_name_org <- dynrModel@data$covariate.names
-  data_all <- data.frame(id=id, time=time,
-                         data_org[, c(obs_name_org, cov_name_org), drop=FALSE],
-                         deltaLat, deltaObs)
-  new_data <- dynr.data(data_all, observed=obs_name_org,
-                        covariates=c(cov_name_org, delta_lat_name, delta_obs_name))
-
-  # build prep.initial
-  paInis <- dynrModel@initial@params.inistate[[1]]
-  paInis[paInis==0] <- fixed_pos
-  paramInis <- par_name[paInis]# vector
-  dim(paramInis) <- dim(paInis)# to matrix
-  paInic <- dynrModel@initial@params.inicov[[1]]
-  paInic[paInic==0] <- fixed_pos
-  paramInic <- par_name[paInic]# vector
-  dim(paramInic) <- dim(paInic)# to matrix
-  new_initial <- prep.initial(
-    values.inistate=dynrModel@initial@values.inistate[[1]],
-    params.inistate=paramInis,
-    values.inicov=dynrModel@initial@values.inicov[[1]],
-    params.inicov=paramInic)
-
+  if ( inherits(dynrModel$dynamics, 'dynrDynamicsMatrix') ) {  
   # build dynr.matrixDynamics
   padyn <- dynrModel@dynamics@params.dyn[[1]]
   padyn[padyn==0] <- fixed_pos
@@ -588,7 +581,100 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
     params.exo=dynParExo,
     covariates=c(dynrModel@dynamics@covariates, delta_lat_name),
     isContinuousTime=FALSE)
- 
+  }
+  
+  if ( inherits(dynrModel$dynamics, 'dynrDynamicsFormula') ) {
+    ## copied the function from 'statnet.common' package
+    append_rhs <- function(object, newterms, keep.onesided = FALSE) {
+      #if (inherits(newterms, "formula")) 
+      #  newterms <- list_rhs.formula(newterms)
+      for (i in seq_along(newterms)) {
+        newterm <- newterms[[i]]
+        #termsign <- if (NVL(attr(newterms, "sign")[i], +1) > 0) 
+        #  "+"
+        #else "-"
+        termsign <- "+"
+        if (length(object) == 3) 
+          object[[3]] <- call(termsign, object[[3]], newterm)
+        else if (keep.onesided) 
+          object[[2]] <- call(termsign, object[[2]], newterm)
+        else object[[3]] <- if (termsign == "+") 
+          newterm
+        else call(termsign, newterm)
+      }
+      object
+    }
+    
+    #new_dynamics <- dynrTaste$dynrDynamics
+    #old_dynamics <- dynrModel@dynamics
+    to_character <- function(x) {
+      Reduce( paste, deparse(x) )
+    }
+    parnames <- dynrModel@dynamics@paramnames
+    n_params <- length(parnames)
+    pch <- paste0("param\\[", 0:(n_params-1), "\\]")
+    
+    # mdj <- dynrModel@dynamics@jacobian[[1]]
+    # new_jacobian <- lapply(mdj, function(ja) {
+    #   jac <- to_character(ja)
+    #   for (i in 1:n_params) {
+    #     jac <- sub(pch[i], parnames[i], jac)
+    #   }
+    #   as.formula(jac)
+    # })
+    
+    mdf <- dynrModel@dynamics@formula[[1]]
+    new_formula <- lapply(mdf, function(fo) {
+      foc <- to_character(fo)
+      for (i in 1:n_params) {
+        foc <- sub(pch[i], parnames[i], foc)
+      }
+      as.formula(foc)
+    })
+    new_formula <- list(
+      lapply(new_formula, function(ff) {
+      del <- paste0("d_", ff[[2]])
+      append_rhs(ff, list(as.name(del)))
+    }) )
+    new_dynamics <- prep.formulaDynamics(
+      formula=new_formula, 
+      startval=dynrModel@dynamics@startval,
+      isContinuousTime=dynrModel@dynamics@isContinuousTime
+    )
+  }
+  
+  coefx <- coef(dynrCook)
+  tryCatch(coef(dynrModel) <- coefx,
+           error=function(e) {
+             # do nothing, and re-fit with the initial of dynrModel
+             coefx <- coefx
+           })
+  
+  # build dynr.data
+  data_org <- as.data.frame(dynrModel@data$original.data)
+  obs_name_org <- dynrModel@data$observed.names
+  cov_name_org <- dynrModel@data$covariate.names
+  data_all <- data.frame(id=id, time=time,
+                         data_org[, c(obs_name_org, cov_name_org), drop=FALSE],
+                         deltaLat, deltaObs)
+  new_data <- dynr.data(data_all, observed=obs_name_org,
+                        covariates=c(cov_name_org, delta_lat_name, delta_obs_name))
+  
+  # build prep.initial
+  paInis <- dynrModel@initial@params.inistate[[1]]
+  paInis[paInis==0] <- fixed_pos
+  paramInis <- par_name[paInis]# vector
+  dim(paramInis) <- dim(paInis)# to matrix
+  paInic <- dynrModel@initial@params.inicov[[1]]
+  paInic[paInic==0] <- fixed_pos
+  paramInic <- par_name[paInic]# vector
+  dim(paramInic) <- dim(paInic)# to matrix
+  new_initial <- prep.initial(
+    values.inistate=dynrModel@initial@values.inistate[[1]],
+    params.inistate=paramInis,
+    values.inicov=dynrModel@initial@values.inicov[[1]],
+    params.inicov=paramInic)
+  
   # build measurement
   measParLoad <- dynrModel@measurement@params.load[[1]]
   measParLoad[measParLoad==0] <- fixed_pos
