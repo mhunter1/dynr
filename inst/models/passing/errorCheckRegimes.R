@@ -123,7 +123,7 @@ testthat::expect_error(
 		params.inicov=diag(letters[1:3]),
 		values.regimep=c(.5, .5),
 		params.regimep=c('p1', 'p2')),
-	regexp="", 
+	regexp="Initial state means, initial state covariance matrix, and initial regime probabilities imply different numbers of regimes:\n'inistate' has 2, 'inicov' has 1, and 'regimep' has 2 regimes.\nEven Black Eyed Peas know that's not how you get it started.\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.", 
 	fixed=TRUE)
 
 # Initial Error (special case of forgot to specify regimep)
@@ -151,13 +151,16 @@ testthat::expect_error(
 )
 
 
-# Dynamics matrix No error
-dyna <- prep.matrixDynamics(
-	values.dyn=matrix(c(.7, .1, .1, .7), 2, 2),
-	params.dyn=matrix('fix', 2, 2),
-	values.int=list(vi, vi, vi),
-	params.int=list(pi, pi, pi),
-	isContinuousTime=FALSE)
+# Dynamics matrix error: 3 vs 1 regime
+testthat::expect_error(
+	prep.matrixDynamics(
+		values.dyn=matrix(c(.7, .1, .1, .7), 2, 2),
+		params.dyn=matrix('fix', 2, 2),
+		values.int=list(vi, vi, vi),
+		params.int=list(pi, pi, pi),
+		isContinuousTime=FALSE),
+	regexp="Different numbers of regimes implied:\n'dyn' has 1, 'exo' has 0, and 'int' has 3 regimes.\nWhat do you want from me? I'm not America's Sweetheart!\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	fixed=TRUE)
 
 # Dynamics matrix Error
 testthat::expect_error(
