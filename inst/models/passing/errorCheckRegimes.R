@@ -71,13 +71,16 @@ testthat::expect_error(
 #------------------------------------------------------------------------------
 # Loadings and intercepts have different number of regimes
 
-# Measurement No error: intercepts have 1 regime, loadings have 2
-meas <- prep.measurement(
-	values.load=list(vm1, vm2),
-	params.load=list(pm, pm),
-	values.int=vi,
-	params.int=pi,
-	obs.names=c('y1', 'x1', 'x2'))
+# Measurement error: intercepts have 1 regime, loadings have 2
+testthat::expect_error(
+	prep.measurement(
+		values.load=list(vm1, vm2),
+		params.load=list(pm, pm),
+		values.int=vi,
+		params.int=pi,
+		obs.names=c('y1', 'x1', 'x2')),
+	regexp="Y'all iz trippin! Different numbers of regimes implied:\n'load' has 2, 'exo' has 0, and 'int' has 1 regimes.\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	fixed=TRUE)
 
 # Measurement Error: intercepts have 3 regimes, loadings have 2
 testthat::expect_error(
@@ -90,13 +93,15 @@ testthat::expect_error(
 	fixed=TRUE)
 
 
-# Noise No error: observed variables have 2 regeims, latent have 1
-nois <- prep.noise(
-	values.observed=rep(list(diag(.2, 9)), 2),
-	params.observed=list(diag(letters[1:9]), diag(letters[10:18])),
-	values.latent=matrix(c(.7, .1, .1, .7), 2, 2),
-	params.latent=matrix(LETTERS[c(1, 2, 2, 3)], 2, 2))
-
+# Noise error: observed variables have 2 regeims, latent have 1
+testthat::expect_error(
+	prep.noise(
+		values.observed=rep(list(diag(.2, 9)), 2),
+		params.observed=list(diag(letters[1:9]), diag(letters[10:18])),
+		values.latent=matrix(c(.7, .1, .1, .7), 2, 2),
+		params.latent=matrix(LETTERS[c(1, 2, 2, 3)], 2, 2)),
+	regexp="Different numbers of regimes implied:\n'latent' has 1 and 'observed' has 2 regimes.\nCardi B don't like it like that!\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	fixed=TRUE)
 
 # Noise Error
 testthat::expect_error(
@@ -109,14 +114,17 @@ testthat::expect_error(
 	fixed=TRUE
 )
 
-# Initial No error even though inicov has one regime?
-init <- prep.initial(
-	values.inistate=list(vi, vi),
-	params.inistate=list(pi, pi),
-	values.inicov=diag(.2, 3),
-	params.inicov=diag(letters[1:3]),
-	values.regimep=c(.5, .5),
-	params.regimep=c('p1', 'p2'))
+# Initial error because inicov has one regime
+testthat::expect_error(
+	prep.initial(
+		values.inistate=list(vi, vi),
+		params.inistate=list(pi, pi),
+		values.inicov=diag(.2, 3),
+		params.inicov=diag(letters[1:3]),
+		values.regimep=c(.5, .5),
+		params.regimep=c('p1', 'p2')),
+	regexp="", 
+	fixed=TRUE)
 
 # Initial Error (special case of forgot to specify regimep)
 testthat::expect_error(
