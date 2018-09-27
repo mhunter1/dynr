@@ -1901,6 +1901,13 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	values.int <- lapply(values.int, preProcessNames, obs.names, character(0), 'values.int', 'obs.names')
 	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
 	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.load=values.load, values.exo=values.exo, values.int=values.int), length)
+	if(!all(nregs %in% c(0, 1, max(nregs)))){
+		stop(paste0("Y'all iz trippin! Different numbers of regimes implied:\n'load' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes."))
+	}
+	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
 	sv <- extractValues(sv, pn)
@@ -1966,12 +1973,6 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	values.observed <- r$values
 	params.observed <- r$params
 	
-	if(length(values.observed) != length(values.latent)){
-		msg <- paste0("Stuff and nonsense: number of regimes for observed covariance (", length(values.observed),
-			") is not equal to that for the latent covariance(", length(values.latent), ").")
-		stop(msg)
-	}
-	
 	values.latent <- lapply(values.latent, preProcessValues)
 	params.latent <- lapply(params.latent, preProcessParams)
 	values.observed <- lapply(values.observed, preProcessValues)
@@ -1986,6 +1987,13 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
 	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
 	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.latent=values.latent, values.observed=values.observed), length)
+	if(!all(nregs %in% c(0, 1, max(nregs)))){
+		stop(paste0("Different numbers of regimes implied:\n'latent' has ", nregs[1], " and 'observed' has ",  nregs[2], " regimes.\nCardi B don't like it like that!"))
+	}
 	
 	sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
@@ -2310,6 +2318,13 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
       jacobian=lapply(autojcb,"[[","jacob")
     }
   }
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+	if(nregs[1] != nregs[2]){
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+	}
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)
   return(new("dynrDynamicsFormula", x))
@@ -2408,6 +2423,13 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	if(!all(matCovariates == argCovariates)){
 		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates, collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
 		stop(msg)
+	}
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.dyn=values.dyn, values.exo=values.exo, values.int=values.int), length)
+	if(!all(nregs %in% c(0, 1, max(nregs)))){
+		stop(paste0("Different numbers of regimes implied:\n'dyn' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes.\nWhat do you want from me? I'm not America's Sweetheart!"))
 	}
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
@@ -2655,10 +2677,6 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	values.inicov <- r$values
 	params.inicov <- r$params
 	
-	if(length(values.inistate) != length(values.inicov)){
-		stop('Initial state means and covariance matrix imply different numbers of regimes.')
-	}
-	
 	
 	values.inistate <- lapply(values.inistate, preProcessValues)
 	params.inistate <- lapply(params.inistate, preProcessParams)
@@ -2729,6 +2747,14 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 		}
 	}
 	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.inistate=values.inistate, values.inicov=values.inicov), length)
+	nregs <- c(nregs, nrow(values.regimep))
+	if(!all(nregs %in% c(0, 1, max(nregs))) || (nregs[3]==1 & any(nregs[-3] > 1))){
+		stop(paste0("Initial state means, initial state covariance matrix, and initial regime probabilities imply different numbers of regimes:\n'inistate' has ",
+			nregs[1], ", 'inicov' has ",  nregs[2], ", and 'regimep' has ", nregs[3], " regimes.\nEven Black Eyed Peas know that's not how you get it started."))
+	}
 	
 	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov, symmetric=TRUE), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
