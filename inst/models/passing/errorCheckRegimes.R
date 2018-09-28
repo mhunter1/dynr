@@ -179,26 +179,67 @@ testthat::expect_error(
 #------------------------------------------------------------------------------
 # All parts of a model should have either 1 or n regimes
 
-data(Oscillator)
-dd <- dynr.data(Oscillator, id="id", time="times", observed=c("y1", "x1", "x2"))
+data(EMGsim)
+dd <- dynr.data(EMGsim, id='id', time='time', observed='EMG', covariates='self')
 
-regi <- prep.regimes(
-	values=matrix(c(.9, 0, 0, .9), 2, 2),
-	params=matrix(c("p11", 0, 0, "p22"), 2, 2))
+recMeas <- prep.measurement(
+	values.load=rep(list(matrix(1, 1, 1)), 2),
+	values.int=list(matrix(3, 1, 1), matrix(5.5, 1, 1)),
+	params.int=list(matrix('mu_0', 1, 1), matrix('mu_1', 1, 1)),
+	values.exo=list(matrix(0, 1, 1), matrix(1, 1, 1)),
+	params.exo=list(matrix('beta_0', 1, 1), matrix('beta_1', 1, 1)),
+	obs.names = c('EMG'),
+	state.names=c('lEMG'),
+	exo.names=c("self"))
+
+recNoise <- prep.noise(
+	values.latent=matrix(1, 1, 1),
+	params.latent=matrix('dynNoise', 1, 1),
+	values.observed=matrix(0, 1, 1),
+	params.observed=matrix('fixed', 1, 1))
+
+recReg <- prep.regimes(
+	values=matrix(c(1, -1, 0, 0), 2, 2),
+	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
+
+#recIni <- prep.initial(
+#	values.inistate=matrix(0, 1, 1),
+#	params.inistate=matrix('fixed', 1, 1),
+#	values.inicov=matrix(1, 1, 1),
+#	params.inicov=matrix('fixed', 1, 1),
+#	values.regimep=c(10, 0),
+#	params.regimep=c('fixed', 'fixed'))
+
+recIni <- prep.initial(
+	values.inistate=rep(list(matrix(0, 1, 1)), 2),
+	params.inistate=rep(list(matrix('fixed', 1, 1)), 2),
+	values.inicov=rep(list(matrix(1, 1, 1)), 2),
+	params.inicov=rep(list(matrix('fixed', 1, 1)), 2),
+	values.regimep=c(10, 0),
+	params.regimep=c('fixed', 'fixed'))
 
 
+recDyn <- prep.matrixDynamics(
+	values.dyn=list(matrix(.1, 1, 1), matrix(.8, 1, 1)),
+	params.dyn=list(matrix('phi_0', 1, 1), matrix('phi_1', 1, 1)),
+	isContinuousTime=FALSE)
 
-# Model no error
-#mod <- dynr.model(dynamics=dyna, measurement=meas, initial=init, noise=nois, regimes=regi, data=dd)
+recDyn3 <- prep.matrixDynamics(
+	values.dyn=list(matrix(.1, 1, 1), matrix(.8, 1, 1), matrix(-.5, 1, 1)),
+	params.dyn=list(matrix('phi_0', 1, 1), matrix('phi_1', 1, 1), matrix('phi_2', 1, 1)),
+	isContinuousTime=FALSE)
+
+
+# No Error even though the noise and initial recipes have 1 regime, but the measurement and dynamics have 2 regimes
+rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd)
+
 
 # Model error
-#testthat::expect_error(
-#
-#	regexp="",
-#	fixed=TRUE
-#)
-
-
+testthat::expect_error(
+	rsmod <- dynr.model(dynamics=recDyn3, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd)
+	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes must be 1 or 3\nOn Wednesdays we wear pink!",
+	fixed=TRUE
+)
 
 
 

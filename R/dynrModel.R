@@ -628,6 +628,17 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
+  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
+    numRegimes <- dim(inputs$regimes$values)[1]
+  } else {
+    numRegimes <- 1
+  }
+  
+  all.regimes <- sapply(inputs, impliedRegimes)
+  if(!all(all.regimes %in% c(1, max(all.regimes)))){
+    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), "\nNumber of regimes must be 1 or ", max(all.regimes), "\n", "On Wednesdays we wear pink!"))
+  }
+  
   # writeCcode on each recipe
   inputs <- sapply(inputs, writeCcode, data$covariate.names) 
   all.values <- unlist(sapply(inputs, slot, name='startval'))
@@ -641,6 +652,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
   obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
+  obj.dynrModel@num_regime <- numRegimes
   
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub <- as.double(rep(NA, length(obj.dynrModel@xstart)))
@@ -648,9 +660,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   names(obj.dynrModel@xstart) <- obj.dynrModel@param.names
   names(obj.dynrModel@ub) <- obj.dynrModel@param.names
   names(obj.dynrModel@lb) <- obj.dynrModel@param.names
-  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
-    obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
-  }
+  
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
   includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
@@ -672,4 +682,21 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #modify the object slot, including starting values, etc.
 }
 
+impliedRegimes <- function(recipe){
+	if(inherits(recipe, 'dynrRecipe')){
+		sn <- slotNames(recipe)
+		vs <- grep('^values\\.', sn, value=TRUE)
+		if(length(vs) > 0){
+			sl <- lapply(vs, FUN=slot, object=recipe)
+			nr <- max(sapply(sl, FUN=function(x){if(is.list(x)){return(length(x))} else {return(1)}}))
+		} else if(inherits(recipe, 'dynrRegimes')){
+			nr <- dim(recipe$values)[1]
+		} else {
+			nr <- 1
+		}
+	} else {
+		nr <- 1
+	}
+	return(nr)
+}
 
