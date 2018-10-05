@@ -6,42 +6,64 @@
 ##' @param imp.obs logical. whether to impute the observed variables
 ##' @param imp.exo logical. whether to impute the exogenous variables
 ##' @param lag numeric. the number of lags to use
+##' @param lag.variable names of variables to create lags on
+##' @param leads logical. whether to use lags or leads
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
-dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag){    #multiple lag; #factor  #get variable names
+dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
+                    leads = FALSE){    #multiple lag; #factor  #get variable names
 	
 	data <- model$data$original.data
-	k <- length(coef(model)) #- length(model@initial@paramnames)             #number of parameters estimated
-	nolag <- TRUE
+	k <- length(model$param.names)    # number of parameters estimated
 	
 	
 	ynames <- model$data$observed.names
 	xnames <- model$data$covariate.names
 	y <- data[, colnames(data)==ynames]
 	x <- data[, colnames(data)==xnames]
+	au <- data[, colnames(data)==aux.variable] 
 	ID <- model$data$id
+	id <- unique(ID)   # number of subjects
 	time <- model$data$time
 	
-	au <- data[, colnames(data)==aux.variable]  
+	# data from dynr.model
+	datanolag <- cbind(ID,y,x,au) 
 	
-	dataforlag <- cbind(ID,y,x)
+	# variables to create lags on
+	dataforlag <- subset(datanolag,select = c("ID", lag.variable))  
 	
-	#dataforlag <- ts(dataforlag)
+	# create a null data frame to store lag variables 
+	datalag <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(lag.variable)*lag))
 	
-	#head(stats::lag(as.xts(dataforlag), 2))
-	#head(lag(dataforlag, 2))
+	if(lag < 1){
+	  warning("No lags/leads introduced.")
+	  datalag <- dataforlag
+	}
 	
-	datalag <- dataforlag
-	#  dataforlag %>%
-	#  dplyr::group_by(ID) %>%
-	#  dplyr::mutate_all(lag) #Linying, what does this "lag" do?
+	for(i in id){
+	  tmp <- dataforlag[dataforlag$ID == i,]
+	  tmp <- as.matrix(subset(tmp, select = -ID))
+	  P <- ncol(tmp)
+	  nt <- nrow(tmp)
+	  if (lag > nt-1){
+	    lag <- nt-1
+	    warning("The number of lags/leads should be smaller than the number of measurements.")
+	  }
+	  tmp1 <- matrix(NA,nrow = nt, ncol = P)
+	  for(t in 1:lag){
+	    if (leads == TRUE)  { tmp1[1:(nt-t),] <- tmp[(t+1):nt,] }
+	    else  { tmp1[(t+1):nt,] <- tmp[1:(nt-t),] }
+	    a <- P*(t-1)+2
+	    b <- P*t+1
+	    datalag[datalag$ID == i, ][, a:b] <- tmp1
+	  }
+	}
+
+	# combine original variables and lag variables 
+	dataformice <- data.frame(datanolag, subset(datalag, select = -ID))
+
 	
-	dataformice <- cbind(dataforlag[,-1], datalag[,-1], au)
-	dataformice <- data.frame(dataformice)
-	
-	colnames(dataformice)=c()
-	m <- m
 	imp <- mice::mice(dataformice, m=m)
 	
 	
@@ -50,11 +72,7 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 	
 	for(j in 1:m){
 		
-		completedata <- mice::complete(imp, action=j)
-		colnames(completedata) <- c(ynames, xnames,
-		                      paste0("lag", ynames),
-		                      paste0("lag", xnames),
-		                      colnames(au))
+		completedata <- mice::complete(imp, action=j) #obtain the jth imputation
 		
 		if(imp.obs==TRUE){
 			imp.data.obs <- completedata[, colnames(completedata)==ynames]
@@ -70,33 +88,25 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag)
 		
 		newdata <- cbind(ID, time, imp.data.obs, imp.data.exo)
 		
-		#Whoa WFT is this?!?
-		save(newdata,file="test.rdata")
-		#Whoa WFT is this?!?
 		
-		colnames(newdata) <- c("ID", "Time", "wp", "hp", "ca", "cn")
+		save(newdata,file="test.rdata")
+
+		
+		colnames(newdata) <- c("ID", "Time", ynames,xnames)
 		
 		data <- dynr.data(newdata, id="ID", time="Time",
-		                observed=c("wp", "hp"), covariates=c("ca","cn"))
+		                observed=ynames, covariates=xnames)
 		
 		modelnew <- model
-		modelnew$data <- data
-		#   model <- dynr.model(dynamics=model@dynamics, measurement=model@measurement,
-		#                      noise=model@noise, initial=model@initial, data=data, transform=model@transform,
-		#                     outfile=paste("trial4",i,".c",sep=""))
-		
-		
-		# model <- dynr.model(dynamics=dynm, measurement=meas,
-		#                     noise=mdcov, initial=initial, data=data,#transform=trans,
-		#                     outfile=paste("trial2",i,".c",sep=""))
-		
+		modelnew@data <- data
+
 		
 		trial <- dynr.cook(modelnew)  #names(trial) get names of the params
 		#summary(trial)
 		
 		#getting parameter estimates
-		pmcarqhat[j,] <- coef(trial)
-		pmcaru[, ,j] <- vcov(trial)
+		pmcarqhat[j,] <- coef(trial)[1:k]
+		pmcaru[, ,j] <- vcov(trial)[c(1:k),c(1:k)]
 	}
 	
 	pqbarmcarimpute <- apply(pmcarqhat, 2, mean) 
