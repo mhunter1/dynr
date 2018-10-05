@@ -8,11 +8,12 @@
 ##' @param lag numeric. the number of lags to use
 ##' @param lag.variable names of variables to create lags on
 ##' @param leads logical. whether to use lags or leads
+##' @param cook.save logical. whether to save dynr.cook object
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
 dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
-                    leads = FALSE){    #multiple lag; #factor  #get variable names
+                    leads = FALSE, cook.save = FALSE){    #multiple lag; #factor  #get variable names
 	
 	data <- model$data$original.data
 	k <- length(model$param.names)    # number of parameters estimated
@@ -103,6 +104,9 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag,
 		
 		trial <- dynr.cook(modelnew)  #names(trial) get names of the params
 		#summary(trial)
+		
+		if (cook.save == TRUE)
+		  save(trial, file=paste0("cookresult",j,".rdata"))
 		
 		#getting parameter estimates
 		pmcarqhat[j,] <- coef(trial)[1:k]
