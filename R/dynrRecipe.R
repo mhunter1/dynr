@@ -1905,10 +1905,25 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(values.load=values.load, values.exo=values.exo, values.int=values.int), length)
 	msg <- paste0("Y'all iz trippin! Different numbers of regimes implied:\n'load' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes.")
-	if(!all(nregs %in% c(0, 1, max(nregs)))){
+	mr <- max(nregs)
+	if(!all(nregs %in% c(0, 1, mr))){
 		stop(msg)
-	} else if (!all(nregs %in% c(0, max(nregs)))){
-		stop(paste0(msg, regime1msg))
+	} else if (!all(nregs %in% c(0, mr))){
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.load, params.load, 'values.load', 'loadings', mr)
+			values.load <- ae[[1]]
+			params.load <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.exo, params.exo, 'values.exo', 'covariate regressions', mr)
+			values.exo <- ae[[1]]
+			params.exo <- ae[[2]]
+		}
+		if(nregs[3] == 1){
+			ae <- autoExtendSubRecipe(values.int, params.int, 'values.int', 'intercepts', mr)
+			values.int <- ae[[1]]
+			params.int <- ae[[2]]
+		}
 	}
 	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
@@ -1923,6 +1938,13 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 }
 
 regime1msg <- "\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list."
+
+autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg){
+	v <- rep(values, maxReg)
+	p <- rep(params, maxReg)
+	message(paste0("Oi, Chap! I found 1 regime for '",  formalName, "'  but ", maxReg, " regimes elsewhere, so I extended the ", informalName, " to match.\nIf this is what you wanted, all is sunshine and puppy dogs."))
+	return(list(v, p))
+}
 
 #------------------------------------------------------------------------------
 # Error covariance matrix
@@ -1987,20 +2009,30 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	lapply(values.observed, checkSymmetric, name="values.observed")
 	lapply(params.observed, checkSymmetric, name="params.observed")
 	
-	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
-	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
-	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
-	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
-	
 	# Check that all 'values' imply 0, 1, or the same number of regimes.
 	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(values.latent=values.latent, values.observed=values.observed), length)
 	msg <- paste0("Different numbers of regimes implied:\n'latent' has ", nregs[1], " and 'observed' has ",  nregs[2], " regimes.\nCardi B don't like it like that!")
-	if(!all(nregs %in% c(1, max(nregs)))){
+	mr <- max(nregs)
+	if(!all(nregs %in% c(1, mr))){
 		stop(msg)
-	} else if(!all(nregs %in% c(max(nregs)))) {
-		stop(paste0(msg, regime1msg))
+	} else if(!all(nregs %in% mr)) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.latent, params.latent, 'values.latent', 'latent covariances', mr)
+			values.latent <- ae[[1]]
+			params.latent <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.observed, params.observed, 'values.observed', 'observed covariances', mr)
+			values.observed <- ae[[1]]
+			params.observed <- ae[[2]]
+		}
 	}
+	
+	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
+	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
+	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
+	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
 	
 	sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
@@ -2436,10 +2468,25 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(values.dyn=values.dyn, values.exo=values.exo, values.int=values.int), length)
 	msg <- paste0("Different numbers of regimes implied:\n'dyn' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes.\nWhat do you want from me? I'm not America's Sweetheart!")
-	if(!all(nregs %in% c(0, 1, max(nregs)))){
+	mr <- max(nregs)
+	if(!all(nregs %in% c(0, 1, mr))){
 		stop(msg)
-	} else if(!all(nregs %in% c(0, max(nregs)))) {
-		stop(paste0(msg, regime1msg))
+	} else if(!all(nregs %in% c(0, mr))) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.dyn, params.dyn, 'values.dyn', 'dynamics', mr)
+			values.dyn <- ae[[1]]
+			params.dyn <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.exo, params.exo, 'values.exo', 'covariate regessions', mr)
+			values.exo <- ae[[1]]
+			params.exo <- ae[[2]]
+		}
+		if(nregs[3] == 1){
+			ae <- autoExtendSubRecipe(values.int, params.int, 'values.int', 'intercepts', mr)
+			values.int <- ae[[1]]
+			params.int <- ae[[2]]
+		}
 	}
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
@@ -2696,8 +2743,6 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	params.inicov <- lapply(params.inicov, preProcessParams)
 	lapply(values.inicov, checkSymmetric, name="values.inicov")
 	lapply(params.inicov, checkSymmetric, name="params.inicov")
-	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
-	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
 	if(nrow(values.inistate[[1]]) != nrow(values.inicov[[1]])){
 		stop(paste0('Number of latent variables implied by initial state and initial covariance differ:\n',
@@ -2761,13 +2806,26 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(values.inistate=values.inistate, values.inicov=values.inicov), length)
 	nregs <- c(nregs, nrow(values.regimep))
+	mr <- max(nregs)
 	msg <- paste0("Initial state means, initial state covariance matrix, and initial regime probabilities imply different numbers of regimes:\n'inistate' has ",
 			nregs[1], ", 'inicov' has ",  nregs[2], ", and 'regimep' has ", nregs[3], " regimes.\nEven Black Eyed Peas know that's not how you get it started.")
-	if(!all(nregs %in% c(1, max(nregs))) || (nregs[3]==1 & any(nregs[-3] > 1))){
+	if(!all(nregs %in% c(1, mr)) || (nregs[3]==1 & any(nregs[-3] > 1))){
 		stop(msg)
-	} else if(!all(nregs %in% c(max(nregs)))) {
-		stop(paste0(msg, regime1msg))
+	} else if(!all(nregs %in% mr)) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.inistate, params.inistate, 'values.inistate', 'initial states', mr)
+			values.inistate <- ae[[1]]
+			params.inistate <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.inicov, params.inicov, 'values.inicov', 'initial covariances', mr)
+			values.inicov <- ae[[1]]
+			params.inicov <- ae[[2]]
+		}
 	}
+	
+	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
+	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
 	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov, symmetric=TRUE), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
