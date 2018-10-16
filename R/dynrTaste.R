@@ -627,7 +627,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
     new_formula <- lapply(mdf, function(fo) {
       foc <- to_character(fo)
       for (i in 1:n_params) {
-        foc <- sub(pch[i], parnames[i], foc)
+        foc <- gsub(pch[i], parnames[i], foc)
       }
       as.formula(foc)
     })
@@ -792,8 +792,6 @@ cj <- function(cookDebug, jacobian, lat_name, params){
 
 #example use from demo/NonlinearODE.R
 #computeJacobian(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res), 3)
-aa <- cj(res, dynm$jacobian[[1]], model$measurement$state.names, coef(res))
-aa
 #str(aa)
 #aa[,,3]
 #cf t=1 vs t=50
