@@ -280,7 +280,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }
       # 0/0 at endTime
-      t_value[,endTime] <- 0
+      t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
     }
     
   } else {
@@ -299,7 +299,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }
       # 0/0 at endTime
-      t_value[,endTime] <- 0
+      t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
     }
   }
   
