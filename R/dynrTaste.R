@@ -39,11 +39,14 @@
 ##'
 ##' @references
 ##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009).
-##' Using innovative outliers to detectdiscrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465-496.
+##' Using innovative outliers to detect discrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465-496.
 ##' 
 ##' @examples
-##' # dynrCook <- dynr.cook(dynrModel)
-##' # dynrTaste <- dynr.taste(dynrModel, dynrCook)
+##' \dontrun{
+##' # See the demo for outlier detection, OutlierDetection.R
+##' dynrCook <- dynr.cook(dynrModel)
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook)
+##' }
 dynr.taste <- function(dynrModel, dynrCook=NULL,
                        conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
@@ -97,7 +100,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   chiObs <- numeric(dimTime)
   
   for(i in 1:dimTime){
-    F_inv_i <- F_inv[,,i]
+    F_inv_i <- matrix(F_inv[,,i], dimObs, dimObs)
     K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv_i # [lat, obs]
     v_i <- v[,i] # [obs, 1]
     chiObs[i] <- t(v_i) %*% F_inv_i %*% v_i
@@ -174,7 +177,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
     jacobian <- lapply(mdj, function(ja) {
       jac <- to_character(ja)
       for (i in 1:n_params) {
-        jac <- sub(pch[i], parnames[i], jac)
+        jac <- gsub(pch[i], parnames[i], jac)
       }
       as.formula(jac)
     })
@@ -250,8 +253,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   rownames(delta) <- c(obs_name, lat_name)
   # (X',W') = I. (De Jong and Penzer, 1988)
   XW <- diag(1, dimObs+dimLat)
-  X_t <- XW[1:dimObs, ]
-  W_t <- XW[(dimObs+1):(dimObs+dimLat), ]
+  X_t <- XW[1:dimObs, , drop=FALSE]
+  W_t <- XW[(dimObs+1):(dimObs+dimLat), , drop=FALSE]
   # t-values
   t_value <- matrix(NA, dimObs+dimLat, dimTime)
   rownames(t_value) <- c(obs_name, lat_name)
@@ -267,12 +270,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       endTime <- tstart[i+1]
       
       for (j in beginTime:endTime) {
-        Q_j <- W_t - K[,,j] %*% X_t
+        Q_j <- W_t - matrix(K[,,j], dimLat, dimObs) %*% X_t
         Q[,,j] <- Q_j##
-        S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
-          t(Q_j) %*% N[,,j] %*% Q_j
+        S_j <- t(X_t) %*% matrix(F_inv[,,j], dimObs, dimObs) %*% X_t +
+          t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
         S[,,j] <- S_j##
-        s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
+        s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
         s[,j] <- s_j##
         S_j_inv <- try(solve(S_j), silent=TRUE)
         if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
@@ -289,10 +292,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       endTime <- tstart[i+1]
       
       for (j in beginTime:endTime) {
-        Q_j <- W_t - K[,,j] %*% X_t
-        S_j <- t(X_t) %*% F_inv[,,j] %*% X_t +
-          t(Q_j) %*% N[,,j] %*% Q_j
-        s_j <- t(X_t) %*% u[,j] + t(W_t) %*% r[,j]
+        Q_j <- W_t - matrix(K[,,j], dimLat, dimObs) %*% X_t
+        S_j <- t(X_t) %*% matrix(F_inv[,,j], dimObs, dimObs) %*% X_t +
+          t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
+        s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
         S_j_inv <- try(solve(S_j), silent=TRUE)
         if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
         delta[,j] <- S_j_inv %*% s_j
@@ -347,9 +350,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   }
   
   # t_value for observed
-  t_O <- t_value[1:dimObs, ]
+  t_O <- t_value[1:dimObs, , drop=FALSE]
   # t_value for latent
-  t_L <- t_value[(dimObs+1):(dimObs+dimLat), ]
+  t_L <- t_value[(dimObs+1):(dimObs+dimLat), , drop=FALSE]
   
   t_O_pval <- matrix(NA, nrow(t_O), ncol(t_O))
   rownames(t_O_pval) <- obs_name
@@ -358,8 +361,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   for(i in 1:nID){
     begT <- tstart[i] + 1
     endT <- tstart[i+1]
-    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT])
-    t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT])
+    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT, drop=FALSE])
+    t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT, drop=FALSE])
   }
   
   # locate shocks from t-test
@@ -370,9 +373,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   #rownames(delta) <- paste0("d_", c(obs_name, lat_name))
   rownames(delta) <- c(obs_name, lat_name)
   # delta for observed
-  delta_O <- delta[1:dimObs, ]
+  delta_O <- delta[1:dimObs, , drop=FALSE]
   # delta for latent
-  delta_L <- delta[(dimObs+1):(dimObs+dimLat), ]
+  delta_L <- delta[(dimObs+1):(dimObs+dimLat), , drop=FALSE]
   
   res <- list(
     conf.level=conf.level, tstart=tstart, id=id, time=time,
