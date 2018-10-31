@@ -34,7 +34,7 @@
 
 ##' The t statistic (estimate of an outlier divided by standard error of the outlier) of the last time point is NA, 
 ##' because the Kalman smoothing process starts with setting r and N to zero for the last time point 
-##' (core elements of caculating estimates and the standard errors of outliers) 
+##' (core elements of calculating estimates and the standard errors of outliers) 
 ##' that lead to 0/0 of the t statistic of the last time point.
 ##' For the time-varing models, more NAs would appear at the end of times because the Kalman smoother needs more time points to obtain all elements of r nad N from limited number of observed variables in the model. 
 ##'
