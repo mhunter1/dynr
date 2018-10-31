@@ -29,8 +29,14 @@
 ##' for innovative and additive outliers are following in that order.
 ##' The estimated delta for innovative and additive components are in the last.
 ##' If \code{debug_flag} is \code{TRUE}, 
-##' Q, S, s, F_inv, N, u, r would be added at the end.
+##' The by-products of the Kalman filter and smoother (Q, S, s, F_inv, N, u, r) would be added at the end.
 ##' See the reference for definition of the notations.
+
+##' The t statistic (estimate of an outlier divided by standard error of the outlier) of the last time point is NA, 
+##' because the Kalman smoothing process starts with setting r and N to zero for the last time point 
+##' (core elements of caculating estimates and the standard errors of outliers) 
+##' that lead to 0/0 of the t statistic of the last time point.
+##' For the time-varing models, more NAs would appear at the end of times because the Kalman smoother needs more time points to obtain all elements of r nad N from limited number of observed variables in the model. 
 ##'
 ##' The `delta_chi' list comprises magnitude of innovative (Latent) and additive (Observed) outliers, `delta.L' and `delta.O',
 ##' when chi-square statitics is used to detect outliers.
@@ -283,7 +289,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }
       # 0/0 at endTime
-      t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
+      # t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
     }
     
   } else {
@@ -302,7 +308,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }
       # 0/0 at endTime
-      t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
+      # t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
     }
   }
   
