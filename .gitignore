@@ -20,6 +20,7 @@ man/dynr.mi.Rd
 man/dynr.model.Rd
 man/dynr.plotFreq.Rd
 man/dynr.version.Rd
+man/dynr.taste.Rd
 man/dynrCook-class.Rd
 man/dynrDynamics-class.Rd
 man/dynrInitial-class.Rd
