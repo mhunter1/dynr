@@ -1,19 +1,21 @@
 ##' Multiple Imputation of dynrModel objects
 ##' 
 ##' @param model dynrModel object
+##' @param aux.variable names of auxiliary variables used in imputation 
 ##' @param m number of multiple imputations
-##' @param aux.variable names of auxiliary variables used in imputation
+##' @param iter number of iterations in one imputation
 ##' @param imp.obs logical. whether to impute the observed variables
 ##' @param imp.exo logical. whether to impute the exogenous variables
 ##' @param lag numeric. the number of lags to use
 ##' @param lag.variable names of variables to create lags on
 ##' @param leads logical. whether to use lags or leads
+##' @param diag logical. whether to use convergence diagnostics
 ##' @param cook.save logical. whether to save dynr.cook object
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
-dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
-                    leads = FALSE, cook.save = FALSE){    #multiple lag; #factor  #get variable names
+dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
+                    leads = FALSE, diag = TRUE, cook.save = FALSE){    #multiple lag; #factor  #get variable names
 	
 	data <- model$data$original.data
 	k <- length(model$param.names)    # number of parameters estimated
@@ -65,8 +67,73 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag,
 	dataformice <- data.frame(datanolag, subset(datalag, select = -ID))
 
 	
-	imp <- mice::mice(dataformice, m=m)
+	imp <- mice::mice(dataformice, m=m, maxit = iter, printFlag = FALSE)
 	
+	# convergence diagnostics
+	diag = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
+	  
+	  chains = m
+	  
+	  ###Reformat chainMean to a list
+	  chainmean = imp$chainMean
+	  chainmean2 = chainmean[!is.na(chainmean)]
+	  coda = matrix(chainmean2, nrow = m*iter, byrow = T)
+	  
+	  Rhat = matrix(NA, nrow = iter, ncol = nvariables) 
+	  #cal Rhats for each iteration and each variable
+	  for(i in itermin:iter){
+	    
+	    codai = coda[1:m*i,1:nvariables]
+	    value = list()  #each list contains a chain 
+	    for(k in 1:m){
+	      value[[k]] = coda[(i*(k-1)+1+burn):(i*k),]  #drop the values of each chain in the beginning period
+	    }
+	    
+	    # RHAT calc from zcalc
+	    iterations = i
+	    for(j in 1:nvariables) {
+	      
+	      chainmeans = rep(NA, chains)
+	      chainvars = rep(NA, chains)
+	      for(k in 1:chains) {
+	        sum = sum(value[[k]][,j])
+	        var = var(value[[k]][,j])
+	        mean = sum / iterations
+	        
+	        chainmeans[k] = mean
+	        chainvars[k] = var
+	      }
+	      globalmean = sum(chainmeans) / chains
+	      globalvar = sum(chainvars) / chains
+	      
+	      # Compute between- and within-variances and MPV
+	      b = sum((chainmeans - globalmean)^2) * iterations / (chains - 1)
+	      
+	      varplus = (iterations - 1) * globalvar / iterations + b / iterations
+	      
+	      # Gelman-Rubin statistic
+	      rhat = sqrt(varplus / globalvar)
+	      Rhat[i,j] = rhat
+	    }
+	  }
+	  return(Rhat)
+	}
+	
+	
+	if (diag == TRUE){
+	  # trace plots
+	  plot(imp) 
+	  
+    # Rhat plot
+	  nvariables = length(c(ynames,xnames))
+	  result = diag(imp, nvariables, m, 2,iter,0)
+	  
+	  names =c(ynames,xnames)
+	  for(j in 1:nvariables){
+	    plot(2:iter, result[2:iter,j],type="l",ylim=c(min(result),1.5),ylab="Rhat",xlab="last iteration in chain",main=names[j])
+	    abline(h=1,lty=2,col=2)
+	  }
+	}
 	
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
@@ -76,13 +143,13 @@ dynr.mi <- function(model, m=5, aux.variable, imp.obs=FALSE, imp.exo=FALSE, lag,
 		completedata <- mice::complete(imp, action=j) #obtain the jth imputation
 		
 		if(imp.obs==TRUE){
-			imp.data.obs <- completedata[, colnames(completedata)==ynames]
+			imp.data.obs <- completedata[, ynames]
 		} else{
 			imp.data.obs <- y
 		}
 		
 		if(imp.exo==TRUE){
-			imp.data.exo <- completedata[, colnames(completedata)==xnames]
+			imp.data.exo <- completedata[, xnames]
 		} else{
 			imp.data.exo <- x
 		}
