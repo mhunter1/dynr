@@ -70,7 +70,7 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	imp <- mice::mice(dataformice, m=m, maxit = iter, printFlag = FALSE)
 	
 	# convergence diagnostics
-	diag = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
+	diag.mi = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
 	  
 	  chains = m
 	  
@@ -126,12 +126,12 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	  
     # Rhat plot
 	  nvariables = length(c(ynames,xnames))
-	  result = diag(imp, nvariables, m, 2,iter,0)
+	  result = diag.mi(imp, nvariables, m, 2,iter,0)
 	  
 	  names =c(ynames,xnames)
 	  for(j in 1:nvariables){
-	    plot(2:iter, result[2:iter,j],type="l",ylim=c(min(result),1.5),ylab="Rhat",xlab="last iteration in chain",main=names[j])
-	    abline(h=1,lty=2,col=2)
+	    plot(2:iter, result[2:iter,j],type="l",ylim=c(min(na.omit(result)),max(na.omit(result))),ylab="Rhat",xlab="last iteration in chain",main=names[j])
+	    abline(h=1.1,lty=2,col=2)
 	  }
 	}
 	
