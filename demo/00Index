@@ -7,4 +7,4 @@ RSNonlinearDiscrete    Nonlinear dynamic factor analysis
 RSNonlinearODE         Regime-switching predator-prey model
 initialExo             Regime-switching initial conditions with covariates
 SDETVP                 Stochastic linear damped oscillator with time-varying setpoint parameter
-
+OutlierDetection              Outlier detection in state-space model

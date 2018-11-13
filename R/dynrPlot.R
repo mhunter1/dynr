@@ -665,3 +665,244 @@ autoplot.dynrCook <- function(object, dynrModel, style = 1,
                         mancolorPalette=mancolorPalette, manfillPalette=manfillPalette, ...)
 }
 
+##' The ggplot of the outliers estimates.
+##' 
+##' @param object A dynrTaste object.
+##' @param numSubjDemo The number of subjects, who have 
+##' largest joint chi-square statistic, to be selected  for plotting.
+##' @param idtoPlot Values of the ID variable to plot.
+##' @param names.state (optional) The names of the states to be plotted, which should be a subset of the state.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all state variables will be included. 
+##' @param names.observed (optional) The names of the observed variables to be plotted, which should be a subset of the obs.names slot of the measurement slot of dynrModel. If NULL, the t statistic plots for all observed variables will be included.
+##' @param ... Place holder for other arguments. Please do not use.
+##' 
+##' @return a list of ggplot objects for each ID. 
+##' The plots of chi-square statistics (joint and independent),
+##' and the plots of t statistic for \code{names.state} and \code{names.observed} will be included.
+##' Users can modify the ggplot objects using ggplot grammar.
+##' If a \code{filename} is provided, a pdf of plots will be saved additionally.
+autoplot.dynrTaste <- function(object, 
+                               numSubjDemo=2, idtoPlot=NULL,
+                               names.state=NULL, names.observed=NULL, ...) {
+  if ( !inherits(object, "dynrTaste") ) {
+    stop("dynrTaste object is required.") 
+  }
+  stopifnot(numSubjDemo >= 1)
+  numSubjDemo <- as.integer(numSubjDemo)
+  
+  conf_level <- object$conf.level
+  tstart <- object$tstart
+  chi_jnt <- object$chi.jnt
+  id <- object$id
+  id_unq <- unique(id)
+  id_n <- length(id_unq)
+  lat_name <- rownames(object$t.inn)
+  obs_name <- rownames(object$t.add)
+  lat_n <- length(lat_name)
+  obs_n <- length(obs_name)
+  
+  if( is.null(names.state) ) {
+    lat_toplot <- lat_name
+  } else {
+    if ( !all(names.state %in% lat_name) ) {
+      stop("'names.state' should be a subset of the latent variables.")
+    }
+    lat_toplot <- names.state
+  }
+  
+  if( is.null(names.observed) ) {
+    obs_toplot <- obs_name
+  } else {
+    if ( !all(names.observed %in% obs_name) ) {
+      stop("'names.observed' should be a subset of the observed variables.")
+    }
+    obs_toplot <- names.observed
+  }
+  
+  if ( is.null(idtoPlot) ) {
+    chi_max <- vector("numeric", id_n)
+    for(i in 1:id_n){
+      begT <- tstart[i] + 1
+      endT <- tstart[i+1]
+      chi_max[i] <- max( chi_jnt[begT:endT] )
+    }
+    id_toplot <- id_unq[ order(chi_max, decreasing=TRUE) ][
+      1:numSubjDemo ]
+  } else {
+    id_toplot <- idtoPlot
+    if ( !all(id_toplot %in% id_unq) ) {
+      stop("Not all ID are in the data.")
+    }
+  }
+  
+  ### create ggplot objects
+  ggadd_hline <- function(yintercept) {
+    geom_hline(yintercept=yintercept, 
+               colour="black", linetype="dashed", alpha=0.5)
+  }
+  ggadd_point <- function(data, aes_y) {
+    geom_point(data=data, aes_string(x="time", y=aes_y),
+               colour="red", size=2, alpha=0.5)
+  }
+  ggadd_theme <- function() {
+    theme(plot.title=element_text(size = rel(0.85)),
+          axis.title.x=element_blank(),
+          #axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          panel.background=element_blank(),
+          plot.margin = margin(0, 0, 0, 0),
+          axis.line=element_line(colour = "black"))
+  }
+  
+  ## Joint chi-square
+  id_toplot_n <- length(id_toplot)
+  time <- object$time
+  chi_jnt_shk <- NULL
+  chi_df_jnt <- data.frame(id = id, time = time,
+                           chi_jnt = object$chi.jnt,
+                           chi_jnt_shk = object$chi.jnt.shock)
+  # subset data for id to plot
+  chi_df_jnt_plot <- subset(chi_df_jnt, is.element(id, id_toplot))
+  # subset data only for shocks
+  chi_df_jnt_shk <- subset(chi_df_jnt_plot, chi_jnt_shk)
+  qchi_jnt <- qchisq(conf_level, lat_n + obs_n)
+  
+  plots_jnt <- lapply(id_toplot, function(id_i) {
+    chi_df_jnt_shk_i <- subset(chi_df_jnt_shk, id==id_i)
+    ggplot2::ggplot(subset(chi_df_jnt_plot, id==id_i), 
+                    aes(x=time, y=chi_jnt)) +
+      geom_line(alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Joint ", Chi^2))) +
+      list(ggadd_point(chi_df_jnt_shk_i, "chi_jnt"), 
+           ggadd_hline(qchi_jnt), ggadd_theme())
+  })
+  
+  #### Independend chi-square for innovative ####
+  chi_inn <- chi_inn_shk <- NULL
+  chi_df_inn <- data.frame(id = id, time = time,
+                           chi_inn = object$chi.inn,
+                           chi_inn_shk = object$chi.inn.shock)
+  chi_df_inn_plot <- subset(chi_df_inn, is.element(id, id_toplot))
+  chi_df_inn_shk <- subset(chi_df_inn_plot, chi_inn_shk)
+  qchi_inn <- qchisq(conf_level, lat_n)
+  
+  plots_inn <- lapply(id_toplot, function(id_i) {
+    chi_df_inn_shk_i <- subset(chi_df_inn_shk, id==id_i)
+    ggplot2::ggplot(subset(chi_df_inn_plot, id==id_i),
+                    aes(x=time, y=chi_inn)) +
+      geom_line(alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Indep.  ", Chi^2, " - innovative"))) +
+      list(ggadd_point(chi_df_inn_shk_i, "chi_inn"),
+           ggadd_hline(qchi_inn), ggadd_theme())
+  })
+  
+  #### Independent chi-square for additive ####
+  chi_add <- chi_add_shk <- NULL
+  chi_df_add <- data.frame(id = id, time = time,
+                           chi_add = object$chi.add,
+                           chi_add_shk = object$chi.add.shock)
+  chi_df_add_plot <- subset(chi_df_add, is.element(id, id_toplot))
+  chi_df_add_shk <- subset(chi_df_add_plot, chi_add_shk)
+  
+  plots_add <- lapply(id_toplot, function(id_i) {
+    chi_df_add_shk_i <- subset(chi_df_add_shk, id==id_i)
+    ggplot2::ggplot(subset(chi_df_add_plot, id==id_i),
+                    aes(x=time, y=chi_add)) +
+      geom_line(alpha=0.5) +
+      labs(title="") +
+      ylab(expression(paste("Indep.  ", Chi^2, " - additive"))) +
+      list(ggadd_point(chi_df_add_shk_i, "chi_add"),
+           ggadd_hline(qchisq(conf_level, lat_n)), ggadd_theme())
+  })
+  
+  #### t-statistic for innovative ####
+  t_inn <- object$t.inn
+  t_inn_name <- row.names(t_inn)
+  row.names(t_inn) <- paste0(t_inn_name, "_t")
+  t_df_inn <- data.frame(id = id, time = time,
+                         t(t_inn), t(object$t.inn.shock))
+  t_df_inn_plot <- subset(t_df_inn, is.element(id, id_toplot))
+  
+  plots_t_inn <- lapply(id_toplot, function(id_i) {
+    t_df_inn_plot_i <- subset(t_df_inn_plot, id==id_i)
+    lapply(lat_toplot, function(lat_i) {
+      t_df_inn_shk_i <- subset(t_df_inn_plot_i,
+                               t_df_inn_plot_i[[lat_i]])
+      qt_i <- qt(conf_level, nrow(t_df_inn_plot_i) - obs_n)
+      ggplot2::ggplot(t_df_inn_plot_i,
+                      aes_string(x="time", y=paste0(lat_i, "_t"))) +
+        geom_line(alpha=0.5) +
+        labs(title="") +
+        ylab(paste("t_[", lat_i, "]")) +
+        list(ggadd_point(t_df_inn_shk_i, paste0(lat_i, "_t")),
+             ggadd_hline(qt_i), ggadd_hline(-qt_i), ggadd_theme())
+    })
+  })
+  
+  #### t-statistic for additive ####
+  t_add <- object$t.add
+  t_add_name <- row.names(t_add)
+  row.names(t_add) <- paste0(t_add_name, "_t")
+  t_df_add <- data.frame(id = id, time = time,
+                         t(t_add), t(object$t.add.shock))
+  t_df_add_plot <- subset(t_df_add, is.element(id, id_toplot))
+  
+  plots_t_add <- lapply(id_toplot, function(id_i) {
+    t_df_add_plot_i <- subset(t_df_add_plot, id==id_i)
+    t_add_df_i <- nrow(t_df_add_plot_i)
+    lapply(obs_toplot, function(obs_i) {
+      t_df_add_shk_i <- subset(t_df_add_plot_i,
+                               t_df_add_plot_i[[obs_i]])
+      qt_i <- qt(conf_level, t_add_df_i - obs_n)
+      ggplot2::ggplot(t_df_add_plot_i,
+                      aes_string(x="time", y=paste0(obs_i, "_t"))) +
+        geom_line(alpha=0.5) +
+        labs(title="") +
+        ylab(paste("t_[", obs_i, "]")) +
+        list(ggadd_point(t_df_add_shk_i, paste0(obs_i, "_t")),
+             ggadd_hline(qt_i), ggadd_hline(-qt_i), ggadd_theme())
+    })
+  })
+  
+  gg_objects <- mapply(function(jnt_i, inn_i, add_i, 
+                                t_inn_i, t_add_i, id_toplot_i) {
+    gg_i <- c(list(jnt_i, inn_i, add_i), t_inn_i, t_add_i)
+    names(gg_i) <- c("chi_jnt", "chi_inn", "chi_add", 
+                     paste0("t_[", lat_toplot, "]"), 
+                     paste0("t_[", obs_toplot, "]"))
+    gg_i
+  },
+  plots_jnt, plots_inn, plots_add, plots_t_inn, plots_t_add, id_toplot,
+  SIMPLIFY=FALSE)
+  
+  names(gg_objects) <- id_toplot
+  
+  # if ( !is.null(filename) && is.character(filename) ) {
+  #   gg_plots <- mapply(function(plots_i, id_toplot_i) {
+  #     plots_arr <- ggpubr::ggarrange(
+  #       plotlist=plots_i, nrow=length(plots_i), ncol=1, align="v")
+  #     ggpubr::annotate_figure(
+  #       plots_arr,
+  #       top=ggpubr::text_grob(paste0("ID: ", id_toplot_i), 
+  #                             color="black", face="bold", size=14),
+  #       bottom=ggpubr::text_grob("time", color="black", size=11))
+  #   }, 
+  #   gg_objects, id_toplot,
+  #   SIMPLIFY=FALSE)
+  #   
+  #   id_v <- chi_df_jnt_plot[["id"]]
+  #   id_time_length <- vector("numeric", id_toplot_n)
+  #   # time points for each id
+  #   for (i in 1:id_toplot_n) {
+  #     id_time_length[i] <- sum(is.element(id_v, id_toplot[i]))
+  #   }
+  #   # width: time/6, height: n of gg object * 2
+  #   ggpubr::ggexport(gg_plots, filename=filename, 
+  #                    width=mean(id_time_length)/6, 
+  #                    height=length(gg_objects[[1]])*2)
+  # }
+  invisible(gg_objects)
+}
