@@ -11,11 +11,12 @@
 ##' @param leads logical. whether to use lags or leads
 ##' @param diag logical. whether to use convergence diagnostics
 ##' @param cook.save logical. whether to save dynr.cook object
+##' @param seed integer. a single value used to set seed in imputation
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
 dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
-                    leads = FALSE, diag = TRUE, cook.save = FALSE){    #multiple lag; #factor  #get variable names
+                    leads = FALSE, diag = TRUE, cook.save = FALSE, seed = NA){    #multiple lag; #factor  #get variable names
 	
 	data <- model$data$original.data
 	k <- length(model$param.names)    # number of parameters estimated
@@ -67,7 +68,8 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	dataformice <- data.frame(datanolag, subset(datalag, select = -ID))
 
 	
-	imp <- mice::mice(dataformice, m=m, maxit = iter, printFlag = FALSE)
+	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed, printFlag = FALSE)
+	
 	
 	# convergence diagnostics
 	diag.mi = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
@@ -138,6 +140,8 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
+	print("Cooking the dynr model to estimate free parameters")
+	
 	for(j in 1:m){
 		
 		completedata <- mice::complete(imp, action=j) #obtain the jth imputation
@@ -169,7 +173,7 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 		modelnew@data <- data
 
 		
-		trial <- dynr.cook(modelnew)  #names(trial) get names of the params
+		trial <- dynr.cook(modelnew, verbose = FALSE)  #names(trial) get names of the params
 		#summary(trial)
 		
 		if (cook.save == TRUE)
