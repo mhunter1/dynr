@@ -14,6 +14,14 @@
 ##' If the dynrCook object were not provided, or the object were cooked
 ##' with `debug_flag=FALSE',
 ##' \code{dynr.taste} will fit the dynrModel object with `debug_flag=TRUE' internally.
+##' @param lat_choose a character vector of the names of latent variables. 
+##' The outlier detection process will be applied only to the chosen variable. 
+##' If the argument is NA, all the latent variables will be excluded in the outlier detection process. 
+##' If the argument is missing (defalut), all the latent variables will be chosen.
+##' ##' @param obs_choose a character vector of the names of measured or observed variables. 
+##' The outlier detection process will be applied only to the chosen variable. 
+##' If the argument is NA, all the measured variables will be excluded in the outlier detection process. 
+##' If the argument is missing (defalut), all the measured variables will be chosen.
 ##' @param conf.level a numeric of confidence level that is used for
 ##' outliers detection tests (chi-square test and t-test). The default is 0.99.
 ##' @param alternative a character string specifying the alternative hypothesis of t-test,
@@ -52,8 +60,12 @@
 ##' # See the demo for outlier detection, OutlierDetection.R
 ##' dynrCook <- dynr.cook(dynrModel)
 ##' dynrTaste <- dynr.taste(dynrModel, dynrCook)
+##' 
+##' # Detect outliers related to 'eta1' out of, say, three latent variables c("eta1", "eta2", "eta3"), and all measured variables.
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook, lat_choose=c("eta1"))
 ##' }
 dynr.taste <- function(dynrModel, dynrCook=NULL,
+                       lat_choose, obs_choose,
                        conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        debug_flag=FALSE) {
@@ -80,6 +92,42 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   id <- dynrModel$data$id
   IDs <- unique(id)
   nID <- length(IDs)
+  
+  # choose latent variables
+  if( missing(lat_choose) ) {
+    W_t_exclude <- rep(FALSE, dimLat)
+    
+  } else if ( any(is.na(lat_choose)) ) {
+    W_t_exclude <- rep(TRUE, dimLat)
+    
+  } else {
+    lat_choose <- unique(lat_choose)
+    lcv <- lat_choose %in% lat_name
+    if ( !all(lcv) ) {
+      stop( paste("Cannot recognize the latent variable(s):",
+                  paste(lat_choose[!lcv], collapse=", ")),
+            call.=FALSE)
+    }
+    W_t_exclude <- !(lat_name %in% lat_choose)
+  }
+  
+  # choose measured variables
+  if( missing(obs_choose) ) {
+    X_t_exclude <- rep(FALSE, dimObs)
+    
+  } else if ( any(is.na(obs_choose)) ) {
+    X_t_exclude <- rep(TRUE, dimObs)
+    
+  } else {
+    obs_choose <- unique(obs_choose)
+    ocv <- obs_choose %in% obs_name
+    if ( !all(ocv) ) {
+      stop( paste("Cannot recognize the measured variable(s):",
+                  paste(obs_choose[!ocv], collapse=", ")),
+            call.=FALSE)
+    }
+    X_t_exclude <- !(obs_name %in% obs_choose)
+  }
   
   # replace values.xx in dynrModel with coef(dynrCook)
   coefCook <- coef(dynrCook)
@@ -261,6 +309,9 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   XW <- diag(1, dimObs+dimLat)
   X_t <- XW[1:dimObs, , drop=FALSE]
   W_t <- XW[(dimObs+1):(dimObs+dimLat), , drop=FALSE]
+  W_t[W_t_exclude, ] <- 0
+  X_t[X_t_exclude, ] <- 0
+  
   # t-values
   t_value <- matrix(NA, dimObs+dimLat, dimTime)
   rownames(t_value) <- c(obs_name, lat_name)
@@ -652,12 +703,12 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
     )
   }
   
-  coefx <- coef(dynrCook)
-  tryCatch(coef(dynrModel) <- coefx,
-           error=function(e) {
-             # do nothing, and re-fit with the initial of dynrModel
-             coefx <- coefx
-           })
+  #coefx <- coef(dynrCook)
+  #tryCatch(coef(dynrModel) <- coefx,
+  #         error=function(e) {
+  #           # do nothing, and re-fit with the initial of dynrModel
+  #           coefx <- coefx
+  #         })
   
   # build dynr.data
   data_org <- as.data.frame(dynrModel@data$original.data)
