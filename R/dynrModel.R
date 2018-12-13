@@ -631,7 +631,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
   } else {
-    numRegimes <- 1
+    numRegimes <- 1L
   }
   
   all.regimes <- sapply(inputs, impliedRegimes)

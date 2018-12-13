@@ -28,6 +28,7 @@ Collate:
     'dynrPlot.R'
     'dynrFuncAddress.R'
     'dynrMi.R'
+    'dynrTaste.R'
     'dynrVersion.R'
     'dataDoc.R'
 RdMacros: Rdpack

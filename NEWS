@@ -1,3 +1,17 @@
+dynr 0.1.14-X
+--------------
+
+2018-XX-XX
+
+New features include:
+* We now allow 1-regime recipe parts to co-exist with n-regime parts
+* 
+
+Bug fixes and performance tweaks include:
+* Lots of error checking was added around matching the number of regimes
+* 
+
+
 dynr 0.1.13-4
 --------------
 

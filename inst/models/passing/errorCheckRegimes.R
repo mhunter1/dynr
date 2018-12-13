@@ -71,15 +71,15 @@ testthat::expect_error(
 #------------------------------------------------------------------------------
 # Loadings and intercepts have different number of regimes
 
-# Measurement error: intercepts have 1 regime, loadings have 2
-testthat::expect_error(
-	prep.measurement(
+# Measurement message: intercepts have 1 regime, loadings have 2
+testthat::expect_message(
+	blah <- prep.measurement(
 		values.load=list(vm1, vm2),
 		params.load=list(pm, pm),
 		values.int=vi,
 		params.int=pi,
 		obs.names=c('y1', 'x1', 'x2')),
-	regexp="Y'all iz trippin! Different numbers of regimes implied:\n'load' has 2, 'exo' has 0, and 'int' has 1 regimes.\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	regexp="Oi, Chap! I found 1 regime for 'values.int'  but 2 regimes elsewhere, so I extended the intercepts to match.\nIf this is what you wanted, all is sunshine and puppy dogs.",
 	fixed=TRUE)
 
 # Measurement Error: intercepts have 3 regimes, loadings have 2
@@ -93,14 +93,14 @@ testthat::expect_error(
 	fixed=TRUE)
 
 
-# Noise error: observed variables have 2 regeims, latent have 1
-testthat::expect_error(
+# Noise message: observed variables have 2 regimes, latent have 1
+testthat::expect_message(
 	prep.noise(
 		values.observed=rep(list(diag(.2, 9)), 2),
 		params.observed=list(diag(letters[1:9]), diag(letters[10:18])),
 		values.latent=matrix(c(.7, .1, .1, .7), 2, 2),
 		params.latent=matrix(LETTERS[c(1, 2, 2, 3)], 2, 2)),
-	regexp="Different numbers of regimes implied:\n'latent' has 1 and 'observed' has 2 regimes.\nCardi B don't like it like that!\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	regexp="Oi, Chap! I found 1 regime for 'values.latent'  but 2 regimes elsewhere, so I extended the latent covariances to match.\nIf this is what you wanted, all is sunshine and puppy dogs.",
 	fixed=TRUE)
 
 # Noise Error
@@ -114,8 +114,8 @@ testthat::expect_error(
 	fixed=TRUE
 )
 
-# Initial error because inicov has one regime
-testthat::expect_error(
+# Initial message because inicov has one regime
+testthat::expect_message(
 	prep.initial(
 		values.inistate=list(vi, vi),
 		params.inistate=list(pi, pi),
@@ -123,7 +123,7 @@ testthat::expect_error(
 		params.inicov=diag(letters[1:3]),
 		values.regimep=c(.5, .5),
 		params.regimep=c('p1', 'p2')),
-	regexp="Initial state means, initial state covariance matrix, and initial regime probabilities imply different numbers of regimes:\n'inistate' has 2, 'inicov' has 1, and 'regimep' has 2 regimes.\nEven Black Eyed Peas know that's not how you get it started.\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.", 
+	regexp="Oi, Chap! I found 1 regime for 'values.inicov'  but 2 regimes elsewhere, so I extended the initial covariances to match.\nIf this is what you wanted, all is sunshine and puppy dogs.", 
 	fixed=TRUE)
 
 # Initial Error (special case of forgot to specify regimep)
@@ -151,15 +151,15 @@ testthat::expect_error(
 )
 
 
-# Dynamics matrix error: 3 vs 1 regime
-testthat::expect_error(
+# Dynamics matrix message: 3 vs 1 regime
+testthat::expect_message(
 	prep.matrixDynamics(
 		values.dyn=matrix(c(.7, .1, .1, .7), 2, 2),
 		params.dyn=matrix('fix', 2, 2),
 		values.int=list(vi, vi, vi),
 		params.int=list(pi, pi, pi),
 		isContinuousTime=FALSE),
-	regexp="Different numbers of regimes implied:\n'dyn' has 1, 'exo' has 0, and 'int' has 3 regimes.\nWhat do you want from me? I'm not America's Sweetheart!\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list.",
+	regexp="Oi, Chap! I found 1 regime for 'values.dyn'  but 3 regimes elsewhere, so I extended the dynamics to match.\nIf this is what you wanted, all is sunshine and puppy dogs.",
 	fixed=TRUE)
 
 # Dynamics matrix Error
@@ -202,19 +202,11 @@ recReg <- prep.regimes(
 	values=matrix(c(1, -1, 0, 0), 2, 2),
 	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
 
-#recIni <- prep.initial(
-#	values.inistate=matrix(0, 1, 1),
-#	params.inistate=matrix('fixed', 1, 1),
-#	values.inicov=matrix(1, 1, 1),
-#	params.inicov=matrix('fixed', 1, 1),
-#	values.regimep=c(10, 0),
-#	params.regimep=c('fixed', 'fixed'))
-
 recIni <- prep.initial(
-	values.inistate=rep(list(matrix(0, 1, 1)), 2),
-	params.inistate=rep(list(matrix('fixed', 1, 1)), 2),
-	values.inicov=rep(list(matrix(1, 1, 1)), 2),
-	params.inicov=rep(list(matrix('fixed', 1, 1)), 2),
+	values.inistate=matrix(0, 1, 1),
+	params.inistate=matrix('fixed', 1, 1),
+	values.inicov=matrix(1, 1, 1),
+	params.inicov=matrix('fixed', 1, 1),
 	values.regimep=c(10, 0),
 	params.regimep=c('fixed', 'fixed'))
 
@@ -236,7 +228,7 @@ rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initia
 
 # Model error
 testthat::expect_error(
-	rsmod <- dynr.model(dynamics=recDyn3, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd)
+	rsmod <- dynr.model(dynamics=recDyn3, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd),
 	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes must be 1 or 3\nOn Wednesdays we wear pink!",
 	fixed=TRUE
 )

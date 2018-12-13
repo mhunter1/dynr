@@ -787,6 +787,14 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     return det;
 }
 
+/** NOTE: This function is the same as
+ * ext_kalmanfilter_smoother
+ * except that is just copies the 'previous' state forward.
+ * This is appropriate for the way dynr handles initial conditions.
+ * brekfis calls ext_kalmanfilter_updateonly_smoother for the first time point
+ * of every subject but ext_kalmanfilter_smoother for all later time points.
+ * These two functions should be merged to eliminate lots of duplicate code.
+**/
 double ext_kalmanfilter_updateonly_smoother(size_t t, size_t regime,
      gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,
