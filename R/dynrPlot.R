@@ -263,40 +263,39 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
     dyn.df <- plotdf("")
   }
   
-  #Measurement model
-  if (printMeas) {
-    meas.df<-data.frame(text="bold('Measurement Model')",x=0)
-    nRegime=length(dynrModel@measurement@values.load)
-    meas_tex=printex(dynrModel@measurement,AsMatrix=FALSE)
-    nEq <- length(meas_tex[[1]])
-    # noise_tex <- paste0(" + ", "epsilon_{", 1:nEq, "}")
-    noise_tex <- paste0("epsilon_{", 1:nEq, "}")
-    for (i in 1:nRegime){
-      if (nRegime>1){
-        meas.df<-rbind(meas.df,data.frame(text=paste0("'Regime ",i,":'"),x=0))
-      }
-      if (length(dynrModel@noise@values.observed)==1){
-        values.observed.mat <- dynrModel@noise@values.observed[[1]] 
-      }else if (length(dynrModel@noise@values.observed)==nRegime){
-        values.observed.mat <- dynrModel@noise@values.observed[[i]]
-      }else{stop("The number of regimes implied by the measurement noise structure does not match the number of regimes in the measurement model.")}
-      pos.zero <- diag(values.observed.mat) == 0
-      # noise_tex[diag(values.observed.mat)==0] <- ""
-      # meas.df<-rbind(meas.df,plotdf(LaTeXnames(paste0(meas_tex[[i]], noise_tex))))
-      meas.df <- rbind(meas.df,
-                      plotdf(LaTeXnames(
-                        paste0(meas_tex[[i]],
-                               ifelse(pos.zero, "", 
-                                      paste0(" + ", noise_tex, ",")),
-                               "\\;\\,",
-                               ifelse(pos.zero, "",
-                                      paste0(noise_tex, " \\sim ", "N(0,\\,", 
-                                             diag(values.observed.mat), ")"))))))
-    }
-  } else {
-    meas.df <- plotdf("")
-  }
-  
+	#Measurement model
+	if (printMeas) {
+		meas.df <- data.frame(text="bold('Measurement Model')", x=0)
+		nRegime <- length(dynrModel$measurement$values.load)
+		meas_tex <- printex(dynrModel$measurement, AsMatrix=FALSE)
+		nEq <- length(meas_tex[[1]])
+		# noise_tex <- paste0(" + ", "epsilon_{", 1:nEq, "}")
+		noise_tex <- paste0("epsilon_{", 1:nEq, "}")
+		for (i in 1:nRegime){
+			if (nRegime > 1){
+				meas.df <- rbind(meas.df, data.frame(text=paste0("'Regime ",i,":'"), x=0))
+			}
+			if (length(dynrModel$noise$values.observed) == 1){
+				values.observed.mat <- dynrModel$noise$values.observed[[1]] 
+			}else if (length(dynrModel$noise$values.observed) == nRegime){
+				values.observed.mat <- dynrModel$noise$values.observed[[i]]
+			}else{stop("The number of regimes implied by the measurement noise structure does not match the number of regimes in the measurement model.")}
+			pos.zero <- diag(values.observed.mat) == 0
+			# noise_tex[diag(values.observed.mat)==0] <- ""
+			# meas.df<-rbind(meas.df,plotdf(LaTeXnames(paste0(meas_tex[[i]], noise_tex))))
+			meas.df <- rbind(meas.df,
+							plotdf(LaTeXnames(
+								paste0(meas_tex[[i]],
+										ifelse(pos.zero, "", paste0(" + ", noise_tex, ",")),
+										"\\;\\,",
+										ifelse(pos.zero,
+											"",
+											paste0(noise_tex, " \\sim ", "N(0,\\,", diag(values.observed.mat), ")"))))))
+		}
+	} else {
+		meas.df <- plotdf("")
+	}
+	
   # Regime-switching model
   if (printRS) {
     rs.df <- data.frame(text="bold('Regime-switching Model')", x=0)
