@@ -1530,18 +1530,18 @@ setMethod("diag", "character", #diag.character <-
 
 
 # allow free/fixed to be used in values/params arguments
-preProcessValues <- function(x){
+preProcessValues <- function(x, rowNam, colNam){
 	x[is.na(x)] <- 'freed'
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
-		rowNam <- NULL
-		colNam <- NULL
+		if(missing(rowNam)) rowNam <- NULL
+		if(missing(colNam)) colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
-		rowNam <- rownames(x)
-		colNam <- colnames(x)
+		if(missing(rowNam)) rowNam <- rownames(x)
+		if(missing(colNam)) colNam <- colnames(x)
 	}
 	x <- c(x)
 	xl <- tolower(x)
@@ -1557,18 +1557,18 @@ preProcessValues <- function(x){
 	return(x)
 }
 
-preProcessParams <- function(x){
+preProcessParams <- function(x, rowNam, colNam){
 	if (!is.null(x)) {x[is.na(x)] <- 'fixed'}
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
-		rowNam <- NULL
-		colNam <- NULL
+		if(missing(rowNam)) rowNam <- NULL
+		if(missing(colNam)) colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
-		rowNam <- rownames(x)
-		colNam <- colnames(x)
+		if(missing(rowNam)) rowNam <- rownames(x)
+		if(missing(colNam)) colNam <- colnames(x)
 	}
 	x <- c(x)
 	xl <- tolower(x)
@@ -1891,12 +1891,12 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 		stop("'exo.names' uses some of the same names more than once.\n  You cannot be the King of Crimson with this indiscipline.")
 	}
 	
-	values.load <- lapply(values.load, preProcessValues)
-	params.load <- lapply(params.load, preProcessParams)
-	values.exo <- lapply(values.exo, preProcessValues)
-	params.exo <- lapply(params.exo, preProcessParams)
-	values.int <- lapply(values.int, preProcessValues)
-	params.int <- lapply(params.int, preProcessParams)
+	values.load <- lapply(values.load, preProcessValues, rowNam=obs.names, colNam=state.names)
+	params.load <- lapply(params.load, preProcessParams, rowNam=obs.names, colNam=state.names)
+	values.exo <- lapply(values.exo, preProcessValues, rowNam=obs.names, colNam=exo.names)
+	params.exo <- lapply(params.exo, preProcessParams, rowNam=obs.names, colNam=exo.names)
+	values.int <- lapply(values.int, preProcessValues, rowNam=obs.names, colNam='one')
+	params.int <- lapply(params.int, preProcessParams, rowNam=obs.names, colNam='one')
 	
 	values.load <- lapply(values.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
