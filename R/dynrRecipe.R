@@ -53,9 +53,9 @@ setClass(Class = "dynrMeasurement",
            params.exo = "list",
            values.int = "list",
            params.int = "list",
-           state.names="character",
-           obs.names="character",
-           exo.names="character"),
+           state.names = "character",
+           obs.names = "character",
+           exo.names = "character"),
          contains = "dynrRecipe"
 )
 
@@ -1871,11 +1871,11 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	
 	
 	if(missing(obs.names)){
-		obs.names = paste0('y',1:nrow(values.load[[1]]))
+		obs.names <- paste0('y',1:nrow(values.load[[1]]))
 	}
 	
 	if(missing(state.names)){
-		state.names = paste0('state',1:ncol(values.load[[1]]))
+		state.names <- paste0('state',1:ncol(values.load[[1]]))
 	}
 	
 	if(missing(exo.names)){
