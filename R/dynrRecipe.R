@@ -270,32 +270,29 @@ setGeneric("printex", function(object, ParameterAs,
 })
 
 setMethod("printex", "dynrMeasurement",
-          function(object, ParameterAs, 
-			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
-			  show=TRUE, AsMatrix=TRUE){
-            if (AsMatrix){
-              meas_loadings=lapply(object$values.load, .xtableMatrix, show)
-              meas_int=lapply(object$values.int, .xtableMatrix, show)
-              meas_exo=lapply(object$values.exo, .xtableMatrix, show)
-              meas_exo.names=.xtableMatrix(matrix(object$exo.names,ncol=1), show)
-              meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
-                               meas_exo=meas_exo,meas_exo.names=meas_exo.names)
-              return(invisible(meas_list))
-            }else{#not to use matrix
-              #Matrix to Formula
-              meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
-              meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
-              meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
-              meas_fml <- addLLFormulas(list_list_formulae = meas_loadings, 
-                                        VecNamesToAdd = c("meas_int","meas_exo"))
-              #Formula to LaTex
-              meas_tex=lapply(meas_fml, formula2tex, 
-                              LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "", 
-                              LHSeqPre = "", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "")
-              return(meas_tex)
-            }
-            
-          }
+	function(object, ParameterAs, printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show=TRUE, AsMatrix=TRUE){
+		if (AsMatrix){
+			meas_loadings <- lapply(object$values.load, .xtableMatrix, show)
+			meas_int <- lapply(object$values.int, .xtableMatrix, show)
+			meas_exo <- lapply(object$values.exo, .xtableMatrix, show)
+			meas_exo.names <- .xtableMatrix(matrix(object$exo.names, ncol=1), show)
+			meas_list <- list(meas_loadings=meas_loadings, meas_int=meas_int,
+				meas_exo=meas_exo, meas_exo.names=meas_exo.names)
+			return(invisible(meas_list))
+		} else { #not to use matrix
+			#Matrix to Formula
+			meas_loadings <- lapply(object$values.load, matrix2formula, multbyColnames=TRUE)
+			meas_int <- lapply(object$values.int, matrix2formula, multbyColnames=FALSE)
+			meas_exo <- lapply(object$values.exo, matrix2formula, multbyColnames=TRUE)
+			meas_fml <- addLLFormulas(list_list_formulae = meas_loadings,
+				VecNamesToAdd = c("meas_int", "meas_exo"))
+			#Formula to LaTex
+			meas_tex=lapply(meas_fml, formula2tex,
+				LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "",
+				LHSeqPre = "", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "")
+			return(meas_tex)
+		}
+	}
 )
 
 setMethod("printex", "dynrDynamicsMatrix",
@@ -2899,15 +2896,15 @@ prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
 
 #------------------------------------------------------------------------------
 
-formula2string<-function(formula.list){
-  tuple=lapply(formula.list,as.list)
-  lhs=sapply(tuple,function(x){paste0(deparse(x[[2]],width.cutoff = 500L),collapse="")})
-  rhs=sapply(tuple,function(x){paste0(deparse(x[[3]],width.cutoff = 500L),collapse="")})
-  return(list(lhs=lhs,rhs=rhs))
+formula2string <- function(formula.list){
+	tuple <- lapply(formula.list, as.list)
+	lhs <- sapply(tuple, function(x){paste0(deparse(x[[2]], width.cutoff = 500L), collapse="")})
+	rhs <- sapply(tuple, function(x){paste0(deparse(x[[3]], width.cutoff = 500L), collapse="")})
+	return(list(lhs=lhs, rhs=rhs))
 }
 
 
-matrix2formula <- function(x,multbyColnames=TRUE){
+matrix2formula <- function(x, multbyColnames=TRUE){
 	if(!is.matrix(x)){
 		stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
 	}
@@ -2919,12 +2916,12 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 	}
 	preds <- character(nrow(x))
 	for(i in 1:nrow(x)){
-	  if (multbyColnames==FALSE){
-	    preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
-	  }else{
-		  preds[i] <- paste(rownames(x)[i], paste(x[i,], 
-		                       colnames(x), sep='*', collapse=' + '), sep=' ~ ')
-		  } 
+		if (multbyColnames==FALSE){
+			preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
+		}else{
+			preds[i] <- paste(rownames(x)[i], paste(x[i,],
+		                      colnames(x), sep='*', collapse=' + '), sep=' ~ ')
+			}
 	}
 	if(is.numeric(x)){
 		preds <- gsub(' 1\\*', ' ', preds)
@@ -2975,24 +2972,25 @@ addFormulas <- function(f1, f2){
 #addFormulas(f2, f1)
 
 addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
-  nRegime <- length(list_list_formulae)
-  for (j in 1:nRegime){
-    neq <- length(list_list_formulae[[j]])
-    for (k in 1:neq){
-      AddedFml <- list_list_formulae[[j]][[k]]
-      for (l in 1:length(VecNamesToAdd)){
-        list_list_formulae_add=get(VecNamesToAdd[l], parent.frame())#eval(parse(text=VecNamesToAdd[l]),environment())
-        if (length(list_list_formulae_add)>0){
-          if (length(list_list_formulae_add[[j]])>0){
-            AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]],AddedFml)
-          }
-        }
-      }
-      list_list_formulae[[j]][[k]] <- AddedFml
-    }
-  }
-  return(list_list_formulae)
+	nRegime <- length(list_list_formulae)
+	for (j in 1:nRegime){
+		neq <- length(list_list_formulae[[j]])
+		for (k in 1:neq){
+			AddedFml <- list_list_formulae[[j]][[k]]
+			for (l in 1:length(VecNamesToAdd)){
+				list_list_formulae_add <- get(VecNamesToAdd[l], parent.frame()) #eval(parse(text=VecNamesToAdd[l]),environment())
+				if (length(list_list_formulae_add) > 0){
+					if (length(list_list_formulae_add[[j]]) > 0){
+						AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]], AddedFml)
+					}
+				}
+			}
+			list_list_formulae[[j]][[k]] <- AddedFml
+		}
+	}
+	return(list_list_formulae)
 }
+
 
 #------------------------------------------------------------------------------
 dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
