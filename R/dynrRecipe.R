@@ -495,7 +495,7 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
 })
 
 .exchangeNamesAndNumbers <- function(params, names){
-	matrix(match(params, names, nomatch=0), nrow(params), ncol(params))
+	matrix(match(params, names, nomatch=0), nrow(params), ncol(params), dimnames=dimnames(params))
 }
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
