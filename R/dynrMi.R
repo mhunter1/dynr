@@ -55,8 +55,10 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	    lag <- nt-1
 	    warning("The number of lags/leads should be smaller than the number of measurements.")
 	  }
-	  tmp1 <- matrix(NA,nrow = nt, ncol = P)
+	  
 	  for(t in 1:lag){
+	    # tmp1 used to store lagged variables for each subject
+	    tmp1 <- matrix(NA,nrow = nt, ncol = P)
 	    if (leads == TRUE)  { tmp1[1:(nt-t),] <- tmp[(t+1):nt,] }
 	    else  { tmp1[(t+1):nt,] <- tmp[1:(nt-t),] }
 	    a <- P*(t-1)+2 
