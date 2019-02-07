@@ -179,6 +179,7 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 		
 		modelnew <- model
 		modelnew@data <- data
+		modelnew@compileLib = FALSE #avoid conflicts among concurrent output C scripts of model functions
 
 		
 		trial <- dynr.cook(modelnew, verbose = FALSE)  #names(trial) get names of the params
