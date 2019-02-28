@@ -490,8 +490,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			eta_pred_t, error_cov_pred_t, 
 			innov_v_t, residual_cov_t);
 
-	    if (optimization_flag & (status< 0)) {
+	    if (optimization_flag & ( (status < 0) | (!isfinite(neg_log_like)) ) ) {
 			MYPRINT("nlopt failed!\n");
+			MYPRINT("Skipping Hessian computation.\n");
 	    }else if (hessian_flag){
 			MYPRINT("Starting Hessian calculation ...\n");
 		    data_model.pc.isnegloglikeweightedbyT=false;
