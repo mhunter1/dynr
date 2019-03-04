@@ -504,39 +504,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	#gc() # garbage collection
 	cat('Original exit flag: ', output$exitflag, '\n')
 	# Check to make sure likelihood is not NaN.
-	output$exitflag <- ifelse(is.na(output$neg.log.likelihood), -6, output$exitflag)
+	output$exitflag <- ifelse(!is.finite(output$neg.log.likelihood), -6, output$exitflag)
 	# Use lookup table for exit flags
 	cat('Modified exit flag: ', output$exitflag, '\n')
 	cat(.ExitFlags[as.character(output$exitflag)], '\n')
-	
-	diagH = diag(output$hessian.matrix)
-	diagH[diagH==0] = 10e-14
-	diag(output$hessian.matrix) = diagH
 	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
 	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	# if any of the Hessian elements are non-finite or the overall Hessian is non-positive definite
-	#  set status = 0, otherwise it is 1
-	nonfiniteH <- any(!is.finite(output$hessian.matrix))
-	nonpdH <- !is.positive.definite2(output$hessian.matrix)
-	status = ifelse(nonfiniteH || nonpdH, 0, 1)
 	output2 <- endProcessing(output, transformation, conf.level)
-	if (output$exitflag > 0 && status==1 && length(dynrModel$param.names[output2$bad.standard.errors])==0){
+	if (output$exitflag > 0 && output2$hessian.status == 0 && sum(output2$bad.standard.errors) == 0){
 		cat('Successful trial\n')
 	} else {
-		#cat('Check the hessian matrix from your dynr output. \n')
-		#cat('Hessian Matrix:',  '\n')
-		#print(output$hessian.matrix)
-		cat('\n')
-		if(nonfiniteH){
-			msg <- paste("Non-finite values in the Hessian matrix.")
-			warning(msg)
-		} else if(nonpdH || length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-			msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
-			if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
-				msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors],collapse=", "),"."),collapse="")  
-			}
-			warning(msg)
-		}
+		msg <- paste0("These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "), ".")  
+		warning(msg, call.=FALSE)
 	}
 	names(output2$transformed.parameters) <- dynrModel$param.names
 	if(debug_flag){
@@ -551,7 +530,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	
 	finalEqualStart <- model$xstart == obj@fitted.parameters
 	if(any(finalEqualStart) && optimization_flag){
-		warning(paste0("Some parameters were left at their starting values.\nModel might not be identified, need bounds, or need different starting values.\nParameters that were unmoved: ", paste(obj@param.names[finalEqualStart], collapse=", ", sep="")))
+		warning(paste0("Some parameters were left at their starting values.\nModel might not be identified, need bounds, or need different starting values.\nParameters that were unmoved: ", paste(obj@param.names[finalEqualStart], collapse=", ", sep="")), call.=FALSE)
 	}
 	
 	frontendStop <- Sys.time()
@@ -568,15 +547,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 }
 
 
-endProcessing2 <- function(x, transformation){
-	cat('Doing end processing for a failed trial\n')
+failedProcessing <- function(x, transformation){
+	cat('Failed trial\n')
 	tParam <- transformation(x$fitted.parameters)
 	x$transformed.parameters <- tParam
 	
 	nParam <- length(x$fitted.parameters)
-	x$standard.errors <- rep(999,nParam)
-	x$transformed.inv.hessian <- matrix(999, nrow=nParam,ncol=nParam)
-	x$conf.intervals <- matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	x$standard.errors <- rep(as.numeric(NA), nParam)
+	x$standard.errors.untransformed <- rep(as.numeric(NA), nParam)
+	x$transformed.inv.hessian <- matrix(as.numeric(NA), nrow=nParam, ncol=nParam)
+	x$inv.hessian <- matrix(as.numeric(NA), nrow=nParam, ncol=nParam)
+	x$conf.intervals <- matrix(as.numeric(NA), nrow=nParam, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	x$conf.intervals.endpoint.trans <- matrix(as.numeric(NA), nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+	x$bad.standard.errors <- rep(TRUE, nParam)
+	x$hessian.status <- 1
 	return(x)
 }
 
@@ -593,55 +577,79 @@ endProcessing2 <- function(x, transformation){
 
 #J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
 
-# TODO adjust endProcessing logic/workflow.  We're computing some things twice, and sometimes in different ways.
-
 endProcessing <- function(x, transformation, conf.level){
 	cat('Doing end processing\n')
+	x <- checkHessian(x, transformation)
 	confx <- qnorm(1-(1-conf.level)/2)
-	if (is.positive.definite(x$hessian.matrix)){ #N.B. We use is.positive.definite() here, but is.positive.definite2() above.  Why?
-		useHess <- x$hessian.matrix
+	
+	if(!all(is.na(x$inv.hessian))){
+		#Numerical Jacobian
+		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
+		iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
+		bad.SE <- diag(iHess0) < 0
+		
+		iHess <- J %*% x$inv.hessian %*% t(J)
+		tSE <- sqrt(diag(iHess))
+		tParam <- transformation(x$fitted.parameters)
+		CI <- c(tParam - tSE*confx, tParam + tSE*confx)
+		
+		# EndPoint Transformation
+		tSEalt <- sqrt(diag(x$inv.hessian))
+		x$standard.errors.untransformed <- tSEalt
+		CIalt <- c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx))
+		x$conf.intervals.endpoint.trans <- matrix(CIalt, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+		
+		
+		x$transformed.parameters <- tParam
+		x$standard.errors <- tSE
+		x$transformed.inv.hessian <- iHess
+		x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+		x$bad.standard.errors <- bad.SE
 	}
-	else{
+	return(x)
+}
+
+checkHessian <- function(x, transformation){
+	# if any of these warnings get tripped
+	#  increase value of hessian.status
+	#  Any value greater than 0 is bad
+	failHess <- 0
+	# If the log lik is not finite replace the non-computed Hessian with all NAs
+	if(!is.finite(x$neg.log.likelihood)){
+		x$hessian <- matrix(NA, nrow(x$hessian), ncol(x$hessian))
+		x <- failedProcessing(x, transformation)
+		return(x)
+	}
+	# Warn if any of the Hessian elements are NA
+	if(any(!is.finite(x$hessian))){
+		warning("Found infinite, NaN, or missing values in Hessian.  Add that to the list of things that are problematic:\nproblematic <- c('mankind instead of humankind', 'claims of Cherokee heritage', 'gender income gap', ..., 'your Hessian')", call.=FALSE)
+		x <- failedProcessing(x, transformation)
+		return(x)
+	}
+	diagH <- diag(output$hessian.matrix)
+	zdiag <- diagH == 0
+	if(any(zdiag)){
+		#warning("The following diagonal elements of the Hessian were zero")
+		# No warning?
+		diagH[zdiag] <- 10e-14
+		diag(x$hessian.matrix) <- diagH
+	}
+	if (is.positive.definite(x$hessian.matrix) || is.positive.definite2(x$hessian.matrix)){ #N.B. We use both is.positive.definite() and is.positive.definite2().  Not sure why?
+		useHess <- x$hessian.matrix
+	} else{
+		failHess <- failHess + 1
+		msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
+		warning(msg, call.=FALSE)
 		useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
 	}
 	V1 <- try(solve(useHess))
 	if(class(V1) == "try-error"){
-		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.")
+		failHess <- failHess + 1
+		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.", call.=FALSE)
 		V1 <- MASS::ginv(useHess)
 	}
-	
-	#Identifies too many problematic parameters
-	#evector <- eigen(x$hessian.matrix)$vectors
-	#bad.values <- eigen(x$hessian.matrix)$values < 0
-	#bad.evec <-  evector[,bad.values]
-	#bad.evec <- apply(bad.evec,2,function(x){abs(x/sum(x))}) #normalize within column
-	#bad.evecj <- apply(bad.evec,2,function(x){x > .5})#For each column find the substantial row (param) entries  
-	#bad.SE <- apply(bad.evecj,1,function(x){ifelse(length(x[x=="TRUE"]) > 0, TRUE,FALSE)}) #Flag parameters that have been identified as problematic at least once
-	
-	#Numerical Jacobian
-	J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
-	iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
-	bad.SE <- diag(iHess0) < 0
-	
-	iHess <- J %*% V1 %*% t(J)
-	tSE <- sqrt(diag(iHess))
-	tParam <- transformation(x$fitted.parameters) #Can do
-	CI <- c(tParam - tSE*confx, tParam + tSE*confx)
-	
-	# EndPoint Transformation
-	tSEalt<-sqrt(diag(V1))
-	x$standard.errors.untransformed <- tSEalt
-	CIalt <- c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx))
-	x$conf.intervals.endpoint.trans <- matrix(CIalt, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-	
-	
-	x$transformed.parameters <- tParam #Can do
-	x$standard.errors <- tSE
 	x$inv.hessian <- V1
-	x$transformed.inv.hessian <- iHess
-	x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-	x$bad.standard.errors <- bad.SE
-	return(x)
+	x$hessian.status <- failHess
 }
 
 preProcessModel <- function(x){
