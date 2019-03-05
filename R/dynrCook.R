@@ -587,7 +587,7 @@ endProcessing <- function(x, transformation, conf.level){
 	if(!all(is.na(x$inv.hessian))){
 		#Numerical Jacobian
 		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
-		iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
+		iHess0 <- J %*% (MASS::ginv(x$hessian.matrix)) %*% t(J)
 		bad.SE <- diag(iHess0) < 0
 		
 		iHess <- J %*% x$inv.hessian %*% t(J)
@@ -618,12 +618,12 @@ checkHessian <- function(x, transformation){
 	failHess <- 0
 	# If the log lik is not finite replace the non-computed Hessian with all NAs
 	if(!is.finite(x$neg.log.likelihood)){
-		x$hessian <- matrix(NA, nrow(x$hessian), ncol(x$hessian))
+		x$hessian.matrix <- matrix(NA, nrow(x$hessian.matrix), ncol(x$hessian.matrix))
 		x <- failedProcessing(x, transformation)
 		return(x)
 	}
 	# Warn if any of the Hessian elements are NA
-	if(any(!is.finite(x$hessian))){
+	if(any(!is.finite(x$hessian.matrix))){
 		warning("Found infinite, NaN, or missing values in Hessian.  Add that to the list of things that are problematic:\nproblematic <- c('mankind instead of humankind', 'claims of Cherokee heritage', 'gender income gap', ..., 'your Hessian')", call.=FALSE)
 		x <- failedProcessing(x, transformation)
 		return(x)
@@ -652,6 +652,7 @@ checkHessian <- function(x, transformation){
 	}
 	x$inv.hessian <- V1
 	x$hessian.status <- failHess
+	return(x)
 }
 
 preProcessModel <- function(x){
