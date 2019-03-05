@@ -628,7 +628,7 @@ checkHessian <- function(x, transformation){
 		x <- failedProcessing(x, transformation)
 		return(x)
 	}
-	diagH <- diag(output$hessian.matrix)
+	diagH <- diag(x$hessian.matrix)
 	zdiag <- diagH == 0
 	if(any(zdiag)){
 		#warning("The following diagonal elements of the Hessian were zero")
