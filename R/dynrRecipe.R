@@ -1888,19 +1888,19 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 		stop("'exo.names' uses some of the same names more than once.\n  You cannot be the King of Crimson with this indiscipline.")
 	}
 	
-	values.load <- lapply(values.load, preProcessValues, rowNam=obs.names, colNam=state.names)
-	params.load <- lapply(params.load, preProcessParams, rowNam=obs.names, colNam=state.names)
-	values.exo <- lapply(values.exo, preProcessValues, rowNam=obs.names, colNam=exo.names)
-	params.exo <- lapply(params.exo, preProcessParams, rowNam=obs.names, colNam=exo.names)
-	values.int <- lapply(values.int, preProcessValues, rowNam=obs.names, colNam='one')
-	params.int <- lapply(params.int, preProcessParams, rowNam=obs.names, colNam='one')
-	
 	values.load <- lapply(values.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	values.exo <- lapply(values.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
 	#params.exo <- lapply(params.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
 	values.int <- lapply(values.int, preProcessNames, obs.names, character(0), 'values.int', 'obs.names')
 	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
+	
+	values.load <- lapply(values.load, preProcessValues, rowNam=obs.names, colNam=state.names)
+	params.load <- lapply(params.load, preProcessParams, rowNam=obs.names, colNam=state.names)
+	values.exo <- lapply(values.exo, preProcessValues, rowNam=obs.names, colNam=exo.names)
+	params.exo <- lapply(params.exo, preProcessParams, rowNam=obs.names, colNam=exo.names)
+	values.int <- lapply(values.int, preProcessValues, rowNam=obs.names, colNam='one')
+	params.int <- lapply(params.int, preProcessParams, rowNam=obs.names, colNam='one')
 	
 	# Check that all 'values' imply 0, 1, or the same number of regimes.
 	# Note that the 'values' and 'params' have already been checked to imply this.
