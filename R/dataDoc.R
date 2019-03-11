@@ -362,8 +362,8 @@ NULL
 ##' 
 ##' @docType data
 ##' @keywords datasets
-##' @name ShockData
-##' @usage data(ShockData)
+##' @name Outliers
+##' @usage data(Outliers)
 ##' @format A data frame with 6000 rows and 6 variables
 ##' @examples
 ##' # The following was used to generate the data
