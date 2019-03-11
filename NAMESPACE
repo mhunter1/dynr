@@ -1,4 +1,4 @@
-importFrom("graphics", "text", "plot")
+importFrom("graphics", "text", "plot", "abline")
 importFrom("stats", "D", "as.formula", "coef", "formula", "logLik", "qnorm", "time", "nobs", "vcov", "confint", "deviance", "is.ts", "na.omit", "printCoefmat", "pt", "pchisq", "qchisq", "qt")
 importFrom("utils", "str", ".DollarNames", "packageVersion")
 importFrom("MASS", "ginv")
