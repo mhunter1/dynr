@@ -61,7 +61,8 @@
 ##' dynrCook <- dynr.cook(dynrModel)
 ##' dynrTaste <- dynr.taste(dynrModel, dynrCook)
 ##' 
-##' # Detect outliers related to 'eta1' out of, say, three latent variables c("eta1", "eta2", "eta3"), and all measured variables.
+##' # Detect outliers related to 'eta1' out of, say, three latent
+##' # variables c("eta1", "eta2", "eta3"), and all measured variables.
 ##' dynrTaste <- dynr.taste(dynrModel, dynrCook, lat_choose=c("eta1"))
 ##' }
 dynr.taste <- function(dynrModel, dynrCook=NULL,
