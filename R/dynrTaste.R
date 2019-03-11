@@ -18,7 +18,7 @@
 ##' The outlier detection process will be applied only to the chosen variable. 
 ##' If the argument is NA, all the latent variables will be excluded in the outlier detection process. 
 ##' If the argument is missing (defalut), all the latent variables will be chosen.
-##' ##' @param obs_choose a character vector of the names of measured or observed variables. 
+##' @param obs_choose a character vector of the names of measured or observed variables.
 ##' The outlier detection process will be applied only to the chosen variable. 
 ##' If the argument is NA, all the measured variables will be excluded in the outlier detection process. 
 ##' If the argument is missing (defalut), all the measured variables will be chosen.
