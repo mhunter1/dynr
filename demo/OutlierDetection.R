@@ -9,9 +9,12 @@
 library(dynr)
 
 # The data were generated from a discrete time state-space model with six observed variables and two latent variables
-# 100 participants, 60 time-points for each participant
+# 100 participants, 100 time-points for each participant
 # For each participant, 3 innovative outliers and 6 additive outliers 
 data("Outliers")
+outdata <- Outliers$generated$y
+shockO <- Outliers$generated$shocks$shockO
+shockL <- Outliers$generated$shocks$shockL
 
 # The true parameters used to generate the data
 true_params <- c(.6, -.2, -.2, .5,# beta
@@ -19,7 +22,7 @@ true_params <- c(.6, -.2, -.2, .5,# beta
                  .3, -.1, .3,# psi
                  .2, .2, .2, .2, .2, .2)# theta
 
-data_shk <- dynr.data(Outliers, id='id', time='time',
+data_shk <- dynr.data(outdata, id='id', time='time',
                       observed=c('V1','V2','V3','V4','V5','V6'))
 
 # measurement
@@ -56,13 +59,13 @@ init_shk <- prep.initial(
   values.inistate=c(0,0),
   params.inistate=c('mu_1','mu_2'),
   values.inicov=matrix(c(0.3, -0.1,
-                        -0.1,  0.3), ncol=2, byrow=TRUE),
+                         -0.1,  0.3), ncol=2, byrow=TRUE),
   params.inicov=matrix(c('c_11','c_12',
                          'c_12','c_22'), ncol=2, byrow=TRUE) )
 
 # define the transition matrix
 dynm_shk <- prep.matrixDynamics(
-  values.dyn=matrix(c(0.6, -0.3,
+  values.dyn=matrix(c(0.6, -0.2,
                       -0.2,  0.5), ncol=2, byrow=TRUE),
   params.dyn=matrix(c('b_11','b_12',
                       'b_21','b_22'), ncol=2, byrow=TRUE),
@@ -85,24 +88,6 @@ cook_shk <- dynr.cook(model_shk, debug_flag=TRUE)
 #   which will be input of the autoplot.dynrTaste and dynr.taste2
 taste_shk <- dynr.taste(model_shk, cook_shk, conf.level=.99)
 
-## create ggplot objects
-# for 2 participants (default) who have largest chi-square values,
-# ggplot objects for chi-square, and t statistics for all variables
-taste_plot1 <- autoplot(taste_shk)
-taste_plot1
-
-# ggplot objects for chi-square, and t statistics for state variable `eta_1' and observed variables c('V1', 'V3')
-taste_plot2 <- autoplot(taste_shk, 
-                        names.state='eta_1', names.observed=c('V1', 'V3'))
-taste_plot2
-
-# for id number c(3, 5), 
-# ggplot objects for chi-square, and t statistics for state variable `eta_1' and observed variables c('V1', 'V3')
-taste_plot3 <- autoplot(taste_shk, 
-                        names.state='eta_1', names.observed=c('V3', 'V1'), 
-                        idtoPlot=c(3,5))
-taste_plot3
-
 # apply the detected outliers, and re-fit the model
 taste2_shk <- dynr.taste2(model_shk, cook_shk, taste_shk,
                           newOutfile="taste2_shk.c")
@@ -116,4 +101,62 @@ data.frame(true=true_params,
            cook=coef(cook_shk)[1:17],
            taste2=coef(taste2_shk$dynrCook_new)[1:17])
 
+##---------------------
+## Checking detected outliers, comparing it with true outliers
+# A helper function to extract detected outliers
+shock_check <- function(dynrModel, dynrTaste, shocks) {
+  require(data.table)
+  tstart <- dynrModel$data$tstart
+  shock_inn <- dynrTaste$t.inn.shock
+  shock_add <- dynrTaste$t.add.shock
+  nlat <- nrow(shock_inn)
+  nobs <- nrow(shock_add)
+  id <- dynrModel$data$id
+  IDs <- unique(id)
+  nID <- length(IDs)
+  
+  shocked_L <- vector('list', nID*nlat)
+  shocked_O <- vector('list', nID*nobs)
+  for(j in 1:nID) {
+    beginTime <- tstart[j] + 1
+    endTime <- tstart[j+1]
+    
+    for(l in 1:nlat) {
+      time_L <- which(shock_inn[l, beginTime:endTime])
+      if (length(time_L) > 0) {
+        shocked_L[[(j-1)+l]] <- data.table(id=j, time_L=time_L, lat=l)
+      } else {
+        shocked_L[[(j-1)+l]] <- NULL
+      }
+    }
+    for(o in 1:nobs) {
+      time_O <- which(shock_add[o, beginTime:endTime])
+      if (length(time_O) > 0) {
+        shocked_O[[(j-1)+o]] <- data.table(id=j, time_O=time_O, obs=o)
+      } else {
+        shocked_O[[(j-1)+o]] <- NULL
+      }
+    }
+  }
+  list(sh_L = rbindlist(shocked_L),
+       sh_O = rbindlist(shocked_O))
+}
 
+# pre-saved detected outliers
+detect_L <- Outliers$detect_L
+detect_O <- Outliers$detect_O
+
+# detected outliers
+detected <- shock_check(model_shk, taste_shk)
+detected_L <- detected$sh_L
+detected_O <- detected$sh_O
+# test equality of the saved outliers and detected outliers
+testthat::expect_equal(detect_L, detected_L)
+testthat::expect_equal(detect_O, detected_O)
+
+# true outliers detection
+detrue_L <- merge(shockL, detected_L, by=c('id','time_L','lat'))
+detrue_O <- merge(shockO, detected_O, by=c('id','time_O','obs'))
+# checking the N of detected true outliers 
+testthat::expect_identical(nrow(detrue_L), 82L)
+testthat::expect_identical(nrow(detrue_O), 123L)
