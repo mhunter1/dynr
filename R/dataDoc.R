@@ -350,14 +350,49 @@ NULL
 
 ##' Simulated time series data for detecting outliers.
 ##' 
-##' A dataset simulated based on state-space model including outliers.
-##' Three outliers for latent variables, and six outliers for observed variables were included at randomly chosen time points for each participant.
+##' This is a list object containing true outliers, the dataset, and the saved result from running dynr.taste.
+##' 
+##' The true outliers for observed variables are saved in `Outliers$generated$shockO'.
+##' \itemize{
+##'   \item id. Six outliers were added for each ID. 
+##'   \item time_O. Time points where the outliers were added.
+##'   \item obs. Variable indices where the outliers were added.
+##'   \item shock.O. The magnitude of outliers.
+##' }
+##' 
+##' The true outliers for state variables are saved in `Outliers$generated$shockL'.
+##' \itemize{
+##'   \item id. Three outliers were added for each ID. 
+##'   \item time_L. Time points where the outliers were added.
+##'   \item lat. Variable indices where the outliers were added.
+##'   \item shock.L. The magnitude of outliers.
+##' }
+##' 
+##' A dataset simulated based on state-space model including the outliers. The data is saved in `Outliers$generated$y'.
 ##' The variables are as follows:
 ##' 
 ##' \itemize{
 ##'   \item id. ID of the systems (1 to 100)
-##'   \item times. Time index (60 time points for each participant)
-##'   \item V1 - V6. observed variable
+##'   \item times. Time indices (100 time points for each participant)
+##'   \item V1 - V6. observed variables
+##' }
+##' 
+##' The detected innovative outliers from dynr.taste for this dataset, which is used for testing whether the dynr.taste replicate the same result. The data is saved in `Outliers$detect_O'.
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. IDs
+##'   \item time_L. Time points where the outliers were detected
+##'   \item obs. Variable indices for observed variables where the outliers were detected
+##' }
+##' 
+##' The detected additive outliers from dynr.taste for this dataset, which is used for testing whether the dynr.taste replicate the same result. The data is saved in `Outliers$detect_L'.
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. IDs
+##'   \item time_L. Time points where the outliers were detected
+##'   \item obs. Variable indices for latent variables where the outliers were detected
 ##' }
 ##' 
 ##' @docType data

@@ -14,11 +14,11 @@
 ##' If the dynrCook object were not provided, or the object were cooked
 ##' with `debug_flag=FALSE',
 ##' \code{dynr.taste} will fit the dynrModel object with `debug_flag=TRUE' internally.
-##' @param lat_choose a character vector of the names of latent variables. 
+##' @param which.state a character vector of the names of latent variables. 
 ##' The outlier detection process will be applied only to the chosen variable. 
 ##' If the argument is NA, all the latent variables will be excluded in the outlier detection process. 
 ##' If the argument is missing (defalut), all the latent variables will be chosen.
-##' @param obs_choose a character vector of the names of measured or observed variables.
+##' @param which.obs a character vector of the names of measured or observed variables.
 ##' The outlier detection process will be applied only to the chosen variable. 
 ##' If the argument is NA, all the measured variables will be excluded in the outlier detection process. 
 ##' If the argument is missing (defalut), all the measured variables will be chosen.
@@ -63,10 +63,10 @@
 ##' 
 ##' # Detect outliers related to 'eta1' out of, say, three latent
 ##' # variables c("eta1", "eta2", "eta3"), and all measured variables.
-##' dynrTaste <- dynr.taste(dynrModel, dynrCook, lat_choose=c("eta1"))
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook, which.state=c("eta1"))
 ##' }
 dynr.taste <- function(dynrModel, dynrCook=NULL,
-                       lat_choose, obs_choose,
+                       which.state, which.obs,
                        conf.level=0.99,
                        alternative=c("two.sided", "less", "greater"),
                        debug_flag=FALSE) {
@@ -95,39 +95,39 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   nID <- length(IDs)
   
   # choose latent variables
-  if( missing(lat_choose) ) {
+  if( missing(which.state) ) {
     W_t_exclude <- rep(FALSE, dimLat)
     
-  } else if ( any(is.na(lat_choose)) ) {
+  } else if ( any(is.na(which.state)) ) {
     W_t_exclude <- rep(TRUE, dimLat)
     
   } else {
-    lat_choose <- unique(lat_choose)
-    lcv <- lat_choose %in% lat_name
+    which.state <- unique(which.state)
+    lcv <- which.state %in% lat_name
     if ( !all(lcv) ) {
       stop( paste("Cannot recognize the latent variable(s):",
-                  paste(lat_choose[!lcv], collapse=", ")),
+                  paste(which.state[!lcv], collapse=", ")),
             call.=FALSE)
     }
-    W_t_exclude <- !(lat_name %in% lat_choose)
+    W_t_exclude <- !(lat_name %in% which.state)
   }
   
   # choose measured variables
-  if( missing(obs_choose) ) {
+  if( missing(which.obs) ) {
     X_t_exclude <- rep(FALSE, dimObs)
     
-  } else if ( any(is.na(obs_choose)) ) {
+  } else if ( any(is.na(which.obs)) ) {
     X_t_exclude <- rep(TRUE, dimObs)
     
   } else {
-    obs_choose <- unique(obs_choose)
-    ocv <- obs_choose %in% obs_name
+    which.obs <- unique(which.obs)
+    ocv <- which.obs %in% obs_name
     if ( !all(ocv) ) {
       stop( paste("Cannot recognize the measured variable(s):",
-                  paste(obs_choose[!ocv], collapse=", ")),
+                  paste(which.obs[!ocv], collapse=", ")),
             call.=FALSE)
     }
-    X_t_exclude <- !(obs_name %in% obs_choose)
+    X_t_exclude <- !(obs_name %in% which.obs)
   }
   
   # replace values.xx in dynrModel with coef(dynrCook)
