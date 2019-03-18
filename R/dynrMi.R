@@ -1,13 +1,13 @@
 ##' Multiple Imputation of dynrModel objects
 ##' 
 ##' @param model dynrModel object
-##' @param aux.variable names of auxiliary variables used in imputation 
+##' @param which.aux names of auxiliary variables used in imputation 
 ##' @param m number of multiple imputations
 ##' @param iter number of iterations in one imputation
 ##' @param imp.obs logical. whether to impute the observed variables
 ##' @param imp.exo logical. whether to impute the exogenous variables
 ##' @param lag numeric. the number of lags to use
-##' @param lag.variable names of variables to create lags on
+##' @param which.lag names of variables to create lags on
 ##' @param leads logical. whether to use lags or leads
 ##' @param diag logical. whether to use convergence diagnostics
 ##' @param cook.save logical. whether to save dynr.cook object
@@ -15,7 +15,7 @@
 ##' 
 ##' @details
 ##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
-dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE, lag, lag.variable, 
+dynr.mi <- function(model, which.aux, m=5, iter, imp.obs=FALSE, imp.exo=FALSE, lag, which.lag, 
                     leads = FALSE, diag = TRUE, cook.save = FALSE, seed = NA){    #multiple lag; #factor  #get variable names
 	
 	data <- model$data$original.data
@@ -26,7 +26,7 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	xnames <- model$data$covariate.names
 	y <- data[, colnames(data)==ynames]
 	x <- data[, colnames(data)==xnames]
-	au <- data[, colnames(data)==aux.variable] 
+	au <- data[, colnames(data)==which.aux] 
 	ID <- model$data$id
 	id <- unique(ID)   # number of subjects
 	time <- model$data$time
@@ -35,10 +35,10 @@ dynr.mi <- function(model, aux.variable, m=5, iter, imp.obs=FALSE, imp.exo=FALSE
 	datanolag <- cbind(ID,y,x,au) 
 	
 	# select variables to create lags on
-	dataforlag <- subset(datanolag,select = c("ID", lag.variable))  
+	dataforlag <- subset(datanolag,select = c("ID", which.lag))  
 	
 	# create a null data frame to store lagged variables 
-	datalag <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(lag.variable)*lag))
+	datalag <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lag)*lag))
 	
 	if(lag < 1){
 	  warning("No lags/leads introduced.")
