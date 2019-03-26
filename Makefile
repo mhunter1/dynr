@@ -43,7 +43,7 @@ help:
 
 
 r-libs-user-dir:
-	./inst/tools/mk-r-libs-user-dir
+	sh ./inst/tools/mk-r-libs-user-dir
 
 build-prep:
 	@if [ $$(git status --short --untracked-files=no 2> /dev/null | wc -l) != 0 ]; then \
@@ -55,17 +55,17 @@ build-prep:
 	git archive --format=tar HEAD | (cd build; tar -xf -)
 
 build: build-prep
-	cd build && ./tools/prep && $(REXEC) CMD INSTALL $(BUILDARGS) --build .
+	cd build && sh ./tools/prep && $(REXEC) CMD INSTALL $(BUILDARGS) --build .
 	grep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
 srcbuild: build-prep
-	cd build && ./tools/prep && $(REXEC) CMD build .
+	cd build && sh ./tools/prep && $(REXEC) CMD build .
 	grep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 	@echo 'To generate a PACKAGES file, use:'
 	@echo '  echo "library(tools); write_PACKAGES('"'.', type='source'"')" | R --vanilla'
 
 cran-build: build-prep
-	cd build && ./tools/prep && rm Makefile DESCRIPTION.in && $(REXEC) CMD build .
+	cd build && sh ./tools/prep && rm Makefile DESCRIPTION.in && $(REXEC) CMD build .
 	grep -v '@[A-Z]+@' DESCRIPTION.in > DESCRIPTION
 
 install:
