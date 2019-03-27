@@ -512,7 +512,7 @@ dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
                         delta_inn=c("t", "ind", "jnt", "null"),
                         delta_add=c("t", "ind", "jnt", "null"),
                         delta_L=NULL, delta_O=NULL,
-                        cook=TRUE, verbose=TRUE,
+                        cook=TRUE, verbose=FALSE,
                         newOutfile="new_taste.c") {
   if ( !inherits(dynrModel, 'dynrModel') ) {
     stop("dynrModel object is required.")
