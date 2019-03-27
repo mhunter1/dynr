@@ -1603,10 +1603,10 @@ coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	}
 	vdim <- sapply(lapply(values, as.matrix), dim)
 	pdim <- sapply(lapply(params, as.matrix), dim)
-	if(length(vdim) > 0 && apply(vdim, 1, function(x) length(unique(x)) > 1)){
+	if(length(vdim) > 0 && any(apply(vdim, 1, function(x) length(unique(x)) > 1))){
 		stop("Some of the 'values' list elements are not the same size as each other\nNot cool, Donny.")
 	}
-	if(length(pdim) > 0 && apply(pdim, 1, function(x) length(unique(x)) > 1)){
+	if(length(pdim) > 0 && any(apply(pdim, 1, function(x) length(unique(x)) > 1))){
 		stop("Some of the 'params' list elements are not the same size as each other\nNo-go for launch.")
 	}
 	if(any(vdim != pdim)){
