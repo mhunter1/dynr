@@ -1,15 +1,18 @@
-dynr 0.1.14-X
+dynr 0.1.14-2
 --------------
 
-2018-XX-XX
+2019-03-27
 
 New features include:
+* Outlier detection with dynr.taste() function
+* Oulier removal and re-fitting with dynr.tast2() function
+* New demo for outliers called OutlierDetection
 * We now allow 1-regime recipe parts to co-exist with n-regime parts
-* 
 
 Bug fixes and performance tweaks include:
 * Lots of error checking was added around matching the number of regimes
-* 
+* Many cases of the doDykstra error are now safely caught
+* Generally cleaned up the error handling on models that failed to converge
 
 
 dynr 0.1.13-4
