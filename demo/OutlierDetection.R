@@ -151,8 +151,8 @@ detected_L <- detected$sh_L
 detected_O <- detected$sh_O
 
 # test equality of the saved outliers and detected outliers
-testthat::expect_equal(detect_L, detected_L)
-testthat::expect_equal(detect_O, detected_O)
+testthat::expect_true(all(as.data.frame(detect_L) == detected_L))
+testthat::expect_true(all(as.data.frame(detect_O) == detected_O))
 
 # true outliers detection
 detrue_L <- merge(shockL, detected_L, by=c('id','time_L','lat'))
