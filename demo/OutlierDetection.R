@@ -105,7 +105,6 @@ data.frame(true=true_params,
 ## Checking detected outliers, comparing it with true outliers
 # A helper function to extract detected outliers
 shock_check <- function(dynrModel, dynrTaste, shocks) {
-  require(data.table)
   tstart <- dynrModel$data$tstart
   shock_inn <- dynrTaste$t.inn.shock
   shock_add <- dynrTaste$t.add.shock
@@ -124,7 +123,7 @@ shock_check <- function(dynrModel, dynrTaste, shocks) {
     for(l in 1:nlat) {
       time_L <- which(shock_inn[l, beginTime:endTime])
       if (length(time_L) > 0) {
-        shocked_L[[(j-1)+l]] <- data.table(id=j, time_L=time_L, lat=l)
+        shocked_L[[(j-1)+l]] <- data.frame(id=j, time_L=time_L, lat=l)
       } else {
         shocked_L[[(j-1)+l]] <- NULL
       }
@@ -132,14 +131,14 @@ shock_check <- function(dynrModel, dynrTaste, shocks) {
     for(o in 1:nobs) {
       time_O <- which(shock_add[o, beginTime:endTime])
       if (length(time_O) > 0) {
-        shocked_O[[(j-1)+o]] <- data.table(id=j, time_O=time_O, obs=o)
+        shocked_O[[(j-1)+o]] <- data.frame(id=j, time_O=time_O, obs=o)
       } else {
         shocked_O[[(j-1)+o]] <- NULL
       }
     }
   }
-  list(sh_L = rbindlist(shocked_L),
-       sh_O = rbindlist(shocked_O))
+  list(sh_L = do.call("rbind", shocked_L), 
+       sh_O = do.call("rbind", shocked_O))
 }
 
 # pre-saved detected outliers
@@ -150,6 +149,7 @@ detect_O <- Outliers$detect_O
 detected <- shock_check(model_shk, taste_shk)
 detected_L <- detected$sh_L
 detected_O <- detected$sh_O
+
 # test equality of the saved outliers and detected outliers
 testthat::expect_equal(detect_L, detected_L)
 testthat::expect_equal(detect_O, detected_O)
@@ -160,3 +160,4 @@ detrue_O <- merge(shockO, detected_O, by=c('id','time_O','obs'))
 # checking the N of detected true outliers 
 testthat::expect_identical(nrow(detrue_L), 82L)
 testthat::expect_identical(nrow(detrue_O), 123L)
+
