@@ -11,7 +11,7 @@
 require(dynr)
 vd <- matrix(c(0, -0.1, 1, -0.2), 2, 2)
 pd <- matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2)
-
+pd4 <- matrix(c('fixed', 'spring', 'fixed', 'friction'), 4, 4)
 
 #------------------------------------------------------------------------------
 # Check covariate conformability errors
@@ -54,11 +54,20 @@ testthat::expect_error(
 testthat::expect_error(
 	prep.matrixDynamics(
 		values.dyn=vd,
+		params.dyn=pd4,	isContinuousTime=TRUE),
+	regexp="'values' and 'params' are not all the same size.\nWalter Sobchak says you can't do that.",
+	fixed=TRUE)
+
+# Donny Error
+testthat::expect_error(
+	prep.matrixDynamics(
+		values.dyn=vd,
 		params.dyn=pd,	isContinuousTime=TRUE,
 		values.exo=list(matrix(1, 2, 1), matrix(1, 2, 2)),
 		covariates='u1'),
-	regexp="'values' and 'params' are not all the same size.\nWalter Sobchak says you can't do that.",
+	regexp="Some of the 'values' list elements are not the same size as each other\nNot cool, Donny.",
 	fixed=TRUE)
+
 
 # Error
 testthat::expect_error(
