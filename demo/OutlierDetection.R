@@ -80,7 +80,7 @@ model_shk <- dynr.model(dynamics=dynm_shk, measurement=meas_shk,
 # Estimate free parameters
 # SHOULD cook with 'debug_flag=TRUE' to extract information 
 #   used for outlier detection
-cook_shk <- dynr.cook(model_shk, debug_flag=TRUE)
+cook_shk <- dynr.cook(model_shk, debug_flag=TRUE, verbose=FALSE)
 
 #------------------------------------------------------------
 # detect outliers
