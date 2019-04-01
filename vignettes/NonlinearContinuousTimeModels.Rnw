@@ -285,8 +285,9 @@ summary(res2.1)
 #------------------------------------------------------------------------------
 # ---- Read in the data ----
 data("RSPPsim")
-data <- dynr.data(RSPPsim, id = "id", time = "time",
-  observed = c("x", "y"), covariate = "cond")
+useIds <- 1:10 #
+data <- dynr.data(RSPPsim[RSPPsim$id %in% useIds, ], id = "id", time = "time",
+    observed = c("x", "y"), covariate = "cond")
 @
 \subsection{Prepare the recipes}
 Just as with the \code{prep.matrixDynamics()}, the formula interface also allows for regime-switching functionality. Consider an extension of the classical predator-prey model. It is likely that the prey and predator interaction follow seasonal patterns. Hypothetically, we assume that in warmer seasons (i.e., ``summer'' environment), the interactions follow a classical predator-prey model, but in colder seasons (i.e., ``winter'' environment), the food source (e.g., grass) of the prey becomes limited and the predator species is able to find an additional food source due to the weather. So in the colder seasons the prey or predator population will not go to extreme values in absence of the other species. We thus consider the following regime-switching version of the predator-prey model to capture the potential seasonal changes in the interaction patterns. In the Summer regime, we have the predator-prey model as previously described, but in the Winter regime we now have a predator-prey model characterized by within-species competition and limiting growth/decay. In this competitive predator-prey model, the two populations do not grow/decline exponentially without bound in absence of the other, but rather, they grow logistically up to some finite carrying capacity. This logistic growth adds to the between-species interactions with the other population. This model can be specified by combining the predator and prey equations as:
