@@ -1,7 +1,7 @@
-dynr 0.1.14-2
+dynr 0.1.14-8
 --------------
 
-2019-03-27
+2019-04-01
 
 New features include:
 * Outlier detection with dynr.taste() function
@@ -13,6 +13,7 @@ Bug fixes and performance tweaks include:
 * Lots of error checking was added around matching the number of regimes
 * Many cases of the doDykstra error are now safely caught
 * Generally cleaned up the error handling on models that failed to converge
+* Shorten several demos to run faster
 
 
 dynr 0.1.13-4
