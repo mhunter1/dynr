@@ -12,7 +12,7 @@ state.names = c('x1', 'x2')
 #[todo] beta=> fix
 beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 covariate.names = c('u1', 'u2')
-theta.names = c('zeta_i', 'zeta_i_2', 'zeta_i_3')
+#theta.names = c('zeta_i', 'zeta_i_2', 'zeta_i_3')
 #[todo] Z*b's b
 random.names = c('b1')
 DV.names = c('y1', 'y2', 'y3')
@@ -21,7 +21,7 @@ DV.names = c('y1', 'y2', 'y3')
 NxState = length(state.names)
 Nbeta = length(beta.names)
 Nx = NxState + Nbeta
-Ntheta = length(theta.names)
+#Ntheta = length(theta.names)
 
 #random data
 #N = 100
@@ -33,13 +33,21 @@ Ntheta = length(theta.names)
 
 nPeople = 200
 nTimes = 300
-vdpData <- read.csv("..//data//TrueInitY1.txt", header=FALSE)
-colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', DV.names, covariate.names)
+vdpData <- read.csv("TrueInitY1.txt", header=FALSE)
+colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', DV.names, 'u1', 'u2')
 vdpData$id <- rep(1:nPeople, each=nTimes)
 data <- dynr.data(vdpData, id="id", time="time",
                   observed=DV.names,
-                  covariates=covariate.names)
+                  covariates=c("u1","u2"))
 
+# TODO adjust noise
+#measurement and dynamics covariances
+mdcov <- prep.noise(
+    values.latent=diag(0, 2),
+    params.latent=diag(c("fixed","fixed"), 2),
+    values.observed=diag(rep(0.3,2)),
+    params.observed=diag(c("var_1","var_2"),2)
+)
 #????
 meas <- prep.measurement(
     values.load = matrix(c(1, 0), 3, 2),
@@ -58,56 +66,60 @@ meas <- prep.measurement(
 # )
 initial <- prep.initial(
     values.inistate=c(3, 1),
-    params.inistate=c("mu1", "mu2"),
+    #params.inistate=c("mu1", "mu2"),
+    params.inistate=c("fixed", "fixed"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
-    params.inicov=matrix(c('v10','c120',
-                           'c120','v20'),ncol=2,byrow=T)
+#    params.inicov=matrix(c('v10','c120',
+#                           'c120','v20'),ncol=2,byrow=T)
+    params.inicov=diag("fixed",2)
 )
 if (length(unlist(initial$params.inistate[!initial$params.inistate==
                                    "fixed"]))>0)
 initial$params.inistate
 
-# TODO adjust noise
-#measurement and dynamics covariances
-mdcov <- prep.noise(
-	values.latent=diag(0, 2),
-	params.latent=diag(c("fixed","fixed"), 2),
-	values.observed=diag(rep(0.3,2)),
-	params.observed=diag(c("var_1","var_2"),2)
-)
 
 
+
+# formula=
+#     list(x1 ~ x2,
+#          x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2,
+#          zeta0 ~ 0,
+#          zeta1 ~ 0,
+#          zeta2 ~ 0,
+#          mu1 ~ 0,
+#          mu2 ~ 0
+#     )
 formula=
     list(x1 ~ x2,
-         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2,
-         zeta0 ~ 0,
-         zeta1 ~ 0,
-         zeta2 ~ 0,
-         mu1 ~ 0,
-         mu2 ~ 0
+         x2 ~ -61.68503 * x1 + (zeta0  + u1 * zeta1 + u2 * zeta2) * (1 - x1^2) * x2
     )
-theta.formula = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2)
+#theta.formula = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2)
 
 
 #beta.names = c('param[0]', 'param[1]', 'param[2]', 'mu1', 'mu2')
-dynm <- prep.formulaDynamics(formula=formula,
+# dynm <- prep.formulaDynamics(formula=formula,
+#                            startval=c(zeta0=-1,
+#                                       zeta1=.5,
+#                                       zeta2=.2),
+# 								isContinuousTime=FALSE,
+# 								state.names=state.names,
+# 								theta.formula=theta.formula,
+# 								theta.names=theta.names,
+# 								beta.names=beta.names,
+# 								saem=TRUE)
+
+
+dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                       zeta1=.5,
-                                      zeta2=.2),
-								isContinuousTime=FALSE,
-								state.names=state.names,
-								theta.formula=theta.formula,
-								theta.names=theta.names,
-								beta.names=beta.names,
-								saem=TRUE)
-
-
-
+                                      zeta2=.2, mu1= 3, mu2 = 1),
+                           isContinuousTime=FALSE)
 #meas@state.names = c('x1', 'x2', 'zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
+#meas@state.names = c('x1', 'x2')
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
+                    noise=mdcov, initial=initial, data=data, armadillo=FALSE,
                     outfile="VanDerPol.c")
-
+fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE)
 
