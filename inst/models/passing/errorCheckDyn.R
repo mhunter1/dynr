@@ -68,16 +68,33 @@ testthat::expect_error(
 	regexp="Some of the 'values' list elements are not the same size as each other\nNot cool, Donny.",
 	fixed=TRUE)
 
-
 # Error
+# covariates and exo.values imply different number of covariates
 testthat::expect_error(
 	prep.matrixDynamics(
 		values.dyn=vd,
 		params.dyn=pd,	isContinuousTime=TRUE,
-		values.exo=list(matrix(1, 2, 1), matrix(1, 2, 2)),
-		params.exo=list(matrix(0, 2, 1), matrix(0, 2, 2)),
+		values.exo=list(matrix(1, 2, 2), matrix(1, 2, 2)),
+		params.exo=list(matrix(0, 2, 2), matrix(0, 2, 2)),
 		covariates='u1'),
-	regexp="Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (1, 2) covariates, but the 'covariates' arg says there are (1).",
+	regexp="Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (2) covariates, but the 'covariates' arg says there are (1).",
+	fixed=TRUE)
+
+testthat::expect_error(
+	prep.matrixDynamics(
+		values.dyn=vd,
+		params.dyn=pd,	isContinuousTime=TRUE,
+		covariates='u1'),
+	regexp="Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (0) covariates, but the 'covariates' arg says there are (1).",
+	fixed=TRUE)
+
+testthat::expect_error(
+	prep.matrixDynamics(
+		values.dyn=vd,
+		params.dyn=pd,	isContinuousTime=TRUE,
+		values.exo=list(matrix(1, 2, 2), matrix(1, 2, 2)),
+		params.exo=list(matrix(0, 2, 2), matrix(0, 2, 2))),
+	regexp="Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (2) covariates, but the 'covariates' arg says there are (0).",
 	fixed=TRUE)
 
 #------------------------------------------------------------------------------

@@ -2461,9 +2461,10 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	# Check that the number of covariates implied by the 'covariates' arg is the same as that
 	#  implied by the number of columns in the 'values.exo' arg.
 	matCovariates <- lapply(lapply(values.exo, dim), "[[", 2)
+	if(length(matCovariates) == 0){matCovariates <- 0}
 	argCovariates <- length(covariates)
 	if(!all(matCovariates == argCovariates)){
-		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates, collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
+		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates[[1]], collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
 		stop(msg)
 	}
 	
