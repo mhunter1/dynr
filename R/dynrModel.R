@@ -597,6 +597,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+  if('armadillo' %in% names(inputs)){inputs$armadillo <- NULL}
 
   # Figure out what the unique parameters are
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))
