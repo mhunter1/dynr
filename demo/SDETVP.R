@@ -51,7 +51,7 @@ modelLog <- dynr.model(dynamics=dynamicsLog, measurement=measLog,
 modelLog$ub[c('r', 'pnoise')] <- 10
 
 
-resLog <- dynr.cook(modelLog)
+resLog <- dynr.cook(modelLog, verbose=FALSE)
 #---- (5) Serve it! ----
 
 summary(resLog)

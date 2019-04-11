@@ -31,10 +31,10 @@ meas <- prep.measurement(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-    values.inistate = c(3, 1),
-    params.inistate = c("fixed", "fixed"),
-    values.inicov = diag(c(0.01, 0.01)),
-    params.inicov = diag("fixed", 2),
+    values.inistate = rep(list(c(3, 1)), 2),
+    params.inistate = rep(list(c("fixed", "fixed")), 2),
+    values.inicov = rep(list(diag(c(0.01, 0.01))), 2),
+    params.inicov = rep(list(diag("fixed", 2)), 2),
     values.regimep = c(.8473, 0), #initial regime log odds
     params.regimep = c("fixed", "fixed"))
 

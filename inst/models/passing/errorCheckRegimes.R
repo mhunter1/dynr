@@ -126,6 +126,18 @@ testthat::expect_message(
 	regexp="Oi, Chap! I found 1 regime for 'values.inicov'  but 2 regimes elsewhere, so I extended the initial covariances to match.\nIf this is what you wanted, all is sunshine and puppy dogs.", 
 	fixed=TRUE)
 
+# Initial message because inicov has one regime
+testthat::expect_message(
+	prep.initial(
+		values.inistate=vi,
+		params.inistate=pi,
+		values.inicov=rep(list(diag(.2, 3)), 2),
+		params.inicov=rep(list(diag(letters[1:3])), 2),
+		values.regimep=c(.5, .5),
+		params.regimep=c('p1', 'p2')),
+	regexp="Oi, Chap! I found 1 regime for 'values.inistate'  but 2 regimes elsewhere, so I extended the initial states to match.\nIf this is what you wanted, all is sunshine and puppy dogs.", 
+	fixed=TRUE)
+
 # Initial Error (special case of forgot to specify regimep)
 testthat::expect_error(
 	prep.initial(
@@ -202,13 +214,13 @@ recReg <- prep.regimes(
 	values=matrix(c(1, -1, 0, 0), 2, 2),
 	params=matrix(c('c11', 'c21', 'fixed', 'fixed'), 2, 2))
 
-recIni <- prep.initial(
+suppressMessages(recIni <- prep.initial(
 	values.inistate=matrix(0, 1, 1),
 	params.inistate=matrix('fixed', 1, 1),
 	values.inicov=matrix(1, 1, 1),
 	params.inicov=matrix('fixed', 1, 1),
 	values.regimep=c(10, 0),
-	params.regimep=c('fixed', 'fixed'))
+	params.regimep=c('fixed', 'fixed')))
 
 
 recDyn <- prep.matrixDynamics(
