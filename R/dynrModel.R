@@ -572,15 +572,17 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
     }else if (any(time.check["full",])){
       if ("covariates" %in% names(data)){
+        names(data$covariates) <- data$covariate.names
+        names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed, data$covariates)
         
         data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
           new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
           out = merge(new, df, all.x = TRUE)
         })
-        
-        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
+        data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
+        names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
         
         data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
@@ -588,7 +590,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
+        data <- dynr.data(data.new.dataframe, observed = data$observed.names)
       }
     }
   }
