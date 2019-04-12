@@ -8,6 +8,7 @@ Author: Lu Ou [aut],
     Michael D. Hunter [aut, cre],
     Sy-Miin Chow [aut]
 Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>
+BugReports: https://groups.google.com/forum/#!forum/dynr <dynr@googlegroups.com>
 Depends: R (>= 3.0.0), ggplot2
 Imports: MASS, Matrix, numDeriv, xtable, latex2exp, grid, reshape2, plyr,
     mice, magrittr, Rdpack, methods
