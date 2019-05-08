@@ -1,22 +1,30 @@
 ##' Multiple Imputation of dynrModel objects
 ##' 
-##' @param model dynrModel object
-##' @param which.aux names of auxiliary variables used in imputation 
-##' @param m number of multiple imputations
-##' @param iter number of iterations in one imputation
-##' @param imp.obs logical. whether to impute the observed variables
-##' @param imp.exo logical. whether to impute the exogenous variables
-##' @param lag numeric. the number of lags to use
-##' @param which.lag names of variables to create lags on
-##' @param leads logical. whether to use lags or leads
-##' @param diag logical. whether to use convergence diagnostics
-##' @param cook.save logical. whether to save dynr.cook object
-##' @param seed integer. a single value used to set seed in imputation
+##' @param dynrModel dynrModel object. data and model setup
+##' @param which.aux character. names of the auxiliary variables used in the imputation model
+##' @param which.lag character. names of the variables to create lagged responses for imputation purposes
+##' @param lag integer. number of lags of variables in the imputation model
+##' @param which.lead character. names of the variables to create leading responses for imputation purposes
+##' @param lead integer. number of leads of variables in the imputation model
+##' @param m integer. number of multiple imputations
+##' @param iter integer. number of MCMC iterations in each imputation
+##' @param imp.obs logical. flag to impute the observed dependent variables
+##' @param imp.exo logical. flag to impute the exogenous variables
+##' @param diag logical. flag to use convergence diagnostics
+##' @param Rhat numeric. value of the Rhat statistic used as the criterion in convergence diagnostics
+##' @param conf.level numeric. confidence level used to generate confidence intervals
+##' @param verbose logical. flag to print the intermediate output during the estimation process
+##' @param seed integer. random number seed to be used in the MI procedure
 ##' 
-##' @details
-##' This function is in alpha-testing form.  Please do not use or rely on it for now. A full implementation is in progress.
-dynr.mi <- function(model, which.aux, m=5, iter, imp.obs=FALSE, imp.exo=FALSE, lag, which.lag, 
-                    leads = FALSE, diag = TRUE, cook.save = FALSE, seed = NA){    #multiple lag; #factor  #get variable names
+
+dynr.mi <- function(dynrModel, which.aux=NULL, 
+                    which.lag=NULL, lag=0,
+                    which.lead=NULL, lead=0,
+                    m=5, iter=5, 
+                    imp.obs=FALSE, imp.exo=TRUE,
+                    diag = TRUE, Rhat=1.1,
+                    conf.level=0.95,
+                    verbose=TRUE, seed=NA){    
 	
 	data <- model$data$original.data
 	k <- length(model$param.names)    # number of parameters estimated
