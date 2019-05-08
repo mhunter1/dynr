@@ -26,18 +26,18 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
                     conf.level=0.95,
                     verbose=TRUE, seed=NA){    
 	
-	data <- model$data$original.data
-	k <- length(model$param.names)    # number of parameters estimated
+	data <- dynrModel$data$original.data
+	k <- length(dynrModel$param.names)    # number of parameters estimated
 	
 	
-	ynames <- model$data$observed.names
-	xnames <- model$data$covariate.names
-	y <- data[, colnames(data)==ynames]
-	x <- data[, colnames(data)==xnames]
-	au <- data[, colnames(data)==which.aux] 
-	ID <- model$data$id
-	id <- unique(ID)   # number of subjects
-	time <- model$data$time
+	ynames <- dynrModel$data$observed.names
+	xnames <- dynrModel$data$covariate.names
+	y <- data[, ynames]   # observed variables
+	x <- data[, xnames]   # covariates
+	au <- data[, which.aux]  # auxiliary variables
+	ID <- dynrModel$data$id
+	id <- unique(ID)   # a vector of IDs
+	time <- dynrModel$data$time
 	
 	# raw data 
 	datanolag <- cbind(ID,y,x,au) 
@@ -76,10 +76,10 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	}
 
 	# combine original variables and lagged variables 
-	dataformice <- data.frame(datanolag, subset(datalag, select = -ID))
+	dataformice <- data.frame(subset(datanolag,select=-ID), subset(datalag, select = -ID))
 
 	
-	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed, printFlag = FALSE)
+	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed)
 	
 	
 	# convergence diagnostics
@@ -90,19 +90,18 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	  # reformat imp$chainMean to a matrix called coda
 	  chainmean = imp$chainMean
 	  chainmean2 = chainmean[!is.na(chainmean)]
-	  coda = matrix(chainmean2, nrow = m*iter, byrow = T)
+	  coda = matrix(chainmean2, nrow = chains*iter, byrow = T)
 	  
 	  # create a null matrix to store Rhats for all variables
-	  Rhat = matrix(NA, nrow = iter, ncol = nvariables) 
+	  Rhatmatrix = matrix(NA, nrow = iter, ncol = nvariables) 
 	  
 	  #cal Rhats for each iteration and each variable
 	  for(i in itermin:iter){
 	    
-	    # select all values generated from i iterations
-	    codai = coda[1:m*i,1:nvariables]
 	    value = list()  #each list contains a chain 
-	    for(k in 1:m){
-	      value[[k]] = coda[(i*(k-1)+1+burn):(i*k),]  #drop the values of each chain in the beginning period
+	    for(k in 1:chains){
+	      codak = coda[(iter*(k-1)+1):(iter*k),1:nvariables]  # select all values from each chain
+	      value[[k]] = codak[(1+burn):i,]  #drop the values of each chain in the beginning period
 	    }
 	    
 	    # cal Rhats
@@ -131,10 +130,10 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	      
 	      # Gelman-Rubin statistic (Rhat)
 	      rhat = sqrt(varplus / globalvar)
-	      Rhat[i,j] = rhat
+	      Rhatmatrix[i,j] = rhat
 	    }
 	  }
-	  return(Rhat)
+	  return(Rhatmatrix)
 	}
 	
 	
@@ -144,15 +143,22 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	  
     # Rhat plots from diag.mi()
 	  nvariables = length(c(ynames,xnames))
-	  result = diag.mi(imp, nvariables, m, 2,iter,0)
-	  
 	  names =c(ynames,xnames)
+	  Rhatresult = diag.mi(imp, nvariables, m, 2,iter,0)
+	  
+	  df = data.frame(matrix(ncol = 3, nrow = 0))
+	  colnames(df) = c("variable","Rhatvalue","iteration")
 	  for(j in 1:nvariables){
-	    plot(2:iter, result[2:iter,j],type="l",ylim=c(min(na.omit(result)),max(na.omit(result))),ylab="Rhat",xlab="last iteration in chain",main=names[j])
-	    abline(h=1.1,lty=2,col=2)  # criterion set as Rhat < 1.1
+	    df[(iter*(j-1)+1):(iter*j),variable] = rep(names[j],iter)
+	    df[(iter*(j-1)+1):(iter*j),iteration] = 1:iter
+	    df[(iter*(j-1)+1):(iter*j),Rhatvalue] = Rhatresult[,j]
 	  }
+	  ggplot(df, aes(iteration,Rhatvalue)) +
+	      geom_line(aes(col = variable))+
+	      geom_hline(yintercept=Rhat,size=1) + 
+	      theme_classic()
 	}
-	
+
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
@@ -175,27 +181,19 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 		}
 		
 		newdata <- cbind(ID, time, imp.data.obs, imp.data.exo)
-		
-		
-		save(newdata,file="test.rdata")
 
-		
 		colnames(newdata) <- c("ID", "Time", ynames,xnames)
 		
 		data <- dynr.data(newdata, id="ID", time="Time",
 		                observed=ynames, covariates=xnames)
 		
-		modelnew <- model
+		modelnew <- dynrModel
 		modelnew@data <- data
 		modelnew@compileLib = FALSE #avoid conflicts among concurrent output C scripts of model functions
 
 		
-		trial <- dynr.cook(modelnew, verbose = FALSE)  #names(trial) get names of the params
-		#summary(trial)
+		trial <- dynr.cook(modelnew, verbose = verbose)  
 		
-		# save dynr.cook results
-		if (cook.save == TRUE)
-		  save(trial, file=paste0("cookresult",j,".rdata"))
 		
 		#getting parameter estimates
 		pmcarqhat[j,] <- coef(trial)[1:k]
@@ -204,26 +202,25 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	
 	pqbarmcarimpute <- apply(pmcarqhat, 2, mean) 
 	pubarmcarimpute <- apply(pmcaru, 1:2, mean)
-	#ubar <- apply(u, c(2, 3), mean)
+
 	pe.mcarimpute <- pmcarqhat - matrix(pqbarmcarimpute, nrow = m, ncol = k, byrow = TRUE)
 	pb.mcarimpute <- (t(pe.mcarimpute) %*% pe.mcarimpute)/(m - 1)
 	pvcovmcarimpute <- pubarmcarimpute + (1 + 1/m) * pb.mcarimpute #vcov for estimates
 	psemcarimpute <- sqrt(diag(pvcovmcarimpute))
 	
 	t <- pqbarmcarimpute/psemcarimpute
-	# TODO Don't just use 2 for the CIs !!!
-	ci.upper <- pqbarmcarimpute + 2*psemcarimpute
-	ci.lower <- pqbarmcarimpute - 2*psemcarimpute
-	p <- pt( abs(t), df=nobs(model) - k, lower.tail=FALSE)
+	df <- nobs(model)-k
+	alpha <- 1-conf.level
+
+	ci.upper <- pqbarmcarimpute + qt(1-alpha/2,df)*psemcarimpute
+	ci.lower <- pqbarmcarimpute - qt(1-alpha/2,df)*psemcarimpute
+	p <- pt( abs(t), df, lower.tail=FALSE)
 	
 	result <- cbind(pqbarmcarimpute, psemcarimpute, t, ci.lower, ci.upper,p)
 	
-	colnames(result) <- c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper", #"",
+	colnames(result) <- c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper",
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
-	#TODO the current 'result' should be what is printed by summary() on the thing returned from dynr.mi()
-	# This summary should use methods similar to summary.dynrCook and summary.lm
-	# TODO return a 'mi' object similar to rest of mice
 	return(result)
 }
