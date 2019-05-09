@@ -49,7 +49,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	datalag <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lag)*lag))
 	
 	if(lag < 1){
-	  warning("No lags introduced.")
+	  warning("No lagged variables in the imputation model.")
 	} else{
 	  for(i in id){
 	    # tmp used to store original variables for each subject 
@@ -76,7 +76,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	datalead <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lead)*lead))
 	
 	if(lead < 1){
-	  warning("No leads introduced.")
+	  warning("No leading variables in the imputation model.")
 	} else{
 	  for(i in id){
 	    # tmp used to store original variables for each subject 
@@ -101,12 +101,13 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	                          subset(datalag, select = -ID),
 	                          subset(datalead, select = -ID))
 
+	print("Implementing imputations ...")
 	
 	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed)
 	
 	
 	# convergence diagnostics
-	diag.mi = function(imp, nvariables, variables, m,itermin=2,iter,burn=0, Rhat){ 
+	diag.mi = function(imp, nvariables,m,itermin=2,iter,burn=0){ 
 	  
 	  chains = m
 	  
@@ -159,31 +160,14 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	    } # close loop over variables
 	  } # close loop over iterations
 	  
-	  # trace plots from mice()
-	  p1 = plot(imp, variables) 
+	  return(Rhatmatrix)
 	  
-	  # Rhat plot
-	  # prepare a long format data set for ggplot
-	  df = data.frame(matrix(ncol = 3, nrow = iter*nvariables))
-	  colnames(df) = c("variable","iteration","Rhatvalue")
-	  for(j in 1:nvariables){
-	    df$variable[(iter*(j-1)+1):(iter*j)] = rep(variables[j],iter)
-	    df$iteration[(iter*(j-1)+1):(iter*j)] = 1:iter
-	    df$Rhatvalue[(iter*(j-1)+1):(iter*j)] = Rhatmatrix[,j]
-	  }
-	  p2 = ggplot(subset(df, df$iteration!=1), aes(iteration,Rhatvalue)) +
-	    geom_line(aes(col = variable))+
-	    geom_hline(yintercept=Rhat,size=1) +
-	    labs(x="iteration", y="Rhat")+
-	    theme_classic()
-	  
-	  return(list(p1,p2))
 	}
 	
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
-	print("Cooking the dynr model to estimate free parameters")
+	print("Cooking and pooling of estimation results")
 	
 	for(j in 1:m){
 		
@@ -247,10 +231,29 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	  # obtain diagnostic information from diag.mi()
 	  nvariables = length(c(ynames,xnames))
 	  variables =c(ynames,xnames)
-	  diagplot = diag.mi(imp, nvariables, variables, m, iter, Rhat)
+	  Rhatmatrix=diag.mi(imp, nvariables, m=m, iter=iter)
+	  # trace plots from mice()
+	  p1 = plot(imp, variables) 
+	  
+	  # Rhat plot
+	  # prepare a long format data set for ggplot
+	  df = data.frame(matrix(ncol = 3, nrow = iter*nvariables))
+	  colnames(df) = c("variable","iteration","Rhatvalue")
+	  for(j in 1:nvariables){
+	    df$variable[(iter*(j-1)+1):(iter*j)] = rep(variables[j],iter)
+	    df$iteration[(iter*(j-1)+1):(iter*j)] = 1:iter
+	    df$Rhatvalue[(iter*(j-1)+1):(iter*j)] = Rhatmatrix[,j]
+	  }
+	  p2 = ggplot(subset(df, df$iteration!=1), aes(iteration,Rhatvalue)) +
+	    geom_line(aes(col = variable))+
+	    geom_hline(yintercept=Rhat,size=1) +
+	    labs(x="iteration", y="Rhat")+
+	    theme_classic()
+	  
 	  x11(); dev.off()  # avoid plot rendering errors
-	  return(list(diagplot,result))
-	}
-	else
+	  return(list(p1,p2,result))
+	}else{
 	  return(result)
+	}
+	
 }
