@@ -39,51 +39,74 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	id <- unique(ID)   # a vector of IDs
 	time <- dynrModel$data$time
 	
-	# raw data 
-	datanolag <- cbind(ID,y,x,au) 
+	# original data 
+	datainit <- data.frame(ID,y,x,au) 
 	
 	# select variables to create lags on
-	dataforlag <- subset(datanolag,select = c("ID", which.lag))  
+	dataforlag <- subset(datainit,select = c("ID", which.lag))   
 	
 	# create a null data frame to store lagged variables 
 	datalag <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lag)*lag))
 	
 	if(lag < 1){
-	  warning("No lags/leads introduced.")
-	  datalag <- dataforlag
-	}
-	
-	for(i in id){
-	  # tmp used to store original variables for each subject 
-	  tmp <- dataforlag[dataforlag$ID == i,]
-	  tmp <- as.matrix(subset(tmp, select = -ID))
-	  P <- ncol(tmp)
-	  nt <- nrow(tmp)
-	  if (lag > nt-1){
-	    lag <- nt-1
-	    warning("The number of lags/leads should be smaller than the number of measurements.")
-	  }
-	  
-	  for(t in 1:lag){
-	    # tmp1 used to store lagged variables for each subject
-	    tmp1 <- matrix(NA,nrow = nt, ncol = P)
-	    if (leads == TRUE)  { tmp1[1:(nt-t),] <- tmp[(t+1):nt,] }
-	    else  { tmp1[(t+1):nt,] <- tmp[1:(nt-t),] }
-	    a <- P*(t-1)+2 
-	    b <- P*t+1 
-	    datalag[datalag$ID == i, ][, a:b] <- tmp1
-	  }
+	  warning("No lags introduced.")
+	} else{
+	  for(i in id){
+	    # tmp used to store original variables for each subject 
+	    tmp_lag <- dataforlag[dataforlag$ID == i, which.lag]
+	    P_lag <- length(which.lag)  #number of variables to create lags on
+	    nt <- nrow(tmp_lag) #number of time points
+	    if (lag > nt-1){
+	      lag <- nt-1
+	      warning("Number of lags should be smaller than the number of time points.")
+	    }
+	    for(l in 1:lag){
+	      # tmp1 used to store lagged variables for each subject
+	      tmp1_lag <- data.frame(matrix(NA,nrow = nt, ncol = P_lag))
+	      tmp1_lag[(l+1):nt,] <- tmp_lag[1:(nt-l),]
+	      datalag[datalag$ID == i, ][, (P_lag*(l-1)+2):(P_lag*l+1)] <- tmp1_lag
+	    }  #close loop over number of lags
+	  } #close loop over subjects
 	}
 
-	# combine original variables and lagged variables 
-	dataformice <- data.frame(subset(datanolag,select=-ID), subset(datalag, select = -ID))
+	# select variables to create leads on
+	dataforlead <- subset(datainit,select = c("ID", which.lead))  
+	
+	# create a null data frame to store leading variables 
+	datalead <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lead)*lead))
+	
+	if(lead < 1){
+	  warning("No leads introduced.")
+	} else{
+	  for(i in id){
+	    # tmp used to store original variables for each subject 
+	    tmp_lead <- dataforlead[dataforlead$ID == i, which.lead]
+	    P_lead <- length(which.lead)  #number of variables to create lags on
+	    nt <- nrow(tmp_lead) #number of time points
+	    if (lead > nt-1){
+	      lead <- nt-1
+	      warning("Number of leads should be smaller than the number of time points.")
+	    }
+	    for(l in 1:lead){
+	      # tmp1 used to store leading variables for each subject
+	      tmp1_lead <- data.frame(matrix(NA,nrow = nt, ncol = P_lead))
+	      tmp1_lead[1:(nt-l),] <- tmp_lead[(l+1):nt,]
+	      datalead[datalead$ID == i, ][, (P_lead*(l-1)+2):(P_lead*l+1)] <- tmp1_lead
+	    }  #close loop over number of leads
+	  } #close loop over subjects
+	}
+	
+	# combine original, lagged and leading variables 
+	dataformice <- data.frame(subset(datainit,select=-ID), 
+	                          subset(datalag, select = -ID),
+	                          subset(datalead, select = -ID))
 
 	
 	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed)
 	
 	
 	# convergence diagnostics
-	diag.mi = function(imp, nvariables, variables, m,itermin=2,iter,burn=0, Rhat){ #number of iterations should be more than itermin
+	diag.mi = function(imp, nvariables, variables, m,itermin=2,iter,burn=0, Rhat){ 
 	  
 	  chains = m
 	  
