@@ -16,6 +16,21 @@
 ##' @param verbose logical. flag to print the intermediate output during the estimation process
 ##' @param seed integer. random number seed to be used in the MI procedure
 ##' 
+##' @return an object of `dynrMi' class
+##' that is a list containing:
+##' 1. the imputation information, including a data set 
+##' containing structured lagged and leading variables and 
+##' a `mids' object from mice() function;
+##' 2. the diagnostic information, including trace plots,
+##' an Rhat plot and a matrix containing Rhat values;
+##' 3. the estimation results, including parameter estimates,
+##' standard error estimates and confidence intervals.
+##' 
+##' 
+##' @examples
+##' # See the demo, MILinearDiscrete.R, for an illustrative example 
+##' # of using dynr.mi to implement multiple imputation with 
+##' # a vector autoregressive model
 
 dynr.mi <- function(dynrModel, which.aux=NULL, 
                     which.lag=NULL, lag=0,
@@ -107,12 +122,12 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	
 	
 	# convergence diagnostics
-	diag.mi = function(imp, nvariables,m,itermin=2,iter,burn=0){ 
+	diag.mi = function(imp, nvariables,variables,m,itermin=2,iter,burn=0){ 
 	  
 	  chains = m
 	  
 	  # reformat imp$chainMean to a matrix called coda
-	  chainmean = imp$chainMean
+	  chainmean = imp$chainMean[1:nvariables,,]
 	  chainmean2 = chainmean[!is.na(chainmean)]
 	  coda = matrix(chainmean2, nrow = chains*iter, byrow = T)
 	  
@@ -160,6 +175,8 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	    } # close loop over variables
 	  } # close loop over iterations
 	  
+	  Rhatmatrix = data.frame(Rhatmatrix)
+	  colnames(Rhatmatrix) = variables
 	  return(Rhatmatrix)
 	  
 	}
@@ -232,7 +249,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	  # obtain diagnostic information from diag.mi()
 	  nvariables = length(c(ynames,xnames))
 	  variables =c(ynames,xnames)
-	  Rhatmatrix=diag.mi(imp, nvariables, m=m, iter=iter)
+	  Rhatmatrix=diag.mi(imp, nvariables, variables,m=m, iter=iter)
 	  # trace plots from mice()
 	  p1 = plot(imp, variables) 
 	  
