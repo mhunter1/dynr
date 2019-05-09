@@ -1,79 +1,3 @@
-# convergence diagnostics
-diag.mi = function(imp, nvariables, variables, m,itermin=2,iter,burn=0,Rhat){ 
-  
-  chains = m
-  
-  # reformat imp$chainMean to a matrix called coda
-  chainmean = imp$chainMean
-  chainmean2 = chainmean[!is.na(chainmean)]
-  coda = matrix(chainmean2, nrow = chains*iter, byrow = T)
-  
-  # create a null matrix to store Rhats for all variables
-  Rhatmatrix = matrix(NA, nrow = iter, ncol = nvariables) 
-  
-  #cal Rhats for each iteration and each variable
-  for(i in itermin:iter){
-    
-    value = list()  #each list contains a chain 
-    for(k in 1:chains){
-      codak = coda[(iter*(k-1)+1):(iter*k),1:nvariables]  # select all values from each chain
-      value[[k]] = codak[(1+burn):i,]  #drop the values of each chain in the beginning period
-    }
-    
-    iterations = i
-    for(j in 1:nvariables) {
-      
-      # create vectors to store means and variations of values in chains for each variable
-      chainmeans = rep(NA, chains)
-      chainvars = rep(NA, chains)
-      
-      for(k in 1:chains) {
-        sum = sum(value[[k]][,j])
-        var = var(value[[k]][,j])
-        mean = sum / iterations
-        
-        chainmeans[k] = mean
-        chainvars[k] = var
-      }
-      globalmean = sum(chainmeans) / chains
-      # globalvar: within-chain variances
-      globalvar = sum(chainvars) / chains
-      
-      # b: between-chains variances
-      b = sum((chainmeans - globalmean)^2) * iterations / (chains - 1)
-      
-      # varplus: pooled variance
-      varplus = (iterations - 1) * globalvar / iterations + b / iterations
-      
-      # Gelman-Rubin statistic (Rhat)
-      rhat = sqrt(varplus / globalvar)
-      Rhatmatrix[i,j] = rhat
-    } # close loop over variables
-  } # close loop over iterations
-
-  # trace plots from mice()
-  p1 = plot(imp, variables)  
-  
-  # Rhat plot
-  # prepare a long format data set for ggplot
-  df = data.frame(matrix(ncol = 3, nrow = iter*nvariables))
-  colnames(df) = c("variable","iteration","Rhatvalue")
-  for(j in 1:nvariables){
-    df$variable[(iter*(j-1)+1):(iter*j)] = rep(variables[j],iter)
-    df$iteration[(iter*(j-1)+1):(iter*j)] = 1:iter
-    df$Rhatvalue[(iter*(j-1)+1):(iter*j)] = Rhatmatrix[,j]
-  }
-  p2 = ggplot(subset(df, df$iteration!=1), aes(iteration,Rhatvalue)) +
-    geom_line(aes(col = variable))+
-    geom_hline(yintercept=Rhat,size=1) +
-    labs(x="iteration", y="Rhat")+
-    theme_classic()
-  
-  return(list(p1,p2))
-}
-
-
-
 ##' Multiple Imputation of dynrModel objects
 ##' 
 ##' @param dynrModel dynrModel object. data and model setup
@@ -154,14 +78,91 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	# combine original variables and lagged variables 
 	dataformice <- data.frame(subset(datanolag,select=-ID), subset(datalag, select = -ID))
 
-	# implement imputations
+	
 	imp <- mice::mice(dataformice, m=m, maxit = iter, seed = seed)
 	
-	# pool estimation results
-	print("Cooking the dynr model to estimate free parameters")
 	
+	# convergence diagnostics
+	diag.mi = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
+	  
+	  chains = m
+	  
+	  # reformat imp$chainMean to a matrix called coda
+	  chainmean = imp$chainMean
+	  chainmean2 = chainmean[!is.na(chainmean)]
+	  coda = matrix(chainmean2, nrow = chains*iter, byrow = T)
+	  
+	  # create a null matrix to store Rhats for all variables
+	  Rhatmatrix = matrix(NA, nrow = iter, ncol = nvariables) 
+	  
+	  #cal Rhats for each iteration and each variable
+	  for(i in itermin:iter){
+	    
+	    value = list()  #each list contains a chain 
+	    for(k in 1:chains){
+	      codak = coda[(iter*(k-1)+1):(iter*k),1:nvariables]  # select all values from each chain
+	      value[[k]] = codak[(1+burn):i,]  #drop the values of each chain in the beginning period
+	    }
+	    
+	    # cal Rhats
+	    iterations = i
+	    for(j in 1:nvariables) {
+	      
+	      # create vectors to store means and variations of values in chains for each variable
+	      chainmeans = rep(NA, chains)
+	      chainvars = rep(NA, chains)
+	      
+	      for(k in 1:chains) {
+	        sum = sum(value[[k]][,j])
+	        var = var(value[[k]][,j])
+	        mean = sum / iterations
+	        
+	        chainmeans[k] = mean
+	        chainvars[k] = var
+	      }
+	      globalmean = sum(chainmeans) / chains
+	      globalvar = sum(chainvars) / chains
+	      
+	      # Compute between- and within-variances and MPV
+	      b = sum((chainmeans - globalmean)^2) * iterations / (chains - 1)
+	      
+	      varplus = (iterations - 1) * globalvar / iterations + b / iterations
+	      
+	      # Gelman-Rubin statistic (Rhat)
+	      rhat = sqrt(varplus / globalvar)
+	      Rhatmatrix[i,j] = rhat
+	    }
+	  }
+	  return(Rhatmatrix)
+	}
+	
+	
+	if (diag == TRUE){
+	  # trace plots from mice()
+	  plot(imp, c(ynames,xnames)) 
+	  
+    # Rhat plots from diag.mi()
+	  nvariables = length(c(ynames,xnames))
+	  names =c(ynames,xnames)
+	  Rhatresult = diag.mi(imp, nvariables, m, 2,iter,0)
+	  
+	  df = data.frame(matrix(ncol = 3, nrow = 0))
+	  colnames(df) = c("variable","Rhatvalue","iteration")
+	  for(j in 1:nvariables){
+	    df[(iter*(j-1)+1):(iter*j),variable] = rep(names[j],iter)
+	    df[(iter*(j-1)+1):(iter*j),iteration] = 1:iter
+	    df[(iter*(j-1)+1):(iter*j),Rhatvalue] = Rhatresult[,j]
+	  }
+	  ggplot(df, aes(iteration,Rhatvalue)) +
+	      geom_line(aes(col = variable))+
+	      geom_hline(yintercept=Rhat,size=1) + 
+	      theme_classic()
+	}
+
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
+	
+	print("Cooking the dynr model to estimate free parameters")
 	
 	for(j in 1:m){
 		
@@ -207,13 +208,13 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	pvcovmcarimpute <- pubarmcarimpute + (1 + 1/m) * pb.mcarimpute #vcov for estimates
 	psemcarimpute <- sqrt(diag(pvcovmcarimpute))
 	
-	t <- pqbarmcarimpute/psemcarimpute # t statistic
-	df <- nobs(model)-k    # degree of freedom
-	alpha <- 1-conf.level  # significance level
+	t <- pqbarmcarimpute/psemcarimpute
+	df <- nobs(model)-k
+	alpha <- 1-conf.level
 
-	ci.upper <- pqbarmcarimpute + qt(1-alpha/2,df)*psemcarimpute # upper CI
-	ci.lower <- pqbarmcarimpute - qt(1-alpha/2,df)*psemcarimpute # lower CI
-	p <- pt( abs(t), df, lower.tail=FALSE) # p value
+	ci.upper <- pqbarmcarimpute + qt(1-alpha/2,df)*psemcarimpute
+	ci.lower <- pqbarmcarimpute - qt(1-alpha/2,df)*psemcarimpute
+	p <- pt( abs(t), df, lower.tail=FALSE)
 	
 	result <- cbind(pqbarmcarimpute, psemcarimpute, t, ci.lower, ci.upper,p)
 	
@@ -221,15 +222,5 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
-	if(diag == TRUE){
-	  # obtain diagnostic information from diag.mi()
-	  nvariables = length(c(ynames,xnames))
-	  variables =c(ynames,xnames)
-	  diagplot = diag.mi(imp, nvariables, variables, m, iter, Rhat)
-	  x11(); dev.off()  # avoid plot rendering errors
- 	  return(list(diagplot,result))
-	}
-	else
-	  return(result)
-	
+	return(result)
 }
