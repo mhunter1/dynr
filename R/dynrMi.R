@@ -83,7 +83,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	
 	
 	# convergence diagnostics
-	diag.mi = function(imp, nvariables, m,itermin,iter,burn){ #number of iterations should be more than itermin
+	diag.mi = function(imp, nvariables, variables, m,itermin=2,iter,burn=0, Rhat){ #number of iterations should be more than itermin
 	  
 	  chains = m
 	  
@@ -121,44 +121,42 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	        chainvars[k] = var
 	      }
 	      globalmean = sum(chainmeans) / chains
+	      # globalvar: within-chain variances
 	      globalvar = sum(chainvars) / chains
 	      
-	      # Compute between- and within-variances and MPV
+	      # b: between-chains variances
 	      b = sum((chainmeans - globalmean)^2) * iterations / (chains - 1)
 	      
+	      # varplus: pooled variance
 	      varplus = (iterations - 1) * globalvar / iterations + b / iterations
 	      
 	      # Gelman-Rubin statistic (Rhat)
 	      rhat = sqrt(varplus / globalvar)
 	      Rhatmatrix[i,j] = rhat
-	    }
-	  }
-	  return(Rhatmatrix)
-	}
-	
-	
-	if (diag == TRUE){
+	    } # close loop over variables
+	  } # close loop over iterations
+	  
 	  # trace plots from mice()
-	  plot(imp, c(ynames,xnames)) 
+	  p1 = plot(imp, variables) 
 	  
-    # Rhat plots from diag.mi()
-	  nvariables = length(c(ynames,xnames))
-	  names =c(ynames,xnames)
-	  Rhatresult = diag.mi(imp, nvariables, m, 2,iter,0)
-	  
-	  df = data.frame(matrix(ncol = 3, nrow = 0))
-	  colnames(df) = c("variable","Rhatvalue","iteration")
+	  # Rhat plot
+	  # prepare a long format data set for ggplot
+	  df = data.frame(matrix(ncol = 3, nrow = iter*nvariables))
+	  colnames(df) = c("variable","iteration","Rhatvalue")
 	  for(j in 1:nvariables){
-	    df[(iter*(j-1)+1):(iter*j),variable] = rep(names[j],iter)
-	    df[(iter*(j-1)+1):(iter*j),iteration] = 1:iter
-	    df[(iter*(j-1)+1):(iter*j),Rhatvalue] = Rhatresult[,j]
+	    df$variable[(iter*(j-1)+1):(iter*j)] = rep(variables[j],iter)
+	    df$iteration[(iter*(j-1)+1):(iter*j)] = 1:iter
+	    df$Rhatvalue[(iter*(j-1)+1):(iter*j)] = Rhatmatrix[,j]
 	  }
-	  ggplot(df, aes(iteration,Rhatvalue)) +
-	      geom_line(aes(col = variable))+
-	      geom_hline(yintercept=Rhat,size=1) + 
-	      theme_classic()
+	  p2 = ggplot(subset(df, df$iteration!=1), aes(iteration,Rhatvalue)) +
+	    geom_line(aes(col = variable))+
+	    geom_hline(yintercept=Rhat,size=1) +
+	    labs(x="iteration", y="Rhat")+
+	    theme_classic()
+	  
+	  return(list(p1,p2))
 	}
-
+	
 	pmcarqhat <- matrix(NA, nrow=m, ncol=k) #parameter estimates from each imputation
 	pmcaru <- array(NA, dim=c(k,k,m)) #vcov of par estimates from each imputation
 	
@@ -222,5 +220,14 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
-	return(result)
+	if(diag == TRUE){
+	  # obtain diagnostic information from diag.mi()
+	  nvariables = length(c(ynames,xnames))
+	  variables =c(ynames,xnames)
+	  diagplot = diag.mi(imp, nvariables, variables, m, iter, Rhat)
+	  x11(); dev.off()  # avoid plot rendering errors
+	  return(list(diagplot,result))
+	}
+	else
+	  return(result)
 }
