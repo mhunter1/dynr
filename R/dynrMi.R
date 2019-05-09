@@ -227,6 +227,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	                     "Pr(>|t|)")
 	row.names(result) <- names(coef(model))
 	
+	
 	if(diag == TRUE){
 	  # obtain diagnostic information from diag.mi()
 	  nvariables = length(c(ynames,xnames))
@@ -250,10 +251,27 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	    labs(x="iteration", y="Rhat")+
 	    theme_classic()
 	  
-	  x11(); dev.off()  # avoid plot rendering errors
-	  return(list(p1,p2,result))
+	  #x11(); dev.off()  # avoid plot rendering errors
+	  res = list(dataformice = dataformice,
+	             imp = imp,
+	             Rhat.matrix = Rhatmatrix,
+	             trace.plot = p1, 
+	             Rhat.plot = p2, 
+	             parameters = pqbarmcarimpute,
+	             standard.errors = psemcarimpute,
+	             conf.intervals = cbind(ci.lower, ci.upper),
+	             estimation.result = result)
+	  class(res) <- "dynrMi"
+	  invisible(res)
 	}else{
-	  return(result)
+	  res = list(dataformice = dataformice,
+	             imp = imp,
+	             parameters = pqbarmcarimpute,
+	             standard.errors = psemcarimpute,
+	             conf.intervals = cbind(ci.lower, ci.upper),
+	             estimation.result = result)
+	  class(res) <- "dynrMi"
+	  invisible(res)
 	}
 	
 }
