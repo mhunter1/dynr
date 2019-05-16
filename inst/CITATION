@@ -1,6 +1,14 @@
+# Default language, no need to uncomment
 # citHeader("To cite package 'dynr' in publications use:")
 # citFooter(paste("BibTeX entries for LaTeX users are obtained by:\n\n",
 #	"toBibtex(citation('dynr'))\n\n"))
+# 
+# Non-default language, uncomment to use
+#citHeader("To cite package 'dynr' in publications use:")
+#citFooter(paste("BibTeX entries for LaTeX users are obtained by:\n\n",
+#	"toBibtex(citation('dynr'))\n\n",
+#	"dynr was developed with support from NIH/NIDA grants:\n\n",
+#	"R37-DA018673, R25-DA026119, R21-DA024304\n\n"))
 
 citEntry(entry="article",
 	title = paste("What's for {dynr}: A package for linear and nonlinear dynamic modeling in {R}"),
@@ -32,3 +40,6 @@ title <- paste0("{", meta$Package, "}", ": ", meta$Title)
 #	url = "https://CRAN.R-project.org/package=dynr",
 #	textVersion = paste0("Lu Ou, Michael D. Hunter, and Sy-Miin Chow.",
 #		"(", year, "). ", meta$Package, ": ", meta$Title, ". ", note, "."))
+
+# Can add other citEntry() calls similar to above for the "Manual"
+#  or other papers.
