@@ -441,8 +441,12 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
-	frontendStart <- Sys.time()
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, SAEM=FALSE) {
+    if(SAEM==TRUE){
+        output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+        return("hi")
+    }
+    frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
 	if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
@@ -483,7 +487,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	}
 	gc()
 	backendStart <- Sys.time()
+	
 	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+	
+	
 	backendStop <- Sys.time()
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL
