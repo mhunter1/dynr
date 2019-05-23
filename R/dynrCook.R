@@ -444,7 +444,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, SAEM=FALSE) {
     if(SAEM==TRUE){
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
-        return("hi")
+        return(output)
     }
     frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun

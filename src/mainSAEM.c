@@ -62,10 +62,27 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
 	*/
+	
+	
+	
     /** =======================Interface : Start to Set up the data and the model========================= **/
+	
+	
+	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
+	printf("Hello world! from SAEM hessian_flag %d\n", hessian_flag);
+	
+	
+	
+	
+	SEXP out = PROTECT(allocVector(REALSXP, 3));
 
-   printf("Hello world! from SAEM\n");
-   return model_list;
+	for (int i = 0; i < 3; i++) {
+		REAL(out)[i] = 1 + i;
+	}
+	
+	
+	UNPROTECT(2);
+	return out;
 }
 
 
