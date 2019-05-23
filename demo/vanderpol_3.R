@@ -1,4 +1,12 @@
-#line 1- line 112
+#------------------------------------------------------------------------------
+# Author: Hui-Ju Hung
+# Date: 2019-05-23
+# Filename: vanderpol_3.R
+# Purpose: Moel script for dynr/SAEM gateway function
+# Note: Workable for developer dynr on arma branch
+#------------------------------------------------------------------------------
+
+#line 9- line 121: model specification
 library('dynr')
 #vdPdata <- read.table('directory')
 state.names = c('x1', 'x2')
@@ -112,7 +120,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 fitted_model <- dynr.cook(model, saem=TRUE, hessian_flag = FALSE)
 
 #---------
-
+#following: parsing model to get the H and Z matrices
 
 # TODO interpret strict as character with match.arg.  strict=c('allowOne' let's people fly with x without writing 1*x, 'convent' let's no one get away with anything, 'hippie' is very loose
 formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, process=TRUE){
