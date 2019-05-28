@@ -54,21 +54,27 @@ SEXP getListElement(SEXP list, const char *str)
  */
 SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in)
 {
-	/*
-    size_t index,index_col,index_row;
-    bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
+	bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
 	bool optimization_flag=*LOGICAL(PROTECT(optimization_flag_in));
 	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
 	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
-	*/
-	
-	
-	
+	UNPROTECT(5);
     /** =======================Interface : Start to Set up the data and the model========================= **/
+
+    printf(" debug_flag %d\n optimization_flag %d\n hessian_flag %d\n verbose_flag %d\n weight_flag %d\n", debug_flag, optimization_flag, hessian_flag, verbose_flag, weight_flag);
 	
+
+	static Data_and_Model data_model;
+	data_model.pc.verbose_flag = (bool) verbose_flag;
+
+    /* From the SEXP called model_list, get the list element named "num_sbj" */
+	/*number of latent variables*/
+	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
+	data_model.pc.dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
+	DYNRPRINT(verbose_flag, "dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
 	
-	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
+//	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
 	printf("Hello world! from SAEM hessian_flag %d\n", hessian_flag);
 	
 	
@@ -82,7 +88,9 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	UNPROTECT(2);
+	printf("before leaving mainSAEM.c");
 	return out;
+
 }
 
 

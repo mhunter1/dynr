@@ -113,11 +113,12 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 #meas@state.names = c('x1', 'x2', 'zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 #data$covariate.names = covariate.names
-
+#model$ub<-model$xstart
+#model$lb<-model$xstart
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,armadillo=TRUE,
                     outfile="VanDerPol.c")
-fitted_model <- dynr.cook(model, saem=TRUE, hessian_flag = FALSE)
+fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
 
 #---------
 #following: parsing model to get the H and Z matrices

@@ -442,10 +442,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE) {
-    if(saem==TRUE){
-        output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
-        return(output)
-    }
+    
     frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
@@ -456,6 +453,35 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  dynrModel@verbose <- verbose
 	  # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
 	  }
+	
+	if(saem==TRUE){
+	    model <- internalModelPrepSAEM(
+	        num_regime=dynrModel@num_regime,
+	        dim_latent_var=dynrModel@dim_latent_var,
+	        xstart=dynrModel@xstart,
+	        ub=dynrModel@ub,
+	        lb=dynrModel@lb,
+	        options=dynrModel@options,
+	        isContinuousTime=dynrModel@dynamics@isContinuousTime,
+	        infile=dynrModel@outfile,
+	        outfile=gsub(".c\\>","",dynrModel@outfile),
+	        compileLib=dynrModel@compileLib,
+	        verbose=dynrModel@verbose
+	    )
+		
+		libname <- model$libname
+		model$libname <- NULL
+		
+		
+		
+		model <- combineModelDataInformation(model, data)
+		model <- preProcessModel(model)
+	
+		print(model)
+	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+		print("here", output)
+	    return(output)
+	}
 	
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
@@ -474,6 +500,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	libname <- model$libname
 	model$libname <- NULL
 	
+	
+	
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	if(any(sapply(model$func_address, is.null.pointer))){
@@ -487,6 +515,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	}
 	gc()
 	backendStart <- Sys.time()
+	
 	
 	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 	

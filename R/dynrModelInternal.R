@@ -96,3 +96,38 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose){
+	print(options)
+	if(!is.list(options)){
+		stop("'options' argument to internalModelPrepSAEM function must be a list.")
+	}
+	options <- processModelOptionsArgument(options)
+	xlen <- length(xstart)
+	ulen <- length(ub)
+	llen <- length(lb)
+	if( (xlen != ulen) || (xlen != llen) || (ulen != llen)){
+		stop("Length of 'xstart', 'ub', and 'lb' must match.")
+	}
+	if( (length(num_regime) != 1) || (round(num_regime) != num_regime) ){
+		stop("Number of regimes (num_regime) must be a single integer.")
+	}
+	if( (length(dim_latent_var) != 1) || (round(dim_latent_var) != dim_latent_var) ){
+		stop("Number of latent variables (dim_latent_var) must be a single integer.")
+	}
+	
+	print(num_regime)
+	print(dim_latent_var)
+	print(xstart)
+	print(ub)
+	print(lb)
+	print(isContinuousTime)
+	print(as.integer(length(xstart)))
+	
+	#returns a list of addresses of the compiled model functions
+	#func_address=.C2funcaddress(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
+	return(list(num_regime=as.integer(num_regime), dim_latent_var=as.integer(dim_latent_var), xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.integer(length(xstart))#, func_address=func_address[[1]]
+	, options=options
+	#, libname=func_address[[2]])
+	))
+}
+
