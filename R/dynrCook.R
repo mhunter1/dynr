@@ -455,6 +455,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
+		print (dynrModel@dynamics@theta.names)
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -466,7 +467,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	        infile=dynrModel@outfile,
 	        outfile=gsub(".c\\>","",dynrModel@outfile),
 	        compileLib=dynrModel@compileLib,
-	        verbose=dynrModel@verbose
+	        verbose=dynrModel@verbose,
+			num_theta=length(dynrModel@dynamics@theta.names)
 	    )
 		
 		libname <- model$libname
@@ -476,8 +478,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		model <- combineModelDataInformation(model, data)
 		model <- preProcessModel(model)
-	    
-		
+
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		
 	    return(output)
