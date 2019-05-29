@@ -61,34 +61,54 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
 	UNPROTECT(5);
     /** =======================Interface : Start to Set up the data and the model========================= **/
-
-    printf(" debug_flag %d\n optimization_flag %d\n hessian_flag %d\n verbose_flag %d\n weight_flag %d\n", debug_flag, optimization_flag, hessian_flag, verbose_flag, weight_flag);
 	
 
+    /* From the SEXP called model_list, get the list element named "num_sbj" */
 	static Data_and_Model data_model;
 	data_model.pc.verbose_flag = (bool) verbose_flag;
 
     /* From the SEXP called model_list, get the list element named "num_sbj" */
+	/*number of subjects*/
+	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
+	data_model.pc.num_sbj=(size_t) *INTEGER(num_sbj_sexp);
+	DYNRPRINT(verbose_flag, "num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
+	
+	/*number of function parameters*/
+	SEXP num_func_param_sexp = PROTECT(getListElement(model_list, "num_func_param"));
+	data_model.pc.num_func_param=(size_t) *INTEGER(num_func_param_sexp);
+	DYNRPRINT(verbose_flag, "num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
+	
 	/*number of latent variables*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
 	data_model.pc.dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
 	DYNRPRINT(verbose_flag, "dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
 	
-//	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
-	printf("Hello world! from SAEM hessian_flag %d\n", hessian_flag);
+	/*number of observed variables*/
+	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
+	data_model.pc.dim_obs_var=(size_t) *INTEGER(dim_obs_var_sexp);
+	DYNRPRINT(verbose_flag, "dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
+	
+	/*number of covariates*/
+	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
+	data_model.pc.dim_co_variate=(size_t) *INTEGER(dim_co_variate_sexp);
+	DYNRPRINT(verbose_flag, "dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
+	
+	/*number of regimes*/
+	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
+	data_model.pc.num_regime=(size_t) *INTEGER(num_regime_sexp);
+	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
+	UNPROTECT(6);
 	
 	
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
-
 	for (int i = 0; i < 3; i++) {
 		REAL(out)[i] = 1 + i;
 	}
+	UNPROTECT(1);
 	
 	
-	UNPROTECT(2);
-	printf("before leaving mainSAEM.c");
 	return out;
 
 }
