@@ -3079,70 +3079,18 @@ formula2design <- function(..., covariates, random.names){
 }
 
 
-# Example useage
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
-	theta2 ~ mu_x1*1 + 1*b_x1,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
+# Example usage
+# formula2design(
+	# theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+	# theta2 ~ mu_x1*1 + 1*b_x1,
+	# theta3 ~ mu_x2*1 + 1*b_x2,
+	# covariates=c('1', 'u1', 'u2'),
+	# random.names=c('b_zeta', 'b_x1', 'b_x2'))
 # lme4::lmer style interface
 #theta1 ~ u1 + u2 + (1 + u2 | Subject)
 #theta2 ~ 1 + (1 | Subject)
 #theta3 ~ 1 + (1 | Subject)
 
-#TODO catch the redundant fixed effects in the below
-#TODO print explicitly what the found fixed effects names are.
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta + u2*b_x3,
-	theta2 ~ mu_x1*1 + 1*b_x1,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + u1*zeta_2 + 1*b_zeta + u2*b_x3,
-	theta2 ~ mu_x1*1 + 1*b_x1,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-# print("Ca-cha!  These are your fixed effects names.")
-
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
-	theta2 ~ mu_x1*1 + 1*b_x1 + u1*b_x2,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-formula2design( #N.B. drop multiplication by 1
-	theta1 ~ zeta_0 + u1*zeta_1 + u2*zeta_2 + b_zeta,
-	theta2 ~ mu_x1 + b_x1,
-	theta3 ~ mu_x2 + b_x2,
-	covariates=c('u1', 'u2'), # N.B. drop the 1 from covariates (add internally as needed)
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-formula2design( #N.B. drop multiplication by 1
-	theta1 ~ zeta_0 + u1*zeta_1 + u2*zeta_2 + b_zeta + u2*b_x3,
-	theta2 ~ mu_x1 + b_x1,
-	theta3 ~ mu_x2 + b_x2,
-	covariates=c('u1', 'u2'), # N.B. drop the 1 from covariates (add internally as needed)
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2,
-	theta2 ~ mu_x1*1 + 1*b_x1,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_zeta', 'b_x1', 'b_x2'))
-
-formula2design(
-	theta1 ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2,
-	theta2 ~ mu_x1*1 + 1*b_x1,
-	theta3 ~ mu_x2*1 + 1*b_x2,
-	covariates=c('1', 'u1', 'u2'),
-	random.names=c('b_x1', 'b_x2'))
 
 
 
