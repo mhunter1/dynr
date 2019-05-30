@@ -441,8 +441,9 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
-	frontendStart <- Sys.time()
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE) {
+    
+    frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
 	if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
@@ -452,6 +453,37 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  dynrModel@verbose <- verbose
 	  # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
 	  }
+	
+	if(saem==TRUE){
+	    model <- internalModelPrepSAEM(
+	        num_regime=dynrModel@num_regime,
+	        dim_latent_var=dynrModel@dim_latent_var,
+	        xstart=dynrModel@xstart,
+	        ub=dynrModel@ub,
+	        lb=dynrModel@lb,
+	        options=dynrModel@options,
+	        isContinuousTime=dynrModel@dynamics@isContinuousTime,
+	        infile=dynrModel@outfile,
+	        outfile=gsub(".c\\>","",dynrModel@outfile),
+	        compileLib=dynrModel@compileLib,
+	        verbose=dynrModel@verbose,
+			num_theta=length(dynrModel@dynamics@theta.names),
+			num_beta=length(dynrModel@dynamics@beta.names),
+			total_t=length(unique(dynrModel@data$time))
+	    )
+		
+		libname <- model$libname
+		model$libname <- NULL
+		
+		
+		
+		model <- combineModelDataInformation(model, data)
+		model <- preProcessModel(model)
+
+	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+		
+	    return(output)
+	}
 	
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
@@ -470,6 +502,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	libname <- model$libname
 	model$libname <- NULL
 	
+	
+	
 	model <- combineModelDataInformation(model, data)
 	model <- preProcessModel(model)
 	if(any(sapply(model$func_address, is.null.pointer))){
@@ -483,7 +517,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	}
 	gc()
 	backendStart <- Sys.time()
+	
+	
 	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+	
+	
 	backendStop <- Sys.time()
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL
