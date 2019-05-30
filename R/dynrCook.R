@@ -455,7 +455,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
-		print (dynrModel@dynamics@theta.names)
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -468,7 +467,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	        outfile=gsub(".c\\>","",dynrModel@outfile),
 	        compileLib=dynrModel@compileLib,
 	        verbose=dynrModel@verbose,
-			num_theta=length(dynrModel@dynamics@theta.names)
+			num_theta=length(dynrModel@dynamics@theta.names),
+			num_beta=length(dynrModel@dynamics@beta.names),
+			total_t=length(unique(dynrModel@data$time))
 	    )
 		
 		libname <- model$libname

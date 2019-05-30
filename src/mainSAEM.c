@@ -98,11 +98,22 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
 	
 	
-	/*number of regimes: always 1 in SAEM*/
+	/*Ntheta*/
 	SEXP num_theta_sexp = PROTECT(getListElement(model_list, "num_theta"));
 	int num_theta=(size_t) *INTEGER(num_theta_sexp);
 	DYNRPRINT(verbose_flag, "num_theta: %lu\n", (long unsigned int) num_theta);
-	UNPROTECT(6);
+	
+	/*Nbeta*/
+	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
+	int num_beta=(size_t) *INTEGER(num_beta_sexp);
+	DYNRPRINT(verbose_flag, "num_beta: %lu\n", (long unsigned int) num_beta);
+	
+	/*totalT*/
+	SEXP num_total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
+	int total_t=(size_t) *INTEGER(num_total_t_sexp);
+	DYNRPRINT(verbose_flag, "total_t: %lu\n", (long unsigned int) total_t);
+	
+	UNPROTECT(8);
 	
 	
 	
