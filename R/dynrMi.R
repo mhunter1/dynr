@@ -52,9 +52,9 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	
 	ynames <- dynrModel$data$observed.names
 	xnames <- dynrModel$data$covariate.names
-	y <- data[, ynames]   # observed variables
-	x <- data[, xnames]   # covariates
-	au <- data[, which.aux]  # auxiliary variables
+	y <- subset(data, select = ynames)   # observed variables
+	x <- subset(data, select = xnames)   # covariates
+	au <- subset(data, select = which.aux)  # auxiliary variables
 	ID <- dynrModel$data$id
 	id <- unique(ID)   # a vector of IDs
 	time <- dynrModel$data$time
@@ -196,13 +196,13 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 		completedata <- mice::complete(imp, action=j) #obtain the jth imputation
 		
 		if(imp.obs==TRUE){
-			imp.data.obs <- completedata[, ynames]
+			imp.data.obs <- subset(completedata, select = ynames)
 		} else{
 			imp.data.obs <- y
 		}
 		
 		if(imp.exo==TRUE){
-			imp.data.exo <- completedata[, xnames]
+			imp.data.exo <- subset(completedata, select = xnames)
 		} else{
 			imp.data.exo <- x
 		}
@@ -211,8 +211,13 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 
 		colnames(newdata) <- c("ID", "Time", ynames,xnames)
 		
-		data <- dynr.data(newdata, id="ID", time="Time",
-		                observed=ynames, covariates=xnames)
+		if(length(xnames)==0){
+		  data <- dynr.data(newdata, id="ID", time="Time",
+		                    observed=ynames)
+		}else{
+		  data <- dynr.data(newdata, id="ID", time="Time",
+		                    observed=ynames, covariates=xnames)
+		}
 		
 		modelnew <- dynrModel
 		modelnew@data <- data
@@ -236,7 +241,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	psemcarimpute <- sqrt(diag(pvcovmcarimpute))
 	
 	t <- pqbarmcarimpute/psemcarimpute
-	df <- nobs(model)-k
+	df <- nobs(dynrModel)-k
 	alpha <- 1-conf.level
 
 	ci.upper <- pqbarmcarimpute + qt(1-alpha/2,df)*psemcarimpute
@@ -247,7 +252,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	
 	colnames(result) <- c("Estimate", "Std. Error", "t value", "ci.lower", "ci.upper",
 	                     "Pr(>|t|)")
-	row.names(result) <- names(coef(model))
+	row.names(result) <- names(coef(dynrModel))
 	
 	
 	if(diag == TRUE){
