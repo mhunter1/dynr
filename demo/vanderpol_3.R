@@ -65,9 +65,8 @@ initial <- prep.initial(
     params.inicov=matrix(c('v10','c120',
                            'c120','v20'),ncol=2,byrow=T)
 )
-if (length(unlist(initial$params.inistate[!initial$params.inistate==
-                                   "fixed"]))>0)
-initial$params.inistate
+#if (length(unlist(initial$params.inistate[!initial$params.inistate== "fixed"]))>0)
+#initial$params.inistate
 
 # TODO adjust noise
 #measurement and dynamics covariances
