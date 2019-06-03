@@ -28,6 +28,14 @@ Purpose: Hello World for integrating SAEM and dynr
 #include <Rmath.h>
 #include <Rdefines.h>
 #include "print_function.h" 
+
+/*
+[ASK] How to compile the cpp file
+// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
+
+using namespace Rcpp;
+*/
 /*#include "structure_prototype.h"*/
 
 /* get the list element named str, or return NULL */
@@ -72,25 +80,25 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     /* From the SEXP called model_list, get the list element named "num_sbj" */
 	/*number of subjects: Nsubj*/
 	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
-	int num_sbj=(size_t) *INTEGER(num_sbj_sexp);
-	DYNRPRINT(verbose_flag, "num_sbj: %lu\n", (long unsigned int) num_sbj);
+	int Nsubj=(size_t) *INTEGER(num_sbj_sexp);
+	DYNRPRINT(verbose_flag, "Nsubj: %lu\n", (long unsigned int) Nsubj);
 		
 	/*number of latent variables: NxState*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
-	int dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
-	DYNRPRINT(verbose_flag, "dim_latent_var: %lu\n", (long unsigned int) dim_latent_var);
+	int NxState=(size_t) *INTEGER(dim_latent_var_sexp);
+	DYNRPRINT(verbose_flag, "NxState: %lu\n", (long unsigned int) NxState);
 	
 	
 	/*number of observed variables: Ny*/
 	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
-	int dim_obs_var=(size_t) *INTEGER(dim_obs_var_sexp);
-	DYNRPRINT(verbose_flag, "dim_obs_var: %lu\n", (long unsigned int) dim_obs_var);
+	int Ny=(size_t) *INTEGER(dim_obs_var_sexp);
+	DYNRPRINT(verbose_flag, "Ny: %lu\n", (long unsigned int) Ny);
 	
 	
 	/*number of covariates: Nu*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
-	int dim_co_variate=(size_t) *INTEGER(dim_co_variate_sexp);
-	DYNRPRINT(verbose_flag, "dim_co_variate: %lu\n", (long unsigned int) dim_co_variate);
+	int Nu=(size_t) *INTEGER(dim_co_variate_sexp);
+	DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);
 	
 	
 	/*number of regimes: always 1 in SAEM*/
@@ -101,18 +109,18 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*Ntheta*/
 	SEXP num_theta_sexp = PROTECT(getListElement(model_list, "num_theta"));
-	int num_theta=(size_t) *INTEGER(num_theta_sexp);
-	DYNRPRINT(verbose_flag, "num_theta: %lu\n", (long unsigned int) num_theta);
+	int Ntheta=(size_t) *INTEGER(num_theta_sexp);
+	DYNRPRINT(verbose_flag, "Ntheta: %lu\n", (long unsigned int) Ntheta);
 	
 	/*Nbeta*/
 	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
-	int num_beta=(size_t) *INTEGER(num_beta_sexp);
-	DYNRPRINT(verbose_flag, "num_beta: %lu\n", (long unsigned int) num_beta);
+	int Nbeta=(size_t) *INTEGER(num_beta_sexp);
+	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
 	
 	/*totalT*/
 	SEXP num_total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
-	int total_t=(size_t) *INTEGER(num_total_t_sexp);
-	DYNRPRINT(verbose_flag, "total_t: %lu\n", (long unsigned int) total_t);
+	int totalT=(size_t) *INTEGER(num_total_t_sexp);
+	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	UNPROTECT(8);
 	
