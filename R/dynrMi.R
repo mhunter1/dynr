@@ -26,6 +26,12 @@
 ##' 3. the estimation results, including parameter estimates,
 ##' standard error estimates and confidence intervals.
 ##' 
+##' @references
+##' Yanling Li, Linying Ji, Zita Oravecz, Timothy R. Brick,
+##' Michael D. Hunter, and Sy-Miin Chow. (2019).
+##' dynr.mi: An R Program for Multiple Imputation in Dynamic Modeling.
+##' International Journal of Computer, Electrical, Automation, Control
+##' and Information Engineering, 13, 302-311.
 ##' 
 ##' @examples
 ##' # See the demo, MILinearDiscrete.R, for an illustrative example 
