@@ -43,3 +43,24 @@ title <- paste0("{", meta$Package, "}", ": ", meta$Title)
 
 # Can add other citEntry() calls similar to above for the "Manual"
 #  or other papers.
+
+#citEntry(entry="article",
+#	title = paste("{dynr.mi}: An {R} Program for Multiple Imputation in Dynamic Modeling"),
+#	author = c(
+#		person("Yanling", "Li"),
+#		person("Linying", "Ji"),
+#		person("Zita", "Oravecz"),
+#		person(c("Timothy", "R."), "Brick"),
+#		person(c("Michael", "D."), "Hunter"),
+#		person("Sy-Miin", "Chow")),
+#	journal = "International Journal of Computer, Electrical, Automation, Control and Information Engineering",
+#	volume = "13",
+#	year  = "2019",
+#	pages = "302-311",
+#	doi = "",
+#	textVersion = paste("Yanling Li,", "Linying Ji,", "Zita Oravecz,", "Timothy R. Brick,", "Michael D. Hunter,", "and Sy-Miin Chow.",
+#		"(2019).",
+#		"dynr.mi: An R Program for Multiple Imputation in Dynamic Modeling.",
+#		"International Journal of Computer, Electrical, Automation, Control and Information Engineering,",
+#		"13, 302-311."))
+
