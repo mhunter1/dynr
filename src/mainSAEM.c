@@ -125,8 +125,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*maxT*/
 	SEXP num_max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
-	int maxT=(size_t) *INTEGER(num_max_t_sexp);
-	DYNRPRINT(verbose_flag, "maxT: %lu\n", (long unsigned int) maxT);
+	double maxT=(size_t) *REAL(num_max_t_sexp);
+	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
 	
 	
 	UNPROTECT(9);
