@@ -470,6 +470,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			num_theta=length(dynrModel@dynamics@theta.names),
 			num_beta=length(dynrModel@dynamics@beta.names),
 			total_t=length(unique(dynrModel@data$time))
+			#max_t = max(matrix(model@data$time, nrow = T, ncol= N)[T, ])
 	    )
 		
 		libname <- model$libname
@@ -477,8 +478,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		
-		model <- combineModelDataInformation(model, data)
+		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
+		
+		print(model$max_t)
 
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		
@@ -692,6 +695,21 @@ combineModelDataInformation <- function(model, data){
 	return(model)
 }
 
+combineModelDataInformationSAEM <- function(model, data){
+	# TODO add argument to dynrModel a la "usevars"
+	# process usevars together with dynrData to drop
+	# things from it that are not in usevars.
+	model$num_sbj <- as.integer(length(unique(data[['id']])))
+	model$dim_obs_var <- as.integer(ncol(data$observed))
+	if ("covariates" %in% names(data)){
+	  model$dim_co_variate <- as.integer(ncol(data$covariates))
+	}else{
+	  model$dim_co_variate <- as.integer(0)
+	}
+	model$max_t = max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
+	
+	return(model)
+}
 
 is.null.pointer <- function(pointer){
 	a <- attributes(pointer)
