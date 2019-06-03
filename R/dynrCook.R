@@ -455,7 +455,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
-		print(length(dynrModel@measurement$params.load[[1]]))
+		#print(length(dynrModel@measurement$params.load[[1]]))
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -482,7 +482,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
 		
-		print(model$num_lambda)
+		#print(model$num_lambda)
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		

@@ -130,10 +130,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 
 	
 	/*NLambda*/
-	
 	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
 	int NLambda=(size_t) *INTEGER(num_lambda_sexp);
 	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
+	
 	
 	UNPROTECT(10);
 	
