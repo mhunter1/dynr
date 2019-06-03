@@ -455,6 +455,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
+		print(length(dynrModel@measurement$params.load[[1]]))
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -469,8 +470,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	        verbose=dynrModel@verbose,
 			num_theta=length(dynrModel@dynamics@theta.names),
 			num_beta=length(dynrModel@dynamics@beta.names),
-			total_t=length(unique(dynrModel@data$time))
-			#max_t = max(matrix(model@data$time, nrow = T, ncol= N)[T, ])
+			total_t=length(unique(dynrModel@data$time)),
+			num_lambda=length(dynrModel@measurement$params.load[[1]])
 	    )
 		
 		libname <- model$libname
@@ -480,6 +481,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
+		
+		print(model$num_lambda)
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		
@@ -699,6 +702,8 @@ combineModelDataInformationSAEM <- function(model, data){
 	# things from it that are not in usevars.
 	model$num_sbj <- as.integer(length(unique(data[['id']])))
 	model$dim_obs_var <- as.integer(ncol(data$observed))
+
+	
 	if ("covariates" %in% names(data)){
 	  model$dim_co_variate <- as.integer(ncol(data$covariates))
 	}else{

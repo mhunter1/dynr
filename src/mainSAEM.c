@@ -118,19 +118,24 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
 	
 	/*totalT*/
-	SEXP num_total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
-	int totalT=(size_t) *INTEGER(num_total_t_sexp);
+	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
+	int totalT=(size_t) *INTEGER(total_t_sexp);
 	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	
 	/*maxT*/
-	SEXP num_max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
-	double maxT=(size_t) *REAL(num_max_t_sexp);
+	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
+	double maxT=(size_t) *REAL(max_t_sexp);
 	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
+
 	
+	/*NLambda*/
 	
-	UNPROTECT(9);
+	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
+	int NLambda=(size_t) *INTEGER(num_lambda_sexp);
+	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
 	
+	UNPROTECT(10);
 	
 	
 	
