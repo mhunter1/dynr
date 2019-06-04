@@ -125,7 +125,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*maxT*/
 	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
-	double maxT=(size_t) *REAL(max_t_sexp);
+	double maxT=*REAL(max_t_sexp);
 	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
 
 	
@@ -142,7 +142,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
 	for (int i = 0; i < 3; i++) {
-		REAL(out)[i] = 1 + i;
+		REAL(out)[i] = 1.5;
 	}
 	UNPROTECT(1);
 	

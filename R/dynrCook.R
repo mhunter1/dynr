@@ -709,7 +709,9 @@ combineModelDataInformationSAEM <- function(model, data){
 	}else{
 	  model$dim_co_variate <- as.integer(0)
 	}
+
 	model$max_t = max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
+	
 	
 	return(model)
 }
