@@ -135,7 +135,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
 	
 	
-	UNPROTECT(10);
+	/*maxT*/
+	SEXP delt_sexp = PROTECT(getListElement(model_list, "delt"));
+	double delt=*REAL(delt_sexp);
+	DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
+	
+	UNPROTECT(11);
 	
 	
 	

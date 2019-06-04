@@ -710,8 +710,20 @@ combineModelDataInformationSAEM <- function(model, data){
 	  model$dim_co_variate <- as.integer(0)
 	}
 
-	model$max_t = max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
 	
+
+	model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
+	
+	
+	time_point <- matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)
+	dif <- matrix(0, model$total_t, ncol= model$num_sbj)
+	for (i in 2:model$total_t){
+		for(j in 1:model$num_sbj){
+			dif[i,j] <- time_point[i,j] - time_point[i-1,j]
+		}
+	}
+	model$delt <- min(dif[2:model$total_t, ])
+
 	
 	return(model)
 }
