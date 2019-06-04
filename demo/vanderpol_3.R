@@ -28,7 +28,7 @@ Ntheta = length(theta.names)
 #random data
 N = 100
 T = 300
-vdpData <- data.frame(id=rep(1:N,each=T), time=rep(0:299,N),
+vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
                       y=rnorm(100*300),
                       u1 = rnorm(100*300), u2 = rnorm(100*300))
 colnames(vdpData) <- c("id","time","y","u1", "u2") # try
@@ -118,7 +118,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,armadillo=TRUE,
                     outfile="VanDerPol.c")
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
-
+print(fitted_model)
 #---------
 #following: parsing model to get the H and Z matrices
 
