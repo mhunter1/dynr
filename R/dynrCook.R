@@ -716,6 +716,7 @@ combineModelDataInformationSAEM <- function(model, data){
 	model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
 	
 	
+	# TODO: need to be generalized -- each subject may have different number of subjects
 	time_point <- matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)
 	dif <- matrix(0, model$total_t, ncol= model$num_sbj)
 	for (i in 2:model$total_t){
@@ -724,20 +725,22 @@ combineModelDataInformationSAEM <- function(model, data){
 		}
 	}
 	model$delt <- min(dif[2:model$total_t, ])
-
-	#----------------
 	
+	model$allT <- rep(0, model$num_sbj)
+	for (i in unique(data[['id']])){
+		table_i <- data$original.data[data[['id']] == i, ]
+		model$allT[i] <- nrow(table_i)
+	}
+	#print(model$allT) correct here
 
+	#H & Z (need to do
 	r =formula2design( 
 		model$theta.formula[[1]],
 		model$theta.formula[[2]],
 		model$theta.formula[[3]],
 		covariates=c(data$covariate.names, "1"),
 		random.names=c('b_zeta', 'b_x1', 'b_x2'))
-		
-
 	Z= apply(r$random, 1, as.numeric)
-
 	H = matrix(nrow=0, ncol=0)
 	for (line in c(1: model$num_sbj)){
 		U = c(1:length(data$covariate.names))
@@ -757,10 +760,7 @@ combineModelDataInformationSAEM <- function(model, data){
 				}
 			}
 		}
-		
-		
-		#print(r$fixed)
-		
+
 		if(nrow(H) == 0 && ncol(H) == 0){
 			H = t(apply(r$fixed, 1, as.numeric))
 		} else{
@@ -768,11 +768,9 @@ combineModelDataInformationSAEM <- function(model, data){
 		}
 		r$fixed <- temp
 	}
-
 	model$H <- H
 	model$Z <- Z
-	
-	#----------------
+
 	
 	return(model)
 }
