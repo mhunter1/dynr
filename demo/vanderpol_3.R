@@ -91,7 +91,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,armadillo=TRUE,
                     outfile="VanDerPol.c")
 
-theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+# to do consist the formula in Line 71 and here
+model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
                       zeta_i_2 ~ 1*mu1 + 1*b_x1,
                       zeta_i_3 ~ 1*mu2 + 1*b_x2)
 

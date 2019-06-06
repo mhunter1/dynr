@@ -471,7 +471,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			num_theta=length(dynrModel@dynamics@theta.names),
 			num_beta=length(dynrModel@dynamics@beta.names),
 			total_t=length(unique(dynrModel@data$time)),
-			num_lambda=length(dynrModel@measurement$params.load[[1]])
+			num_lambda=length(dynrModel@measurement$params.load[[1]]),
+			theta.formula=dynrModel@dynamics@theta.formula
 	    )
 		
 		libname <- model$libname
@@ -482,7 +483,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
 		
-		#print(model$num_lambda)
+
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		
@@ -724,6 +725,54 @@ combineModelDataInformationSAEM <- function(model, data){
 	}
 	model$delt <- min(dif[2:model$total_t, ])
 
+	#----------------
+	
+
+	r =formula2design( 
+		model$theta.formula[[1]],
+		model$theta.formula[[2]],
+		model$theta.formula[[3]],
+		covariates=c(data$covariate.names, "1"),
+		random.names=c('b_zeta', 'b_x1', 'b_x2'))
+		
+
+	Z= apply(r$random, 1, as.numeric)
+
+	H = matrix(nrow=0, ncol=0)
+	for (line in c(1: model$num_sbj)){
+		U = c(1:length(data$covariate.names))
+		for (u in c(1:length(data$covariate.names))){
+			U[u] = data$original.data[((line-1)*model$total_t+1),data$covariate.names[u]]
+		}
+		
+		
+		temp <- r$fixed
+		
+		for (i in c(1:nrow(r$fixed))){
+			for (j in c(1:ncol(r$fixed))){
+				for (u in c(1:length(data$covariate.names))){
+					if(r$fixed[i,j] %in% data$covariate.names[u]){
+						r$fixed[i,j] <- U[u]
+					}
+				}
+			}
+		}
+		
+		
+		#print(r$fixed)
+		
+		if(nrow(H) == 0 && ncol(H) == 0){
+			H = t(apply(r$fixed, 1, as.numeric))
+		} else{
+			H=rbind(H,t(apply(r$fixed, 1, as.numeric)))
+		}
+		r$fixed <- temp
+	}
+
+	model$H <- H
+	model$Z <- Z
+	
+	#----------------
 	
 	return(model)
 }
