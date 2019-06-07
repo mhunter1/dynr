@@ -278,8 +278,8 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	    df$iteration[(iter*(j-1)+1):(iter*j)] = 1:iter
 	    df$Rhatvalue[(iter*(j-1)+1):(iter*j)] = Rhatmatrix[,j]
 	  }
-	  p2 = ggplot(subset(df, df$iteration!=1), aes(iteration,Rhatvalue)) +
-	    geom_line(aes(col = variable))+
+	  p2 = ggplot(subset(df, df$iteration!=1), aes(x="iteration",y="Rhatvalue")) +
+	    geom_line(aes(col = "variable"))+
 	    geom_hline(yintercept=Rhat,size=1) +
 	    labs(x="iteration", y="Rhat")+
 	    theme_classic()
