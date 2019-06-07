@@ -8,3 +8,4 @@ RSNonlinearODE         Regime-switching predator-prey model
 initialExo             Regime-switching initial conditions with covariates
 SDETVP                 Stochastic linear damped oscillator with time-varying setpoint parameter
 OutlierDetectionLinear Outlier detection in a linear state-space model
+MILinearDiscrete       Multiple imputation with a linear discrete-time model
