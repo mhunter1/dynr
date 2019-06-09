@@ -458,3 +458,35 @@ NULL
 ##' #     mvtnorm::rmvnorm(time, mean=rep(0, nobs), sigma=theta)# epsilon
 ##' # }
 NULL
+
+##' Simulated time series data for multiple imputation in dynamic modeling.
+##' 
+##' A dataset simulated using a vector autoregressive (VAR) model of order 1 with 
+##' two observed variables and two covariates. Data are generated following 
+##' the simulation design illustrated by Ji and colleagues (2018). Specifically, 
+##' missing data are generated following the missing at random (MAR) condition under which 
+##' the probability of missingness in both dependent variables and covariates is conditioned
+##' on two completely observed auxiliary variables.   
+##' 
+##' References:
+##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
+##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
+##' A Multidisciplinary Journal, 1-22.
+##' 
+##' The variables are as follows:
+##' \itemize{
+##'   \item ID. ID of the participant (1 to 100)
+##'   \item Time. Time index (100 time points from each subject)
+##'   \item ca. Covariate 1
+##'   \item cn. Covariate 2
+##'   \item wp. Dependent variable 1
+##'   \item hp. Dependent variable 2
+##'   \item x1. Auxiliary variable 1
+##'   \item x2. Auxiliary variable 2
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name VARsim
+##' @usage data(VARsim)
+##' @format A data frame with 10000 rows and 8 variables
