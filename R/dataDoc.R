@@ -468,7 +468,7 @@ NULL
 ##' the probability of missingness in both dependent variables and covariates is conditioned
 ##' on two completely observed auxiliary variables.   
 ##' 
-##' References:
+##' Reference:
 ##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
 ##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
 ##' A Multidisciplinary Journal, 1-22.
@@ -490,3 +490,4 @@ NULL
 ##' @name VARsim
 ##' @usage data(VARsim)
 ##' @format A data frame with 10000 rows and 8 variables
+NULL
