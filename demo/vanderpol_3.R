@@ -6,6 +6,40 @@
 # Note: Workable for developer dynr on arma branch
 #------------------------------------------------------------------------------
 
+#---------
+#function for parsing theta.formula (remove intercept terms and random names
+prep.thetaFormula <- function(formula, intercept.names, random.names){
+    
+    
+    
+    #fun
+    fml=lapply(formula, as.character)
+    lhs=lapply(fml,function(x){x[[2]]})
+    rhs=lapply(fml,function(x){x[[3]]})
+    
+    
+    for(i in 1:length(formula)){
+        formula[[i]]=as.character(formula[[i]])
+        for (j in 1:length(intercept.names)){
+            # gsub (a, b, c) : in c replace a with b
+            rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        }
+        
+        for (j in 1:length(random.names)){
+            # gsub (a, b, c) : in c replace a with b
+            rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        }
+        
+        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+        #formula[[i]]=paste0(lhs[[i]], ' ~ ', rhs[[i]])
+    }
+    
+    
+    return(formula)
+}
+#print(prep.thetaFormula(model@dynamics@theta.formula, intercept.names = c("mu1", "mu2"),random.names = c('b_zeta', 'b_x1', 'b_x2')))
+
+#---
 #line 9- line 121: model specification
 library('dynr')
 state.names = c('x1', 'x2')
@@ -13,7 +47,8 @@ beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 covariate.names = c('u1', 'u2')
 theta.names = c('zeta_i', 'zeta_i_2', 'zeta_i_3')
 #[todo] Z*b's b
-random.names = c('b1')
+random.names = c('b_zeta', 'b_x1', 'b_x2')
+intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 NxState = length(state.names)
@@ -68,9 +103,17 @@ formula=
          mu1 ~0,
          mu2 ~0
     )
-theta.formula  = list (zeta_i ~ zeta0  + u1 * zeta1 + u2 * zeta2,
-zeta_i_2 ~ 0,
-zeta_i_3 ~ 0)
+# theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1*0,
+# zeta_i_2 ~ 0,
+# zeta_i_3 ~ 0)
+
+theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
+                      zeta_i_2 ~ 1 * mu1 + 1 * b_x1,
+                      zeta_i_3 ~ 1 * mu2 + 1 * b_x2)
+
+theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
+
+
 
 
 
@@ -80,7 +123,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                                            zeta2=.2),
                                 isContinuousTime=FALSE,
 								state.names=state.names,
-								theta.formula=theta.formula,
+								theta.formula=theta.formula2,
 								theta.names=theta.names,
 								beta.names=beta.names,
 								saem=TRUE)
@@ -92,12 +135,13 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     outfile="VanDerPol.c")
 
 # to do consist the formula in Line 71 and here
-model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
-                      zeta_i_2 ~ 1*mu1 + 1*b_x1,
-                      zeta_i_3 ~ 1*mu2 + 1*b_x2)
+#model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
+#                     zeta_i_2 ~ 1*mu1 + 1*b_x1,
+#                      zeta_i_3 ~ 1*mu2 + 1*b_x2)
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
 print(fitted_model)
+
 #---------
 #following: parsing model to get the H and Z matrices
 

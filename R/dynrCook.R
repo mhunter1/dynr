@@ -740,6 +740,8 @@ combineModelDataInformationSAEM <- function(model, data){
 		model$theta.formula[[3]],
 		covariates=c(data$covariate.names, "1"),
 		random.names=c('b_zeta', 'b_x1', 'b_x2'))
+		
+	
 	Z= apply(r$random, 1, as.numeric)
 	H = matrix(nrow=0, ncol=0)
 	for (line in c(1: model$num_sbj)){
@@ -770,7 +772,6 @@ combineModelDataInformationSAEM <- function(model, data){
 	}
 	model$H <- H
 	model$Z <- Z
-
 	
 	return(model)
 }
