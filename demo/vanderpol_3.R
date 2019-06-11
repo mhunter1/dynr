@@ -2,7 +2,7 @@
 # Author: Hui-Ju Hung
 # Date: 2019-05-23
 # Filename: vanderpol_3.R
-# Purpose: Moel script for dynr/SAEM gateway function
+# Purpose: Model script for dynr/SAEM gateway function, Van Der Pol fucntion 
 # Note: Workable for developer dynr on arma branch
 #------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ T = 300
 vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
                       y=rnorm(100*300),
                       u1 = rnorm(100*300), u2 = rnorm(100*300))
-colnames(vdpData) <- c("id","time","y","u1", "u2") # try
+colnames(vdpData) <- c("id","time","y","u1", "u2") 
 data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y'),
                   covariates=c('u1','u2'))
@@ -76,7 +76,8 @@ theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
                       zeta_i_2 ~ 1 * mu1 + 1 * b_x1,
                       zeta_i_3 ~ 1 * mu2 + 1 * b_x2)
 
-theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
+#theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
+#print(theta.formula2)
 
 
 
@@ -88,11 +89,12 @@ dynm<-prep.formulaDynamics(formula=formula,
                                            zeta2=.2),
                                 isContinuousTime=FALSE,
 								state.names=state.names,
-								theta.formula=theta.formula2,
+								theta.formula=theta.formula,
 								theta.names=theta.names,
 								beta.names=beta.names,
+								intercept.names=intercept.names, 
+								random.names=random.names,
 								saem=TRUE)
-
 
 
 model <- dynr.model(dynamics=dynm, measurement=meas,

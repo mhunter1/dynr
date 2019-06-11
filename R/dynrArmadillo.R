@@ -67,6 +67,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		dfdtheta2<- object$dfdtheta2
 		state.names <- object$state.names
 		theta.names <- object$theta.names
+		intercept.names <- object$intercept.names
+		random.names <- object$random.names
 		theta.formula <-object$theta.formula
 		nregime=length(formula)
 		n=sapply(formula,length) #NxState+Nbeta (Nx)

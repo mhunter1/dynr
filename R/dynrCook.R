@@ -773,6 +773,10 @@ combineModelDataInformationSAEM <- function(model, data){
 	model$H <- H
 	model$Z <- Z
 	
+	print(data$covariates[1,])
+	print(model$H[1:3, ])
+	print(data$covariates[301,])
+	print(model$H[4:6, ])
 	return(model)
 }
 
