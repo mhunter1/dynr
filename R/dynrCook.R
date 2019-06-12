@@ -456,6 +456,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	
 	if(saem==TRUE){
 		#print(length(dynrModel@measurement$params.load[[1]]))
+		print(dynrModel@dynamics@random.names)
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -473,7 +474,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			total_t=length(unique(dynrModel@data$time)),
 			num_lambda=length(dynrModel@measurement$params.load[[1]]),
 			num_mu=length(model@initial@params.inistate[[1]]),
-			theta.formula=dynrModel@dynamics@theta.formula
+			theta.formula=dynrModel@dynamics@theta.formula,
+			random.names=dynrModel@dynamics@random.names
 	    )
 		
 		
@@ -736,13 +738,14 @@ combineModelDataInformationSAEM <- function(model, data){
 	}
 	#print(model$allT) correct here
 
-	#H & Z (need to do
+	print(model$random.names)
+	#H & Z 
 	r =formula2design( 
 		model$theta.formula[[1]],
 		model$theta.formula[[2]],
 		model$theta.formula[[3]],
 		covariates=c(data$covariate.names, "1"),
-		random.names=c('b_zeta', 'b_x1', 'b_x2'))
+		random.names=model$random.names)
 		
 	
 	Z= apply(r$random, 1, as.numeric)
@@ -776,10 +779,10 @@ combineModelDataInformationSAEM <- function(model, data){
 	model$H <- H
 	model$Z <- Z
 	
-	print(data$covariates[1,])
-	print(model$H[1:3, ])
-	print(data$covariates[301,])
-	print(model$H[4:6, ])
+	#print(data$covariates[1,])
+	#print(model$H[1:3, ])
+	#print(data$covariates[301,])
+	#print(model$H[4:6, ])
 	return(model)
 }
 

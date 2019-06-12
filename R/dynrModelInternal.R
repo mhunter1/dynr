@@ -96,7 +96,7 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
-internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula){
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names){
 
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrepSAEM function must be a list.")
@@ -116,7 +116,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 		stop("Number of latent variables (dim_latent_var) must be a single integer.")
 	}
 	
-	print(num_mu)
+
 	#returns a list of addresses of the compiled model functions
 	#func_address=.C2funcaddress(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
 	return(list(
@@ -132,6 +132,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	num_lambda=as.integer(num_lambda),
 	theta.formula=theta.formula,
 	num_mu=num_mu,
+	random.names=random.names,
 	#func_address=func_address[[1]],
 	options=options
 	#libname=func_address[[2]])
