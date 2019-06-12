@@ -140,7 +140,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	double delt=*REAL(delt_sexp);
 	DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
 	
-	UNPROTECT(11);
+	/*Nmu*/
+	SEXP num_mu_sexp = PROTECT(getListElement(model_list, "num_mu"));
+	int Nmu = (size_t) *INTEGER(num_mu_sexp);
+	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
+	
+	UNPROTECT(12);
 	
 	
 	
