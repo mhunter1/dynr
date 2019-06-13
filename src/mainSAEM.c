@@ -97,13 +97,13 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*number of covariates: Nu*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
-	int Nu=(size_t) *INTEGER(dim_co_variate_sexp);
+	int Nu =(size_t) *INTEGER(dim_co_variate_sexp);
 	DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);
 	
 	
 	/*number of regimes: always 1 in SAEM*/
 	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
-	int num_regime=(size_t) *INTEGER(num_regime_sexp);
+	int num_regime =(size_t) *INTEGER(num_regime_sexp);
 	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) num_regime);
 	
 	
@@ -114,24 +114,24 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*Nbeta*/
 	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
-	int Nbeta=(size_t) *INTEGER(num_beta_sexp);
+	int Nbeta =(size_t) *INTEGER(num_beta_sexp);
 	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
 	
 	/*totalT*/
 	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
-	int totalT=(size_t) *INTEGER(total_t_sexp);
+	int totalT =(size_t) *INTEGER(total_t_sexp);
 	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	
 	/*maxT*/
 	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
-	double maxT=*REAL(max_t_sexp);
+	double maxT =*REAL(max_t_sexp);
 	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
 
 	
 	/*NLambda*/
 	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
-	int NLambda=(size_t) *INTEGER(num_lambda_sexp);
+	int NLambda =(size_t) *INTEGER(num_lambda_sexp);
 	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
 	
 	
@@ -146,8 +146,33 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
 	
 	UNPROTECT(12);
+	/*----------*/
 	
-	
+	/*U1: covariate matrix*/ 
+	double **U1;
+	/*
+	if (Nu > 0){
+        for(t=0; t<data_model.pc.total_obs; t++){
+            data_model.co_variate[t]=gsl_vector_calloc(data_model.pc.dim_co_variate);
+        }
+        for(index=0;index<data_model.pc.dim_co_variate;index++){
+            sprintf(str_number, "%lu", (long unsigned int) index+1);
+            sprintf(str_name, "%s", "covar");
+	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
+            for(t=0; t<data_model.pc.total_obs; t++){
+                gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
+            }
+			UNPROTECT(1);
+        }
+		
+    }else{
+        data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
+        
+        for(t=0; t<data_model.pc.total_obs; t++){
+            data_model.co_variate[t]=NULL;
+        }
+    }
+	*/
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
@@ -155,7 +180,6 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		REAL(out)[i] = 1.5;
 	}
 	UNPROTECT(1);
-	
 	
 	return out;
 

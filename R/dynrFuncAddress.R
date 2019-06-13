@@ -8,7 +8,7 @@
 .C2funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
 
   #-------Set some variables: This function may later be extended----------
-  language="C"
+  language="C++"
   #-------Get the full name of the library----------
   if ( .Platform$OS.type == "windows" ) outfile <- gsub("\\\\", "/", outfile)
   libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
