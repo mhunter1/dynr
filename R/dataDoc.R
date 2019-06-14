@@ -468,11 +468,6 @@ NULL
 ##' the probability of missingness in both dependent variables and covariates is conditioned
 ##' on two completely observed auxiliary variables.   
 ##' 
-##' Reference:
-##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
-##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
-##' A Multidisciplinary Journal, 1-22.
-##' 
 ##' The variables are as follows:
 ##' \itemize{
 ##'   \item ID. ID of the participant (1 to 100)
@@ -484,6 +479,11 @@ NULL
 ##'   \item x1. Auxiliary variable 1
 ##'   \item x2. Auxiliary variable 2
 ##' }
+##' 
+##' @references
+##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
+##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
+##' A Multidisciplinary Journal, 1-22.
 ##' 
 ##' @docType data
 ##' @keywords datasets

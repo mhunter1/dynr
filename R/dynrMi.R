@@ -27,6 +27,10 @@
 ##' standard error estimates and confidence intervals.
 ##' 
 ##' @references
+##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
+##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
+##' A Multidisciplinary Journal, 1-22.
+##' 
 ##' Yanling Li, Linying Ji, Zita Oravecz, Timothy R. Brick,
 ##' Michael D. Hunter, and Sy-Miin Chow. (2019).
 ##' dynr.mi: An R Program for Multiple Imputation in Dynamic Modeling.
