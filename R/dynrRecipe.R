@@ -2031,9 +2031,9 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	}
 	
 	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
-	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
+	#values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
 	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
-	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
+	#values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
 	
 	sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
 	pn <- c(extractParams(params.latent), extractParams(params.observed))
