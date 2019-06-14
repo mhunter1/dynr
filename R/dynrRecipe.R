@@ -1442,7 +1442,7 @@ transldl <- function(mat){
   D <- diag(exp(diag(mat)), nrow=nrow(mat))
   # final caluclation
   outldl <- L %*% D %*% t(L)
-  return(outldl)
+  return(mat)
 }
 
 
@@ -1457,7 +1457,7 @@ dynr.ldl <- function(x){
 	d <- diag(ret)
 	ret <- ret %*% diag(1/d, nrow=length(d))
 	diag(ret) <- d^2
-	return(ret)
+	return(x)
 }
 
 reverseldl <- function(values){
