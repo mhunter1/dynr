@@ -27,24 +27,28 @@ Ntheta = length(theta.names)
 N = 100
 T = 300
 vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
-                      y=rnorm(100*300),
+                      y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
                       u1 = rnorm(100*300), u2 = rnorm(100*300))
-colnames(vdpData) <- c("id","time","y","u1", "u2") 
+colnames(vdpData) <- c("id","time","y1","y2", "y3","u1", "u2") 
 data <- dynr.data(vdpData, id="id", time="time",
-                  observed=c('y'),
+                  observed=c('y1', 'y2', 'y3'),
                   covariates=c('u1','u2'))
 
 
 meas <- prep.measurement(
-    values.load=matrix(c(1,0), 1, 2),
-    params.load=matrix(c('fixed'), 1, 2),
-    obs.names = c('y'),
-    state.names=state.names)
+    #values.load=matrix(c(1,0), 1, 2),
+    #params.load=matrix(c('fixed'), 1, 2),
+    values.load=matrix(c(1,0, 1,0,1,0), 3, 2),
+    params.load=matrix(c('fixed'), 3, 2),
+    obs.names = c('y1', 'y2', 'y3'),
+    state.names=state.names,
+	values.int=c(0, 0, 0),
+	params.int=intercept.names) #intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 initial <- prep.initial(
     values.inistate=c(3, 1),
-    params.inistate=c("mu1", "mu2"),
+    params.inistate=c("init_x1", "init_x2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
     params.inicov=matrix(c('v10','c120',
@@ -55,7 +59,7 @@ mdcov <- prep.noise(
     values.latent=diag(0, 2),
     params.latent=diag(c("fixed","fixed"), 2),
     values.observed=diag(rep(0.3,2)),
-    params.observed=diag(c("var_1","var_2"),2)
+    params.observed=diag(c("var_1","var_2"),2) #sigma_e
 )
 
 
