@@ -475,7 +475,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			num_lambda=length(dynrModel@measurement$params.load[[1]]),
 			num_mu=length(model@initial@params.inistate[[1]]),
 			theta.formula=dynrModel@dynamics@theta.formula,
-			random.names=dynrModel@dynamics@random.names
+			random.names=dynrModel@dynamics@random.names,
+			p0=dynrModel@initial@values.inicov
 	    )
 		
 		
@@ -489,7 +490,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- preProcessModel(model)
 		
 
-		
+		print(model$p0)
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 
 	    return(output)
