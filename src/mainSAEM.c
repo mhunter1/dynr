@@ -174,29 +174,41 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	*/
 	
-	/*
-	double **P0;
-	SEXP p0_sexp = PROTECT(getListElement(model_list,"P0"));
+	int row, col;
+	double *temp, **P0;
+	char str_number[64], str_name[64];
+	
+
 	if (NxState > 0){
-        for(t=0; t< NxState; t++){
-            P0[t] = (double *) malloc(NxState * sizeof(double));
-        }
-        for(index=0;index< NxState;index++){
-            sprintf(str_number, "%lu", (long unsigned int) index+1);
-            sprintf(str_name, "%s", "values.inicov");
-	        P0[t][index]=REAL(PROTECT(getListElement(p0_sexp, strncat(str_name, str_number, strlen(str_number)))));
-            
-			UNPROTECT(1);
-        }
+		temp = (double *)malloc(NxState * NxState* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"p0")));
+		UNPROTECT(1);
 		
-    }else{
-        data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
-        
-        for(t=0; t<data_model.pc.total_obs; t++){
-            data_model.co_variate[t]=NULL;
-        }
+		P0 = (double **)malloc((NxState + 1)* sizeof(double *));
+		for(row = 0;row < NxState; row++){
+			for(col = 0;col < NxState; col++){
+				if(col == 0){
+					P0[row] = (double *)malloc((NxState + 1)* sizeof(double));
+				}
+				P0[row][col] = temp[col * NxState + row];
+			}
+		}
+		
+		printf("P0\n");
+		for(row = 0; row < NxState; row++){
+			for(col = 0;col < NxState; col++){
+				printf(" %lf", P0[row][col]);
+			}
+			printf("\n");
+		}
+		
+		
+		free(temp);
     }
-	*/
+	else{
+		P0 = NULL;
+    }
+	
 	
 	
 	
