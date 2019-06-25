@@ -473,7 +473,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			num_beta=length(dynrModel@dynamics@beta.names),
 			total_t=length(unique(dynrModel@data$time)),
 			num_lambda=length(dynrModel@measurement$params.load[[1]]),
-			num_mu=length(model@initial@params.inistate[[1]]),
+			num_mu=length(model@measurement@params.int[[1]]),
 			theta.formula=dynrModel@dynamics@theta.formula,
 			random.names=dynrModel@dynamics@random.names,
 			p0=as.vector(dynrModel@initial@values.inicov[[1]])

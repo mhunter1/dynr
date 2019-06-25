@@ -194,15 +194,13 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		printf("P0\n");
+		printf("P0:\n");
 		for(row = 0; row < NxState; row++){
 			for(col = 0;col < NxState; col++){
 				printf(" %lf", P0[row][col]);
 			}
 			printf("\n");
-		}
-		
-		
+		}	
 		free(temp);
     }
 	else{
