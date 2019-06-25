@@ -211,7 +211,8 @@ setClass(Class =  "dynrRandom",
          representation = representation(
            random.names = "character",
            random.lb = "numeric",
-           random.ub = "numeric"
+           random.ub = "numeric",
+		   num.subj = "numeric"
          ),
 		 contains = "dynrRecipe"
 )
@@ -3345,7 +3346,16 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 
 #---
 #cook for random effect b in SAEM 
-prep.random<- function(random.names, random.lb, random.ub){
+prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj){
+	if(length(random.names) != length(random.lb) || length(random.names) != length(random.ub)){stop("The number of variables is different from the number of elements in lower/upper bound")}
+	
+	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
+	for(i in 1:num.subj){
+		b[i, b[i, ] < random.lb | b[i, ] > random.ub] <-  0
+	}
+
+	
+	
 
 	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub)
 	return(new("dynrRandom", x))

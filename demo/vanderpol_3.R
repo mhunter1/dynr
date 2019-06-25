@@ -82,11 +82,6 @@ theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 
 #theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
 #print(theta.formula2)
-
-
-
-
-
 dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                            zeta1=.5,
@@ -101,7 +96,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 								saem=TRUE)
 
 								
-ran <- prep.random(random.names=random.names, random.lb =c(0, 0, 0), random.ub =c(1, 1, 1))
+ran <- prep.random(random.names=random.names, num.subj = N, random.lb = c(-.1, -.1, -.1), random.ub = c(.1, .1, .1))
 #print(ran)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
