@@ -206,6 +206,17 @@ setClass(Class = "dynrTrans",
          )
 )
 
+
+setClass(Class =  "dynrRandom",
+         representation = representation(
+           random.names = "character",
+           random.lb = "numeric",
+           random.ub = "numeric"
+         ),
+		 contains = "dynrRecipe"
+)
+
+
 setMethod("initialize", "dynrRecipe",
 		function(.Object, x){
 			for(i in names(x)){
@@ -3329,4 +3340,13 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
         formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
     }
     return(formula)
+}
+
+
+#---
+#cook for random effect b in SAEM 
+prep.random<- function(random.names, random.lb, random.ub){
+
+	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub)
+	return(new("dynrRandom", x))
 }

@@ -100,6 +100,9 @@ dynm<-prep.formulaDynamics(formula=formula,
 								random.names=random.names,
 								saem=TRUE)
 
+								
+ran <- prep.random(random.names=random.names, random.lb =c(0, 0, 0), random.ub =c(1, 1, 1))
+#print(ran)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,armadillo=TRUE,
