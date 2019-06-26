@@ -18,6 +18,7 @@ setClass(Class =  "dynrModel",
            measurement = "dynrMeasurement",
            noise = "dynrNoise",
            initial = "dynrInitial",
+		   random = "dynrRandom",
            regimes= "dynrRegimes",
            transform="dynrTrans",
            data="list",
@@ -542,7 +543,7 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, armadillo=FALSE){
+dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, armadillo=FALSE){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
@@ -597,7 +598,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   
   # gather inputs
-  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+  if(armadillo==FALSE){
+    inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+  }
+  else{
+    inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, random=random, ...)
+  }
 
   # Figure out what the unique parameters are
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))

@@ -426,4 +426,16 @@ setMethod("writeArmadilloCode", "dynrRegimes",
 )
 
 #------------------------------------------------------------------------------
+# Define method for dynrRegime class
+
+setMethod("writeArmadilloCode", "dynrRandom",
+	function(object, covariates){
+		ret <- ""
+		object@c.string <- ret
+		return(object)
+	}
+)
+
+
+#------------------------------------------------------------------------------
 # End

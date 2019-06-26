@@ -100,9 +100,9 @@ ran <- prep.random(random.names=random.names, num.subj = N, random.lb = c(-.1, -
 #print(ran)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data,armadillo=TRUE,
+                    noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,
                     outfile="VanDerPol.c")
-
+print(model@random)
 # to do consist the formula in Line 71 and here
 #model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
 #                     zeta_i_2 ~ 1*mu1 + 1*b_x1,
