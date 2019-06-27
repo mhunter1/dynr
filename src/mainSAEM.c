@@ -160,33 +160,48 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*U1: covariate matrix*/ 
 	double **U1;
-	/*
+	int row, col;
+	double *temp, **P0, **Lamdba;
+	char str_number[64], str_name[64];
+	
+	
 	if (Nu > 0){
-        for(t=0; t<data_model.pc.total_obs; t++){
-            data_model.co_variate[t]=gsl_vector_calloc(data_model.pc.dim_co_variate);
-        }
-        for(index=0;index<data_model.pc.dim_co_variate;index++){
-            sprintf(str_number, "%lu", (long unsigned int) index+1);
-            sprintf(str_name, "%s", "covar");
-	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
-            for(t=0; t<data_model.pc.total_obs; t++){
-                gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
-            }
+		printf("h169\n");
+		U1 = (double **)malloc((Nsubj + 1)* sizeof(double *));
+		for(int row = 0; row < Nsubj; row++){
+			U1[row] = (double *)malloc((Nu+1)* sizeof(double));
+		}
+		
+		printf("h174\n");
+		temp = (double *)malloc(Nsubj * totalT * 2* sizeof(double));
+		/*SEXP covariates_sexp = PROTECT(getListElement(data_list, "covariates"));*/
+		for(int u = 0;u < Nu; u++){
+			printf("u = %d\n", u);
+			sprintf(str_name, "covar%u", (long unsigned int) u+1);
+			/*temp=REAL(PROTECT(getListElement(covariates_sexp, str_name)));*/
+			temp = REAL(PROTECT(getListElement(data_list, "covariates")));
 			UNPROTECT(1);
-        }
+			for(int i = 0; i < Nsubj;i++){
+				U1[i][u] = temp[u *totalT];
+				printf("i =%d, u = %d %lf\n", i, u, U1[i][u]);
+			}
+		}
+		
+		printf("U1:\n");
+		for(int i = 0; i < Nsubj;i++){
+			for(int u = 0;u < Nu; u++){
+				printf(" %lf", U1[i][u]);
+			}
+			printf("\n");
+		}
+		
 		
     }else{
-        data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
-        
-        for(t=0; t<data_model.pc.total_obs; t++){
-            data_model.co_variate[t]=NULL;
-        }
+        U1 = NULL;
     }
-	*/
 	
-	int row, col;
-	double *temp, **P0;
-	char str_number[64], str_name[64];
+	
+	
 	
 
 	if (NxState > 0){
@@ -216,11 +231,41 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		P0 = NULL;
     }
 	
+	if (NxState > 0 && Ny > 0){
+		temp = (double *)malloc(NxState * Ny* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"lambda")));
+		UNPROTECT(1);
+		
+		Lamdba = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < NxState; col++){
+				if(col == 0){
+					Lamdba[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				Lamdba[row][col] = temp[col * Ny + row];
+			}
+		}
+		
+		printf("Lamdba:\n");
+		for(row = 0; row < Ny; row++){
+			for(col = 0;col < NxState; col++){
+				printf(" %lf", Lamdba[row][col]);
+			}
+			printf("\n");
+		}	
+    }
+	else{
+		Lamdba = NULL;
+    }
+	
 	double *bAdaptParams;
 	bAdaptParams = (double *)malloc(4* sizeof(double));
 	bAdaptParams = REAL(PROTECT(getListElement(model_list,"bAdaptParams")));
 	UNPROTECT(1);
 	printf("bAdaptParams: %lf %lf %lf\n",bAdaptParams[0], bAdaptParams[1], bAdaptParams[2]);
+	
+	
+
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

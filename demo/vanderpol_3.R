@@ -106,7 +106,7 @@ ran <- prep.random(random.names=random.names,
 				   values.inicov=matrix(c(1, 0, 0,
 										  0,.5,.6,
                                           0,.6,.2),ncol=3,byrow=T))
-print(ran)
+#print(ran)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,

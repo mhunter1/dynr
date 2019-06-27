@@ -3362,8 +3362,8 @@ prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), ra
 		stop('Unmatched dimension in random effect variance-covariance matrix')
 	}
 	
-	
-	
+	#result <- autojacobTry(params.inicov, diff.variables=random.names)
+	#print(result)
 
 	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub, b=b, params.inicov=params.inicov, values.inicov=values.inicov)
 	return(new("dynrRandom", x))

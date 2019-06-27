@@ -3,6 +3,7 @@
 # Date: 2018-05-15
 # Filename: vanderpol_dynr.R
 # Purpose: Fit van der Pol oscillator model (cook workable)
+#          For Sy-Miin to get good initial estimates for SAEM. 
 # Note: Workable for developer dynr on master branch 0.1.14-17
 #------------------------------------------------------------------------------
 
@@ -64,3 +65,5 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     outfile="VanDerPol_.c")
 model$xstart<-c(3,0.5,0.3,0,0,0.5,0.5,0.5)
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+
+
