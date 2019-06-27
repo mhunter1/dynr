@@ -441,7 +441,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, bAdaptParams = c(.5, 2.5, .5), KKO = 20) {
     
     frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
@@ -475,7 +475,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			num_random=length(dynrModel@random@random.names),
 			theta.formula=dynrModel@dynamics@theta.formula,
 			random.names=dynrModel@dynamics@random.names,
-			p0=as.vector(dynrModel@initial@values.inicov[[1]])
+			p0=as.vector(dynrModel@initial@values.inicov[[1]]),
+			bAdaptParams=bAdaptParams,
+			KKO=KKO
 	    )
 		
 		

@@ -150,7 +150,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int Nb = (size_t) *INTEGER(num_mu_sexp);
 	DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);
 	
-	UNPROTECT(12);
+	/*maxT*/
+	SEXP kko_sexp = PROTECT(getListElement(model_list, "KKO"));
+	double KKO=*REAL(kko_sexp);
+	DYNRPRINT(verbose_flag, "KKO: %lf\n", KKO);
+	
+	UNPROTECT(14);
 	/*----------*/
 	
 	/*U1: covariate matrix*/ 
@@ -206,13 +211,16 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("\n");
 		}	
-		/*free(temp);*/
     }
 	else{
 		P0 = NULL;
     }
 	
-	
+	double *bAdaptParams;
+	bAdaptParams = (double *)malloc(4* sizeof(double));
+	bAdaptParams = REAL(PROTECT(getListElement(model_list,"bAdaptParams")));
+	UNPROTECT(1);
+	printf("bAdaptParams: %lf %lf %lf\n",bAdaptParams[0], bAdaptParams[1], bAdaptParams[2]);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
@@ -221,7 +229,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
-	printf("here");
+	//printf("here");
 	return out;
 
 }
