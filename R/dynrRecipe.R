@@ -3349,6 +3349,7 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj){
 	if(length(random.names) != length(random.lb) || length(random.names) != length(random.ub)){stop("The number of variables is different from the number of elements in lower/upper bound")}
 	
+	#repalce the element < lowerbound or > upper bound with zero
 	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
 	for(i in 1:num.subj){
 		b[i, b[i, ] < random.lb | b[i, ] > random.ub] <-  0
