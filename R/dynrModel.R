@@ -603,6 +603,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, random, ...,
   }
   else{
     inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, random=random, ...)
+	if(length(random@random.names) != length(dynamics@random.names) || sum(random@random.names == dynamics@random.names) != length(dynamics@random.names)){
+      stop("Inconsistent variable names of random effects in prep.formulaDynamics and prep.random")}
   }
 
   # Figure out what the unique parameters are

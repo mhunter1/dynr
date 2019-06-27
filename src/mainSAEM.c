@@ -145,6 +145,11 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int Nmu = (size_t) *INTEGER(num_mu_sexp);
 	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
 	
+	/*Nb*/
+	SEXP num_random_sexp = PROTECT(getListElement(model_list, "num_random"));
+	int Nb = (size_t) *INTEGER(num_mu_sexp);
+	DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);
+	
 	UNPROTECT(12);
 	/*----------*/
 	
@@ -201,7 +206,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("\n");
 		}	
-		free(temp);
+		/*free(temp);*/
     }
 	else{
 		P0 = NULL;
@@ -216,6 +221,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
+	printf("here");
 	return out;
 
 }

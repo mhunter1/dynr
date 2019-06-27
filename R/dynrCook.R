@@ -455,8 +455,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
-		#print(length(dynrModel@measurement$params.load[[1]]))
-		print(dynrModel@dynamics@random.names)
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -474,6 +472,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			total_t=length(unique(dynrModel@data$time)),
 			num_lambda=length(dynrModel@measurement$params.load[[1]]),
 			num_mu=length(model@measurement@params.int[[1]]),
+			num_random=length(dynrModel@random@random.names),
 			theta.formula=dynrModel@dynamics@theta.formula,
 			random.names=dynrModel@dynamics@random.names,
 			p0=as.vector(dynrModel@initial@values.inicov[[1]])
