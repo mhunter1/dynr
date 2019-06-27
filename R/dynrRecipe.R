@@ -212,7 +212,10 @@ setClass(Class =  "dynrRandom",
            random.names = "character",
            random.lb = "numeric",
            random.ub = "numeric",
-		   num.subj = "numeric"
+		   num.subj = "numeric",
+		   values.inicov = "matrix",
+           params.inicov = "matrix",
+		   b="matrix"
          ),
 		 contains = "dynrRecipe"
 )
@@ -3346,7 +3349,7 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 
 #---
 #cook for random effect b in SAEM 
-prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj){
+prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj, params.inicov, values.inicov){
 	if(length(random.names) != length(random.lb) || length(random.names) != length(random.ub)){stop("The number of variables is different from the number of elements in lower/upper bound")}
 	
 	#repalce the element < lowerbound or > upper bound with zero
@@ -3355,9 +3358,13 @@ prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), ra
 		b[i, b[i, ] < random.lb | b[i, ] > random.ub] <-  0
 	}
 
+	if(nrow(params.inicov) != nrow(values.inicov)){
+		stop('Unmatched dimension in random effect variance-covariance matrix')
+	}
+	
 	
 	
 
-	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub)
+	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub, b=b, params.inicov=params.inicov, values.inicov=values.inicov)
 	return(new("dynrRandom", x))
 }

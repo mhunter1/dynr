@@ -51,8 +51,8 @@ initial <- prep.initial(
     params.inistate=c("init_x1", "init_x2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
-    params.inicov=matrix(c('v10','c120',
-                           'c120','v20'),ncol=2,byrow=T)
+    params.inicov=matrix(c('b_x1','c12',
+                           'c12','b_x2'),ncol=2,byrow=T)
 )
 
 mdcov <- prep.noise(
@@ -96,8 +96,17 @@ dynm<-prep.formulaDynamics(formula=formula,
 								saem=TRUE)
 
 								
-ran <- prep.random(random.names=random.names, num.subj = N, random.lb = c(-.1, -.1, -.1), random.ub = c(.1, .1, .1))
-#print(ran)
+ran <- prep.random(random.names=random.names, 
+				   num.subj = N, 
+				   random.lb = c(-.1, -.1, -.1), 
+				   random.ub = c(.1, .1, .1),
+				   params.inicov=matrix(c('b_zeta', 'c01', 'c02',
+										     'c01','b_x1', 'c12',
+                                             'c02', 'c12','b_x2'),ncol=3,byrow=T),
+				   values.inicov=matrix(c(1, 0, 0,
+										  0,.5,.6,
+                                          0,.6,.2),ncol=3,byrow=T))
+print(ran)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,
