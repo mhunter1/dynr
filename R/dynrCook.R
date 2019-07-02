@@ -455,7 +455,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	
 	if(saem==TRUE){
-		print(dynrModel@measurement$values.load[[1]])
+		#print(dynrModel@measurement$values.load[[1]])
 	    model <- internalModelPrepSAEM(
 	        num_regime=dynrModel@num_regime,
 	        dim_latent_var=dynrModel@dim_latent_var,
@@ -492,8 +492,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
 		
-
-		print(dynrModel@initial@values.inicov[[1]])
+		print(data$covariates[1,])
+		print(data$covariates[301,])
+		print(data$covariates[601,])
+		print(data$covariates[901,])
+		#print(dynrModel@initial@values.inicov[[1]])
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 
