@@ -10,9 +10,10 @@ library('dynr')
 state.names = c('x1', 'x2')
 beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 covariate.names = c('u1', 'u2')
-theta.names = c('zeta_i', 'zeta_x1', 'zeta_x2')
+theta.names = c('zeta_i', 'zeta_x1', 'zeta_x2') 
+#Do we need the user to set up the names of 'zeta_x1', 'zeta_x2'?
 #[todo] Z*b's b
-random.names = c('b_zeta', 'b_x1', 'b_x2')
+random.names = c('b_zeta')
 intercept.names = c('mu1', 'mu2', 'mu3')
 
 
@@ -42,13 +43,13 @@ meas <- prep.measurement(
     params.load=matrix(c('fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=state.names,
-	values.int=c(0, 0, 0),
+	values.int=c(3, 1, 0),
 	params.int=intercept.names) #intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 initial <- prep.initial(
     values.inistate=c(3, 1),
-    params.inistate=c("init_x1", "init_x2"),
+    params.inistate=c("mu1", "mu2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
     params.inicov=matrix(c('b_x1','c12',

@@ -661,11 +661,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
 	     inputs$initial$params.inicov[[1]][i, i]!= "0" ){
 		inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+1]], inputs$initial$params.inicov[[1]][i, i])
+		inputs$dynamics@random.names <- append(inputs$dynamics@random.names, inputs$initial$params.inicov[[1]][i, i])
 	  }
 	  
 	}
   }
-  
+
+
   # writeCcode on each recipe
   if(armadillo==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
