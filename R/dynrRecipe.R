@@ -91,6 +91,8 @@ setClass(Class = "dynrDynamicsFormula",
 		   theta.names = "character",
 		   beta.names = "character",
 		   random.names = "character",
+		   random.lb = "numeric",
+		   random.ub = "numeric",
 		   intercept.names = "character",
 		   theta.formula = "list",
            isContinuousTime = "logical",
@@ -2339,16 +2341,19 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
 	dots <- list(...)
 	if(length(dots) > 0){
-		if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'intercept.names'))){
+		if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'intercept.names', 'random.lb', 'random.ub'))){
 			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
 		}
-		if(length(dots) == 6){
+		if(length(dots) == 8){
 			state.names <- dots$state.names
 			theta.names <- dots$theta.names
 			beta.names <- dots$beta.names
 			theta.formula <- dots$theta.formula
 			intercept.names <- dots$intercept.names
 			random.names <- dots$random.names
+			random.ub <-dots$random.ub
+			random.lb <-dots$random.lb
+			
 		}
 	}
 	
@@ -2420,6 +2425,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$theta.formula <- theta.formula
   x$intercept.names <- intercept.names
   x$random.names <- random.names
+  x$random.ub <- random.ub
+  x$random.lb <- random.lb
   
   return(new("dynrDynamicsFormula", x))
 }

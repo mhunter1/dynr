@@ -31,7 +31,9 @@ setClass(Class =  "dynrModel",
            ub="vector",
            lb="vector",
            options="list",
-           param.names="character"
+           param.names="character",
+		   random.params.inicov = "matrix",
+		   random.values.inicov = "matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -644,6 +646,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if(armadillo==TRUE){
 	#inputs$initial$params.inistate
 	#inputs$initial$params.inicov
+	
 	for (i in 1:length(inputs$initial$params.inistate[[1]])){
 	  
 	  #case 1 (estimate para, cov)
@@ -665,6 +668,35 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  }
 	  
 	}
+	
+	Nx <- length(inputs$initial$params.inistate[[1]])
+	random.params.inicov = matrix(0L, 
+							nrow = Nx+1, 
+							ncol = Nx+1)
+	random.values.inicov = matrix(0L, 
+							nrow = Nx+1, 
+							ncol = Nx+1)
+	random.params.inicov[1,1] = inputs$dynamics@random.names[[1]][[1]]
+	random.params.inicov[2:(Nx+1),2:(Nx+1)] = inputs$initial$params.inicov[[1]]
+	
+	random.values.inicov[1,1] = 1
+	random.values.inicov[2:(Nx+1),2:(Nx+1)] = inputs$initial$values.inicov[[1]]
+	
+	print(random.params.inicov)
+	print(random.values.inicov)
+	
+	num.subj <- length(unique(data$original.data[['id']]))
+	random.names <- inputs$dynamics@random.names
+	print (num.subj)
+	print (random.names)
+	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
+	for(i in 1:num.subj){
+	  for (j in 1:length(random.names))
+	    if(b[i,j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub)
+		  b[i, j] <- 0
+		  
+	}
+	print(b)
   }
 
 
@@ -685,7 +717,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   param.data$param.value=unique.values
   
   #initiate a dynrModel object
-  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
   obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
   
   obj.dynrModel@xstart <- param.data$param.value
