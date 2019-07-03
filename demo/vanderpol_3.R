@@ -10,7 +10,7 @@ library('dynr')
 state.names = c('x1', 'x2')
 beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
 covariate.names = c('u1', 'u2')
-theta.names = c('zeta_i', 'zeta_i_2', 'zeta_i_3')
+theta.names = c('zeta_i', 'zeta_x1', 'zeta_x2')
 #[todo] Z*b's b
 random.names = c('b_zeta', 'b_x1', 'b_x2')
 intercept.names = c('mu1', 'mu2', 'mu3')
@@ -72,13 +72,13 @@ formula=
          mu1 ~0,
          mu2 ~0
     )
-# theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1*0,
-# zeta_i_2 ~ 0,
-# zeta_i_3 ~ 0)
+theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
+zeta_x1 ~ 1 * 0,
+zeta_x2 ~ 1 * 0)
 
-theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
-                      zeta_i_2 ~ 1 * mu1 + 1 * b_x1,
-                      zeta_i_3 ~ 1 * mu2 + 1 * b_x2)
+#theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
+#                      zeta_x1 ~ 1 * mu1 + 1 * b_x1,
+#                      zeta_x2 ~ 1 * mu2 + 1 * b_x2)
 
 #theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
 #print(theta.formula2)
@@ -96,20 +96,23 @@ dynm<-prep.formulaDynamics(formula=formula,
 								saem=TRUE)
 
 								
-ran <- prep.random(random.names=random.names, 
-				   num.subj = N, 
-				   random.lb = c(-.1, -.1, -.1), 
-				   random.ub = c(.1, .1, .1),
-				   params.inicov=matrix(c('b_zeta', 'c01', 'c02',
-										     'c01','b_x1', 'c12',
-                                             'c02', 'c12','b_x2'),ncol=3,byrow=T),
-				   values.inicov=matrix(c(1, 0, 0,
-										  0,.5,.6,
-                                          0,.6,.2),ncol=3,byrow=T))
+# ran <- prep.random(random.names=random.names, 
+				   # num.subj = N, 
+				   # random.lb = c(-.1, -.1, -.1), 
+				   # random.ub = c(.1, .1, .1),
+				   # params.inicov=matrix(c('b_zeta', 'c01', 'c02',
+										     # 'c01','b_x1', 'c12',
+                                             # 'c02', 'c12','b_x2'),ncol=3,byrow=T),
+				   # values.inicov=matrix(c(1, 0, 0,
+										  # 0,.5,.6,
+                                          # 0,.6,.2),ncol=3,byrow=T))
 #print(ran)
 
+#model <- dynr.model(dynamics=dynm, measurement=meas,
+#                    noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,
+#                    outfile="VanDerPol.c")
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,
+                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.c")
 #print(model@random)
 # to do consist the formula in Line 71 and here

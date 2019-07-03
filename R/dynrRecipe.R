@@ -2360,7 +2360,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     formula <- list(formula)
 	if(saem == TRUE){
 		#remove random.names and intercept.names from theta.formula
-		theta.formula <- prep.thetaFormula(theta.formula, intercept.names, random.names)
+		#theta.formula <- prep.thetaFormula(theta.formula, intercept.names, random.names)
 		#print(theta.formula)
 	
 		#formula2: substitute the content within theta.formula

@@ -18,7 +18,7 @@ setClass(Class =  "dynrModel",
            measurement = "dynrMeasurement",
            noise = "dynrNoise",
            initial = "dynrInitial",
-		   random = "dynrRandom",
+		   #random = "dynrRandom",
            regimes= "dynrRegimes",
            transform="dynrTrans",
            data="list",
@@ -543,7 +543,8 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, armadillo=FALSE){
+#dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, armadillo=FALSE){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, armadillo=FALSE){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
@@ -602,9 +603,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, random, ...,
     inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
   }
   else{
-    inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, random=random, ...)
-	if(length(random@random.names) != length(dynamics@random.names) || sum(random@random.names == dynamics@random.names) != length(dynamics@random.names)){
-      stop("Inconsistent variable names of random effects in prep.formulaDynamics and prep.random")}
+    #inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, random=random, ...)
+	inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+	#if(length(random@random.names) != length(dynamics@random.names) || sum(random@random.names == dynamics@random.names) != length(dynamics@random.names)){
+    #  stop("Inconsistent variable names of random effects in prep.formulaDynamics and prep.random")}
   }
 
   # Figure out what the unique parameters are
@@ -638,6 +640,32 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, random, ...,
   }
   
   
+  #Handle b (random)
+  if(armadillo==TRUE){
+	#inputs$initial$params.inistate
+	#inputs$initial$params.inicov
+	for (i in 1:length(inputs$initial$params.inistate[[1]])){
+	  
+	  #case 1 (estimate para, cov)
+	  #case 2 (estimate para, fix cov)
+	  #case 3 (both fixed)
+	  #print(inputs$initial$params.inistate[[1]][i])
+	  #print(inputs$initial$params.inicov[[1]][i, i])
+	  #print(inputs$dynamics@theta.formula)
+	  if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
+	     inputs$initial$params.inistate[[1]][i] != "0" ){
+		 inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+1]], inputs$initial$params.inistate[[1]][i])
+	  }
+	  
+	  
+	  if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
+	     inputs$initial$params.inicov[[1]][i, i]!= "0" ){
+		inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+1]], inputs$initial$params.inicov[[1]][i, i])
+	  }
+	  
+	}
+  }
+  
   # writeCcode on each recipe
   if(armadillo==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
@@ -667,6 +695,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, random, ...,
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
   }
+    
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
   if(armadillo==FALSE){
@@ -694,4 +723,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, random, ...,
   #modify the object slot, including starting values, etc.
 }
 
+
+addVariableToThetaFormula  <- function(formula, variable.names){
+	fml=as.character(formula)
+	lhs=fml[[2]]
+	rhs=fml[[3]]
+	
+	rhs = paste0(rhs, "+ 1 *", variable.names)
+	
+	#print(as.formula(paste0(lhs, ' ~ ', rhs)))
+	return(as.formula(paste0(lhs, ' ~ ', rhs)))
+}
 

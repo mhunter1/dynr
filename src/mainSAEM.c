@@ -166,17 +166,15 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	if (Nu > 0){
-		/*printf("h169\n");*/
 		U1 = (double **)malloc((Nsubj + 1)* sizeof(double *));
 		for(int row = 0; row < Nsubj; row++){
 			U1[row] = (double *)malloc((Nu+1)* sizeof(double));
 		}
 		
-		/*printf("h174\n");*/
 		temp = (double *)malloc(Nsubj * totalT * 2* sizeof(double));
 		SEXP covariates_sexp = PROTECT(getListElement(data_list, "covariates"));
+		UNPROTECT(1);
 		for(int u = 0;u < Nu; u++){
-			printf("u = %d\n", u);
 			sprintf(str_name, "covar%u", (long unsigned int) u+1);
 			temp = REAL(PROTECT(getListElement(covariates_sexp, str_name)));
 			UNPROTECT(1);
@@ -190,7 +188,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		printf("U1:\n");
 		for(int i = 0; i < Nsubj;i++){
 			for(int u = 0;u < Nu; u++){
-				printf(" %lf", U1[i][u]);
+				printf(" %6lf", U1[i][u]);
 			}
 			printf("\n");
 		}
