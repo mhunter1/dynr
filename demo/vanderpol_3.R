@@ -8,7 +8,7 @@
 
 library('dynr')
 state.names = c('x1', 'x2')
-beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu1', 'mu2')
+beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
 covariate.names = c('u1', 'u2')
 theta.names = c('zeta_i', 'zeta_x1', 'zeta_x2') 
 #Do we need the user to set up the names of 'zeta_x1', 'zeta_x2'?
