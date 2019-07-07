@@ -49,11 +49,11 @@ meas <- prep.measurement(
 
 initial <- prep.initial(
     values.inistate=c(3, 1),
-    params.inistate=c("mu1", "mu2"),
+    params.inistate=c("mu_x1", "mu_x2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
-    params.inicov=matrix(c('b_x1','c12',
-                           'c12','b_x2'),ncol=2,byrow=T)
+    params.inicov=matrix(c('sigma2_x10','c12',
+                           'c12','sigma2_x20'),ncol=2,byrow=T)
 )
 
 mdcov <- prep.noise(
@@ -70,16 +70,16 @@ formula=
          zeta0 ~0,
          zeta1 ~0,
          zeta2 ~0,
-         mu1 ~0,
-         mu2 ~0
+         mu_x1 ~0,
+         mu_x2 ~0
     )
 theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
-zeta_x1 ~ 1 * 0,
-zeta_x2 ~ 1 * 0)
+x1_0 ~ 1 * 0,
+x2_0 ~ 1 * 0)
 
 #theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
-#                      zeta_x1 ~ 1 * mu1 + 1 * b_x1,
-#                      zeta_x2 ~ 1 * mu2 + 1 * b_x2)
+#                      x1_0 ~ 1 * mu_x1 + 1 * b_x1,
+#                      x2_0 ~ 1 * mu_x2 + 1 * b_x2)
 
 #theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
 #print(theta.formula2)
@@ -94,8 +94,8 @@ dynm<-prep.formulaDynamics(formula=formula,
 								beta.names=beta.names,
 								intercept.names=intercept.names, 
 								random.names=random.names,
-							    random.lb = -0.2, 
-				                random.ub = 0.2,
+							    random.lb = -5, 
+				                random.ub = 5,
 								saem=TRUE)
 print(dynm$random.lb)
 								
