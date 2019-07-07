@@ -2354,11 +2354,13 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 			random.ub <-dots$random.ub
 			random.lb <-dots$random.lb
 			
+
 		}
 	}
+
 	
   if(length(startval) > 0 & is.null(names(startval))){
-    stop('startval must be a named vector')
+    stop('startval must be a named vector.')
   }
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
@@ -2421,6 +2423,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   #}
   x$dfdtheta2 <- dfdtheta2
   x$beta.names <- beta.names
+  
   
   x$theta.formula <- theta.formula
   x$intercept.names <- intercept.names
@@ -3329,49 +3332,43 @@ parseFormulaTheta <- function(formula, theta.formula){
 }
 
 
-#function for parsing theta.formula (remove intercept terms and random names)
-prep.thetaFormula <- function(formula, intercept.names, random.names){
-    #fun
-    fml=lapply(formula, as.character)
-    lhs=lapply(fml,function(x){x[[2]]})
-    rhs=lapply(fml,function(x){x[[3]]})
+#function for parsing theta.formula (remove intercept terms and random names) (currently not used)
+# prep.thetaFormula <- function(formula, intercept.names, random.names){
+    # fml=lapply(formula, as.character)
+    # lhs=lapply(fml,function(x){x[[2]]})
+    # rhs=lapply(fml,function(x){x[[3]]})
     
-    for(i in 1:length(formula)){
-        formula[[i]]=as.character(formula[[i]])
-        for (j in 1:length(intercept.names)){
-            # gsub (a, b, c) : in c replace a with b
-            rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        }
+    # for(i in 1:length(formula)){
+        # formula[[i]]=as.character(formula[[i]])
+        # for (j in 1:length(intercept.names)){
+            # rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        # }
         
-        for (j in 1:length(random.names)){
-            # gsub (a, b, c) : in c replace a with b
-            rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        }
+        # for (j in 1:length(random.names)){
+            # rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        # }
         
-        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
-    }
-    return(formula)
-}
+        # formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+    # }
+    # return(formula)
+# }
 
 
 #---
-#cook for random effect b in SAEM 
-prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj, params.inicov, values.inicov){
-	if(length(random.names) != length(random.lb) || length(random.names) != length(random.ub)){stop("The number of variables is different from the number of elements in lower/upper bound")}
+#cook for random effect b in SAEM (currently not used)
+# prep.random<- function(random.names, random.lb=rep(-5, length(random.names)), random.ub=rep(5, length(random.names)), num.subj, params.inicov, values.inicov){
+	# if(length(random.names) != length(random.lb) || length(random.names) != length(random.ub)){stop("The number of variables is different from the number of elements in lower/upper bound")}
 	
-	#repalce the element < lowerbound or > upper bound with zero
-	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
-	for(i in 1:num.subj){
-		b[i, b[i, ] < random.lb | b[i, ] > random.ub] <-  0
-	}
+	# b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
+	# for(i in 1:num.subj){
+		# b[i, b[i, ] < random.lb | b[i, ] > random.ub] <-  0
+	# }
 
-	if(nrow(params.inicov) != nrow(values.inicov)){
-		stop('Unmatched dimension in random effect variance-covariance matrix')
-	}
+	# if(nrow(params.inicov) != nrow(values.inicov)){
+		# stop('Unmatched dimension in random effect variance-covariance matrix')
+	# }
 	
-	#result <- autojacobTry(params.inicov, diff.variables=random.names)
-	#print(result)
 
-	x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub, b=b, params.inicov=params.inicov, values.inicov=values.inicov)
-	return(new("dynrRandom", x))
-}
+	# x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub, b=b, params.inicov=params.inicov, values.inicov=values.inicov)
+	# return(new("dynrRandom", x))
+# }
