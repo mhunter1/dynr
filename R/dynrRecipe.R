@@ -2358,6 +2358,17 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		}
 	}
 
+  num.theta.formula <- length(theta.formula)
+  #print (num.theta.formula)
+  #print (state.names)  
+  for (i in 1:length(state.names)){
+	#The theta for this state needs to be estimated. Generate the corresponding theta.names and theta.formula
+	# For state x, the corresponding theta.names = x_0
+	theta.formula[[i+num.theta.formula]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
+	theta.names[[i+num.theta.formula]] <- paste0(state.names[[i]],'_0')
+  }
+  #print(theta.names)
+  #print(theta.formula)
 	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
