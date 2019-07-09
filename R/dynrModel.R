@@ -642,25 +642,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   
   
-  #Handle b (random)
+  # handle b (random)
   if(armadillo==TRUE){
-	#inputs$initial$params.inistate
-	#inputs$initial$params.inicov
 	
 	# num.theta.formula: number of theta formula that the user specifies.
 	num.theta.formula <- length(inputs$dynamics@theta.formula) - length(inputs$initial$params.inistate[[1]])
-	#print (num.theta.formula)
-	
-	#print(inputs$dynamics@random.names)
-	#print(inputs$dynamics@theta.names)
-	#print(inputs$dynamics@theta.formula)
 	
 	for (i in 1:length(inputs$initial$params.inistate[[1]])){
-	  #The theta for this state needs to be estimated. Generate the corresponding theta.names and theta.formula
-	  # For state x, the corresponding theta.names = x_0
-	  #inputs$dynamics@theta.formula[[i+num.theta.formula]] <- as.formula(paste0(inputs$measurement@state.names[[i]],'_0 ~ 1 * 0'))
-	  #inputs$dynamics@theta.names[[i+num.theta.formula]] <- paste0(inputs$measurement@state.names[[i]],'_0')
-	  
+	  # check if the theta for this state needs to be estimated. 
+	  # revise the theta.formula correspondingly.	  
 	  if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
 	     inputs$initial$params.inistate[[1]][i] != "0" ){
         inputs$dynamics@theta.formula[[i+num.theta.formula]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta.formula]], inputs$initial$params.inistate[[1]][i])
@@ -669,16 +659,16 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  
 	  if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
 	     inputs$initial$params.inicov[[1]][i, i] != "0" ){
-		#inputs$dynamics@random.names <- append(inputs$dynamics@random.names, paste0('b_',inputs$measurement@state.names[[i]]))
-        inputs$dynamics@random.names <- append(inputs$dynamics@random.names, inputs$initial$params.inicov[[1]][i, i])  		
+		inputs$dynamics@random.names <- append(inputs$dynamics@random.names, paste0('b_',inputs$measurement@state.names[[i]]))
+        #inputs$dynamics@random.names <- append(inputs$dynamics@random.names, inputs$initial$params.inicov[[1]][i, i])  		
 		inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta.formula]], inputs$dynamics@random.names[[i+num.theta.formula]])
 		
 	  }
 	}	
 	
 	print(inputs$dynamics@random.names)
-	#print(inputs$dynamics@theta.names)
-	#print(inputs$dynamics@theta.formula)
+	print(inputs$dynamics@theta.names)
+	print(inputs$dynamics@theta.formula)
 	
 	Nx <- length(inputs$initial$params.inistate[[1]])
 	random.params.inicov = matrix(0L, 
@@ -693,13 +683,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	random.values.inicov[1,1] = 1
 	random.values.inicov[2:(Nx+1),2:(Nx+1)] = inputs$initial$values.inicov[[1]]
 	
-	#print(random.params.inicov)
-	#print(random.values.inicov)
 	
 	num.subj <- length(unique(data$original.data[['id']]))
 	random.names <- inputs$dynamics@random.names
-	#print (num.subj)
-	#print (random.names)
 	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
 	for(i in 1:num.subj){
 	  for (j in 1:length(random.names))
