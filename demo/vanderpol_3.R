@@ -93,7 +93,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
 								beta.names=beta.names,
-								intercept.names=intercept.names, 
+								#intercept.names=intercept.names, 
 								random.names=random.names,
 							    random.lb = -5, 
 				                random.ub = 5,
@@ -119,15 +119,17 @@ print(dynm$random.lb)
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.c")
-print(model@random.params.inicov)
-print(model@random.values.inicov)
+
+#print(model@random.params.inicov)
+#print(model@random.values.inicov)
+
 #print(model@random)
 # to do consist the formula in Line 71 and here
 #model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
 #                     zeta_i_2 ~ 1*mu1 + 1*b_x1,
 #                      zeta_i_3 ~ 1*mu2 + 1*b_x2)
 
-#fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
 #print(fitted_model)
 
 # -------
