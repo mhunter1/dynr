@@ -2339,36 +2339,38 @@ autojacob <- function(formula, n, diff.variables){
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE, jacobian, ...){
 #state.names, theta.formula, theta.names, beta.names
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
-	dots <- list(...)
-	if(length(dots) > 0){
-		if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'intercept.names', 'random.lb', 'random.ub'))){
-			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
-		}
-		if(length(dots) == 8){
-			state.names <- dots$state.names
-			theta.names <- dots$theta.names
-			beta.names <- dots$beta.names
-			theta.formula <- dots$theta.formula
-			intercept.names <- dots$intercept.names
-			random.names <- dots$random.names
-			random.ub <-dots$random.ub
-			random.lb <-dots$random.lb
+  dots <- list(...)
+  if(length(dots) > 0){
+    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'intercept.names', 'random.lb', 'random.ub'))){
+      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+    }
+    if(length(dots) == 7){
+      state.names <- dots$state.names
+      #theta.names <- dots$theta.names
+      beta.names <- dots$beta.names
+      theta.formula <- dots$theta.formula
+      intercept.names <- dots$intercept.names
+      random.names <- dots$random.names
+      random.ub <-dots$random.ub
+      random.lb <-dots$random.lb
 			
 
-		}
-	}
+    }
+  }
 
   num.theta.formula <- length(theta.formula)
-  #print (num.theta.formula)
-  #print (state.names)  
   for (i in 1:length(state.names)){
-	#The theta for this state needs to be estimated. Generate the corresponding theta.names and theta.formula
-	# For state x, the corresponding theta.names = x_0
+	# generate the theta.formula for states
+	# for state x, the corresponding theta.names = x_0
+	#              the corresponding formula is x_0 ~ 0 
+	# (later in dynr.model, the formulas will be modified according to inputs of prep.initial
 	theta.formula[[i+num.theta.formula]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
 	theta.names[[i+num.theta.formula]] <- paste0(state.names[[i]],'_0')
   }
-  #print(theta.names)
-  #print(theta.formula)
+  
+  # retrieve theta.names from theta.formula instead of asking users to give inputs
+  fml=lapply(theta.formula, as.character)
+  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
 	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
@@ -2437,6 +2439,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   
   
   x$theta.formula <- theta.formula
+  x$theta.names <- theta.names
   x$intercept.names <- intercept.names
   x$random.names <- random.names
   x$random.ub <- random.ub
