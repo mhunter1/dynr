@@ -746,16 +746,15 @@ combineModelDataInformationSAEM <- function(model, data){
 	}
 	#print(model$allT) correct here
 
-	print(model$random.names)
-	print(model$theta.formula)
+	
 	#H & Z 
 	r =formula2design( 
 		model$theta.formula[[1]],
 		model$theta.formula[[2]],
 		model$theta.formula[[3]],
 		covariates=c(data$covariate.names, "1"),
-		random.names=model$random.names)
-		
+		random.names=model$random.names)	
+	r$fixed= r$fixed[ ,colnames(r$fixed) != '0']
 	
 	Z= apply(r$random, 1, as.numeric)
 	H = matrix(nrow=0, ncol=0)
