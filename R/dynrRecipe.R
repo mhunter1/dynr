@@ -2344,8 +2344,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
-    if(length(dots) == 6){
-      state.names <- dots$state.names
+    if(length(dots) == 5){
+      #state.names <- dots$state.names
       #theta.names <- dots$theta.names
       beta.names <- dots$beta.names
       theta.formula <- dots$theta.formula
@@ -2353,11 +2353,13 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
       random.names <- dots$random.names
       random.ub <-dots$random.ub
       random.lb <-dots$random.lb
-			
+	  
 
     }
   }
   
+  state.names <- unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+  #print(state.names)
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')

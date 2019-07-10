@@ -16,10 +16,10 @@ random.names = c('b_zeta')
 intercept.names = c('mu1', 'mu2', 'mu3')
 
 
-NxState = length(state.names)
-Nbeta = length(beta.names)
-Nx = NxState + Nbeta
-Ntheta = length(theta.names)
+#NxState = length(state.names)
+#Nbeta = length(beta.names)
+#Nx = NxState + Nbeta
+#Ntheta = length(theta.names)
 
 
 
@@ -65,7 +65,7 @@ mdcov <- prep.noise(
 
 formula=
     list(x1 ~ x2,
-         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2#,
+         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2 #,
 #         zeta0 ~0,
 #         zeta1 ~0,
 #         zeta2 ~0,
@@ -84,12 +84,13 @@ theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zet
 
 #theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
 #print(theta.formula2)
+
 dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                            zeta1=.5,
                                            zeta2=.2),
                                 isContinuousTime=FALSE,
-								state.names=state.names,
+								#state.names=state.names,
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
 								beta.names=beta.names,
