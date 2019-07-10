@@ -2357,34 +2357,58 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
     }
   }
-
-  num.theta.formula <- length(theta.formula)
-  for (i in 1:length(state.names)){
-	# generate the theta.formula for states
-	# for state x, the corresponding theta.names = x_0
-	#              the corresponding formula is x_0 ~ 0 
-	# (later in dynr.model, the formulas will be modified according to inputs of prep.initial
-	theta.formula[[i+num.theta.formula]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
-	theta.names[[i+num.theta.formula]] <- paste0(state.names[[i]],'_0')
-  }
   
-  # retrieve theta.names from theta.formula instead of asking users to give inputs
-  fml=lapply(theta.formula, as.character)
-  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
-	
+ 	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
   }
+  
+  if(saem == TRUE){
+    # processs the formula
+	# add the formula zeta ~ 0 for each zeta in startval
+    # add the formula init_x for each x in state.names
+    # later in dynr.model replace the name init_x with params.inistate in prep.initial
+	#print(formula[[1]])
+	startval.names <- names(startval)
+	num.state <- length(state.names)
+    num.formula <- length(formula)
+	for (i in 1:length(startval.names)){
+	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
+	}
+	for(i in 1:num.state){
+	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
+	  #formula[[1]][[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
+	}
+	#print(formula[[1]])
+	
+	
+	#process the theta formula
+	num.theta.formula <- length(theta.formula)
+    for (i in 1:length(state.names)){
+	  # generate the theta.formula for states
+	  # for state x, the corresponding theta.names = x_0
+	  #              the corresponding formula is x_0 ~ 0 
+	  # (later in dynr.model, the formulas will be modified according to inputs of prep.initial
+	  theta.formula[[i+num.theta.formula]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
+	  theta.names[[i+num.theta.formula]] <- paste0(state.names[[i]],'_0')
+    }
+  
+    # retrieve theta.names from theta.formula instead of asking users to give inputs
+    fml=lapply(theta.formula, as.character)
+    theta.names=unlist(lapply(fml,function(x){x[[2]]}))
+  }
+  
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
     formula <- list(formula)
 	if(saem == TRUE){	
 		#formula2: substitute the content within theta.formula
-		formula2 <- lapply(formula,function(x){parseFormulaTheta(x, theta.formula)})
+		formula2 <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})
 	} else {
 		formula2 <- formula
 	}
   }
+  
   
     
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, ...)
@@ -2404,30 +2428,30 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   formula_onlystate=retriveStateFormula(formula[[1]], state.names)
   
   #if (missing(dfdtheta)){
-	dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
+  dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
   #}
   x$dfdtheta <- dfdtheta
   x$theta.names<-theta.names
   
   #formula_onlystate=retriveStateFormula(formula,state.names)
   #if (missing(dfdx2)){
-	dfdx <- autojacobTry(formula_onlystate, diff.variables=state.names)
-	dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
+  dfdx <- autojacobTry(formula_onlystate, diff.variables=state.names)
+  dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
   #}
   x$dfdx2 <- dfdx2
   
   #if (missing(dfdxdtheta)){
-	dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
+  dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
   #}
   x$dfdxdtheta <- dfdxdtheta
   
   #if (missing(dfdthetadx)){
-	dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
+  dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
   #}
   x$dfdthetadx <- dfdthetadx
   
   #if (missing(dfdtheta2)){
-	dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
+  dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
   #}
   x$dfdtheta2 <- dfdtheta2
   x$beta.names <- beta.names

@@ -65,12 +65,12 @@ mdcov <- prep.noise(
 
 formula=
     list(x1 ~ x2,
-         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2,
-         zeta0 ~0,
-         zeta1 ~0,
-         zeta2 ~0,
-         mu_x1 ~0,
-         mu_x2 ~0
+         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2#,
+#         zeta0 ~0,
+#         zeta1 ~0,
+#         zeta2 ~0,
+#         mu_x1 ~0,
+#         mu_x2 ~0
     )
 #theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 #x1_0 ~ 1 * 0,

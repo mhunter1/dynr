@@ -558,9 +558,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if (armadillo==FALSE && !all(measurement@state.names == states.dyn)){
       stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
-	else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
-      stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
-    }
+	#else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
+    #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
+    #}
   }
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
@@ -644,6 +644,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   # handle b (random)
   if(armadillo==TRUE){
+	# replace the name init_x? as inputs$initial$params.inistate[[i]]
+	num.state = length(inputs$measurement$state.names)
+	num.formula = length(inputs$dynamics@formula[[1]])
+	for (i in 1:length(inputs$initial$params.inistate[[1]])){
+	  temp <- as.character(inputs$dynamics@formula[[1]][[num.formula-num.state+i]])
+	  temp <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][i] , temp)
+	  inputs$dynamics@formula[[1]][[num.formula-num.state+i]] <- as.formula(paste0(temp[[2]],' ~ ', temp[[3]]))
+	}
+	
 	
 	# num.theta.formula: number of theta formula that the user specifies.
 	num.theta.formula <- length(inputs$dynamics@theta.formula) - length(inputs$initial$params.inistate[[1]])
@@ -666,9 +675,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  }
 	}	
 	
-	print(inputs$dynamics@random.names)
-	print(inputs$dynamics@theta.names)
-	print(inputs$dynamics@theta.formula)
+	#print(inputs$dynamics@random.names)
+	#print(inputs$dynamics@theta.names)
+	#print(inputs$dynamics@theta.formula)
 	
 	Nx <- length(inputs$initial$params.inistate[[1]])
 	random.params.inicov = matrix(0L, 
