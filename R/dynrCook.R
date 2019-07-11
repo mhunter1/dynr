@@ -516,8 +516,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	if (output$exitflag > 0 && output2$hessian.status == 0 && sum(output2$bad.standard.errors) == 0){
 		cat('Successful trial\n')
 	} else {
-		msg <- paste0("These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "), ".")  
-		warning(msg, call.=FALSE)
+		if(hessian_flag){
+			msg <- paste0("These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "), ".")
+			warning(msg, call.=FALSE)
+		}
 	}
 	names(output2$transformed.parameters) <- dynrModel$param.names
 	if(debug_flag){
