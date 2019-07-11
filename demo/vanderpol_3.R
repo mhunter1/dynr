@@ -8,19 +8,12 @@
 
 library('dynr')
 state.names = c('x1', 'x2')
-beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
+#beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
 covariate.names = c('u1', 'u2')
 theta.names = c('zeta_i') 
 #[todo] Z*b's b
 random.names = c('b_zeta')
 intercept.names = c('mu1', 'mu2', 'mu3')
-
-
-#NxState = length(state.names)
-#Nbeta = length(beta.names)
-#Nx = NxState + Nbeta
-#Ntheta = length(theta.names)
-
 
 
 #random data
@@ -38,7 +31,7 @@ data <- dynr.data(vdpData, id="id", time="time",
 meas <- prep.measurement(
     #values.load=matrix(c(1,0), 1, 2),
     #params.load=matrix(c('fixed'), 1, 2),
-    values.load=matrix(c(1,0, 1,0,1,0), 3, 2),
+    values.load=matrix(c(1, 0, 1, 0,1, 0), 3, 2),
     params.load=matrix(c('fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=state.names,
@@ -72,28 +65,27 @@ formula=
 #         mu_x1 ~0,
 #         mu_x2 ~0
     )
+
 #theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 #x1_0 ~ 1 * 0,
 #x2_0 ~ 1 * 0)
-
-theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
 
 #theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 #                      x1_0 ~ 1 * mu_x1 + 1 * b_x1,
 #                      x2_0 ~ 1 * mu_x2 + 1 * b_x2)
 
-#theta.formula2 = prep.thetaFormula(theta.formula, intercept.names, random.names)
-#print(theta.formula2)
+theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
+
 
 dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                            zeta1=.5,
                                            zeta2=.2),
                                 isContinuousTime=FALSE,
-								#state.names=state.names,
+								state.names=c('yy','yy'),
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
-								beta.names=beta.names,
+								#beta.names=beta.names,
 								#intercept.names=intercept.names, 
 								random.names=random.names,
 							    random.lb = -5, 
@@ -101,6 +93,19 @@ dynm<-prep.formulaDynamics(formula=formula,
 								saem=TRUE)
 print(dynm$random.lb)
 								
+
+
+model <- dynr.model(dynamics=dynm, measurement=meas,
+                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
+                    outfile="VanDerPol.c")
+
+
+
+fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+#print(fitted_model)
+
+# -------
+# previous perp.random interface
 # ran <- prep.random(random.names=random.names, 
 				   # num.subj = N, 
 				   # random.lb = c(-.1, -.1, -.1), 
@@ -116,22 +121,6 @@ print(dynm$random.lb)
 #model <- dynr.model(dynamics=dynm, measurement=meas,
 #                    noise=mdcov, initial=initial, data=data, random=ran, armadillo=TRUE,
 #                    outfile="VanDerPol.c")
-
-model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
-                    outfile="VanDerPol.c")
-
-#print(model@random.params.inicov)
-#print(model@random.values.inicov)
-
-#print(model@random)
-# to do consist the formula in Line 71 and here
-#model@dynamics@theta.formula = list( zeta_i ~ 1*zeta_0 + u1*zeta_1 + u2*zeta_2 + 1*b_zeta,
-#                     zeta_i_2 ~ 1*mu1 + 1*b_x1,
-#                      zeta_i_3 ~ 1*mu2 + 1*b_x2)
-
-fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
-#print(fitted_model)
 
 # -------
 # previous implemented function: write a matrix in R to Armadillo Code format
