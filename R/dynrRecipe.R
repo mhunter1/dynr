@@ -2340,26 +2340,27 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 #state.names, theta.formula, theta.names, beta.names
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
   dots <- list(...)
+  print(length(dots))
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
-    if(length(dots) == 5){
-      #state.names <- dots$state.names
-      #theta.names <- dots$theta.names
-      beta.names <- dots$beta.names
-      theta.formula <- dots$theta.formula
-      #intercept.names <- dots$intercept.names
-      random.names <- dots$random.names
-      random.ub <-dots$random.ub
-      random.lb <-dots$random.lb
-	  
-
-    }
+    #if(length(dots) == 5){
+    #state.names <- dots$state.names
+	#print(state.names)
+    #theta.names <- dots$theta.names
+    #beta.names <- dots$beta.names
+    theta.formula <- dots$theta.formula
+    #intercept.names <- dots$intercept.names
+    random.names <- dots$random.names
+    random.ub <-dots$random.ub
+    random.lb <-dots$random.lb
+    #}
   }
   
-  state.names <- unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  #print(state.names)
+  #print("second")
+  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+  print(state.names == c('x1', 'x2'))
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
@@ -2374,14 +2375,17 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	startval.names <- names(startval)
 	num.state <- length(state.names)
     num.formula <- length(formula)
+	beta.names <- startval.names
 	for (i in 1:length(startval.names)){
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
 	for(i in 1:num.state){
 	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
 	  #formula[[1]][[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
+	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 	}
 	#print(formula[[1]])
+	print(beta.names)
 	
 	
 	#process the theta formula
