@@ -2382,9 +2382,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
 	for(i in 1:num.state){
-	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
+	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
 	  #formula[[1]][[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
-	  beta.names = c(beta.names, paste0('mu_',state.names[[i]]))
+	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 	}
 	#print(formula[[1]])
 	print(beta.names)
