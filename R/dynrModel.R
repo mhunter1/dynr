@@ -656,33 +656,36 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	#----old version end---
 	for (i in 1:length(inputs$initial$params.inistate[[1]])){
 	  #state.names
-	  inputs$dynamics@state.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], inputs$dynamics@state.names)
+	  inputs$dynamics@state.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@state.names)
+	  
+	  
+	  inputs$dynamics@beta.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@beta.names)
 	  
 	  #formula
-	  inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #jacobian
-	  inputs$dynamics@jacobian[[1]] <- lapply(as.character(inputs$dynamics@jacobian[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@jacobian[[1]] <- lapply(as.character(inputs$dynamics@jacobian[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #dfdtheta
-	  inputs$dynamics@dfdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@dfdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #dfdx2
-	  inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #dfdxdtheta
-	  inputs$dynamics@dfdxdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdxdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@dfdxdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdxdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #dfdthetadx
-	  inputs$dynamics@dfdthetadx[[1]] <- lapply(as.character(inputs$dynamics@dfdthetadx[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@dfdthetadx[[1]] <- lapply(as.character(inputs$dynamics@dfdthetadx[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	  
 	  #dfdtheta2
-	  inputs$dynamics@dfdtheta2[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]], x))})		
+	  inputs$dynamics@dfdtheta2[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})		
 	  
 	  #theta.formula
-	  inputs$dynamics@theta.formula <- lapply(as.character(inputs$dynamics@theta.formula), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][[i]], x))})
+	  inputs$dynamics@theta.formula <- lapply(as.character(inputs$dynamics@theta.formula), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
 	}
-	#print(inputs$dynamics@dfdx2[[1]])
+	#print(inputs$dynamics@formula[[1]])
 	
 	
 	# num.theta.formula: number of theta formula that the user specifies.
