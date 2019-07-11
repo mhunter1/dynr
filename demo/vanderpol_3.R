@@ -9,6 +9,7 @@
 library('dynr')
 state.names = c('x1', 'x2')
 #beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
+beta.names = c('zeta0', 'zeta1', 'zeta2')
 covariate.names = c('u1', 'u2')
 theta.names = c('zeta_i') 
 #[todo] Z*b's b
@@ -85,7 +86,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 								#state.names=state.names,
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
-								#beta.names=beta.names,
+								beta.names=beta.names,
 								#intercept.names=intercept.names, 
 								random.names=random.names,
 							    random.lb = -5, 

@@ -2347,10 +2347,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     }
     #if(length(dots) == 5){
     state.names <- dots$state.names
-	print(state.names)
-	print(length(state.names))
+	#print(state.names)
+	#print(length(state.names))
     #theta.names <- dots$theta.names
-    #beta.names <- dots$beta.names
+    beta.names <- dots$beta.names
     theta.formula <- dots$theta.formula
     #intercept.names <- dots$intercept.names
     random.names <- dots$random.names
@@ -2367,6 +2367,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
   }
+  if( length(beta.names) != length(names(startval)) || !all(beta.names == names(startval), TRUE)){
+      stop('the variables in startval must be specified following the same order of beta.names')
+  }
   
   if(saem == TRUE){
     # processs the formula
@@ -2377,7 +2380,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	startval.names <- names(startval)
 	num.state <- length(state.names)
     num.formula <- length(formula)
-	beta.names <- startval.names
+	#beta.names <- startval.names
 	for (i in 1:length(startval.names)){
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
