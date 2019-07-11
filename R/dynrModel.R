@@ -652,10 +652,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	#  temp <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]][i] , temp)
 	#  inputs$dynamics@formula[[1]][[num.formula-num.state+i]] <- as.formula(paste0(temp[[2]],' ~ ', temp[[3]]))
 	#}
-	for (i in 1:length(inputs$initial$params.inistate[[1]])){
-	  inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]], x))})
-	}
-	print(inputs$dynamics@formula[[1]])
+	
+	#for (i in 1:length(inputs$initial$params.inistate[[1]])){
+	#  inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]], x))})
+	  
+	#  inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial$params.inistate[[1]], x))})
+	#}
+	#print(inputs$dynamics@dfdx2[[1]])
 	
 	
 	# num.theta.formula: number of theta formula that the user specifies.

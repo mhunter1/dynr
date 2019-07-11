@@ -2346,8 +2346,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
     #if(length(dots) == 5){
-    #state.names <- dots$state.names
-	#print(state.names)
+    state.names <- dots$state.names
+	print(state.names)
+	print(length(state.names))
     #theta.names <- dots$theta.names
     #beta.names <- dots$beta.names
     theta.formula <- dots$theta.formula
@@ -2360,7 +2361,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   
   #print("second")
   state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  print(state.names == c('x1', 'x2'))
+  print(state.names)
+  print(length(state.names))
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
@@ -2380,9 +2382,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
 	for(i in 1:num.state){
-	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
+	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
 	  #formula[[1]][[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
-	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
+	  beta.names = c(beta.names, paste0('mu_',state.names[[i]]))
 	}
 	#print(formula[[1]])
 	print(beta.names)
@@ -2469,6 +2471,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$random.names <- random.names
   x$random.ub <- random.ub
   x$random.lb <- random.lb
+  x$state.names <- state.names
   
   return(new("dynrDynamicsFormula", x))
 }
