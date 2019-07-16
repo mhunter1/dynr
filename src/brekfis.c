@@ -40,6 +40,9 @@
  */
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config, ParamInit *init, Param *param){
 	int DEBUG_BREKFIS = 0; /*0=false/no; 1=true/yes*/
+	if(DEBUG_BREKFIS){
+		MYPRINT("Called brekfis\n");
+	}
     size_t t, regime_j, regime_k, sbj;
     double neg_log_p, p, log_like=0, innov_determinant;
 
@@ -113,6 +116,10 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     gsl_matrix *diff_eta=gsl_matrix_alloc(config->dim_latent_var, 1);
     gsl_matrix *modif_p=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
 
+	if(DEBUG_BREKFIS){
+		MYPRINT("Finished initializing brekfis\nStarting subject brekfis loop\n");
+	}
+
 
     /********************************************************************************/
 
@@ -149,9 +156,6 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
 				}
 				
-				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
-				//model_constraint_par(config, param);
-				
 				if(DEBUG_BREKFIS){
 					MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
 					MYPRINT("\n");
@@ -168,6 +172,17 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					print_matrix(param->eta_noise_cov);
 					MYPRINT("\n");
 				}
+				
+				if(DEBUG_BREKFIS){
+					MYPRINT("About to call func_noise_cov\n");
+				}
+				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
+				//model_constraint_par(config, param);
+				
+				if(DEBUG_BREKFIS){
+					MYPRINT("Done with func_noise_cov\n");
+				}
+				
 				
 				
 				for(regime_k=0; regime_k < config->num_regime; regime_k++){/*to regime k*/
