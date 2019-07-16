@@ -89,6 +89,9 @@ double ext_kalmanfilter(size_t t,
 		bool isFirstTime){
 	
 	int DEBUG_EKF = 0; /*0=false/no; 1=true/yes*/
+	if(DEBUG_EKF){
+		MYPRINT("Called ext_kalmanfilter\n");
+	}
 	
 	double det;
 	size_t nx=eta_t->size;
@@ -281,29 +284,33 @@ double ext_kalmanfilter(size_t t,
 		print_matrix(error_cov_t_plus_1);
 		MYPRINT("\n");
 	}
-	/*
-	MYPRINT("Hk:\n");
-	print_matrix(H_t_plus_1);
-	MYPRINT("\n");
-	MYPRINT("ph:\n");
-	print_matrix(ph);
-	MYPRINT("\n");
-	*/
+	if(DEBUG_EKF){
+		MYPRINT("Hk:\n");
+		print_matrix(H_t_plus_1);
+		MYPRINT("\n");
+		MYPRINT("ph:\n");
+		print_matrix(ph);
+		MYPRINT("\n");
+	}
 	
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, H_t_plus_1, ph, 0.0, innov_cov); /* compute H*P*H'*/
-	/*MYPRINT("jacob_measure:\n");
-	print_matrix(jacob_measure);
-	MYPRINT("\n");*/
-	/*MYPRINT("ph:\n");
-	print_matrix(ph);
-	MYPRINT("\n");*/
+	if(DEBUG_EKF){
+		/*MYPRINT("jacob_measure:\n");
+		print_matrix(jacob_measure);
+		MYPRINT("\n");*/
+		MYPRINT("ph:\n");
+		print_matrix(ph);
+		MYPRINT("\n");
+	}
 	/*mathfunction_matrix_mul(jacob_measure, ph, false, false, innov_cov);*/
 	
-	/*MYPRINT("H*P(%d)*H':\n", t);
-	print_matrix(innov_cov);
-	MYPRINT("R(%d):\n", t);
-	print_matrix(y_noise_cov);
-	MYPRINT("\n");*/
+	if(DEBUG_EKF){
+		MYPRINT("H*P(%d)*H':\n", t);
+		print_matrix(innov_cov);
+		MYPRINT("R(%d):\n", t);
+		print_matrix(y_noise_cov);
+		MYPRINT("\n");
+	}
 	
 	gsl_matrix_add(innov_cov, y_noise_cov); /*compute H*P*H'+R*/
 	
@@ -323,23 +330,26 @@ double ext_kalmanfilter(size_t t,
 	det = mathfunction_inv_matrix_det(innov_cov, inv_innov_cov);
 	
 	
-	/*MYPRINT("inv_innov_cov:\n");
-	print_matrix(inv_innov_cov);
-	MYPRINT("\n");
-	exit(0);*/
+	if(DEBUG_EKF){
+		MYPRINT("inv_innov_cov:\n");
+		print_matrix(inv_innov_cov);
+		MYPRINT("\n");
+	}
 	
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
 	
 	
-	/*MYPRINT("ph:\n");
-	print_matrix(ph);
-	MYPRINT("\n");
-	MYPRINT("inverse residu:\n");
-	print_matrix(inv_innov_cov);
-	MYPRINT("\n");
-	MYPRINT("kalman_gain:\n");
-	print_matrix(kalman_gain);
-	MYPRINT("\n");*/
+	if(DEBUG_EKF){
+		MYPRINT("ph:\n");
+		print_matrix(ph);
+		MYPRINT("\n");
+		MYPRINT("inverse residu:\n");
+		print_matrix(inv_innov_cov);
+		MYPRINT("\n");
+		MYPRINT("kalman_gain:\n");
+		print_matrix(kalman_gain);
+		MYPRINT("\n");
+	}
 	
 	/*------------------------------------------------------*\
 	* Fitered Estimate *
@@ -355,13 +365,26 @@ double ext_kalmanfilter(size_t t,
 		if(gsl_vector_get(y_non_miss, i) == 1)
 			continue;
 		gsl_vector_set(innov_v, i, 0);
+		/* Set COLUMN of kalman_gain to zero for missing data */
+		for(size_t j=0; j < kalman_gain->size1; j++){
+			gsl_matrix_set(kalman_gain, j, i, 0);
+		}
+	}
+	
+	if(DEBUG_EKF){
+		MYPRINT("Filtered kalman_gain:\n");
+		print_matrix(kalman_gain);
+		MYPRINT("\n");
 	}
 	
 	gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
 	
-	/*MYPRINT("eta_corrected(%lf):", y_time[t]);
-	print_vector(eta_t_plus_1);
-	MYPRINT("\n");*/
+	
+	if(DEBUG_EKF){
+		MYPRINT("eta_corrected(%lf):", y_time[t]);
+		print_vector(eta_t_plus_1);
+		MYPRINT("\n");
+	}
 	
 	
 	/*------------------------------------------------------*\
@@ -732,7 +755,11 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 	for(i=0; i<y_non_miss->size; i++){
 		if(gsl_vector_get(y_non_miss, i)==1)
 			continue;
-			gsl_vector_set(innov_v, i, 0); 
+		gsl_vector_set(innov_v, i, 0);
+		/* Set COLUMN of kalman_gain to zero for missing data */
+		for(size_t j=0; j < kalman_gain->size1; j++){
+			gsl_matrix_set(kalman_gain, j, i, 0);
+		}
 	}
 
     gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
