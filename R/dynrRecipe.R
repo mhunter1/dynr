@@ -686,7 +686,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 		formula <- object$formula
 		jacob <- object$jacobian
 		nregime <- length(formula)
-		n <- sapply(formula,length)
+		n <- sapply(formula, length)
 		
 		fml <- lapply(formula, processFormula)
 		lhs <- lapply(fml, function(x){lapply(x, "[[", 1)})
@@ -761,66 +761,62 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 			
 		} else{ # is Discrete Time
 			#function_dynam
-	    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-	    
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
-	        for (i in 1:n[r]){
-	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
-	          }
-	          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:n){
-	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
-	        }
-	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	    
-	    #function_jacob_dynam
-	    ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
-	        for (i in 1:length(jacob[[r]])){
-	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
-	          }
-	          
-	          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:length(jacob[[1]])){
-	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
-	        }
-	        
-	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	  }
-	  object@c.string <- ret
-	  return(object)
+			ret <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+			
+			if (nregime > 1){ #multiple regimes (regime-switching)
+				ret <- paste(ret, "switch (regime) {", sep="\n\t")
+				for (r in 1:nregime){
+					ret <- paste(ret, paste0("\tcase ", r-1, ":"), sep="\n\t")
+					for (i in 1:n[r]){
+						for (j in 1:length(lhs[[r]])){
+							rhs[[r]][[i]] <- gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("gsl_vector_get(xstart,", j-1, ")"), rhs[[r]][[i]])
+							# TODO replace this and similar lines with swapFormula <- function(lhs=lhs[[r]][[j]], replacement=j-1, rhs=rhs[[r]][[i]], target='xstart')
+							# TODO replace this and similar triple nested for(){} loops with swapFormulaLoop <- function(nregime, n, lhs, rhs, target, ...)
+						}
+						ret <- paste(ret, paste0("\tgsl_vector_set(x_tend,", i-1, ",", rhs[[r]][[i]], ");"), sep="\n\t")
+					}
+					ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+				}
+				ret <- paste(ret, paste0("\t}"), sep="\n\t")
+			}else{ # one regime (single regime)
+				for (i in 1:n){
+					for (j in 1:length(lhs[[1]])){
+						rhs[[1]][[i]] <- gsub(paste0("\\<", lhs[[1]][[j]],"\\>"), paste0("gsl_vector_get(xstart,", j-1, ")"), rhs[[1]][[i]])
+					}
+					ret <- paste(ret, paste0("\tgsl_vector_set(x_tend,", i-1, ",", rhs[[1]][[i]], ");"), sep="\n\t")
+				}
+			}
+			ret <- paste0(ret, "\n\t}")
+			
+			#function_jacob_dynam
+			ret <- paste0(ret, "\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
+			if (nregime > 1){
+				ret <- paste(ret, "switch (regime) {", sep="\n\t")
+				for (r in 1:nregime){
+					ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
+					for (i in 1:length(jacob[[r]])){
+						for (j in 1:length(lhs[[r]])){
+							rhsj[[r]][[i]] <- gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
+						}
+						ret <- paste(ret, paste0("\tgsl_matrix_set(Jx,", which(lhs[[r]] == row[[r]][[i]])-1, ",", which(lhs[[r]] == col[[r]][[i]])-1, ",", rhsj[[r]][[i]], ");"), sep="\n\t")
+					}
+					ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+				}
+				ret <- paste(ret, paste0("\t}"), sep="\n\t")
+			}else{
+				for (i in 1:length(jacob[[1]])){
+					for (j in 1:length(lhs[[1]])){
+						rhsj[[1]][[i]] <- gsub(paste0("\\<", lhs[[1]][[j]], "\\>"), paste0("gsl_vector_get(xstart,", j-1, ")"), rhsj[[1]][[i]])
+					}
+					ret <- paste(ret, paste0("\tgsl_matrix_set(Jx,", which(unlist(lhs[[1]]) == row[[1]][[i]])-1, ",", which(unlist(lhs[[1]]) == col[[1]][[i]])-1, ",", rhsj[[1]][[i]], ");"), sep="\n\t")
+				}
+			}
+			
+			ret <- paste0(ret, "\n\t}")
+			
+		} # end discrete time ifelse
+		object@c.string <- ret
+		return(object)
 	}
 )
 #Example
