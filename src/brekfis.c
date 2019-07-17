@@ -177,7 +177,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					MYPRINT("About to call func_noise_cov\n");
 				}
 				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
-				//model_constraint_par(config, param);
+				model_constraint_par(config, param);
 				
 				if(DEBUG_BREKFIS){
 					MYPRINT("Done with func_noise_cov\n");
@@ -794,7 +794,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 }
 
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
-                //model_constraint_par(config, param);
+                model_constraint_par(config, param);
 
                 /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
                 MYPRINT("\n");
