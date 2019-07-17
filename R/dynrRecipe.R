@@ -701,82 +701,88 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 			selected <- covariates[i]
 			get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected)-1, ")")
 			rhs <- lapply(gsub(paste0("\\<", selected, "\\>"), get, rhs), function(x){eval(parse(text=x))})
-			rhsj <- lapply(gsub(paste0("\\<",selected, "\\>"), get, rhsj), function(x){eval(parse(text=x))})
+			rhsj <- lapply(gsub(paste0("\\<", selected, "\\>"), get, rhsj), function(x){eval(parse(text=x))})
 		}
 		
 		if (object@isContinuousTime){
 			#function_dx_dt
 			ret <- "void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
 			
-			ret <- paste(ret, "switch (regime) {", sep="\n\t")
-			for (r in 1:nregime){
-				ret <- paste(ret, paste0("\tcase ", r-1, ":"), sep="\n\t")
-				for (i in 1:n[r]){
-					for (j in 1:length(lhs[[r]])){
-						rhs[[r]][[i]] <- gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("gsl_vector_get(x,", j-1, ")"), rhs[[r]][[i]])
-					}
-					ret <- paste(ret, paste0("\tgsl_vector_set(F_dx_dt,", i-1, ",", rhs[[r]][[i]], ");"), sep="\n\t")
-				}
-				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
-			}
-			ret <- paste(ret, paste0("\t}"), sep="\n\t")
-			
-			ret <- paste0(ret, "\n\t}")
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhs, target1='gsl_vector_get(x, ', close=')', target2='gsl_vector_set(F_dx_dt, ', vector=TRUE))
+#			ret <- paste(ret, "switch (regime) {", sep="\n\t")
+#			for (r in 1:nregime){
+#				ret <- paste(ret, paste0("\tcase ", r-1, ":"), sep="\n\t")
+#				for (i in 1:n[r]){
+#					for (j in 1:length(lhs[[r]])){
+#						rhs[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhs[[r]][[i]], vtarget='gsl_vector_get(x, ', close=')') #gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("gsl_vector_get(x,", j-1, ")"), rhs[[r]][[i]])
+#					}
+#					ret <- paste(ret, paste0("\tgsl_vector_set(F_dx_dt,", i-1, ",", rhs[[r]][[i]], ");"), sep="\n\t")
+#				}
+#				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+#			}
+#			ret <- paste(ret, paste0("\t}"), sep="\n\t")
+#			
+#			ret <- paste0(ret, "\n\t}")
 			
 			#function_dF_dx
 			ret <- paste0(ret, "\n\n/**\n* The dF/dx function\n* The partial derivative of the jacobian of the DE function with respect to the variable x\n* @param param includes at the end the current state estimates in the same order as the states following the model parameters\n*/void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
-			ret <- paste(ret, "switch (regime) {", sep="\n\t")
-			for (r in 1:nregime){
-				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
-				for (i in 1:length(jacob[[r]])){
-					for (j in 1:length(lhs[[r]])){
-						rhsj[[r]][[i]] <- gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("param[NUM_PARAM+", j-1, "]"), rhsj[[r]][[i]])
-					}
-					ret <- paste(ret, paste0("\tgsl_matrix_set(F_dx_dt_dx,", which(lhs[[r]] == row[[r]][[i]])-1, ",", which(lhs[[r]] == col[[r]][[i]])-1, ",", rhsj[[r]][[i]], ");"), sep="\n\t")
-				}
-				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
-			}
-			ret <- paste(ret, paste0("\t}"), sep="\n\t")
 			
-			ret <- paste0(ret, "\n\t}")
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhsj, target1='param[NUM_PARAM+', close=']', target2='gsl_matrix_set(F_dx_dt_dx, ', row=row, col=col))
+#			ret <- paste(ret, "switch (regime) {", sep="\n\t")
+#			for (r in 1:nregime){
+#				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
+#				for (i in 1:length(jacob[[r]])){
+#					for (j in 1:length(lhs[[r]])){
+#						rhsj[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhsj[[r]][[i]], vtarget='param[NUM_PARAM+', close=']') #gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("param[NUM_PARAM+", j-1, "]"), rhsj[[r]][[i]])
+#					}
+#					ret <- paste(ret, paste0("\tgsl_matrix_set(F_dx_dt_dx,", which(lhs[[r]] == row[[r]][[i]])-1, ",", which(lhs[[r]] == col[[r]][[i]])-1, ",", rhsj[[r]][[i]], ");"), sep="\n\t")
+#				}
+#				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+#			}
+#			ret <- paste(ret, paste0("\t}"), sep="\n\t")
+#			
+#			ret <- paste0(ret, "\n\t}")
 			
 		} else{ # is Discrete Time
 			#function_dynam
 			ret <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
 			
-			ret <- paste(ret, "switch (regime) {", sep="\n\t")
-			for (r in 1:nregime){
-				ret <- paste(ret, paste0("\tcase ", r-1, ":"), sep="\n\t")
-				for (i in 1:n[r]){
-					for (j in 1:length(lhs[[r]])){
-						rhs[[r]][[i]] <- gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("gsl_vector_get(xstart,", j-1, ")"), rhs[[r]][[i]])
-						# TODO replace this and similar lines with swapFormula <- function(lhs=lhs[[r]][[j]], replacement=j-1, rhs=rhs[[r]][[i]], target='xstart')
-						# TODO replace this and similar triple nested for(){} loops with swapFormulaLoop <- function(nregime, n, lhs, rhs, target, ...)
-					}
-					ret <- paste(ret, paste0("\tgsl_vector_set(x_tend,", i-1, ",", rhs[[r]][[i]], ");"), sep="\n\t")
-				}
-				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
-			}
-			ret <- paste(ret, paste0("\t}"), sep="\n\t")
-			
-			ret <- paste0(ret, "\n\t}")
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhs, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_vector_set(x_tend, ', vector=TRUE))
+#			ret <- paste(ret, "switch (regime) {", sep="\n\t")
+#			for (r in 1:nregime){
+#				ret <- paste(ret, paste0("\tcase ", r-1, ":"), sep="\n\t")
+#				for (i in 1:n[r]){
+#					for (j in 1:length(lhs[[r]])){
+#						rhs[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhs[[r]][[i]], vtarget='gsl_vector_get(xstart, ', close=')') #gsub(paste0("\\<", lhs[[r]][[j]], "\\>"), paste0("gsl_vector_get(xstart,", j-1, ")"), rhs[[r]][[i]])
+#						# TODO replace this and similar lines with cswapDynamicsFormula <- function(lhs=lhs[[r]][[j]], replacement=j-1, rhs=rhs[[r]][[i]], target='xstart')
+#						# TODO replace this and similar triple nested for(){} loops with swapFormulaLoop <- function(nregime, n, lhs, rhs, target, ...)
+#					}
+#					ret <- paste(ret, paste0("\tgsl_vector_set(x_tend,", i-1, ",", rhs[[r]][[i]], ");"), sep="\n\t")
+#				}
+#				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+#			}
+#			ret <- paste(ret, paste0("\t}"), sep="\n\t")
+#			
+#			ret <- paste0(ret, "\n\t}")
 			
 			#function_jacob_dynam
 			ret <- paste0(ret, "\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
-			ret <- paste(ret, "switch (regime) {", sep="\n\t")
-			for (r in 1:nregime){
-				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
-				for (i in 1:length(jacob[[r]])){
-					for (j in 1:length(lhs[[r]])){
-						rhsj[[r]][[i]] <- gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
-					}
-					ret <- paste(ret, paste0("\tgsl_matrix_set(Jx,", which(lhs[[r]] == row[[r]][[i]])-1, ",", which(lhs[[r]] == col[[r]][[i]])-1, ",", rhsj[[r]][[i]], ");"), sep="\n\t")
-				}
-				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
-			}
-			ret <- paste(ret, paste0("\t}"), sep="\n\t")
 			
-			ret <- paste0(ret, "\n\t}")
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhsj, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_matrix_set(Jx, ', row=row, col=col))
+#			ret <- paste(ret, "switch (regime) {", sep="\n\t")
+#			for (r in 1:nregime){
+#				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
+#				for (i in 1:length(jacob[[r]])){
+#					for (j in 1:length(lhs[[r]])){
+#						rhsj[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhsj[[r]][[i]], vtarget='gsl_vector_get(xstart, ', close=')') #gsub(paste0("\\<", lhs[[r]][[j]],"\\>"), paste0("gsl_vector_get(xstart,", j-1,")"), rhsj[[r]][[i]])
+#					}
+#					ret <- paste(ret, paste0("\tgsl_matrix_set(Jx,", which(lhs[[r]] == row[[r]][[i]])-1, ",", which(lhs[[r]] == col[[r]][[i]])-1, ",", rhsj[[r]][[i]], ");"), sep="\n\t")
+#				}
+#				ret <- paste(ret, paste0("break;\n"), sep="\n\t")
+#			}
+#			ret <- paste(ret, paste0("\t}"), sep="\n\t")
+#			
+#			ret <- paste0(ret, "\n\t}")
 			
 		} # end discrete time ifelse
 		object@c.string <- ret
@@ -792,6 +798,32 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 # )
 # dynam<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE)
 # cat(writeCcode(dynam)$c.string)
+
+cswapDynamicsFormula <- function(lhs, index, rhs, vtarget, close){
+	return(gsub(paste0("\\<", lhs, "\\>"), paste0(vtarget, index, close), rhs))
+}
+
+cswapDynamicsFormulaLoop <- function(nregime, n, lhs, rhs, target1, close, target2, vector=FALSE, row=NULL, col=NULL){
+	ans <- paste0("\n\t", "switch (regime) {")
+	for (r in 1:nregime){
+		ans <- paste(ans, paste0("\tcase ", r-1, ":"), sep="\n\t")
+		for (i in 1:n[r]){
+			for (j in 1:length(lhs[[r]])){
+				rhs[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhs[[r]][[i]], vtarget=target1, close=close)
+			}
+			if(vector){
+				ans <- paste(ans, paste0("\t", target2, i-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+			} else {
+				ans <- paste(ans, paste0("\t", target2, which(lhs[[r]] == row[[r]][[i]])-1, ", ", which(lhs[[r]] == col[[r]][[i]])-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+			}
+		}
+		ans <- paste(ans, paste0("break;\n"), sep="\n\t")
+	}
+	ans <- paste(ans, paste0("\t}"), sep="\n\t")
+	
+	ans <- paste0(ans, "\n\t}")
+	return(ans)
+}
 
 setMethod("writeCcode", "dynrDynamicsMatrix",
 	function(object, covariates){
