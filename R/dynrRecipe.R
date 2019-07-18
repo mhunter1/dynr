@@ -55,7 +55,10 @@ setClass(Class = "dynrMeasurement",
            params.int = "list",
            state.names="character",
            obs.names="character",
-           exo.names="character"),
+           exo.names="character",
+		   dmudparMu="matrix",
+		   dmudparMu2="matrix"
+		   ),
          contains = "dynrRecipe"
 )
 
@@ -1936,9 +1939,13 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	sv <- extractValues(sv, pn)
 	pn <- extractParams(pn)
 	
+	#for SAEM purpose
+	dmudparMu <- diag(length(obs.names))
+	dmudparMu2 <- matrix(0, length(obs.names)*length(obs.names), length(obs.names))
+	
 	x <- list(startval=sv, paramnames=pn, values.load=values.load, params.load=params.load,
 		values.exo=values.exo, params.exo=params.exo, values.int=values.int, params.int=params.int,
-		obs.names=obs.names, state.names=state.names, exo.names=exo.names)
+		obs.names=obs.names, state.names=state.names, exo.names=exo.names, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2)
 	return(new("dynrMeasurement", x))
 }
 
