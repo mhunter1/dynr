@@ -687,6 +687,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 		jacob <- object$jacobian
 		nregime <- length(formula)
 		n <- sapply(formula, length)
+		nj <- sapply(jacob, length)
 		
 		fml <- lapply(formula, processFormula)
 		lhs <- lapply(fml, function(x){lapply(x, "[[", 1)})
@@ -727,7 +728,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 			#function_dF_dx
 			ret <- paste0(ret, "\n\n/**\n* The dF/dx function\n* The partial derivative of the jacobian of the DE function with respect to the variable x\n* @param param includes at the end the current state estimates in the same order as the states following the model parameters\n*/void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
 			
-			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhsj, target1='param[NUM_PARAM+', close=']', target2='gsl_matrix_set(F_dx_dt_dx, ', row=row, col=col))
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=nj, lhs=lhs, rhs=rhsj, target1='param[NUM_PARAM+', close=']', target2='gsl_matrix_set(F_dx_dt_dx, ', row=row, col=col))
 #			ret <- paste(ret, "switch (regime) {", sep="\n\t")
 #			for (r in 1:nregime){
 #				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
@@ -768,7 +769,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 			#function_jacob_dynam
 			ret <- paste0(ret, "\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
 			
-			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhsj, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_matrix_set(Jx, ', row=row, col=col))
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=nj, lhs=lhs, rhs=rhsj, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_matrix_set(Jx, ', row=row, col=col))
 #			ret <- paste(ret, "switch (regime) {", sep="\n\t")
 #			for (r in 1:nregime){
 #				ret <- paste(ret, paste0("case ", r-1, ":"), sep="\n\t")
