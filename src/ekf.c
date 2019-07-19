@@ -98,6 +98,8 @@ double ext_kalmanfilter(size_t t,
 	
 	size_t i,j;
 	
+	/*NB ext_kalmanfilter_smoother() has innov_cov passed to it rather than allocating it*/
+	
 	/* Allocate matrix pointers */
 	gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size, nx);
 	gsl_matrix *ph=gsl_matrix_calloc(eta_t->size, y_t_plus_1->size); /* P*H' - error_cov*jacob'*/
@@ -130,6 +132,9 @@ double ext_kalmanfilter(size_t t,
 		MYPRINT("\n");
 	}
 	
+	/*NB ext_kalmanfilter_smoother() also memcpy's eta_t_plus_1
+	  Add if(isFirstTime || isSmoother ){} */
+	
 	if(isFirstTime){
 		gsl_vector_memcpy(eta_t_plus_1,eta_t);
 	} else{
@@ -156,7 +161,7 @@ double ext_kalmanfilter(size_t t,
 	/*------------------------------------------------------*\
 	* update P *
 	\*------------------------------------------------------*/
-	if (!isFirstTime & isContinuousTime){
+	if (!isFirstTime & isContinuousTime){ /*NB ((!isFirstTime || isSmoother) & isContinuousTime)*/
 		
 		gsl_vector *Pnewvec = gsl_vector_calloc(nx*(nx+1)/2);
 		gsl_vector *error_cov_t_vec = gsl_vector_calloc(nx*(nx+1)/2);
@@ -233,6 +238,7 @@ double ext_kalmanfilter(size_t t,
 		gsl_vector_free(Pnewvec);
 		
 	} else if(!isFirstTime & !isContinuousTime) { /* end continuous time "Update P" calculation */
+		/*NB if((!isFirstTime || isSmoother) & !isContinuousTime)*/
 		
 		/*Update P for discrete time*/
 		gsl_matrix *jacob_dynam = gsl_matrix_calloc(nx,nx);
@@ -259,6 +265,9 @@ double ext_kalmanfilter(size_t t,
 	\*------------------------------------------------------*/
 	
 	/** step 2.1: compute measurement y_hat(t+1|t) **/
+	
+	/*NB following line is in smoother but not here*/
+	//    gsl_matrix_memcpy(error_cov_pred,error_cov_t_plus_1);
 	
 	if(DEBUG_EKF){
 		MYPRINT("eta(%d):",t);
@@ -443,7 +452,7 @@ double ext_kalmanfilter(size_t t,
 	
 	/** free allocated space **/
 	gsl_matrix_free(ph);
-	gsl_matrix_free(innov_cov);
+	gsl_matrix_free(innov_cov); /*NB not freed in ext_kalmanfilter_smoother because it is passed as an argument rather than allocated */
 	gsl_matrix_free(kalman_gain);
 	gsl_matrix_free(H_t_plus_1);
 	gsl_vector_free(cp_y_t_plus_1);
