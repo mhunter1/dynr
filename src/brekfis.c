@@ -606,9 +606,10 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t,
 	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t){
 
+	/*MYPRINT("Called EKimFilter()");*/
 
     /************** initialization *****************************************************************/
-    size_t t, index_sbj_t, regime_j, regime_k, sbj;
+    size_t t, index_sbj_t, regime_j, regime_k, sbj, tprev;
     double neg_log_p,p, log_like=0, innov_determinant;
 
     size_t col_index;
@@ -813,64 +814,30 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
 
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
-
-                    if (t==(config->index_sbj)[sbj]){
+					bool isFirstTime = (t==(config->index_sbj)[sbj]);
+                    if (isFirstTime){
                         for(col_index=0; col_index<config->dim_latent_var; col_index++){
             	        gsl_vector_set(eta_regime_j_t[t][regime_j], col_index, gsl_vector_get((init->eta_0)[regime_j], config->dim_latent_var*sbj+col_index));
             	        }
             	        gsl_matrix_memcpy(error_cov_regime_j_t[t][regime_j], (init->error_cov_0)[regime_j]);
-            	        
-						/*MYPRINT("eta_S_at_a_previous_time_point:\n");
-            	        print_vector(eta_regime_j_t[t][regime_j]);
-            	        MYPRINT("\n");
-            	        MYPRINT("error_cov_at_a_previous_time_point:\n");
-            	        print_matrix(error_cov_regime_j_t[t][regime_j]);
-            	        MYPRINT("\n");*/
+					}
 
-
-                    innov_determinant=ext_kalmanfilter_updateonly_smoother(t, regime_k,
-                        eta_regime_j_t[t][regime_j], error_cov_regime_j_t[t][regime_j],
-                        y[t],co_variate[t],y_time,
-                        param->eta_noise_cov, param->y_noise_cov,
-                        param->func_param,
-                        config->func_measure,
-                        eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
-                        eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k],
-                        innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]);/*inverse*/
-
-                        /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
-                        MYPRINT("\n");
-                        MYPRINT("eta_jk_pred:\n");
-                        print_vector(eta_regime_jk_pred[t][regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("error_cov_jk_pred:\n");
-                        print_matrix(error_cov_regime_jk_pred[t][regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("eta_jk:\n");
-                        print_vector(eta_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("error_cov_jk:\n");
-                        print_matrix(error_cov_regime_jk_t_plus_1[t][regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("innov_v[t]ector:\n");
-                        print_vector(innov_v[t][regime_j][regime_k]);
-                        MYPRINT("\n");
-                        MYPRINT("inverse of the residual covariance:\n");
-                        print_matrix(inv_residual_cov[t][regime_j][regime_k]);
-                        MYPRINT("\n");*/
-
-
-                   }else{
-					   
-            	        /*MYPRINT("eta_S_at_a_previous_time_point:\n");
+					   /*
+            	        MYPRINT("eta_S_at_a_previous_time_point:\n");
             	        print_vector(eta_regime_j_t[t-1][regime_j]);
             	        MYPRINT("\n");
             	        MYPRINT("error_cov_at_a_previous_time_point:\n");
             	        print_matrix(error_cov_regime_j_t[t-1][regime_j]);
             	        MYPRINT("\n");*/
+					
+					if(isFirstTime){
+						tprev = t;
+					}else{
+						tprev = t-1;
+					}
 
                     innov_determinant=ext_kalmanfilter_smoother(t, regime_k,
-                        eta_regime_j_t[t-1][regime_j], error_cov_regime_j_t[t-1][regime_j],
+                        eta_regime_j_t[tprev][regime_j], error_cov_regime_j_t[tprev][regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
                         param->func_param,config->num_func_param,
@@ -883,7 +850,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
-						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k]); /*inverse*/
+						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime); /*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
@@ -910,7 +877,6 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         MYPRINT("\n");*/
 
 
-                   }
 
                    /*for(col_index=0; col_index<config->dim_latent_var; col_index++){
                         fprintf(eta_file, " %lf", gsl_vector_get(eta_regime_jk_t_plus_1[t][0][0], col_index));
@@ -1276,7 +1242,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
         free(residual_cov_regime_t[index_sbj_t]);
     }
     free(residual_cov_regime_t);
-
+	/*MYPRINT("Finishing EKimFilter()");*/
     return(-log_like);
 }
 
