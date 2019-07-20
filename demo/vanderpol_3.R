@@ -30,10 +30,10 @@ data <- dynr.data(vdpData, id="id", time="time",
 
 
 meas <- prep.measurement(
-    #values.load=matrix(c(1,0), 1, 2),
-    #params.load=matrix(c('fixed'), 1, 2),
-    values.load=matrix(c(1, 0, 1, 0,1, 0), 3, 2),
-    params.load=matrix(c('fixed'), 3, 2),
+    #values.load=matrix(c(1, 0, 1, 0,1, 0), 3, 2),
+    #params.load=matrix(c('fixed'), 3, 2),
+	values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
+    params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=state.names,
 	values.int=c(3, 1, 0),
@@ -100,7 +100,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.c")
 
-
+#print(model$initial$y0)
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
 #print(fitted_model)
