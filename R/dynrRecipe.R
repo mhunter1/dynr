@@ -163,7 +163,8 @@ setClass(Class = "dynrInitial",
            params.regimep = "matrix",
            covariates = "character",
            deviation = "logical",
-           refRow = "numeric"),
+           refRow = "numeric",
+		   y0 = "list"),
          contains = "dynrRecipe"
 )
 
