@@ -9,6 +9,8 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
+#include <armadillo>
+
 #include "mainR.h"
 #include "mainSAEM.h"
 
