@@ -8,8 +8,7 @@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 library('dynr')
-library('dplyr')
-library('magrittr')
+library('plyr')
 
 nPeople = 200
 nTimes = 300
@@ -68,20 +67,27 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 #model$xstart<-c(3,0.5,0.3,0,0,0.5,0.5,0.5)
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE)
 
+#@@@ Ask Mike to check: The covariance estimates look odd
+
 
 # ---- Get starting values for random effects ---- 
 # Take output from this initial model, particularly estimates for initial condition parameters
 # (if applicable), put random effects as additional latent variables in dyn model. Also using
 # parameter estimates from previously cooked model, assuming no random effects, as the starting
-# values for the SAEM estimation
+# values here
 
-coef(fitted_model)
-#Hui-Ju: you can use this to put the final estimated parameter values back into the starting
+#@@@ To Do: Ask Mike how to easily put the final estimated parameter values back into the starting
 #values in model.
 #Bring up in next week's dynr meeting about how to call this function. 
 #Right now this function is hidden. And it is not working correctly with the LDL
 #source('../R/dynrCook.R')
 #model.step1 <<-PopBackModel(model, fitted_model@transformed.parameters)
+#Maybe also discuss strategies to make the code general. For instance, the "observed" part
+#of the previous prep.noise structure doesn't change
+
+#@@@ Discuss strategy with dynr group: how to get starting values for b
+#Constrained by observability constraints. Do it one by one iteratively?
+#Another possibility with sufficient data - individual model fitting? Taking too long?
 
 mdcov2 <- prep.noise(
   values.latent=diag(0, 3),
@@ -102,12 +108,10 @@ meas2 <- prep.measurement(
   state.names = c('x1', 'x2',"bzeta"))
 
 
-# Try to populate estimates from initial in the previous chunk of code into initial2
-if (length(unlist(initial$params.inistate[!initial$params.inistate== "fixed"]))>0)
-  initial$params.inistate
-
 v1 = matrix(coef(fitted_model)[c("sigma2_bx1","sigma_bx1x2",
                                  "sigma_bx1x2","sigma2_bx1")],2,2)
+#Hui-Ju: could have put v1 into values.inicov below, but did not because the values look odd.
+#Check with Mike
 
 initial2 <- prep.initial(
   values.inistate=c(coef(fitted_model)[c("mu_x1","mu_x2")],0),
@@ -119,9 +123,6 @@ initial2 <- prep.initial(
                          "sigma_bx1x2","sigma2_bx2","fixed",
                          "fixed","fixed","sigma2_bzeta"),3,3,byrow=TRUE)
 )
-
-if (length(unlist(initial2$params.inistate[!initial2$params.inistate== "fixed"]))>0)
-  initial2$params.inistate
 
 formula2=
   list(x1 ~ x2,
