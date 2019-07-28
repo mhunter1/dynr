@@ -8,6 +8,8 @@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 library('dynr')
+library('dplyr')
+library('magrittr')
 
 nPeople = 200
 nTimes = 300
@@ -84,7 +86,7 @@ coef(fitted_model)
 mdcov2 <- prep.noise(
   values.latent=diag(0, 3),
   params.latent=diag(c("fixed","fixed","fixed"), 3),
-  values.observed=diag(rep(0.3,3)),
+  values.observed=diag(coef(fitted_model)[c("var_1","var_2","var_3")]),
   params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
@@ -104,9 +106,11 @@ meas2 <- prep.measurement(
 if (length(unlist(initial$params.inistate[!initial$params.inistate== "fixed"]))>0)
   initial$params.inistate
 
+v1 = matrix(coef(fitted_model)[c("sigma2_bx1","sigma_bx1x2",
+                                 "sigma_bx1x2","sigma2_bx1")],2,2)
 
 initial2 <- prep.initial(
-  values.inistate=c(1, 1,0),
+  values.inistate=c(coef(fitted_model)[c("mu_x1","mu_x2")],0),
   params.inistate=c("mu_x1", "mu_x2",0),
   values.inicov=matrix(c(1,.3,0,
                          .3,1,0,
@@ -155,9 +159,11 @@ fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE,
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
 
 
+locc=plyr::ddply(data.frame(id=data$id,time=data$time,index=1:length(data$time)), 
+           .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
 
 #Get estimates for bzeta from fitted_model2 and use them as estimates for b
-bEst = fitted_model2@eta_smoothfinal #Use these as the starting values for InfDS.b
+bEst = fitted_model2@eta_smooth_final[3,locc] #Use these as the starting values for InfDS.b
 coef.Est = coef(fitted_model2) #Use these as the starting values for Beta
 
 
