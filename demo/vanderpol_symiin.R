@@ -12,7 +12,7 @@ library('plyr')
 
 nPeople = 200
 nTimes = 300
-vdpData <- read.csv("../data/TrueInit_Y14.txt", header=FALSE)
+vdpData <- read.csv("../data/TrueInit_Y1.txt", header=FALSE)
 colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'co1', 'co2')
 vdpData$id <- rep(1:nPeople, each=nTimes)
 data <- dynr.data(vdpData, id="id", time="time",
