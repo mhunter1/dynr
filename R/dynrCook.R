@@ -483,7 +483,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	    )
 		
 		
-		
 		libname <- model$libname
 		model$libname <- NULL
 		
@@ -492,11 +491,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
 		
-		print(data$covariates[1,])
-		print(data$covariates[301,])
-		print(data$covariates[601,])
-		print(data$covariates[901,])
-		#print(dynrModel@initial@values.inicov[[1]])
+		
+		if(any(sapply(model$func_address, is.null.pointer))){
+			warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
+			if(missing(infile)){
+				stop("Cannot compile your functions because 'infile' argument is missing.")
+			}
+			addr <- .C2funcaddressSAEM(isContinuousTime=model$isContinuousTime, infile=infile, verbose=verbose)
+			print('C2funcaddressSAEM done')
+			model$func_address <- addr$address
+			libname <- addr$libname
+		}
+		gc()
+		backendStart <- Sys.time()
+		
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 
