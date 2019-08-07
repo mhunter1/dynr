@@ -37,7 +37,8 @@
            f_initial_condition=getNativeSymbolInfo("function_initial_condition", DLL)$address,
            f_regime_switch=getNativeSymbolInfo("function_regime_switch", DLL)$address,
            f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,
-           f_transform=getNativeSymbolInfo("function_transform", DLL)$address)
+           f_transform=getNativeSymbolInfo("function_transform", DLL)$address,
+		   f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)
   }else{
     res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
              f_dynamic=getNativeSymbolInfo("function_dynam", DLL)$address,
@@ -64,8 +65,8 @@ CompileCode <- function(code, language, verbose, libLFile) {
 
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
-    gsl_cflags <- sprintf( "-I%s/include", LIB_GSL )
-    gsl_libs   <- sprintf( "-L%s/lib/%s -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
+    gsl_cflags <- sprintf( "-I%s/include -I %s/include", LIB_GSL, LIB_ARMADILLO)
+    gsl_libs   <- sprintf( "-L%s/lib/%s -lgsl -lgslcblas -L%s/lib_win64 -lblas -llapack ", LIB_GSL, .Platform$r_arch, LIB_ARMADILLO)
   }else {
     ## UNIX-alike build
 

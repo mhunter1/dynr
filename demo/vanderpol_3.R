@@ -98,7 +98,7 @@ print(dynm$random.lb)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
-                    outfile="VanDerPol.c")
+                    outfile="VanDerPol.cpp")
 
 #print(model$initial$y0)
 
