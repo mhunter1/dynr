@@ -142,7 +142,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
     #  }
     #reg.finalizer(environment(), cleanup, onexit=TRUE)
 	print('CompileCodeSAEM done')
-	print(code)
+	print(names(getLoadedDLLs()))
 	print('--------------------')
   }
   
@@ -181,8 +181,8 @@ CompileCodeSAEM <- function(code, language, verbose, libLFile) {
     ## UNIX-alike build
 
     ## Unix gsl flags
-    gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
-    gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+    gsl_cflags <- system( "-larmadillo" , intern = TRUE )
+    gsl_libs   <- system( ""   , intern = TRUE )
     
   }
   if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
