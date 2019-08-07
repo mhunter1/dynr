@@ -182,13 +182,13 @@ CompileCodeSAEM <- function(code, language, verbose, libLFile) {
 
     ## Unix gsl flags
     gsl_cflags <- system( "-larmadillo" , intern = TRUE )
-    gsl_libs   <- system( ""   , intern = TRUE )
+    #gsl_libs   <- system( ""   , intern = TRUE )
     
   }
   if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
   Sys.setenv(PKG_CPPFLAGS=gsl_cflags)
-  if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
-  Sys.setenv(PKG_LIBS=gsl_libs)
+  #if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
+  #Sys.setenv(PKG_LIBS=gsl_libs)
 
   #libCFile  <- paste(outfile, ".EXT", sep="")
   libCFile <-sub(.Platform$dynlib.ext,".EXT",libLFile)
