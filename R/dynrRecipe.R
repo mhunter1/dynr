@@ -755,16 +755,16 @@ cswapDynamicsFormulaLoop <- function(nregime, n, lhs, rhs, target1, close, targe
 				rhs[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhs[[r]][[i]], vtarget=target1, close=close)
 			}
 			if(vector){
-				ans <- paste(ans, paste0("\t", target2, i-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+				ans <- paste(ans, paste0("\t\t", target2, i-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
 			} else {
-				ans <- paste(ans, paste0("\t", target2, which(lhs[[r]] == row[[r]][[i]])-1, ", ", which(lhs[[r]] == col[[r]][[i]])-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+				ans <- paste(ans, paste0("\t\t", target2, which(lhs[[r]] == row[[r]][[i]])-1, ", ", which(lhs[[r]] == col[[r]][[i]])-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
 			}
 		}
-		ans <- paste(ans, paste0("break;\n"), sep="\n\t")
+		ans <- paste(ans, paste0("\t\tbreak;"), sep="\n\t")
 	}
-	ans <- paste(ans, paste0("\t}"), sep="\n\t")
+	ans <- paste(ans, paste0("}"), sep="\n\t")
 	
-	ans <- paste0(ans, "\n\t}")
+	ans <- paste0(ans, "\n}")
 	return(ans)
 }
 
