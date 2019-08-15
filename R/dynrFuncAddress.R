@@ -181,8 +181,12 @@ CompileCodeSAEM <- function(code, language, verbose, libLFile) {
     ## UNIX-alike build
 
     ## Unix gsl flags
+<<<<<<< HEAD
     gsl_cflags <- sprintf("-larmadillo")
     #gsl_cflags <- system( "-larmadillo" , intern = TRUE )
+=======
+    gsl_cflags <- system( "-larmadillo" , intern = TRUE )
+>>>>>>> revision on the compiling option for CompileCodeSAEM
     #gsl_libs   <- system( ""   , intern = TRUE )
     
   }
