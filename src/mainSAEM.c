@@ -28,6 +28,8 @@ Purpose: Hello World for integrating SAEM and dynr
 #include <Rmath.h>
 #include <Rdefines.h>
 #include "print_function.h" 
+#include "example1.h"
+#include "example2.h"
 
 /*
 [ASK] How to compile the cpp file
@@ -272,6 +274,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
+	example2();
 	//printf("here");
 	return out;
 

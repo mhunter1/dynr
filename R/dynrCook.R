@@ -491,19 +491,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model <- combineModelDataInformationSAEM(model, data)
 		model <- preProcessModel(model)
 		
-		
-		if(any(sapply(model$func_address, is.null.pointer))){
-			warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
-			if(missing(infile)){
-				stop("Cannot compile your functions because 'infile' argument is missing.")
-			}
-			addr <- .C2funcaddressSAEM(isContinuousTime=model$isContinuousTime, infile=infile, verbose=verbose)
-			print('C2funcaddressSAEM done')
-			model$func_address <- addr$address
-			libname <- addr$libname
-		}
-		gc()
-		backendStart <- Sys.time()
+		# the following code compiles the generated file of dynr.model, comment out now for testing
+		# some related comments also be commented in dynrModelInternal.R
+		# if(any(sapply(model$func_address, is.null.pointer))){
+			# warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
+			# if(missing(infile)){
+				# stop("Cannot compile your functions because 'infile' argument is missing.")
+			# }
+			# addr <- .C2funcaddressSAEM(isContinuousTime=model$isContinuousTime, infile=infile, verbose=verbose)
+			# print('C2funcaddressSAEM done')
+			# model$func_address <- addr$address
+			# libname <- addr$libname
+		# }
+		# gc()
+		# backendStart <- Sys.time()
 		
 		
 	    output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
