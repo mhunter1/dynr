@@ -274,7 +274,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
-	example2();
+	example1();
 	//printf("here");
 	return out;
 
