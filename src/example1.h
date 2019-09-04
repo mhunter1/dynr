@@ -3,6 +3,6 @@
 
 #include <stdio.h>
 
-int example1(void);
+void example1(void);
 
 #endif

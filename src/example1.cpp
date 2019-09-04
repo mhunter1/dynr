@@ -6,9 +6,9 @@
 using namespace arma;
 */
 
-extern "C" void example1(int);
+extern "C" void example1(void);
 
-void example1(int i){
+void example1(void){
 	printf("hello world from C++!\n");
 	using namespace arma;
 	
