@@ -491,3 +491,67 @@ NULL
 ##' @usage data(VARsim)
 ##' @format A data frame with 10000 rows and 8 variables
 NULL
+
+##' Simulated multilevel multi-subject time series of a Van der Pol Oscillator
+##' 
+##' A dataset simulated using methods described in the reference below.
+##'  
+##'  Reference:
+##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
+##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
+##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
+##'  Psychometrika, 81(1), 102-134.
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item batch. Batch number from simulation
+##'   \item kk. Unclear
+##'   \item trueInit. True initial condition
+##'   \item id. Person ID
+##'   \item time. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item y2. Observed score 2
+##'   \item y3. Observed score 3
+##'   \item co1. Covariate 1
+##'   \item co2. Covariate 2
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name TrueInit_Y1
+##' @usage data(TrueInit_Y1)
+##' @format A data frame with 60,000 rows and 10 variables
+NULL
+
+##' Another simulated multilevel multi-subject time series of a Van der Pol Oscillator
+##' 
+##' A dataset simulated using methods described in the reference below.
+##'  
+##'  Reference:
+##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
+##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
+##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
+##'  Psychometrika, 81(1), 102-134.
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item batch. Batch number from simulation
+##'   \item kk. Unclear
+##'   \item trueInit. True initial condition
+##'   \item id. Person ID
+##'   \item time. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item y2. Observed score 2
+##'   \item y3. Observed score 3
+##'   \item co1. Covariate 1
+##'   \item co2. Covariate 2
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name TrueInit_Y14
+##' @usage data(TrueInit_Y14)
+##' @format A data frame with 60,000 rows and 10 variables
+NULL
