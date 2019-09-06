@@ -66,7 +66,7 @@
 
 \usepackage[american]{babel}
 \usepackage{csquotes}
-\usepackage[backend=biber,sorting=nyt]{biblatex}
+\usepackage[backend=bibtex,sorting=nyt]{biblatex}
 \DeclareLanguageMapping{american}{american-apa}
 \addbibresource{ou-hunter-chow.bib}
 
