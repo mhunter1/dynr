@@ -59,5 +59,7 @@ man/prep.tfun.Rd
 man/printex.Rd
 man/RSPPsim.Rd
 man/summary.dynrCook.Rd
+man/TrueInit_Y1.Rd
+man/TrueInit_Y14.Rd
 man/VARsim.Rd
 man/vcov.dynrCook.Rd
