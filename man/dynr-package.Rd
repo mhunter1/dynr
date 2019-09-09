@@ -50,12 +50,12 @@ regime switching,
 nonlinear
 }
 
-\keyword{
-State-space modeling
-dynamic model
-differential equation
-regime switching
-nonlinear}
+\concept{State-space modeling}
+\concept{dynamic model}
+\concept{differential equation}
+\concept{regime switching}
+\concept{nonlinear}
+\concept{Time series}
 
 \seealso{
 For other annotated tutorials using the \pkg{dynr} package see
