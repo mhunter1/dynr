@@ -274,8 +274,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
-	example1();
-	//printf("here");
+	//example1();
+	printf("start to call MainUseThis\n");
+	interface(200);
+
 	return out;
 
 }

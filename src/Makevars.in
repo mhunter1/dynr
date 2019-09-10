@@ -4,6 +4,6 @@ GSL_LIBS = @GSL_LIBS@
 
 # combine with standard arguments for R
 PKG_CPPFLAGS = $(GSL_CFLAGS) -std=c++11
-PKG_LIBS = $(GSL_LIBS) -larmadillo 
+PKG_LIBS = $(GSL_LIBS) -larmadillo -I/usr/include/R -L/usr/lib64/R 
 
 
