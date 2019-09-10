@@ -41,6 +41,7 @@ using namespace Rcpp;
 /*#include "structure_prototype.h"*/
 
 /* get the list element named str, or return NULL */
+
 /*
 SEXP getListElement(SEXP list, const char *str)
 {
@@ -53,7 +54,8 @@ SEXP getListElement(SEXP list, const char *str)
 		}
 	}
 	return elmt;
-}*/
+}
+*/
 /**
  * The gateway function for the R interface
  * @param model_list is a list in R of all model specifications.
@@ -64,6 +66,8 @@ SEXP getListElement(SEXP list, const char *str)
  * @param hessian_flag_in a flag for calculating hessian matrix
  * @param verbose_flag_in a flag of whether or not to print debugging statements before and during estimation.
  */
+/*extern "C" SEXP main_SAEM(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);*/
+
 SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in)
 {
 	bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
@@ -274,7 +278,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	UNPROTECT(1);
 	
-	//example1();
+	/*example1();*/
 	printf("start to call MainUseThis\n");
 	interface(200);
 
