@@ -279,8 +279,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	UNPROTECT(1);
 	
 	/*example1();*/
-	printf("start to call MainUseThis\n");
-	/*interface(200);*/
+	printf("start to call MainUseThis %d %d %d\n", Nsubj, NxState, Ny);
+	interface(200, Nsubj, NxState, Ny);
 
 	return out;
 

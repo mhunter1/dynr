@@ -18,7 +18,7 @@ intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 #random data
-N = 100
+N = 200
 T = 300
 vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
                       y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
