@@ -456,6 +456,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     
     if(saem==TRUE){
         #print(dynrModel@measurement$values.load[[1]])
+		
+		#get the initial values of b
+		b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
+		
         model <- internalModelPrepSAEM(
             num_regime=dynrModel@num_regime,
             dim_latent_var=dynrModel@dim_latent_var,
@@ -479,6 +483,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]),
             bAdaptParams=bAdaptParams,
+			b= b,
             KKO=KKO
         )
         
@@ -491,6 +496,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         model <- combineModelDataInformationSAEM(model, data)
         model <- preProcessModel(model)
         
+		#print(model$b)
+		
         # the following code compiles the generated file of dynr.model, comment out now for testing
         # some related comments also be commented in dynrModelInternal.R
         # if(any(sapply(model$func_address, is.null.pointer))){

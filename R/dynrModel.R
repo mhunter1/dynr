@@ -720,23 +720,20 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     y0 <- matrix(0, num.subj, num.x)
     b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
     b_x <-  length(random.names) - num.x
-    print(b_x)
+    #print(b_x)
+	# b, y0
     for(i in 1:num.subj){
       for (j in 1:length(random.names)){
         if(b[i, j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub){
           b[i, j] <- 0
         }
       }
-      
-    
       for(j in 1:num.x){
         y0[i, j] <- inputs$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
       }
     }
     inputs$initial@y0 <- list(y0)
-
-    #y0
-    
+	#inputs$b <- b
     
     #startpar
     start.par <- c(0, 0, 0, 1, 1, 0, 0 ,0, log(1), log(1),  log(1 -.2^2), .2)
@@ -768,8 +765,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
   }
   
-  obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
-  
+  obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings  
   obj.dynrModel@xstart <- param.data$param.value
   obj.dynrModel@ub <- as.double(rep(NA, length(obj.dynrModel@xstart)))
   obj.dynrModel@lb <- as.double(rep(NA, length(obj.dynrModel@xstart)))
