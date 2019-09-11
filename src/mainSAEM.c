@@ -28,8 +28,8 @@ Purpose: Hello World for integrating SAEM and dynr
 #include <Rmath.h>
 #include <Rdefines.h>
 #include "print_function.h" 
-#include "example1.h"
-#include "example2.h"
+/*#include "example1.h"*/
+/*#include "example2.h"*/
 
 /*
 [ASK] How to compile the cpp file
@@ -167,7 +167,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	double *temp, **P0, **Lamdba;
+	double *temp, **P0, **Lamdba, **Y;
 	char str_number[64], str_name[64];
 	
 	
@@ -206,7 +206,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	
-
+	/*not feed*/
 	if (NxState > 0){
 		temp = (double *)malloc(NxState * NxState* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"p0")));
@@ -269,12 +269,45 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	UNPROTECT(1);
 	printf("bAdaptParams: %lf %lf %lf\n",bAdaptParams[0], bAdaptParams[1], bAdaptParams[2]);
 	
+	if (Ny > 0){
+		Y = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(int row = 0; row < Ny; row++){
+			Y[row] = (double *)malloc((Nsubj*totalT+1)* sizeof(double));
+		}
+		
+		temp = (double *)malloc(Nsubj * totalT * 2* sizeof(double));
+		SEXP observed_sexp = PROTECT(getListElement(data_list, "observed"));
+		UNPROTECT(1);
+		for(int u = 0;u < Ny; u++){
+			sprintf(str_name, "obs%u", (long unsigned int) u+1);
+			temp = REAL(PROTECT(getListElement(observed_sexp, str_name)));
+			UNPROTECT(1);
+			for(int i = 0; i < Nsubj * totalT;i++){
+				Y[u][i] = temp[i];
+				/*printf("i =%d, u = %d %lf\n", i, u, U1[i][u]);
+				printf("temp[%d] = %lf %lf\n", i, temp[i *totalT], U1[i][u]);*/
+			}
+		}
+		
+		printf("Y1:\n");
+		for(int u = 0;u < Ny; u++){
+			for(int i = 0; i < 10;i++){
+				printf(" %6lf", Y[u][i]);
+			}
+			printf("\n");
+		}
+		
+    }else{
+        Y = NULL;
+    }
+	
+	
 
 	/*Inconsistent variables*/
 	Nbeta = 0;	
 	NLambda = 2;
 	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
-	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1);
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
