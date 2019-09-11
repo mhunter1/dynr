@@ -12,7 +12,8 @@ library('plyr')
 
 nPeople = 200
 nTimes = 300
-vdpData <- data(TrueInit_Y1)
+data(TrueInit_Y1)
+vdpData <- TrueInit_Y1
 data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y1','y2','y3'),
                   covariates=c("co1","co2"))
