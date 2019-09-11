@@ -18,7 +18,7 @@ setClass(Class =  "dynrModel",
            measurement = "dynrMeasurement",
            noise = "dynrNoise",
            initial = "dynrInitial",
-		   #random = "dynrRandom",
+           #random = "dynrRandom",
            regimes= "dynrRegimes",
            transform="dynrTrans",
            data="list",
@@ -32,8 +32,8 @@ setClass(Class =  "dynrModel",
            lb="vector",
            options="list",
            param.names="character",
-		   random.params.inicov = "matrix",
-		   random.values.inicov = "matrix"
+           random.params.inicov = "matrix",
+           random.values.inicov = "matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -65,65 +65,65 @@ setMethod("show", "dynrModel", function(object){printRecipeOrModel(object)})
 ##' 
 ##' @param x The dynrModel object from which the free parameter names are desired
 setMethod("names", "dynrModel",
-	function(x) {
-		pnames <- x$param.names
-		output <- c(pnames)
-		output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
-		return(output)
-	}
+    function(x) {
+        pnames <- x$param.names
+        output <- c(pnames)
+        output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+        return(output)
+    }
 )
 
 .DollarNames.dynrModel <- function(x, pattern){
-	if(missing(pattern)){
-		pattern <- ''
-	}
-	output <- slotNames(x)
-	output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
-	return(grep(pattern, output, value=TRUE))
+    if(missing(pattern)){
+        pattern <- ''
+    }
+    output <- slotNames(x)
+    output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+    return(grep(pattern, output, value=TRUE))
 }
 
 setReplaceMethod("$", "dynrModel",
-	function(x, name, value){
-		if(name %in% c('xstart', 'ub', 'lb')){
-			# Check that the length is okay
-			if(length(value) != length(x$param.names)){
-				stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
-					"but I need", length(x$param.names),
-					"(the number of free parameters)."))
-			}
-			if(is.null(names(value))){
-				names(value) <- x$param.names
-			}
-			lookup <- match(names(value), x$param.names)
-			lookup <- union(na.omit(lookup), 1L:length(value))
-			value[lookup] <- value
-			names(value) <- x$param.names
-			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
-			# Check that parameters are within the bounds and the bounds are in order
-			if(any(na.omit(x$ub < x$lb))){
-				warning("Some of the lower bounds are above the upper bounds. Bad, user!")
-			}
-			if(any(na.omit(x$ub < x$xstart))){
-				offenders <- names(which(na.omit(x$ub < x$xstart)))
-				offenders <- paste(offenders, collapse=', ')
-				msg <- paste0("I spy with my little eye an upper bound that is smaller than the starting value.\n",
-					"Offending parameter(s) named: ", offenders)
-				warning(msg)
-			}
-			if(any(na.omit(x$lb > x$xstart))){
-				offenders <- names(which(na.omit(x$lb > x$xstart)))
-				offenders <- paste(offenders, collapse=', ')
-				msg <- paste0("I spy with my little eye a lower bound that is larger than the starting value.\n",
-					"Offending parameter(s) named: ", offenders)
-				warning(msg)
-			}
-		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
-			slot(object=x, name=name, check = TRUE) <- value
-		} else {
-			stop(paste0("You can't set the ", name, " slot of a dynrModel.", "  You're not allowed to touch me there."))
-		}
-		return(x)
-	}
+    function(x, name, value){
+        if(name %in% c('xstart', 'ub', 'lb')){
+            # Check that the length is okay
+            if(length(value) != length(x$param.names)){
+                stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
+                    "but I need", length(x$param.names),
+                    "(the number of free parameters)."))
+            }
+            if(is.null(names(value))){
+                names(value) <- x$param.names
+            }
+            lookup <- match(names(value), x$param.names)
+            lookup <- union(na.omit(lookup), 1L:length(value))
+            value[lookup] <- value
+            names(value) <- x$param.names
+            slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
+            # Check that parameters are within the bounds and the bounds are in order
+            if(any(na.omit(x$ub < x$lb))){
+                warning("Some of the lower bounds are above the upper bounds. Bad, user!")
+            }
+            if(any(na.omit(x$ub < x$xstart))){
+                offenders <- names(which(na.omit(x$ub < x$xstart)))
+                offenders <- paste(offenders, collapse=', ')
+                msg <- paste0("I spy with my little eye an upper bound that is smaller than the starting value.\n",
+                    "Offending parameter(s) named: ", offenders)
+                warning(msg)
+            }
+            if(any(na.omit(x$lb > x$xstart))){
+                offenders <- names(which(na.omit(x$lb > x$xstart)))
+                offenders <- paste(offenders, collapse=', ')
+                msg <- paste0("I spy with my little eye a lower bound that is larger than the starting value.\n",
+                    "Offending parameter(s) named: ", offenders)
+                warning(msg)
+            }
+        } else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
+            slot(object=x, name=name, check = TRUE) <- value
+        } else {
+            stop(paste0("You can't set the ", name, " slot of a dynrModel.", "  You're not allowed to touch me there."))
+        }
+        return(x)
+    }
 )
 
 ##' Extract the number of observations for a dynrModel object
@@ -141,26 +141,26 @@ setReplaceMethod("$", "dynrModel",
 ##' # Let rawModel be the output from dynr.model
 ##' #nobs(rawModel)
 nobs.dynrModel <- function(object, ...){
-	dim(object$data$observed)[1]
+    dim(object$data$observed)[1]
 }
 
 
 ##' @rdname coef.dynrCook
 coef.dynrModel <- function(object, ...){
-	object$transform$tfun(object$xstart)
+    object$transform$tfun(object$xstart)
 }
 
 ##' @rdname coef.dynrCook
 ##' 
 ##' @param value values for setting
 `coef<-` <- function(object, value){
-	UseMethod("coef<-")
+    UseMethod("coef<-")
 }
 
 ##' @rdname coef.dynrCook
 `coef<-.dynrModel` <- function(object, value){
-	object <- PopBackModel(object, value)
-	return(object)
+    object <- PopBackModel(object, value)
+    return(object)
 }
 
 
@@ -170,52 +170,52 @@ implode <- function(..., sep='') {
 
 
 vecRegime <- function(object){
-	objValues <- object$values
-	objParams <- object$params
-	numRegimes <- nrow(object$values)
-	covariates <- object$covariates
-	numCovariates <- length(covariates)
-	deviation <- object$deviation
-	refRow <- object$refRow
-	
-	if(deviation){
-		if(nrow(objValues)!=0 && nrow(objParams)!=0){
-			interceptSel <- seq(1, ncol(objValues), by=numCovariates+1)
-			intercept.values <- matrix(objValues[refRow, interceptSel], numRegimes, 1)
-			intercept.params <- matrix(objParams[refRow, interceptSel], numRegimes, 1)
-			objValues[refRow, interceptSel] <- 0
-			objParams[refRow, interceptSel] <- 0
-		}
-	} else {
-		intercept.values <- matrix(0, numRegimes, 1)
-		intercept.params <- matrix(0, numRegimes, 1)
-	}
-	
-	colBeginSeq <- seq(1, ncol(objValues), by=numCovariates+1)
-	colEndSeq <- colBeginSeq + numCovariates
-	Prlist <- list()
-	for (j in 1:numRegimes){
-		for(k in 1:numRegimes){
-			colSel <- colBeginSeq[k]:colEndSeq[k]
-			#namesLO = paste0("&\\frac{Pr(p",j,k,")}{1-Pr(p",j,k,")}")
-			namesLO = paste0("&Log Odds(p", j, k, ")")
-			mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
-			mat2 <- matrix(c(1, covariates), ncol=1)
-			# drop zeros before multiplication
-			mat2 <- mat2[mat1 !=0 ]
-			mat1 <- mat1[mat1 !=0 ]
-			a <- paste(mat1, mat2, sep="*")
-			a <- gsub("*1", "", a, fixed=TRUE)
-			b <- intercept.values[k, 1]
-			b <- b[ b != 0]
-			a <- implode(c(b, a), sep=" + ")
-			if(nchar(a) > 0){
-				a <- paste0(namesLO, " = ", a)
-				Prlist <- paste0(Prlist , a, "\\\\")
-			}
-		}#End of loop through colIndex
-	}#End of loop through regime
-	return(Prlist)
+    objValues <- object$values
+    objParams <- object$params
+    numRegimes <- nrow(object$values)
+    covariates <- object$covariates
+    numCovariates <- length(covariates)
+    deviation <- object$deviation
+    refRow <- object$refRow
+    
+    if(deviation){
+        if(nrow(objValues)!=0 && nrow(objParams)!=0){
+            interceptSel <- seq(1, ncol(objValues), by=numCovariates+1)
+            intercept.values <- matrix(objValues[refRow, interceptSel], numRegimes, 1)
+            intercept.params <- matrix(objParams[refRow, interceptSel], numRegimes, 1)
+            objValues[refRow, interceptSel] <- 0
+            objParams[refRow, interceptSel] <- 0
+        }
+    } else {
+        intercept.values <- matrix(0, numRegimes, 1)
+        intercept.params <- matrix(0, numRegimes, 1)
+    }
+    
+    colBeginSeq <- seq(1, ncol(objValues), by=numCovariates+1)
+    colEndSeq <- colBeginSeq + numCovariates
+    Prlist <- list()
+    for (j in 1:numRegimes){
+        for(k in 1:numRegimes){
+            colSel <- colBeginSeq[k]:colEndSeq[k]
+            #namesLO = paste0("&\\frac{Pr(p",j,k,")}{1-Pr(p",j,k,")}")
+            namesLO = paste0("&Log Odds(p", j, k, ")")
+            mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
+            mat2 <- matrix(c(1, covariates), ncol=1)
+            # drop zeros before multiplication
+            mat2 <- mat2[mat1 !=0 ]
+            mat1 <- mat1[mat1 !=0 ]
+            a <- paste(mat1, mat2, sep="*")
+            a <- gsub("*1", "", a, fixed=TRUE)
+            b <- intercept.values[k, 1]
+            b <- b[ b != 0]
+            a <- implode(c(b, a), sep=" + ")
+            if(nchar(a) > 0){
+                a <- paste0(namesLO, " = ", a)
+                Prlist <- paste0(Prlist , a, "\\\\")
+            }
+        }#End of loop through colIndex
+    }#End of loop through regime
+    return(Prlist)
 }
 
 LaTeXnames<-function(names, decimal = 2, latex = TRUE){
@@ -517,9 +517,9 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' Several \emph{named} arguments can be passed into the \code{...} section of the function.  These include
 ##' \itemize{
-##' 	\item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
-##' 	\item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
-##' 	\item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
+##'     \item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
+##'     \item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
+##'     \item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
 ##' for details. Available options for use with a dynrModel object 
 ##' include xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, and maxtime, 
 ##' all of which control the termination conditions for parameter optimization. The examples below show a case where options were set.
@@ -527,11 +527,11 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' There are several available methods for \code{dynrModel} objects.
 ##' \itemize{
-##' 	\item The dollar sign ($) can be used to both get objects out of a model and to set pieces of the model.
-##' 	\item \code{names} returns the names of the free parameters in a model.
-##' 	\item \code{\link{printex}} prints LaTeX expressions for the equations that compose a model. The output can then be readily typeset for inclusion in presentations and papers.
-##' 	\item \code{nobs} gives the total number of observations (e.g. all times across all people)
-##' 	\item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
+##'     \item The dollar sign ($) can be used to both get objects out of a model and to set pieces of the model.
+##'     \item \code{names} returns the names of the free parameters in a model.
+##'     \item \code{\link{printex}} prints LaTeX expressions for the equations that compose a model. The output can then be readily typeset for inclusion in presentations and papers.
+##'     \item \code{nobs} gives the total number of observations (e.g. all times across all people)
+##'     \item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
 ##' }
 ##' 
 ##' @examples
@@ -558,7 +558,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if (armadillo==FALSE && !all(measurement@state.names == states.dyn)){
       stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
-	#else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
+    #else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
     #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
     #}
   }
@@ -585,7 +585,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-		covariate.names = data$covariate.names
+        covariate.names = data$covariate.names
         data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
       }else{
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
@@ -606,8 +606,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   else{
     #inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, random=random, ...)
-	inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
-	#if(length(random@random.names) != length(dynamics@random.names) || sum(random@random.names == dynamics@random.names) != length(dynamics@random.names)){
+    inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+    #if(length(random@random.names) != length(dynamics@random.names) || sum(random@random.names == dynamics@random.names) != length(dynamics@random.names)){
     #  stop("Inconsistent variable names of random effects in prep.formulaDynamics and prep.random")}
   }
 
@@ -645,102 +645,102 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   if(armadillo==TRUE){
     # handle b (random)
-	# replace the name init_x? as inputs$initial$params.inistate[[i]]
-	for (i in 1:length(inputs$initial$params.inistate[[1]])){
-	  #state.names
-	  inputs$dynamics@state.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@state.names)
-	  
-	  
-	  inputs$dynamics@beta.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@beta.names)
-	  
-	  #formula
-	  inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #jacobian
-	  inputs$dynamics@jacobian[[1]] <- lapply(as.character(inputs$dynamics@jacobian[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #dfdtheta
-	  inputs$dynamics@dfdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #dfdx2
-	  inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #dfdxdtheta
-	  inputs$dynamics@dfdxdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdxdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #dfdthetadx
-	  inputs$dynamics@dfdthetadx[[1]] <- lapply(as.character(inputs$dynamics@dfdthetadx[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	  #dfdtheta2
-	  inputs$dynamics@dfdtheta2[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})		
-	  
-	  #theta.formula
-	  inputs$dynamics@theta.formula <- lapply(as.character(inputs$dynamics@theta.formula), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-	  
-	}
-	
-	
-	# num.theta.formula: number of theta formula that the user specifies.
-	num.theta.formula <- length(inputs$dynamics@theta.formula) - length(inputs$initial$params.inistate[[1]])
-	
-	for (i in 1:length(inputs$initial$params.inistate[[1]])){
-	  # check if the theta for this state needs to be estimated. 
-	  # revise the theta.formula correspondingly.	  
-	  if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
-	     inputs$initial$params.inistate[[1]][i] != "0" ){
+    # replace the name init_x? as inputs$initial$params.inistate[[i]]
+    for (i in 1:length(inputs$initial$params.inistate[[1]])){
+      #state.names
+      inputs$dynamics@state.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@state.names)
+      
+      
+      inputs$dynamics@beta.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@beta.names)
+      
+      #formula
+      inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #jacobian
+      inputs$dynamics@jacobian[[1]] <- lapply(as.character(inputs$dynamics@jacobian[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #dfdtheta
+      inputs$dynamics@dfdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #dfdx2
+      inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #dfdxdtheta
+      inputs$dynamics@dfdxdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdxdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #dfdthetadx
+      inputs$dynamics@dfdthetadx[[1]] <- lapply(as.character(inputs$dynamics@dfdthetadx[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+      #dfdtheta2
+      inputs$dynamics@dfdtheta2[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})       
+      
+      #theta.formula
+      inputs$dynamics@theta.formula <- lapply(as.character(inputs$dynamics@theta.formula), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
+      
+    }
+    
+    
+    # num.theta.formula: number of theta formula that the user specifies.
+    num.theta.formula <- length(inputs$dynamics@theta.formula) - length(inputs$initial$params.inistate[[1]])
+    
+    for (i in 1:length(inputs$initial$params.inistate[[1]])){
+      # check if the theta for this state needs to be estimated. 
+      # revise the theta.formula correspondingly.     
+      if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
+         inputs$initial$params.inistate[[1]][i] != "0" ){
         inputs$dynamics@theta.formula[[i+num.theta.formula]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta.formula]], inputs$initial$params.inistate[[1]][i])
-	  }
-	  
-	  
-	  if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
-	     inputs$initial$params.inicov[[1]][i, i] != "0" ){
-		inputs$dynamics@random.names <- append(inputs$dynamics@random.names, paste0('b_',inputs$measurement@state.names[[i]]))
-		inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta.formula]], inputs$dynamics@random.names[[i+num.theta.formula]])
-		
-	  }
-	}	
-	
-	
-	num.x <- length(inputs$initial$params.inistate[[1]])
-	random.params.inicov = matrix(0L, 
-							nrow = num.x+1, 
-							ncol = num.x+1)
-	random.values.inicov = matrix(0L, 
-							nrow = num.x+1, 
-							ncol = num.x+1)
-	random.params.inicov[1,1] = inputs$dynamics@random.names[[1]][[1]]
-	random.params.inicov[2:(num.x+1),2:(num.x+1)] = inputs$initial$params.inicov[[1]]
-	
-	random.values.inicov[1,1] = 1
-	random.values.inicov[2:(num.x+1),2:(num.x+1)] = inputs$initial$values.inicov[[1]]
-	
-	
-	num.subj <- length(unique(data$original.data[['id']]))
-	random.names <- inputs$dynamics@random.names
-	y0 <- matrix(0, num.subj, num.x)
-	b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
-	b_x <-  length(random.names) - num.x
-	print(b_x)
-	for(i in 1:num.subj){
-	  for (j in 1:length(random.names)){
-	    if(b[i, j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub){
-		  b[i, j] <- 0
-		}
       }
-	  
-	
-	  for(j in 1:num.x){
+      
+      
+      if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
+         inputs$initial$params.inicov[[1]][i, i] != "0" ){
+        inputs$dynamics@random.names <- append(inputs$dynamics@random.names, paste0('b_',inputs$measurement@state.names[[i]]))
+        inputs$dynamics@theta.formula[[i+1]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta.formula]], inputs$dynamics@random.names[[i+num.theta.formula]])
+        
+      }
+    }   
+    
+    
+    num.x <- length(inputs$initial$params.inistate[[1]])
+    random.params.inicov = matrix(0L, 
+                            nrow = num.x+1, 
+                            ncol = num.x+1)
+    random.values.inicov = matrix(0L, 
+                            nrow = num.x+1, 
+                            ncol = num.x+1)
+    random.params.inicov[1,1] = inputs$dynamics@random.names[[1]][[1]]
+    random.params.inicov[2:(num.x+1),2:(num.x+1)] = inputs$initial$params.inicov[[1]]
+    
+    random.values.inicov[1,1] = 1
+    random.values.inicov[2:(num.x+1),2:(num.x+1)] = inputs$initial$values.inicov[[1]]
+    
+    
+    num.subj <- length(unique(data$original.data[['id']]))
+    random.names <- inputs$dynamics@random.names
+    y0 <- matrix(0, num.subj, num.x)
+    b <- matrix(rnorm(num.subj*length(random.names)), num.subj, length(random.names))
+    b_x <-  length(random.names) - num.x
+    print(b_x)
+    for(i in 1:num.subj){
+      for (j in 1:length(random.names)){
+        if(b[i, j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub){
+          b[i, j] <- 0
+        }
+      }
+      
+    
+      for(j in 1:num.x){
         y0[i, j] <- inputs$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-	  }
-	}
-	inputs$initial@y0 <- list(y0)
+      }
+    }
+    inputs$initial@y0 <- list(y0)
 
-	#y0
-	
-	
-	#startpar
-	start.par <- c(0, 0, 0, 1, 1, 0, 0 ,0, log(1), log(1),  log(1 -.2^2), .2)
-	
+    #y0
+    
+    
+    #startpar
+    start.par <- c(0, 0, 0, 1, 1, 0, 0 ,0, log(1), log(1),  log(1 -.2^2), .2)
+    
   }
 
 
@@ -761,7 +761,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   param.data$param.value=unique.values
   
   #initiate a dynrModel object
-  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
+  if(armadillo==FALSE){
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+  }
+  else if(armadillo==TRUE){
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
+  }
+  
   obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
   
   obj.dynrModel@xstart <- param.data$param.value
@@ -777,20 +783,20 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
   if(armadillo==FALSE){
-	  includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
-	  body <- paste(cparts, collapse="\n\n")
-	  if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
-		body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
-	  }
-	  body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
-	#   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
-	#     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
-	#   }
-	  glom <- paste(includes, .cfunctions, body, sep="\n\n")
-	  if (obj.dynrModel@dynamics@isContinuousTime){
-		glom <- paste(glom, dP_dt, sep="\n\n")
-	  }
-	  cat(glom, file=obj.dynrModel@outfile)
+      includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
+      body <- paste(cparts, collapse="\n\n")
+      if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
+        body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
+      }
+      body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
+    #   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
+    #     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
+    #   }
+      glom <- paste(includes, .cfunctions, body, sep="\n\n")
+      if (obj.dynrModel@dynamics@isContinuousTime){
+        glom <- paste(glom, dP_dt, sep="\n\n")
+      }
+      cat(glom, file=obj.dynrModel@outfile)
   }
   else if(armadillo==TRUE){
     glom <- paste(cparts)
@@ -803,13 +809,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
 
 addVariableToThetaFormula  <- function(formula, variable.names){
-	fml=as.character(formula)
-	lhs=fml[[2]]
-	rhs=fml[[3]]
-	
-	rhs = paste0(rhs, "+ 1 *", variable.names)
-	
-	#print(as.formula(paste0(lhs, ' ~ ', rhs)))
-	return(as.formula(paste0(lhs, ' ~ ', rhs)))
+    fml=as.character(formula)
+    lhs=fml[[2]]
+    rhs=fml[[3]]
+    
+    rhs = paste0(rhs, "+ 1 *", variable.names)
+    
+    #print(as.formula(paste0(lhs, ' ~ ', rhs)))
+    return(as.formula(paste0(lhs, ' ~ ', rhs)))
 }
 
