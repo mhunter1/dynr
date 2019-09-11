@@ -1,0 +1,9 @@
+# set by configure
+GSL_CFLAGS = -I/usr/include
+GSL_LIBS = -lgsl -lgslcblas -lm 
+
+# combine with standard arguments for R
+PKG_CPPFLAGS = $(GSL_CFLAGS) -std=c++11
+PKG_LIBS = $(GSL_LIBS) -larmadillo 
+
+

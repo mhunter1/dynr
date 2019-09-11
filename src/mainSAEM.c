@@ -116,17 +116,17 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*Ntheta*/
 	SEXP num_theta_sexp = PROTECT(getListElement(model_list, "num_theta"));
 	int Ntheta=(size_t) *INTEGER(num_theta_sexp);
-	/*DYNRPRINT(verbose_flag, "Ntheta: %lu\n", (long unsigned int) Ntheta);
+	DYNRPRINT(verbose_flag, "Ntheta: %lu\n", (long unsigned int) Ntheta);
 	
 	/*Nbeta*/
 	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
 	int Nbeta =(size_t) *INTEGER(num_beta_sexp);
-	/*DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);*/
+	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
 	
 	/*totalT*/
 	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
 	int totalT =(size_t) *INTEGER(total_t_sexp);
-	/*DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
+	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	
 	/*maxT*/ /*not feed*/
@@ -138,23 +138,23 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*NLambda*/
 	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
 	int NLambda =(size_t) *INTEGER(num_lambda_sexp);
-	/*DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);*/
+	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
 	
 	
 	/*delt*/
 	SEXP delt_sexp = PROTECT(getListElement(model_list, "delt"));
 	double delt=*REAL(delt_sexp);
-	/*DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
+	DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
 	
 	/*Nmu*/
 	SEXP num_mu_sexp = PROTECT(getListElement(model_list, "num_mu"));
 	int Nmu = (size_t) *INTEGER(num_mu_sexp);
-	/*DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);*/
+	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
 	
 	/*Nb*/
 	SEXP num_random_sexp = PROTECT(getListElement(model_list, "num_random"));
 	int Nb = (size_t) *INTEGER(num_mu_sexp);
-	/*DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);*/
+	DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);
 	
 	/*KKO*/ /*not feed*/
 	SEXP kko_sexp = PROTECT(getListElement(model_list, "KKO"));
@@ -269,8 +269,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	UNPROTECT(1);
 	printf("bAdaptParams: %lf %lf %lf\n",bAdaptParams[0], bAdaptParams[1], bAdaptParams[2]);
 	
-	
-	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, N, delt){
+
+	/*Inconsistent variables*/
+	Nbeta = 0;	
+	NLambda = 2;
+	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
+	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
