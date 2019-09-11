@@ -458,7 +458,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         #print(dynrModel@measurement$values.load[[1]])
 		
 		#get the initial values of b
+		#todo put the b's initial code estimate
 		b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
+		
 		
         model <- internalModelPrepSAEM(
             num_regime=dynrModel@num_regime,
@@ -805,8 +807,8 @@ combineModelDataInformationSAEM <- function(model, data){
     
     #print(data$covariates[1,])
     #print(model$H[1:3, ])
-    print(data$covariates[301,])
-    print(model$H[4:6, ])
+    #print(data$covariates[301,])
+    #print(model$H[4:6, ])
     return(model)
 }
 
