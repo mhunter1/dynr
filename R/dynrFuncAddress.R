@@ -37,8 +37,9 @@
            f_initial_condition=getNativeSymbolInfo("function_initial_condition", DLL)$address,
            f_regime_switch=getNativeSymbolInfo("function_regime_switch", DLL)$address,
            f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,
-           f_transform=getNativeSymbolInfo("function_transform", DLL)$address,
-		   f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)
+           f_transform=getNativeSymbolInfo("function_transform", DLL)$address#,
+		   #f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses
+		   )
   }else{
     res=list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
              f_dynamic=getNativeSymbolInfo("function_dynam", DLL)$address,
@@ -148,13 +149,13 @@ CompileCode <- function(code, language, verbose, libLFile) {
   
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )
-  if (isContinuousTime){
-    res=list(
-		   f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)
-  }else{
-    res=list(
-           f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)    
-  }
+  # if (isContinuousTime){
+    # res=list(
+		   # f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)
+  # }else{
+    # res=list(
+           # f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)    
+  # }
   return(list(address=res, libname=libLFile))
 }
 
