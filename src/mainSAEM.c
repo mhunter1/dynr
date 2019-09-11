@@ -274,7 +274,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	Nbeta = 0;	
 	NLambda = 2;
 	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
-	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt);
+	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

@@ -168,7 +168,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 	
 		//printf("checkpoint M153 enter GIB loop\n");	
-		MAXGIB = 50;
+		MAXGIB = 5;
 		printf("MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
@@ -231,6 +231,9 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 
 		//%%%%%%%%%%
 		k = k+1;
+
+		/*remove later*/
+		break;
     
 	} //end of scoring iteration loop
 
@@ -282,7 +285,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	//InfDS.convFlag = convFlag;
 	//InfDS.ss = ss;
 
-
+/*
 	fitInit = 1; //Fit models with freely estimated IC.
 	//dlmwrite(filenamePar,[trueInit fitInit batch kk reshape(InfDS.par,1,length(InfDS.par))],'-append');
 	p_filenamePar = fopen(filenamePar, "a");
@@ -320,7 +323,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 			fprintf(p_filenamebhat2, ",%lf", meanb(i,j));
 	}
 	fprintf(p_filenamebhat2, "\n");
-
+*/
 
 
 
