@@ -404,7 +404,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*example1();*/
 	printf("start to call MainUseThis %d %d %d\n", Nsubj, NxState, Ny);
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z);
+	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
