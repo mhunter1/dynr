@@ -92,7 +92,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 							    random.lb = -5, 
 				                random.ub = 5,
 								saem=TRUE)
-print(dynm$random.lb)
+#print(dynm$random.lb)
 								
 
 
@@ -100,10 +100,11 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.cpp")
 
-#print(model$initial$y0)
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
 #print(fitted_model)
+
+
 
 # -------
 # previous perp.random interface
