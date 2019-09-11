@@ -223,9 +223,6 @@ setMethod("show", "dynrCook", function(object) {
 ##' 
 ##' @seealso Other S3 methods \code{\link{logLik.dynrCook}}
 ##' 
-##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #coef(cookedModel)
 coef.dynrCook <- function(object, ...){
 	object@transformed.parameters
 }
@@ -251,9 +248,6 @@ coef.dynrCook <- function(object, ...){
 ##' 
 ##' @seealso Other S3 methods \code{\link{coef.dynrCook}}
 ##' 
-##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #logLik(cookedModel)
 logLik.dynrCook <- function(object, ...){
 	ans <- -object@neg.log.likelihood
 	attr(ans, "df") <- length(object@fitted.parameters)
@@ -281,9 +275,6 @@ deviance.dynrCook <- function(object, ...){
 ##' @return
 ##' A single number. The total number of observations across all IDs.
 ##' 
-##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #nobs(cookedModel)
 nobs.dynrCook <- function(object, ...){
 	dim(object@eta_smooth_final)[2]
 }
@@ -366,9 +357,6 @@ setMethod("$", "dynrCook",
 ##' 
 ##' Wu, H. & Neale, M. C. (2012). Adjusted confidence intervals for a bounded parameter. Behavior genetics, 42(6), 886-898.
 ##' 
-##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #confint(cookedModel)
 confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
 	type <- match.arg(type)
 	tlev <- (1-level)/2
@@ -455,8 +443,6 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' \code{\link{names}}, \code{\link{nobs}}, \code{\link{plot}}, \code{\link{print}},
 ##' \code{\link{show}}, \code{\link{summary}}, \code{\link{vcov}}.          
 ##' 
-##' @examples
-##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun

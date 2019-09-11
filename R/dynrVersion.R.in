@@ -7,10 +7,6 @@ gitVersion <- "GIT_VERSION"
 ##' 
 ##' This function returns a string with the current version number of dynr. Optionally (with verbose = TRUE (the default)), it prints a message containing the version of R and the platform.  The primary purpose of the function is for bug reporting.
 ##' 
-##' @examples
-##' dynr.version()
-##' dynr.version(verbose=FALSE)
-##' packageVersion("dynr")
 dynr.version <- function (verbose=TRUE) {
 	pvers <-  packageVersion("dynr")
 	if(verbose){
