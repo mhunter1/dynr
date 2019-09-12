@@ -734,6 +734,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }
     inputs$initial@y0 <- list(y0)
 	#inputs$b <- b
+	#print (inputs$initial@y0)
     
     #startpar
     start.par <- c(0, 0, 0, 1, 1, 0, 0 ,0, log(1), log(1),  log(1 -.2^2), .2)

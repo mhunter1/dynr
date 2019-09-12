@@ -2369,8 +2369,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   
   #print("second")
   state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  print(state.names)
-  print(length(state.names))
+  #print(state.names)
+  #print(length(state.names))
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')

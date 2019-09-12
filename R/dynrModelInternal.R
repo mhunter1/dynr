@@ -117,6 +117,9 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	}
 	
 
+	
+	
+
 	#returns a list of addresses of the compiled model functions
 	#func_address=.C2funcaddressSAEM(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
 	

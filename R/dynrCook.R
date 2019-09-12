@@ -456,12 +456,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     
     if(saem==TRUE){
         #print(dynrModel@measurement$values.load[[1]])
-		
-		#get the initial values of b
-		#todo put the b's initial code estimate
-		b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
-		
-		
+        
+        #get the initial values of b
+        #todo put the b's initial code estimate
+        b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
+        bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
+
+        
+        
         model <- internalModelPrepSAEM(
             num_regime=dynrModel@num_regime,
             dim_latent_var=dynrModel@dim_latent_var,
@@ -485,7 +487,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]),
             bAdaptParams=bAdaptParams,
-			b= b,
+            b= b,
             KKO=KKO
         )
         
@@ -498,8 +500,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         model <- combineModelDataInformationSAEM(model, data)
         model <- preProcessModel(model)
         
-		#print(model$b)
-		
+        #print(model$b)
+        
         # the following code compiles the generated file of dynr.model, comment out now for testing
         # some related comments also be commented in dynrModelInternal.R
         # if(any(sapply(model$func_address, is.null.pointer))){
@@ -804,13 +806,9 @@ combineModelDataInformationSAEM <- function(model, data){
     }
     model$H <- H
     model$Z <- Z
-	model$tspan <- unique(data[['time']])
-	print(model$tspan)
+    model$tspan <- unique(data[['time']])
     
-    #print(data$covariates[1,])
-    #print(model$H[1:3, ])
-    #print(data$covariates[301,])
-    #print(model$H[4:6, ])
+
     return(model)
 }
 
@@ -1009,4 +1007,42 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
   r = t(Pprod)%*%t(L)%*%t(Pprod)
   attr(r,"delta")=delta
   return(r)
+}
+
+getInitialVauleOfRandomEstimate<- function(dynrModel){
+  mdcov <- prep.noise(
+    values.latent=dynrModel@noise@values.latent,
+    params.latent=dynrModel@noise@params.latent,
+	values.observed=dynrModel@noise@values.observed,
+	params.observed=dynrModel@noise@params.observed
+  )
+
+  meas <- prep.measurement(
+    values.load = dynrModel@measurement@values.load,
+    params.load = dynrModel@measurement@params.load,
+    obs.names = dynrModel@measurement@obs.names,
+    state.names = dynrModel@measurement@state.names
+  )
+
+  initial <- prep.initial(
+    values.inistate=dynrModel@initial@values.inistate,
+    params.inistate=dynrModel@initial@params.inistate,
+    values.inicov=dynrModel@initial@values.inicov, 
+    params.inicov=dynrModel@initial@params.inicov
+  )
+
+  print(unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)])
+  dynm<-prep.formulaDynamics(
+    formula=unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)],
+    startval=dynrModel@dynamics@startval,
+    isContinuousTime=dynrModel@dynamics@isContinuousTime,
+    beta.names=names(dynrModel@dynamics@startval)
+  )
+
+  model <- dynr.model(dynamics=dynrModel@dynamics, measurement=dynrModel@measurement,
+                    noise=dynrModel@noise, initial=dynrModel@initial, data=dynrModel@data, armadillo=FALSE,
+                    outfile="VanDerPol_.c")
+
+  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+
 }
