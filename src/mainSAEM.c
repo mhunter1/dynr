@@ -129,7 +129,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	
-	/*maxT*/ /*not feed*/
+	/*maxT*/ 
 	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
 	double maxT =*REAL(max_t_sexp);
 	/*DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);*/
@@ -167,7 +167,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z;
+	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT;
 	char str_number[64], str_name[64];
 	
 	
@@ -395,16 +395,30 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         Z = NULL;
     }
 	
+	/*allT*/
+	if (Nsubj > 0){
+		allT = (double *)malloc((Nsubj+1)* sizeof(double));
+		allT = REAL(PROTECT(getListElement(model_list,"allT")));
+		UNPROTECT(1);
+		
+		/*
+		printf("allT:\n");
+		for(row = 0; row < Nsubj; row++)
+			printf("%lf\n", allT[row]);
+		*/
+		
+    }
 
 	/*Inconsistent variables*/
 	Nbeta = 0;	
 	NLambda = 2;
+	Nbetax = 5;
 	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
 	
 	
 	/*example1();*/
 	printf("start to call MainUseThis %d %d %d\n", Nsubj, NxState, Ny);
-	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z);
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
