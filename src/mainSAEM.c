@@ -167,7 +167,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT;
+	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT, *tspan;
 	char str_number[64], str_name[64];
 	
 	
@@ -289,7 +289,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		/*
-		printf("Y1:\n");
+		printf("Y:\n");
 		for(int u = 0;u < Ny; u++){
 			for(int i = 0; i < 10;i++){
 				printf(" %6lf", Y[u][i]);
@@ -389,13 +389,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf("\n");
 		}
 		*/
-		
-		
     }else{
         Z = NULL;
     }
 	
-	/*allT*/
 	if (Nsubj > 0){
 		allT = (double *)malloc((Nsubj+1)* sizeof(double));
 		allT = REAL(PROTECT(getListElement(model_list,"allT")));
@@ -409,6 +406,22 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		
     }
 
+	/*totalT*/
+	if (totalT > 0){
+		tspan = (double *)malloc((totalT+1)* sizeof(double));
+		tspan = REAL(PROTECT(getListElement(model_list,"tspan")));
+		UNPROTECT(1);
+		
+		/*
+		printf("tspan:\n");
+		for(row = 0; row < totalT; row++)
+			printf("%lf ", tspan[row]);
+		printf("\n");
+		*/
+		
+		
+    }
+	
 	/*Inconsistent variables*/
 	Nbeta = 0;	
 	NLambda = 2;

@@ -804,6 +804,8 @@ combineModelDataInformationSAEM <- function(model, data){
     }
     model$H <- H
     model$Z <- Z
+	model$tspan <- unique(data[['time']])
+	print(model$tspan)
     
     #print(data$covariates[1,])
     #print(model$H[1:3, ])
