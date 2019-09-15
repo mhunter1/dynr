@@ -6,6 +6,7 @@
 # Note: Workable for developer dynr on arma branch
 #------------------------------------------------------------------------------
 
+#setwd('C:\\Users\\Cynthia\\Documents\\gits\\dynr\\demo')
 library('dynr')
 state.names = c('x1', 'x2')
 #beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
@@ -28,6 +29,15 @@ data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y1', 'y2', 'y3'),
                   covariates=c('u1','u2'))
 
+nPeople = 200
+nTimes = 300
+vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
+#vdpData <- read.csv("C:\\Users\\Cynthia\\Documents\\gits\\dynr\\data\\TrueInitY1.txt", header=FALSE)
+colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+vdpData$id <- rep(1:nPeople, each=nTimes)
+data <- dynr.data(vdpData, id="id", time="time",
+                  observed=c('y1','y2','y3'),
+                  covariates=c("u1","u2"))
 
 meas <- prep.measurement(
     #values.load=matrix(c(1, 0, 1, 0,1, 0), 3, 2),
@@ -49,13 +59,19 @@ initial <- prep.initial(
                            'c12','sigma2_x20'),ncol=2,byrow=T)
 )
 
+# mdcov <- prep.noise(
+    # values.latent=diag(0, 2),
+    # params.latent=diag(c("fixed","fixed"), 2),
+    # values.observed=diag(rep(0.3,2)),
+    # params.observed=diag(c("var_1","var_2"),2) #sigma_e
+# )
+
 mdcov <- prep.noise(
     values.latent=diag(0, 2),
     params.latent=diag(c("fixed","fixed"), 2),
-    values.observed=diag(rep(0.3,2)),
-    params.observed=diag(c("var_1","var_2"),2) #sigma_e
+    values.observed=diag(rep(0.3,3)),
+    params.observed=diag(c("var_1","var_2","var_3"),3)
 )
-
 
 formula=
     list(x1 ~ x2,
@@ -82,7 +98,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                            startval=c(zeta0=-1,
                                            zeta1=.5,
                                            zeta2=.2),
-                                isContinuousTime=FALSE,
+                                isContinuousTime=TRUE,
 								#state.names=state.names,
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
