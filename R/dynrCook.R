@@ -460,7 +460,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         #get the initial values of b
         #todo put the b's initial code estimate
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
-        bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
+        #bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
 
         
         
@@ -479,6 +479,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             num_theta=length(dynrModel@dynamics@theta.names),
             num_beta=length(dynrModel@dynamics@beta.names),
             total_t=length(unique(dynrModel@data$time)),
+			#total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == i, ]),
             num_lambda=length(dynrModel@measurement$params.load[[1]]),
             num_mu=length(model@measurement@params.int[[1]]),
             num_random=length(dynrModel@dynamics@random.names),
@@ -746,25 +747,29 @@ combineModelDataInformationSAEM <- function(model, data){
 
     
 
-    model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
-    
-    
-    # TODO: need to be generalized -- each subject may have different number of subjects
-    time_point <- matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)
-    dif <- matrix(0, model$total_t, ncol= model$num_sbj)
-    for (i in 2:model$total_t){
-        for(j in 1:model$num_sbj){
-            dif[i,j] <- time_point[i,j] - time_point[i-1,j]
-        }
-    }
-    model$delt <- min(dif[2:model$total_t, ])
+    #model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
+    model$max_t <- max(data[['time']])
+	#ask, whether it is possible that different objects have different number of time points
+    #model$total_t <- nrow(data$original.data[data$original.data[['id']] == 1, ])
+	
     
     model$allT <- rep(0, model$num_sbj)
+	#dif <- matrix(0, model$total_t, ncol= model$num_sbj)
+	model$delt <- 2147493647
     for (i in unique(data[['id']])){
-        table_i <- data$original.data[data[['id']] == i, ]
+        table_i <- data$original.data[data$original.data[['id']] == i, ]
         model$allT[i] <- nrow(table_i)
+		#print(nrow(table_i))
+		for(j in 2:nrow(table_i)){
+            #dif[j,i] <- table_i[j, 'time'] - table_i[j - 1, 'time']
+			if(table_i[j, 'time'] - table_i[j - 1, 'time'] < model$delt)
+				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
+        }
     }
-    #print(model$allT) correct here
+	#print(dif)
+	#model$delt <- min(dif[2:model$total_t, ], na.omit = TRUE)
+    #print(model$allT) #correct here
+	#print(model$delt) #correct here
 
     
     #H & Z 
@@ -1031,9 +1036,14 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
     params.inicov=dynrModel@initial@params.inicov
   )
 
+  formula=
+    list(x1 ~ x2,
+         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2
+    )
   print(unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)])
   dynm<-prep.formulaDynamics(
-    formula=unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)],
+    #formula=unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)],
+	formula = formula,
     startval=dynrModel@dynamics@startval,
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
