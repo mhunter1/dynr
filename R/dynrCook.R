@@ -441,7 +441,13 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, bAdaptParams = c(.5, 2.5, .5), KKO = 20) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, ...) {
+
+	dots <- list(...)
+	if(length(dots) > 0){
+		saemp <-dots$saemp
+		#print(saemp)
+	}
     
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
@@ -462,8 +468,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
         #bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
 
-        
-        
+         
         model <- internalModelPrepSAEM(
             num_regime=dynrModel@num_regime,
             dim_latent_var=dynrModel@dim_latent_var,
@@ -487,11 +492,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             random.names=dynrModel@dynamics@random.names,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]),
-            bAdaptParams=bAdaptParams,
             b= b,
-            KKO=KKO,
 			random.lb=dynrModel@dynamics@random.lb,
-			random.ub=dynrModel@dynamics@random.ub
+			random.ub=dynrModel@dynamics@random.ub,
+			bAdaptParams=saemp@bAdaptParams,
+            KKO=saemp@KKO,
+			MAXGIB = saemp@MAXGIB, 
+			MAXITER = saemp@MAXITER, 
+			maxIterStage1 = saemp@maxIterStage1, 
+			gainpara = saemp@gainpara, 
+			gainparb = saemp@gainparb, 
+			gainpara1 = saemp@gainpara1, 
+			gainparb1 = saemp@gainparb1
         )
         
         

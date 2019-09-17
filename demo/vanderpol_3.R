@@ -109,16 +109,15 @@ dynm<-prep.formulaDynamics(formula=formula,
 				                random.ub = 5,
 								saem=TRUE)
 
-saem <- prep.saem(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000)
+saemp <- prep.saem_parameter(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000)
 								
-print(saem)
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.cpp")
 
 
-fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 #print(fitted_model)
 
 

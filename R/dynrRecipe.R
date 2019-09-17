@@ -226,7 +226,7 @@ setClass(Class = "dynrTrans",
 		 # contains = "dynrRecipe"
 # )
 
-setClass(Class =  "dynrSaem",
+setClass(Class =  "dynrSaemParameter",
          representation = representation(
            MAXGIB = "numeric",
            MAXITER = "numeric",
@@ -234,7 +234,9 @@ setClass(Class =  "dynrSaem",
 		   gainpara = "numeric",
 		   gainparb = "numeric",
 		   gainpara1 = "numeric",
-		   gainparb1 = "numeric"
+		   gainparb1 = "numeric",
+		   bAdaptParams = "vector", 
+		   KKO = "numeric"
          ),
 		 contains = "dynrRecipe"
 )
@@ -3438,21 +3440,10 @@ parseFormulaTheta <- function(formula, theta.formula){
 	# x <- list(random.names= random.names, random.lb = random.lb, random.ub = random.ub, b=b, params.inicov=params.inicov, values.inicov=values.inicov)
 	# return(new("dynrRandom", x))
 # }
-setClass(Class =  "dynrSaem",
-         representation = representation(
-           MAXGIB = "numeric",
-           MAXITER = "numeric",
-           maxIterStage1 = "numeric",
-		   gainpara = "numeric",
-		   gainparb = "numeric",
-		   gainpara1 = "numeric",
-		   gainparb1 = "numeric"
-         ),
-		 contains = "dynrRecipe"
-)
 
-prep.saem<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000){
-	x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1)
-	return(new("dynrSaem", x))
+
+prep.saem_parameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20){
+	x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO)
+	return(new("dynrSaemParameter", x))
 }
 
