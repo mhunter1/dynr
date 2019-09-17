@@ -96,7 +96,7 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
-internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, b){
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, b, random.lb, random.ub){
 
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrepSAEM function must be a list.")
@@ -143,6 +143,8 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	KKO=KKO,
 	b=b,
 	lambda=lambda,
+	random.lb=random.lb,
+	random.ub=random.ub,
 	options=options #,
 	#func_address=func_address[[1]],
 	#libname=func_address[[2]]

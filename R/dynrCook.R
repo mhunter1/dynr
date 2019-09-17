@@ -489,7 +489,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             lambda=as.vector(dynrModel@measurement$values.load[[1]]),
             bAdaptParams=bAdaptParams,
             b= b,
-            KKO=KKO
+            KKO=KKO,
+			random.lb=dynrModel@dynamics@random.lb,
+			random.ub=dynrModel@dynamics@random.ub
         )
         
         
