@@ -163,6 +163,17 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	UNPROTECT(14);
 	/*----------*/
+	SEXP lb_sexp = PROTECT(getListElement(model_list, "random.lb"));
+	double lb = *REAL(lb_sexp);
+	SEXP ub_sexp = PROTECT(getListElement(model_list, "random.ub"));
+	double ub = *REAL(ub_sexp);
+	
+	DYNRPRINT(verbose_flag, "lb: %lf\n", lb);
+	DYNRPRINT(verbose_flag, "ub: %lf\n", ub);
+	
+	UNPROTECT(2);
+	
+	/*----------*/
 	
 	/*U1: covariate matrix*/ 
 	double **U1;
@@ -431,7 +442,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*example1();*/
 	printf("start to call MainUseThis %d %d %d\n", Nsubj, NxState, Ny);
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0);
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
