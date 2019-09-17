@@ -4434,17 +4434,3 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	MainUseThis(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed);
 	return;
 }
-/*
-int main(int argc, char **argv){
-        int seed;
-
-        if(argc == 2){
-                sscanf(argv[1], "%d", &seed);
-        }
-        else{
-                seed = (int)time(NULL);
-        }
-        arma_rng::set_seed(seed);
-
-
-        print
