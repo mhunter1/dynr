@@ -82,6 +82,8 @@ formula=
     )
 
 theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
+
+
 #theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 #                      x1_0 ~ 1 * mu_x1 + 1 * b_x1,
 #                      x2_0 ~ 1 * mu_x2 + 1 * b_x2)
@@ -108,6 +110,14 @@ dynm<-prep.formulaDynamics(formula=formula,
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, saem=TRUE,
                     outfile="VanDerPol.cpp")
+					
+#InfDS.b					
+print(model$random.values.inicov)
+
+#InfDS.bpar
+sigmab.names <- unique(as.vector(model$random.params.inicov))
+sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
+print(length(sigmab.names))
 					
 saemp <- prep.saemParameter(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.2, 1, 0.2))
 								
