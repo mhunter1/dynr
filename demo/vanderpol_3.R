@@ -19,15 +19,15 @@ intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 #random data
-N = 200
-T = 300
-vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
-                      y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
-                      u1 = rnorm(100*300), u2 = rnorm(100*300))
-colnames(vdpData) <- c("id","time","y1","y2", "y3","u1", "u2") 
-data <- dynr.data(vdpData, id="id", time="time",
-                  observed=c('y1', 'y2', 'y3'),
-                  covariates=c('u1','u2'))
+# N = 200
+# T = 300
+# vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
+                      # y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
+                      # u1 = rnorm(100*300), u2 = rnorm(100*300))
+# colnames(vdpData) <- c("id","time","y1","y2", "y3","u1", "u2") 
+# data <- dynr.data(vdpData, id="id", time="time",
+                  # observed=c('y1', 'y2', 'y3'),
+                  # covariates=c('u1','u2'))
 
 nPeople = 200
 nTimes = 300
@@ -40,8 +40,6 @@ data <- dynr.data(vdpData, id="id", time="time",
                   covariates=c("u1","u2"))
 
 meas <- prep.measurement(
-    #values.load=matrix(c(1, 0, 1, 0,1, 0), 3, 2),
-    #params.load=matrix(c('fixed'), 3, 2),
 	values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
@@ -55,8 +53,8 @@ initial <- prep.initial(
     params.inistate=c("mu_x1", "mu_x2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=T), 
-    params.inicov=matrix(c('sigma2_x10','c12',
-                           'c12','sigma2_x20'),ncol=2,byrow=T)
+    params.inicov=matrix(c('sigma2_x10','sigma_bx1x2',
+                           'sigma_bx1x2','sigma2_x20'),ncol=2,byrow=T)
 )
 
 # mdcov <- prep.noise(
@@ -83,15 +81,12 @@ formula=
 #         mu_x2 ~0
     )
 
-#theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
-#x1_0 ~ 1 * 0,
-#x2_0 ~ 1 * 0)
-
+theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
 #theta.formula = list( zeta_i ~ 1 * zeta0 + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta,
 #                      x1_0 ~ 1 * mu_x1 + 1 * b_x1,
 #                      x2_0 ~ 1 * mu_x2 + 1 * b_x2)
 
-theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
+
 
 
 dynm<-prep.formulaDynamics(formula=formula,
@@ -109,13 +104,13 @@ dynm<-prep.formulaDynamics(formula=formula,
 				                random.ub = 5,
 								saem=TRUE)
 
-saemp <- prep.saem_parameter(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000)
 								
-
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, armadillo=TRUE,
                     outfile="VanDerPol.cpp")
-
+					
+saemp <- prep.saemParameter(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.2, 1, 0.2))
+								
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 #print(fitted_model)
