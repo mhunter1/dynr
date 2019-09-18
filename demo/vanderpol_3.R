@@ -106,7 +106,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 								
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, armadillo=TRUE,
+                    noise=mdcov, initial=initial, data=data, saem=TRUE,
                     outfile="VanDerPol.cpp")
 					
 saemp <- prep.saemParameter(MAXGIB = 100, MAXITER = 100, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.2, 1, 0.2))

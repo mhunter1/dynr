@@ -545,8 +545,8 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-#dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, armadillo=FALSE){
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, armadillo=FALSE){
+#dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, saem=FALSE){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, saem=FALSE){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
@@ -555,10 +555,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }else{
       stop("Formulas should be specified in the same order for different regimes.")
     }
-    if (armadillo==FALSE && !all(measurement@state.names == states.dyn)){
+    if (saem==FALSE && !all(measurement@state.names == states.dyn)){
       stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
-    #else if (armadillo==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
+    #else if (saem==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
     #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
     #}
   }
@@ -601,7 +601,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   
   # gather inputs
-  if(armadillo==FALSE){
+  if(saem==FALSE){
     inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
   }
   else{
@@ -643,7 +643,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   
   
-  if(armadillo==TRUE){
+  if(saem==TRUE){
     # handle b (random)
     # replace the name init_x? as inputs$initial$params.inistate[[i]]
     for (i in 1:length(inputs$initial$params.inistate[[1]])){
@@ -743,13 +743,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
 
   # writeCcode on each recipe
-  if(armadillo==FALSE){
+  if(saem==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
     inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
-  } else if(armadillo==TRUE){
+  } else if(saem==TRUE){
     inputs <- sapply(inputs, writeArmadilloCode, covariate.names)
-  } else {stop("Invalid value passed to 'armadillo' argument. It should be TRUE or FALSE.")}
+  } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
@@ -759,10 +759,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   param.data$param.value=unique.values
   
   #initiate a dynrModel object
-  if(armadillo==FALSE){
+  if(saem==FALSE){
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
   }
-  else if(armadillo==TRUE){
+  else if(saem==TRUE){
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
   }
   
@@ -779,7 +779,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
   #write out the C script
   cparts <- unlist(sapply(inputs, slot, name='c.string'))
-  if(armadillo==FALSE){
+  if(saem==FALSE){
       includes <- "#include <math.h>\n#include <gsl/gsl_matrix.h>\n#include <gsl/gsl_blas.h>\n"
       body <- paste(cparts, collapse="\n\n")
       if( length(grep("void function_regime_switch", body)) == 0 ){ # if regime-switching function isn't provided, fill in 1 regime model
@@ -795,10 +795,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       }
       cat(glom, file=obj.dynrModel@outfile)
   }
-  else if(armadillo==TRUE){
+  else if(saem==TRUE){
     glom <- paste(cparts)
     cat(glom, file=obj.dynrModel@outfile)
-  } else {stop("Invalid value passed to 'armadillo' argument. It should be TRUE or FALSE.")}
+  } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   
   return(obj.dynrModel)
   #modify the object slot, including starting values, etc.
