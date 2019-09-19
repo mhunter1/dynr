@@ -10,9 +10,9 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double *);
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double *, double **, double **);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double *Lambda){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double *Lambda, double **dmudparMu, double **dmudparMu2){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
@@ -172,8 +172,22 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	
 
 	//to be obtained from prep.measurements
-	InfDS.dmudparMu.set_size();
-	InfDS.dmudparMu2;
+	InfDS.dmudparMu.set_size(Ny, Ny);
+	for(i = 0; i < Ny; i++){
+		for(j = 0; j < Ny; j++){
+			InfDS.dmudparMu(i,j) = dmudparMu[i][j];
+		}
+	}
+	InfDS.dmudparMu.print("dmudparMu");
+	
+	InfDS.dmudparMu2.set_size(Ny * Ny, Ny);
+	for(i = 0; i < Ny*Ny; i++){
+		for(j = 0; j < Ny; j++){
+			InfDS.dmudparMu2(i,j) = dmudparMu2[i][j];
+		}
+	}
+	InfDS.dmudparMu2.print("dmudparMu2");
+	
 	
 	InfDS.par = zeros(Npar, 1);
 	InfDS.sy = zeros(Npar, 1);

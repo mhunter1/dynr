@@ -212,8 +212,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT, *tspan, *mu;
-	double *lower_bound, *upper_bound;
+	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT, **dmudparMu, **dmudparMu2;
+	double *lower_bound, *upper_bound, *tspan, *mu;
 	char str_number[64], str_name[64];
 	
 	
@@ -499,6 +499,62 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	}
 	
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny + 1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dmudparMu")));
+		UNPROTECT(1);
+		
+		dmudparMu = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dmudparMu[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				dmudparMu[row][col] = temp[col * Ny + row];
+			}
+		}
+		
+		printf("dmudparMu:\n");
+		for(row = 0; row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				printf(" %lf", Lamdba[row][col]);
+			}
+			printf("\n");
+		}	
+	
+    }
+	else{
+		dmudparMu = NULL;
+    }
+	
+	
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny * Ny + 1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dmudparMu2")));
+		UNPROTECT(1);
+		
+		dmudparMu2 = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny * Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dmudparMu2[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				dmudparMu2[row][col] = temp[col * (Ny * Ny) + row];
+			}
+		}
+		
+		printf("dmudparMu2:\n");
+		for(row = 0;row < Ny * Ny; row++){
+			for(col = 0;col < Ny; col++){
+				printf(" %lf", dmudparMu2[row][col]);
+			}
+			printf("\n");
+		}	
+	
+    }
+	else{
+		dmudparMu = NULL;
+    }
 	
 	
 	/*Inconsistent variables*/
@@ -508,7 +564,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upperbound, Lambda);
+	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upperbound, Lambda, dmudparMu, dmudparMu2);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

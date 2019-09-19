@@ -532,8 +532,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			sigmab = dynrModel$random.values.inicov,
 			mu = model@measurement@values.int[[1]],
 			lower_bound=lower_bound,
-			upper_bound=upper_bound
-			
+			upper_bound=upper_bound,
+			dmudparMu=model@measurement@dmudparMu,
+			dmudparMu2=model@measurement@dmudparMu2
         )
         #print(model$MAXGIB)
 		#print(model$gainpara)
