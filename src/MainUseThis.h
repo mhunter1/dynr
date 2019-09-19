@@ -12,7 +12,7 @@
 
 // Step 3 in the MainUseThins.m
 void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed){
-	printf("hello world");
+	printf("in MainUseThis");
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
 	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, freeIC, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
@@ -22,7 +22,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	int i, j, fitInit;
 	FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
 
-	printf("hello world");
+	//printf("hello world");
 	
 	timer = time(NULL);
 	
@@ -38,7 +38,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	yesMean = 0;
 	
 	//InfDS.par = join_vert(x1, InfDS.par);
-	InfDS.par.print("par");
+	//InfDS.par.print("par");
 
 	//InfDS.Nx = 2;
 	InfDS.G = eye(InfDS.Nx, InfDS.Nx);
@@ -81,12 +81,12 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	//printf("checkpoint M63\n");	
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	//%self change, with caution and ask
-	InfDS.lowBound(span(8,9), span::all).fill(10e-8);
-	InfDS.lowBound(span(10, 15), span::all).fill(log(10e-8));
-	InfDS.lowBound(16) = -2; //After transformation, covariance between -5 and 5
+	//InfDS.lowBound(span(8,9), span::all).fill(10e-8);
+	//InfDS.lowBound(span(10, 15), span::all).fill(log(10e-8));
+	//InfDS.lowBound(16) = -2; //After transformation, covariance between -5 and 5
 
-	InfDS.upBound(span(8,9), span::all).fill(10);
-	InfDS.upBound(span(10, 15), span::all).fill(2);
+	//InfDS.upBound(span(8,9), span::all).fill(10);
+	//InfDS.upBound(span(10, 15), span::all).fill(2);
 	
 	//printf("checkpoint M73\n");	
 
@@ -266,7 +266,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	dgdpar = eye(InfDS.par.n_rows, InfDS.par.n_rows);
 	dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
 
-
+/*
 	printf("(41) Wrap up estimation and write out results\n");
 
 	//Columns -- par, rows --transformation function
@@ -300,6 +300,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	//InfDS.ss = ss;
 
 	printf("(43) Wrap up estimation and write out results\n");
+*/
 /*
 	fitInit = 1; //Fit models with freely estimated IC.
 	//dlmwrite(filenamePar,[trueInit fitInit batch kk reshape(InfDS.par,1,length(InfDS.par))],'-append');
