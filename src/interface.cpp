@@ -10,30 +10,32 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *);
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int );
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
 	arma::mat upperb, lowerb, x1;
 
 	InfDS.NxState = NxState;
-	InfDS.Nbetax = Nbeta + NxState;
-	InfDS.Nx = NxState + Nbetax;
 	InfDS.Ny = Ny;
 	InfDS.Ntheta = Ntheta;
 	InfDS.Nb = Nb;
 	InfDS.Nmu = Nmu;
 	InfDS.NLambda = NLambda;
-	InfDS.Nbpar = 4;
-	InfDS.Nu = Nu;
-	InfDS.N = 1;
+	InfDS.Nbpar = Nbpar;
+	InfDS.Nu = Nu
 	InfDS.Nbeta = Nbeta;
+	InfDS.Nbetax = Nbeta;
+	InfDS.Nx = NxState + Nbetax;
 	InfDS.Nsubj = Nsubj;
 	InfDS.totalT = totalT;
-	InfDS.omega = 61.685028;
 	InfDS.delt = delt;
+	
+	
+	InfDS.N = 1;
+	InfDS.omega = 61.685028;
 	
 	//printf("%d %d\n", InfDS.NLambda, InfDS.Nbeta);
 	
@@ -74,9 +76,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	//InfDS.Z.print("InfDS.Z");
 
 
-
-	InfDS.par="	 0.001176;	 0.003502;	 -0.003414;	 0.701476;	 1.201387;	 -0.685046;	 -0.689826;	 -0.690855;	 -0.476387;	 0.133885;	 0.125865;	 0.211823;";
-
+	
 	/*Need to be generalized*/
 	InfDS.allT.set_size(1, Nsubj);
 	for(i = 0; i < Nsubj; i++){
@@ -165,7 +165,6 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.dmudparMu2;
 	
 	InfDS.par = zeros(Npar, 1);
-	
 	InfDS.sy = zeros(Npar, 1);
 	InfDS.EI = zeros(Npar, 1);
 	InfDS.ES = zeros(Npar, 1);
@@ -207,8 +206,6 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	upperb.set_size(1, Nb);
 	upperb.fill(ub);
 	
-	
-
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
 	char filenameSE[64] = "./Results/TrueInitSEG1.txt";

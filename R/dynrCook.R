@@ -467,8 +467,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#InfDS.bpar
 		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
 		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
-		#print(length(sigmab.names))
-		num.bpar <- length(sigmab.names)
+		# print(length(sigmab.names))
+		#num_bpar <- length(sigmab.names)
+		
+		lambda.names <- unique(as.vector(dynrModel@measurement$params.load[[1]]))
+		lambda.names <- lambda.names[!lambda.names %in% c('fixed', '0')]
 					
         
 		#[todo] put the b's initial code estimate
@@ -493,7 +496,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             num_beta=length(dynrModel@dynamics@beta.names),
             total_t=length(unique(dynrModel@data$time)),
 			#total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == i, ]),
-            num_lambda=length(dynrModel@measurement$params.load[[1]]),
+            num_lambda=length(lambda.names),
             num_mu=length(model@measurement@params.int[[1]]),
             num_random=length(dynrModel@dynamics@random.names),
             theta.formula=dynrModel@dynamics@theta.formula,
@@ -512,8 +515,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			gainparb = saemp@gainparb, 
 			gainpara1 = saemp@gainpara1, 
 			gainparb1 = saemp@gainparb1,
-			num.bpar = num.bpar,
-			sigma.b = dynrModel$random.values.inicov
+			num_bpar = length(sigmab.names),
+			sigmab = dynrModel$random.values.inicov
 			
         )
         #print(model$MAXGIB)

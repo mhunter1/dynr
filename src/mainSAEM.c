@@ -161,7 +161,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	double KKO=*REAL(kko_sexp);
 	/*DYNRPRINT(verbose_flag, "KKO: %lf\n", KKO);*/
 	
-	UNPROTECT(14);
+	/*Nbpar*/
+	SEXP num_bpar_sexp = PROTECT(getListElement(model_list, "num_bpar"));
+	int Nbpar = (size_t) *INTEGER(num_mu_sexp);
+	DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);
+	
+	UNPROTECT(15);
 	
 	/*----------*/
 	SEXP lb_sexp = PROTECT(getListElement(model_list, "random.lb"));
@@ -462,15 +467,15 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*Inconsistent variables*/
 	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
-	Nbeta = 0;	
-	NLambda = 2;
-	Nbetax = 5;
+	//Nbeta = 0;	
+	//NLambda = 2;
+	//Nbetax = 5;
 	
 	
 	
 	/*example1();*/
-	printf("start to call MainUseThis %d %d %d\n", Nsubj, NxState, Ny);
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub);
+	printf("start to call MainUseThis\n");
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
