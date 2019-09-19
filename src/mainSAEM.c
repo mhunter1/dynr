@@ -165,7 +165,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*Nbpar*/
 	SEXP num_bpar_sexp = PROTECT(getListElement(model_list, "num_bpar"));
-	int Nbpar = (size_t) *INTEGER(num_mu_sexp);
+	int Nbpar = (size_t) *INTEGER(num_bpar_sexp);
 	DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);
 	
 	UNPROTECT(15);
