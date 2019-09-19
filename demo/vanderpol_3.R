@@ -19,25 +19,25 @@ intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 #random data
-# N = 200
-# T = 300
-# vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
-                      # y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
-                      # u1 = rnorm(100*300), u2 = rnorm(100*300))
-# colnames(vdpData) <- c("id","time","y1","y2", "y3","u1", "u2") 
-# data <- dynr.data(vdpData, id="id", time="time",
-                  # observed=c('y1', 'y2', 'y3'),
-                  # covariates=c('u1','u2'))
-
-nPeople = 200
-nTimes = 300
-vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
-#vdpData <- read.csv("C:\\Users\\Cynthia\\Documents\\gits\\dynr\\data\\TrueInitY1.txt", header=FALSE)
-colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
-vdpData$id <- rep(1:nPeople, each=nTimes)
+N = 200
+T = 300
+vdpData <- data.frame(id=rep(1:N,each=T), time=rep(seq(0.005,1.5,by=0.005),N),
+                      y1=rnorm(100*300),  y2=rnorm(100*300),  y3=rnorm(100*300),
+                      u1 = rnorm(100*300), u2 = rnorm(100*300))
+colnames(vdpData) <- c("id","time","y1","y2", "y3","u1", "u2") 
 data <- dynr.data(vdpData, id="id", time="time",
-                  observed=c('y1','y2','y3'),
-                  covariates=c("u1","u2"))
+                   observed=c('y1', 'y2', 'y3'),
+                   covariates=c('u1','u2'))
+
+#nPeople = 200
+#nTimes = 300
+#vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
+#vdpData <- read.csv("C:\\Users\\Cynthia\\Documents\\gits\\dynr\\data\\TrueInitY1.txt", header=FALSE)
+#colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+#vdpData$id <- rep(1:nPeople, each=nTimes)
+#data <- dynr.data(vdpData, id="id", time="time",
+#                  observed=c('y1','y2','y3'),
+#                  covariates=c("u1","u2"))
 
 meas <- prep.measurement(
 	values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
