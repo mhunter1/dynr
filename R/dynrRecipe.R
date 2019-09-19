@@ -213,18 +213,18 @@ setClass(Class = "dynrTrans",
 )
 
 # initial class for variables of random effects (currently not used)
-# setClass(Class =  "dynrRandom",
-         # representation = representation(
-           # random.names = "character",
-           # random.lb = "numeric",
-           # random.ub = "numeric",
-		   # num.subj = "numeric",
-		   # values.inicov = "matrix",
-           # params.inicov = "matrix",
-		   # b="matrix"
-         # ),
-		 # contains = "dynrRecipe"
-# )
+setClass(Class =  "dynrRandom",
+         representation = representation(
+           random.names = "character",
+           random.lb = "numeric",
+           random.ub = "numeric",
+		   num.subj = "numeric",
+		   values.inicov = "matrix",
+           params.inicov = "matrix",
+		   b="matrix"
+         ),
+		 contains = "dynrRecipe"
+)
 
 setClass(Class =  "dynrSaemParameter",
          representation = representation(
