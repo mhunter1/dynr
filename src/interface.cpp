@@ -12,7 +12,7 @@ using namespace arma;
 
 extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double *);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upperbound, double *Lamdba){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double *Lambda){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
@@ -58,9 +58,9 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	//InfDS.b.print("InfDS.b");
 
 
-	InfDS.H.set_size(Nsubj* Ntheta, Nbetax);
+	InfDS.H.set_size(Nsubj* Ntheta, InfDS.Nbetax);
 	for(i = 0; i < Nsubj* Ntheta; i++){
-		for(j = 0; j < Nbetax; j++){
+		for(j = 0; j < InfDS.Nbetax; j++){
 			InfDS.H(i, j) = H[i][j];
 		}
 	}
@@ -172,7 +172,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	
 
 	//to be obtained from prep.measurements
-	InfDS.dmudparMu;
+	InfDS.dmudparMu.set_size();
 	InfDS.dmudparMu2;
 	
 	InfDS.par = zeros(Npar, 1);
