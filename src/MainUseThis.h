@@ -16,6 +16,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	arma::vec mscore;
 	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, freeIC, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
 	double bAccept, ss, ttt, ssmin;
+	int prev_stage;
 	time_t timer;
 	int i, j, fitInit;
 	FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
@@ -33,13 +34,14 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	// ------- 
 	yesMean = 0;
 	
-	InfDS.par = join_vert(x1, InfDS.par);
+	//InfDS.par = join_vert(x1, InfDS.par);
 
-	InfDS.Nx = 2;
+	//InfDS.Nx = 2;
 	InfDS.G = eye(InfDS.Nx, InfDS.Nx);
-	InfDS.Nbeta = 5;
-	InfDS.Ntheta = 3;
+	//InfDS.Nbeta = 5;
+	//InfDS.Ntheta = 3;
 	InfDS.alp=1;
+	MAXGIB = InfDS.MAXGIB;
 	
 	//printf("checkpoint M32\n");	
 	//to be checked
@@ -131,15 +133,15 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		}
 		else if(stage==1 && k == 3){
             useMultN = 1; 
-			MAXGIB = 30;
+			//MAXGIB = 30;
 		}
 		else if (stage==1 && k <= 4 && k != 3){
             useMultN = 0; 
-			MAXGIB = 1;
+			//MAXGIB = 1;
 		}
 		else {
 			useMultN = 0; 
-			MAXGIB = 10;
+			//MAXGIB = 10;
 		}
 
 		mscore = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
@@ -168,7 +170,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 	
 		//printf("checkpoint M153 enter GIB loop\n");	
-		MAXGIB = 5;
+		//MAXGIB = 5;
 		printf("MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
@@ -218,19 +220,22 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		printf("\nRange of bhat = %6f, %6f\n",min(InfDS.b),max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
-		InfDS.par(span(0,9), span::all).print("InfDS.par(1:10)");
-		exp(InfDS.par(span(10,12), span::all)).t().print("InfDS.par(11:13)");
-		InfDS.Sigmab.print("Sigmab");
-		printf("Averaging:\n");
-		InfDS.thetatild(span(0,9),span::all).print("InfDS.thetatild(1:10)");
-		exp(InfDS.thetatild(span(10,12), span::all)).t().print("exp(InfDS.thetatild)");
-		D = diagmat(exp(InfDS.thetatild(span(12,14), span::all)));
-		L = "1 0 0;	0 1 0;0 0 1";
-		L(2,1) = InfDS.thetatild(16);
-		QQ = L*D*L.t();
+		if(prev_stage != stage){
+			InfDS.par(span(0,9), span::all).print("InfDS.par(1:10)");
+			exp(InfDS.par(span(10,12), span::all)).t().print("InfDS.par(11:13)");
+			InfDS.Sigmab.print("Sigmab");
+			printf("Averaging:\n");
+			InfDS.thetatild(span(0,9),span::all).print("InfDS.thetatild(1:10)");
+			exp(InfDS.thetatild(span(10,12), span::all)).t().print("exp(InfDS.thetatild)");
+			D = diagmat(exp(InfDS.thetatild(span(12,14), span::all)));
+			L = "1 0 0;	0 1 0;0 0 1";
+			L(2,1) = InfDS.thetatild(16);
+			QQ = L*D*L.t();
+		}
 
 		//%%%%%%%%%%
 		k = k+1;
+		prev_stage = stage;
 
 		/*remove later*/
 		break;
