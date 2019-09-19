@@ -467,13 +467,26 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#InfDS.bpar
 		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
 		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
-		# print(length(sigmab.names))
+		#print(sigmab.names)
 		#num_bpar <- length(sigmab.names)
 		
 		lambda.names <- unique(as.vector(dynrModel@measurement$params.load[[1]]))
 		lambda.names <- lambda.names[!lambda.names %in% c('fixed', '0')]
+		
+		noise.names <- unique(as.vector(dynrModel@noise@params.observed[[1]]))
+		noise.names <- noise.names[!noise.names %in% c('fixed', '0')]
+		
 					
-        
+		# [TODO] to be generalized: bzeta			
+        lb <- c(dynrModel@lb, 'b_zeta'=NA)
+		ub <- c(dynrModel@ub, 'b_zeta'=NA)
+		
+		lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
+		upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
+		
+		print(lower_bound) 
+
+		
 		#[todo] put the b's initial code estimate
         #get the initial values of b
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
@@ -497,12 +510,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             total_t=length(unique(dynrModel@data$time)),
 			#total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == i, ]),
             num_lambda=length(lambda.names),
-            num_mu=length(model@measurement@params.int[[1]]),
+            num_mu=length(dynrModel@measurement@params.int[[1]]),
             num_random=length(dynrModel@dynamics@random.names),
             theta.formula=dynrModel@dynamics@theta.formula,
             random.names=dynrModel@dynamics@random.names,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
-            lambda=as.vector(dynrModel@measurement$values.load[[1]]),
+            lambda=as.vector(dynrModel@measurement$values.load[[1]]), #column-major
             b= b,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
@@ -516,7 +529,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			gainpara1 = saemp@gainpara1, 
 			gainparb1 = saemp@gainparb1,
 			num_bpar = length(sigmab.names),
-			sigmab = dynrModel$random.values.inicov
+			sigmab = dynrModel$random.values.inicov,
+			mu = model@measurement@values.int[[1]],
+			lower_bound=lower_bound,
+			upper_bound=upper_bound
 			
         )
         #print(model$MAXGIB)

@@ -52,7 +52,7 @@ initial <- prep.initial(
     values.inistate=c(3, 1),
     params.inistate=c("mu_x1", "mu_x2"),
     values.inicov=matrix(c(.5,.2,
-                           .2,.6),ncol=2,byrow=T), 
+                           .2,.6),ncol=2,byrow=TRUE), 
     params.inicov=matrix(c('sigma2_x10','sigma_bx1x2',
                            'sigma_bx1x2','sigma2_x20'),ncol=2,byrow=T)
 )
@@ -110,9 +110,13 @@ dynm<-prep.formulaDynamics(formula=formula,
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, saem=TRUE,
                     outfile="VanDerPol.cpp")
-					
 
-saemp <- prep.saemParameter(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.2, 1, 0.2))
+model@lb[names(model@lb)] = -10
+model@ub[names(model@ub)] = 10
+
+#print(model@random.params.inicov)
+
+saemp <- prep.saemParameter(MAXGIB = 10, MAXITER = 10, maxIterStage1 = 1005, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.5, 2.5, 0.5))
 								
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)

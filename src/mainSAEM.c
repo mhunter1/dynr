@@ -122,6 +122,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
 	int Nbeta =(size_t) *INTEGER(num_beta_sexp);
 	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
+	/*Nbetax -- seems to be the same as Nbeta here*/
+	int Nbetax = Nbeta;
 	
 	/*totalT*/
 	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
@@ -210,7 +212,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT, *tspan;
+	double *temp, **P0, **Lamdba, **Y, **b, **H, **Z, **allT, *tspan, *mu;
+	double *lower_bound, *upper_bound;
 	char str_number[64], str_name[64];
 	
 	
@@ -374,9 +377,6 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	
 	//H
-	/*Nbetax*/
-	int Nbetax = 5;
-	
 	if (Ntheta > 0 && Nsubj > 0 && Nbetax > 0){
 		temp = (double *)malloc(Ntheta * Nsubj * Nbetax * sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"H")));
@@ -401,8 +401,6 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf("\n");
 		}
 		*/
-		
-		
     }else{
         H = NULL;
     }
@@ -436,17 +434,16 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         Z = NULL;
     }
 	
+	//printf("allT\n");
 	if (Nsubj > 0){
 		allT = (double *)malloc((Nsubj+1)* sizeof(double));
 		allT = REAL(PROTECT(getListElement(model_list,"allT")));
 		UNPROTECT(1);
-		
 		/*
 		printf("allT:\n");
 		for(row = 0; row < Nsubj; row++)
 			printf("%lf\n", allT[row]);
 		*/
-		
     }
 
 	/*totalT*/
@@ -461,21 +458,57 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf("%lf ", tspan[row]);
 		printf("\n");
 		*/
-		
-		
+    }
+	else{
+		tspan = NULL;
     }
 	
+	//printf("mu\n");
+	/*mu*/
+	if (Nmu > 0){
+		mu = (double *)malloc((Nmu+1)* sizeof(double));
+		mu = REAL(PROTECT(getListElement(model_list,"mu")));
+		UNPROTECT(1);
+		
+		
+		printf("mu:\n");
+		for(row = 0; row < Nmu; row++)
+			printf("%lf ", mu[row]);
+		printf("\n");
+    }
+	else{
+		mu = NULL;
+    }
+	
+	
+	if(Nmu > 0 || Ny > 0 || NLambda > 0 || Nbeta > 0 || Nbpar > 0){
+		int Npar = Nmu + Ny + NLambda + Nbeta + Nbpar;
+		
+		lower_bound = (double *)malloc((Npar+1)* sizeof(double));
+		lower_bound = REAL(PROTECT(getListElement(model_list,"lower_bound")));
+		UNPROTECT(1);
+		
+		upper_bound = (double *)malloc((Npar+1)* sizeof(double));
+		upper_bound = REAL(PROTECT(getListElement(model_list,"upper_bound")));
+		UNPROTECT(1);
+		
+		printf("lower and upper bound:\n");
+		for(row = 0; row < Npar; row++)
+			printf("%6lf %6lf\n", lower_bound[row], upper_bound[row]);
+		printf("\n");
+	
+	}
+	
+	
+	
 	/*Inconsistent variables*/
-	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
-	//Nbeta = 0;	
-	//NLambda = 2;
-	//Nbetax = 5;
+	//printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
+
 	
 	
 	
-	/*example1();*/
-	printf("start to call MainUseThis\n");
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar);
+	printf("SAEM process starts\n");
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

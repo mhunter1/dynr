@@ -10,9 +10,9 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int );
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
@@ -33,11 +33,10 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.totalT = totalT;
 	InfDS.delt = delt;
 	
-	
+	/*constant*/
 	InfDS.N = 1;
 	InfDS.omega = 61.685028;
 	
-	//printf("%d %d\n", InfDS.NLambda, InfDS.Nbeta);
 	
 	
 	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
@@ -126,10 +125,22 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 		InfDS.tobs(i).set_size(totalT, 1);
 		InfDS.tobs(i).col(0) = span_vec(1, totalT, 1);
 	}
-	InfDS.tobs(0).print("InfDS.tobs(0)");)
+	InfDS.tobs(0).print("InfDS.tobs(0)");
 
-	InfDS.mu="	 0.001139;	 0.003475;	 -0.003459;";
-	InfDS.Lambda="	 1.000000 0.000000;	 0.701990 0.000000;	 1.202256 0.000";0
+	InfDS.mu.set_size(Nmu,1);
+	for(i = 0; i < Nmu; i++){
+		InfDS.mu(i) = mu[i];
+	}
+	InfDS.mu.print("InfDS.tobs(0)");
+	
+	
+	InfDS.Lambda.set_size(Ny,NxState);
+	for(i = 0; i < Ny; i++){
+		for(j = 0; j < NxState; j++){
+			InfDS.Lambda(i) = Lambda[i][j];
+		}
+	}
+	InfDS.Lambda.print("InfDS.Lambda");
 	
 	//todo obeservations
 	InfDS.Y.set_size(200,1);

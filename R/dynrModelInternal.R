@@ -96,7 +96,7 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
-internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab){
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab, mu, lower_bound, upper_bound){
 
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrepSAEM function must be a list.")
@@ -115,6 +115,8 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	if( (length(dim_latent_var) != 1) || (round(dim_latent_var) != dim_latent_var) ){
 		stop("Number of latent variables (dim_latent_var) must be a single integer.")
 	}
+	
+	
 	
 
 	
@@ -154,6 +156,9 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	gainparb1 = gainparb1,
 	num_bpar=num_bpar,
 	sigmab=sigmab,
+	mu = mu,
+	lower_bound=lower_bound,
+	upper_bound=upper_bound,
 	options=options #,
 	#func_address=func_address[[1]],
 	#libname=func_address[[2]]
