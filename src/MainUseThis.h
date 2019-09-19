@@ -12,6 +12,7 @@
 
 // Step 3 in the MainUseThins.m
 void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed){
+	printf("hello world");
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
 	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, freeIC, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
@@ -21,6 +22,8 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	int i, j, fitInit;
 	FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
 
+	printf("hello world");
+	
 	timer = time(NULL);
 	
 	//arma_rng::set_seed_random(); 
@@ -35,6 +38,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	yesMean = 0;
 	
 	//InfDS.par = join_vert(x1, InfDS.par);
+	InfDS.par.print("par");
 
 	//InfDS.Nx = 2;
 	InfDS.G = eye(InfDS.Nx, InfDS.Nx);
@@ -89,14 +93,14 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	k = 1; 
 	stage = 1; 
 	gmm = 1;
-	MAXGIB=1;
+	//MAXGIB=1;
 	InfDS.errtrol1 = 1.5; //Stage 1 error tolerance
 	InfDS.errtrol = 1.5; //Stage 2 error tolerance	
 
 
 	
 	setScaleb = 0;
-	InfDS.bAdaptParams = ".5, 2.5, .5";
+	//InfDS.bAdaptParams = ".5, 2.5, .5";
 	ssmin = 100; 
 	noIncrease = 0;
 	freeIC = 1;
@@ -171,7 +175,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	
 		//printf("checkpoint M153 enter GIB loop\n");	
 		//MAXGIB = 5;
-		printf("MAXGIB = %d \n", MAXGIB);
+		printf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
 			if (stage == 2){
@@ -235,7 +239,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 
 		//%%%%%%%%%%
 		k = k+1;
-		prev_stage = stage;
+		//prev_stage = stage;
 
 		/*remove later*/
 		break;
@@ -243,15 +247,17 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	} //end of scoring iteration loop
 
 	ttt = difftime(time(NULL), timer);
-
-	printf("\nFinal iteration = %5d, ss = %5f, time = %5f, convFlag = %d\n", k, ss, ttt, convFlag);
+	if( convFlag == 1)
+		printf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ss, ttt);
+	else
+		printf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ss, ttt);
 	
 
 	meanb = meanb/STARTGIB;
 	InfDS.par = InfDS.thetatild;	
 	
-	printf("(4) Wrap up estimation and write out results\n");
 
+	printf("(4) Wrap up estimation and write out results\n");
 
 
 	arma::mat dgdpar;
@@ -261,6 +267,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
 
 
+	printf("(41) Wrap up estimation and write out results\n");
 
 	//Columns -- par, rows --transformation function
 	dgdpar(13, 13) = exp(InfDS.par(13));
@@ -271,7 +278,9 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	dgdpar(16,14) = InfDS.par(16)*InfDS.par(16)*exp(InfDS.par(14));//diff(f2,par2)
 	dgdpar(16,15) = exp(InfDS.par(15));//%diff(f2,par3)
 	dgdpar(16,16) = 2*InfDS.par(16)*exp(InfDS.par(14)); //diff(f2,par4)
-
+	
+	printf("(42) Wrap up estimation and write out results\n");
+	
 	arma::mat SE;
 
 	//SE = sqrt(diagvec(dgdpar/InfDS.Iytild*dgdpar.t()));
@@ -290,6 +299,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	//InfDS.convFlag = convFlag;
 	//InfDS.ss = ss;
 
+	printf("(43) Wrap up estimation and write out results\n");
 /*
 	fitInit = 1; //Fit models with freely estimated IC.
 	//dlmwrite(filenamePar,[trueInit fitInit batch kk reshape(InfDS.par,1,length(InfDS.par))],'-append');
