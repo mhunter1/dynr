@@ -137,7 +137,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Lambda.set_size(Ny,NxState);
 	for(i = 0; i < Ny; i++){
 		for(j = 0; j < NxState; j++){
-			InfDS.Lambda(i) = Lambda[i][j];
+			InfDS.Lambda(i,j) = Lambda[i][j];
 		}
 	}
 	InfDS.Lambda.print("InfDS.Lambda");

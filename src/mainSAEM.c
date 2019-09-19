@@ -282,7 +282,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	
 	if (NxState > 0 && Ny > 0){
-		temp = (double *)malloc(NxState * Ny* sizeof(double));
+		temp = (double *)malloc((NxState * Ny + 1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"lambda")));
 		UNPROTECT(1);
 		
