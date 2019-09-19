@@ -162,6 +162,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*DYNRPRINT(verbose_flag, "KKO: %lf\n", KKO);*/
 	
 	UNPROTECT(14);
+	
 	/*----------*/
 	SEXP lb_sexp = PROTECT(getListElement(model_list, "random.lb"));
 	double lb = *REAL(lb_sexp);
@@ -172,6 +173,32 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	DYNRPRINT(verbose_flag, "ub: %lf\n", ub);
 	
 	UNPROTECT(2);
+	
+	/*----------*/
+	SEXP maxgib_sexp = PROTECT(getListElement(model_list, "MAXGIB"));
+	int MAXGIB =(size_t) *INTEGER(maxgib_sexp);
+	
+	SEXP maxiter_sexp = PROTECT(getListElement(model_list, "MAXITER"));
+	int MAXITER =(size_t) *INTEGER(maxiter_sexp);
+	
+	SEXP maxiterstage1_sexp = PROTECT(getListElement(model_list, "maxIterStage1"));
+	int maxIterStage1 =(size_t) *INTEGER(maxiterstage1_sexp);
+	
+	SEXP gainpara_sexp = PROTECT(getListElement(model_list, "gainpara"));
+	double gainpara = *REAL(gainpara_sexp);
+	
+	SEXP gainparb_sexp = PROTECT(getListElement(model_list, "gainparb"));
+	double gainparb = *REAL(gainparb_sexp);
+	
+	SEXP gainpara1_sexp = PROTECT(getListElement(model_list, "gainpara1"));
+	double gainpara1 = *REAL(gainpara1_sexp);
+	
+	SEXP gainparb1_sexp = PROTECT(getListElement(model_list, "gainparb1"));
+	double gainparb1 = *REAL(gainparb1_sexp);
+	
+	DYNRPRINT(verbose_flag, "[SAEM Parameters] %d %d %d %lf %lf %lf %lf\n", MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1);
+	
+	UNPROTECT(7);
 	
 	/*----------*/
 	
@@ -434,10 +461,11 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	
 	/*Inconsistent variables*/
+	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
 	Nbeta = 0;	
 	NLambda = 2;
 	Nbetax = 5;
-	printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
+	
 	
 	
 	/*example1();*/

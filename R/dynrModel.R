@@ -718,30 +718,21 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
 	#print(inputs$dynamics@random.names)
 	
+	# set up random.values.inicov, which is InfDS.sigmab
 	for(i in 1:num.theta){
       random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
 	  random.values.inicov[i,i] = 1
 	}
     random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
-    
-    #random.values.inicov[1,1] = 1
     random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
-	
-	#InfDS.b = random.params.inicov
-	#print(random.params.inicov)
-	#print(random.values.inicov)
-	#inputs$random.values.inicov <- random.values.inicov
-	
-	# [todo] put in into the output
+		
+	# note: retrieve sigmab.names with the following code
 	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
-	sigmab.names <- unique(as.vector(random.params.inicov))
-	sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
-	#num.bpar = lentgh(sigmab.names)
-	#input$sigmab.names <- sigmab.names
+	# sigmab.names <- unique(as.vector(random.params.inicov))
+	# sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
+
 	
 	
-	
-    
     #[todo] check whether the y0 needs the initial of bEST
     num.subj <- length(unique(data$original.data[['id']]))
     random.names <- inputs$dynamics@random.names

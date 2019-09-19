@@ -443,28 +443,36 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, ...) {
 
-	dots <- list(...)
-	if(length(dots) > 0){
-		saemp <-dots$saemp
-		#print(saemp)
-	}
-    
+	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
     data <- dynrModel$data
     if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
-    if(verbose){
-      message("'verbose' argument to dynr.cook() function did not agree with 'verbose' model slot.\nUsing function argument: verbose = TRUE\n")
+	  if(verbose){
+        message("'verbose' argument to dynr.cook() function did not agree with 'verbose' model slot.\nUsing function argument: verbose = TRUE\n")
       }
       dynrModel@verbose <- verbose
       # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
-      }
+    }
     
+	dots <- list(...)
+	if(length(dots) > 0){
+	  saemp <-dots$saemp
+	  #print(saemp)
+	}
     if(saem==TRUE){
-        #print(dynrModel@measurement$values.load[[1]])
+		#InfDS.Sigmab					
+		#print(dynrModel$random.values.inicov)
+
+		#InfDS.bpar
+		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
+		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
+		#print(length(sigmab.names))
+		num.bpar <- length(sigmab.names)
+					
         
+		#[todo] put the b's initial code estimate
         #get the initial values of b
-        #todo put the b's initial code estimate
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
         #bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
 
@@ -497,15 +505,19 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			random.ub=dynrModel@dynamics@random.ub,
 			bAdaptParams=saemp@bAdaptParams,
             KKO=saemp@KKO,
-			MAXGIB = saemp@MAXGIB, 
-			MAXITER = saemp@MAXITER, 
-			maxIterStage1 = saemp@maxIterStage1, 
+			MAXGIB = as.integer(saemp@MAXGIB), 
+			MAXITER = as.integer(saemp@MAXITER), 
+			maxIterStage1 = as.integer(saemp@maxIterStage1), 
 			gainpara = saemp@gainpara, 
 			gainparb = saemp@gainparb, 
 			gainpara1 = saemp@gainpara1, 
-			gainparb1 = saemp@gainparb1
+			gainparb1 = saemp@gainparb1,
+			num.bpar = num.bpar,
+			sigma.b = dynrModel$random.values.inicov
+			
         )
-        
+        #print(model$MAXGIB)
+		#print(model$gainpara)
         
         libname <- model$libname
         model$libname <- NULL
@@ -760,11 +772,8 @@ combineModelDataInformationSAEM <- function(model, data){
     }
 
     
-
     #model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
     model$max_t <- max(data[['time']])
-	#ask, whether it is possible that different objects have different number of time points
-    #model$total_t <- nrow(data$original.data[data$original.data[['id']] == 1, ])
 	
     
     model$allT <- rep(0, model$num_sbj)
