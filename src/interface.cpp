@@ -10,9 +10,9 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *);
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double *);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upperbound, double *Lamdba){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
@@ -25,10 +25,10 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Nmu = Nmu;
 	InfDS.NLambda = NLambda;
 	InfDS.Nbpar = Nbpar;
-	InfDS.Nu = Nu
+	InfDS.Nu = Nu;
 	InfDS.Nbeta = Nbeta;
 	InfDS.Nbetax = Nbeta;
-	InfDS.Nx = NxState + Nbetax;
+	InfDS.Nx = NxState + Nbeta;
 	InfDS.Nsubj = Nsubj;
 	InfDS.totalT = totalT;
 	InfDS.delt = delt;
@@ -104,7 +104,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 
 
 	// start from here
-	InfDS.y0.set_size(Nsubj, Nx);
+	InfDS.y0.set_size(Nsubj, InfDS.Nx);
 	InfDS.y0.zeros();
 	for(i = 0; i < Nsubj; i++){
 		for(j = 0; j < NxState; j++){
@@ -165,7 +165,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.dSigmabdb = zeros(InfDS.Nbpar, Nb*Nb);
 	InfDS.dSigmabdb2 = zeros(InfDS.Nbpar*Nb*Nb, InfDS.Nbpar);
 	
-	InfDS.dLambdparLamb = zeros(NLambda, Ny * Nx);
+	InfDS.dLambdparLamb = zeros(NLambda, Ny * InfDS.Nx);
 	
 	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	
 	InfDS.dSigmaede = zeros(Ny, Ny*Ny);
@@ -187,10 +187,13 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Iytild = zeros(Npar, Npar);
 	
 
-	InfDS.lowBound="	 -10000;	 -10000;	 -10000;	 0.000000;	 0.000000;	 -13.815511;	 -13.815511;	 -13.815511;	 -13.815511;	 -13.815511;	 -13.815511;	 -10000;";
-
+	InfDS.lowBound.set_size(Npar, 1);
+	InfDS.upBound.set_size(Npar, 1);
+	for(i = 0; i < Npar; i++){
+		InfDS.lowBound(i) = lower_bound[i];
+		InfDS.upBound(i) =upper_bound[i]
+	}
 	
-	InfDS.upBound="	 10000;	 10000;	 10000;	 10.000000;	 10.000000;	 2.302585;	 2.302585;	 2.302585;	 2.302585;	 2.302585;	 2.302585;	 10000;";
 
 	
 	InfDS.thetatild = zeros(Npar, 1);

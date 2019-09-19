@@ -214,7 +214,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
     
 		printf("\nStage = %5d, iteration = %5d\n",stage,k);
 		printf("\nCurrent b acceptance rate = %6f\n",bAccept);
-		printf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
+		//printf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
 		printf("\nRange of bhat = %6f, %6f\n",min(InfDS.b),max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
