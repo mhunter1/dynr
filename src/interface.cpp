@@ -13,6 +13,7 @@ using namespace arma;
 extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **);
 
 void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2){
+	printf("check point 0\n");	
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
@@ -24,21 +25,26 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Nb = Nb;
 	InfDS.Nmu = Nmu;
 	InfDS.NLambda = NLambda;
+	// to be fixed
 	InfDS.Nbpar = Nbpar;
+	//InfDS.Nbpar = 4;
 	InfDS.Nu = Nu;
 	InfDS.Nbeta = Nbeta;
 	InfDS.Nbetax = Nbeta;
 	InfDS.Nx = NxState + Nbeta;
 	InfDS.Nsubj = Nsubj;
 	InfDS.totalT = totalT;
+	// Need to be fixed
+	//InfDS.totalT = 300;
 	InfDS.delt = delt;
+	InfDS.maxT = maxT;
 	
 	/*constant*/
 	InfDS.N = 1;
 	InfDS.omega = 61.685028;
 	
 	
-	
+	printf("check point 1\n");	
 	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
 
 	InfDS.U1.set_size(Nsubj, Nu);
@@ -47,7 +53,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.U1(i, j) = U1[i][j];
 		}
 	}
-	//InfDS.U1.print("InfDS.U1");
+	InfDS.U1.print("InfDS.U1");
 
 	InfDS.b.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
@@ -55,7 +61,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.b(i, j) = b[i][j];
 		}
 	}
-	//InfDS.b.print("InfDS.b");
+	InfDS.b.print("InfDS.b");
 
 
 	InfDS.H.set_size(Nsubj* Ntheta, InfDS.Nbetax);
@@ -64,7 +70,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.H(i, j) = H[i][j];
 		}
 	}
-	//InfDS.H.print("InfDS.H");
+	InfDS.H.print("InfDS.H");
 
 	InfDS.Z.set_size(Ntheta, Nb);
 	for(i = 0; i < Ntheta; i++){
@@ -72,7 +78,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.Z(i, j) = Z[i][j];
 		}
 	}
-	//InfDS.Z.print("InfDS.Z");
+	InfDS.Z.print("InfDS.Z");
 
 
 	
@@ -81,7 +87,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	for(i = 0; i < Nsubj; i++){
 		InfDS.allT(0,i) = allT[i];
 	}
-	//InfDS.allT.print("InfDS.allT");
+	InfDS.allT.print("InfDS.allT");
 
 	InfDS.Tfilter.set_size(Nsubj, totalT);
 	for(i = 0; i < Nsubj; i++){
@@ -89,28 +95,32 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.Tfilter(i, j) = 1;
 		}
 	}
-	//InfDS.Tfilter.print("InfDS.Tfilter");
+	InfDS.Tfilter.print("InfDS.Tfilter");
 
 	/*Need to be generalized*/
 	InfDS.lens.set_size(1, Nsubj);
 	for(i = 0; i < Nsubj; i++){
 		InfDS.lens(0,i) = 431;
 	}
+	InfDS.lens.print("InfDS.lens");
 
-	InfDS.tspan.set_size(1, totalT);
-	for(i = 0; i < Nsubj; i++){
+	// te be generalized
+	InfDS.tspan.set_size(1, 431);
+	for(i = 0; i < 431; i++){
 		InfDS.tspan(0,i) = tspan[i];
 	}
+	InfDS.tspan.print("tspan");
 
 
-	// start from here
+	// start from here to be modeified
 	InfDS.y0.set_size(Nsubj, InfDS.Nx);
 	InfDS.y0.zeros();
+	/*
 	for(i = 0; i < Nsubj; i++){
 		for(j = 0; j < NxState; j++){
 			InfDS.y0(i, j) = y0[i][j];
 		}
-	}
+	} */
 	InfDS.y0.print("InfDS.y0");
 
 
@@ -119,6 +129,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 		InfDS.timeDiscrete(i).set_size(totalT, 1);
 		InfDS.timeDiscrete(i).zeros();
 	}
+	InfDS.timeDiscrete.print("timeDiscrete");
 
 	InfDS.tobs.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
@@ -131,7 +142,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	for(i = 0; i < Nmu; i++){
 		InfDS.mu(i) = mu[i];
 	}
-	InfDS.mu.print("InfDS.tobs(0)");
+	InfDS.mu.print("InfDS.mu)");
 	
 	
 	InfDS.Lambda.set_size(Ny,NxState);
@@ -144,7 +155,12 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	
 	//todo obeservations
 	InfDS.Y.set_size(200,1);
-	InfDS.Y(0).set_size(3, 300);
+	// to be fixed
+	for(i = 0; i < Nsubj; i++){
+		InfDS.Y(i).set_size(3, 300);
+		InfDS.Y(i).zeros();
+	}
+	
 
 	InfDS.dXtildthetafAll.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
@@ -243,7 +259,8 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	int kk = 1;
 	int trueInit = 1;
 	int batch = 1;
-
+	//int seed = 1;
+	printf("calling...\n");
 	MainUseThis(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed);
 	return;
 }
