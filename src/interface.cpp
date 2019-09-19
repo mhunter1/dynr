@@ -10,16 +10,16 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double);
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams){
 	int i, j, Npar;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
 	arma::mat upperb, lowerb, x1;
 
 	InfDS.NxState = NxState;
-	InfDS.Nbetax = 5;
+	InfDS.Nbetax = Nbeta + NxState;
 	InfDS.Nx = NxState + Nbetax;
 	InfDS.Ny = Ny;
 	InfDS.Ntheta = Ntheta;
@@ -34,10 +34,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.totalT = totalT;
 	InfDS.omega = 61.685028;
 	InfDS.delt = delt;
-	InfDS.gainpara = 0.600000;
-	InfDS.gainparb = 3.000000;
-	InfDS.gainpara1 = 0.900000;
-	InfDS.gainparb1 = 1.000000;
+	
 	//printf("%d %d\n", InfDS.NLambda, InfDS.Nbeta);
 	
 	
@@ -190,9 +187,18 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Xtild.set_size(InfDS.Nx, InfDS.Nsubj, InfDS.totalT);
 	InfDS.Xtild.zeros();
 
-
-	InfDS.MAXITER = 200;
-	InfDS.maxIterStage1 = 100;
+	//SAEM Control Parameters
+	InfDS.MAXGIB = MAXGIB;
+	InfDS.MAXITER = MAXITER;
+	InfDS.maxIterStage1 = maxIterStage1;
+	InfDS.gainpara = gainpara;
+	InfDS.gainparb = gainparb;
+	InfDS.gainpara1 = gainpara1;
+	InfDS.gainparb1 = gainparb1;	
+	InfDS.bAdaptParams.set_size(1,3);
+	for(i = 0; i < 3; i++){
+		InfDS.bAdaptParams(i) = bAdaptParams[i];
+	}
 
 
 	
