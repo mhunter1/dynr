@@ -741,16 +741,18 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     b_x <-  length(random.names) - num.x
     #print(b_x)
 	# b, y0
-    for(i in 1:num.subj){
-      for (j in 1:length(random.names)){
-        if(b[i, j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub){
-          b[i, j] <- 0
-        }
-      }
-      for(j in 1:num.x){
-        y0[i, j] <- inputs$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-      }
-    }
+    # for(i in 1:num.subj){
+      # for (j in 1:length(random.names)){
+        # if(b[i, j] < inputs$dynamics@random.lb | b[i, j] > inputs$dynamics@random.ub){
+          # b[i, j] <- 0
+        # }
+      # }
+      # for(j in 1:num.x){
+	    # if(length(inputs$initial$values.inistate[[1]]) > 0){
+          # y0[i, j] <- inputs$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
+		# }
+      # }
+    # }
     inputs$initial@y0 <- list(y0)
 	#print (inputs$initial@y0)
     
