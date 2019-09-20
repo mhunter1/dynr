@@ -12,7 +12,7 @@
 
 // Step 3 in the MainUseThins.m
 void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed){
-	printf("in MainUseThis");
+	printf("in MainUseThis\n");
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
 	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, freeIC, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
@@ -40,7 +40,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	//InfDS.par = join_vert(x1, InfDS.par);
 	//InfDS.par.print("par");
 
-	//InfDS.Nx = 2;
+	InfDS.Nx = InfDS.NxState;
 	InfDS.G = eye(InfDS.Nx, InfDS.Nx);
 	//InfDS.Nbeta = 5;
 	//InfDS.Ntheta = 3;
@@ -242,7 +242,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		//prev_stage = stage;
 
 		/*remove later*/
-		break;
+		//break;
     
 	} //end of scoring iteration loop
 
