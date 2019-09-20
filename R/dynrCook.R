@@ -490,7 +490,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#[todo] put the b's initial code estimate
         #get the initial values of b
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
-        bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
+		r <- getInitialVauleOfRandomEstimate(dynrModel)
+        bEst <- r$bEst
 		
 		
 		#b, y0
@@ -501,18 +502,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
 		#print(b)
-		for(i in 1:num.subj){
-		  for (j in 1:length(random.names)){
-			if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
-			  b[i, j] <- 0
-			}
-		  }
-		  for(j in 1:num.x){
-			if(length(model$initial$values.inistate[[1]]) > 0){
-			  y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-			}
-		  }
-		}
+		# for(i in 1:num.subj){
+		  # for (j in 1:length(random.names)){
+			# if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
+			  # b[i, j] <- 0
+			# }
+		  # }
+		  # for(j in 1:num.x){
+			# if(length(model$initial$values.inistate[[1]]) > 0){
+			  # y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
+			# }
+		  # }
+		# }
 		model$initial@y0 <- list(y0)
 		#print (inputs$initial@y0)
 
@@ -1179,7 +1180,27 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
                     outfile="VanDerPol2_.c")	
   print('model2')
   
+  pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
+  model2@xstart[pos] = coef(fitted_model)[1:5] 
   
+  fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
+                           hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
+  save(fitted_model2, file = "fitted_model2.RData")				   
 
+  locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
+  
+  print('locc')
 
+  #Get estimates for bzeta from fitted_model2 and use them as estimates for b
+  bEst = fitted_model2@eta_smooth_final[3,locc] #Use these as the starting values for InfDS.b
+  coefEst = coef(fitted_model2)
+  print('done')
+
+  return(list(bEst = bEst, coefEst = coefEst))
+}
+
+grep_position <- function(x,y){
+  pos = grep(x,
+             y)
+  return(pos)
 }
