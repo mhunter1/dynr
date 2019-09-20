@@ -111,8 +111,16 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, saem=TRUE,
                     outfile="VanDerPol.cpp")
 
-model@lb[names(model@lb)] = -10
-model@ub[names(model@ub)] = 10
+
+#-10
+#exp(-10) 
+#InfDS.lowBound(11:16) = log(10e-8);
+
+
+#Using $ with lb and ub assumes that you are adjusting the parameters
+model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
+
+model$ub[names(model@ub)] = 10
 
 #print(model@random.params.inicov)
 
