@@ -2413,7 +2413,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 	}
 	#print(formula[[1]])
-	print(beta.names)
+	#print(beta.names)
 	
 	
 	#process the theta formula
@@ -2498,6 +2498,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$random.ub <- random.ub
   x$random.lb <- random.lb
   x$state.names <- state.names
+  x$formula2 <- formula2
+  
+  #print (formula2)
   
   return(new("dynrDynamicsFormula", x))
 }
@@ -3408,26 +3411,26 @@ parseFormulaTheta <- function(formula, theta.formula){
 }
 
 
-#function for parsing theta.formula (remove intercept terms and random names) (currently not used)
-# prep.thetaFormula <- function(formula, intercept.names, random.names){
-    # fml=lapply(formula, as.character)
-    # lhs=lapply(fml,function(x){x[[2]]})
-    # rhs=lapply(fml,function(x){x[[3]]})
+#function for parsing theta.formula (remove intercept terms and random names) 
+prep.thetaFormula <- function(formula, intercept.names, random.names){
+    fml=lapply(formula, as.character)
+    lhs=lapply(fml,function(x){x[[2]]})
+    rhs=lapply(fml,function(x){x[[3]]})
     
-    # for(i in 1:length(formula)){
-        # formula[[i]]=as.character(formula[[i]])
-        # for (j in 1:length(intercept.names)){
-            # rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        # }
+    for(i in 1:length(formula)){
+        formula[[i]]=as.character(formula[[i]])
+        for (j in 1:length(intercept.names)){
+            rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        }
         
-        # for (j in 1:length(random.names)){
-            # rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        # }
+        for (j in 1:length(random.names)){
+            rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+        }
         
-        # formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
-    # }
-    # return(formula)
-# }
+        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+    }
+    return(formula)
+}
 
 
 #---

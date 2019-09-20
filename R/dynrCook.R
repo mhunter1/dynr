@@ -484,13 +484,37 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
 		upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
 		
-		print(lower_bound) 
+		#print(lower_bound) 
 
 		
 		#[todo] put the b's initial code estimate
         #get the initial values of b
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
-        #bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
+        bEst <- getInitialVauleOfRandomEstimate(dynrModel) 
+		
+		
+		#b, y0
+		num.x <- length(model$initial$params.inistate[[1]])
+		num.subj <- length(unique(data$original.data[['id']]))
+		random.names <- model$dynamics@random.names
+		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
+		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
+		b_x <-  length(random.names) - num.x
+		#print(b)
+		for(i in 1:num.subj){
+		  for (j in 1:length(random.names)){
+			if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
+			  b[i, j] <- 0
+			}
+		  }
+		  for(j in 1:num.x){
+			if(length(model$initial$values.inistate[[1]]) > 0){
+			  y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
+			}
+		  }
+		}
+		model$initial@y0 <- list(y0)
+		#print (inputs$initial@y0)
 
          
         model <- internalModelPrepSAEM(
@@ -508,7 +532,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             num_theta=length(dynrModel@dynamics@theta.names),
             num_beta=length(dynrModel@dynamics@beta.names),
             #total_t=length(unique(dynrModel@data$time)),
-	    total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
+			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
             num_lambda=length(lambda.names),
             num_mu=length(dynrModel@measurement@params.int[[1]]),
             num_random=length(dynrModel@dynamics@random.names),
@@ -1080,21 +1104,26 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
     params.inicov=dynrModel@initial@params.inicov
   )
 
-  formula=
-    list(x1 ~ x2,
-         x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2
-    )
-  print(unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)])
+  formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
+  print(formula)
+  #print(prep.thetaFormula(formula[1], dynrModel@measurement@params.int, dynrModel@dynamics@random.names))
+  #print(prep.thetaFormula(formula[2], dynrModel@measurement@params.int, dynrModel@dynamics@random.names))
+  
+  for(i in 1:length(formula))
+    formula[i] <- prep.thetaFormula(formula[i], dynrModel@measurement@params.int, dynrModel@dynamics@random.names)
+  #formula2 <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})
+  print(formula)
+  print("...")
   dynm<-prep.formulaDynamics(
-    #formula=unlist(dynrModel@dynamics@formula[[1]])[1:length(dynrModel@measurement@state.names)],
-	formula = formula,
+    formula=formula,
+	#formula = formula,
     startval=dynrModel@dynamics@startval,
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
   )
 
-  model <- dynr.model(dynamics=dynrModel@dynamics, measurement=dynrModel@measurement,
-                    noise=dynrModel@noise, initial=dynrModel@initial, data=dynrModel@data, armadillo=FALSE,
+  model <- dynr.model(dynamics=dynm, measurement=meas,
+                    noise=mdcov, initial=initial, data=dynrModel@data, saem=FALSE,
                     outfile="VanDerPol_.c")
 
   fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
