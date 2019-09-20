@@ -1105,15 +1105,10 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
   )
 
   formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
-  print(formula)
-  #print(prep.thetaFormula(formula[1], dynrModel@measurement@params.int, dynrModel@dynamics@random.names))
-  #print(prep.thetaFormula(formula[2], dynrModel@measurement@params.int, dynrModel@dynamics@random.names))
   
   for(i in 1:length(formula))
     formula[i] <- prep.thetaFormula(formula[i], dynrModel@measurement@params.int, dynrModel@dynamics@random.names)
-  #formula2 <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})
-  print(formula)
-  print("...")
+  
   dynm<-prep.formulaDynamics(
     formula=formula,
 	#formula = formula,
@@ -1126,6 +1121,65 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
                     noise=mdcov, initial=initial, data=dynrModel@data, saem=FALSE,
                     outfile="VanDerPol_.c")
 
-  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  #fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  #save(fitted_model, file = "fitted_model.RData")
+  load("fitted_model.RData")
+  
+  #[TODO] the following part needs to be revised for multiple b_zeta
+  
+  print(coef(fitted_model)[dynrModel@noise@paramnames])
+  mdcov2 <- prep.noise(
+    values.latent=diag(0, 3),
+    params.latent=diag(c("fixed","fixed","fixed"), 3),
+    values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames]),
+    params.observed=diag(dynrModel@noise@paramnames, 3)
+  )
+  print('mdcov2')
+  
+  #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
+  user.random.names = dynrModel@dynamics@random.names[1:(length(dynrModel@dynamics@random.names)-length(dynrModel@measurement@state.names))]
+  num.y = length(dynrModel@measurement@obs.names)
+  state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+  meas2 <- prep.measurement(
+    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, 3)), nrow=num.y, ncol= length(state.names2)),
+    params.load = matrix(c(as.vector(dynrModel@measurement@params.load[[1]]), rep("fixed", 3)), nrow=num.y, ncol= length(state.names2)),
+    obs.names = dynrModel@measurement@obs.names,
+    state.names = c(dynrModel@measurement@state.names, user.random.names))
+  print('meas2')	
+	
+  
+  v1 = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
+  values.inicov = diag(1, length(state.names2))
+  values.inicov[1:(nrow(v1)),1:(ncol(v1))]  = v1
+  params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
+  params.inicov[1:(nrow(v1)),1:(ncol(v1))]  = dynrModel@initial@params.inicov[[1]]
+  for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
+    params.inicov[i,i] <- paste0('sigma2_', state.names2[i])
+  initial2 <- prep.initial(
+    values.inistate=c(coef(fitted_model)[as.vector(dynrModel@initial@params.inistate[[1]])], 0),
+    params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), 0),
+    values.inicov=values.inicov, 
+    params.inicov=params.inicov)
+  print('initial2')
+
+  #if (length(unlist(dynrModel@initial$params.inistate[!dynrModel@initial$params.inistate== "fixed"]))>0)
+  #  dynrModel@initial$params.inistate
+
+  formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
+  for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
+    formula[[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
+  print(formula)	
+  dynm2<-prep.formulaDynamics(formula=formula,
+                           startval=dynrModel@dynamics@startval,
+                           isContinuousTime=dynrModel@dynamics@isContinuousTime)
+  print('dynm2')
+						   
+  model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
+                    noise=mdcov2, initial=initial2, data=dynrModel@data, saem=FALSE,
+                    outfile="VanDerPol2_.c")	
+  print('model2')
+  
+  
+
 
 }

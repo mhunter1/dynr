@@ -53,8 +53,8 @@ initial <- prep.initial(
     params.inistate=c("mu_x1", "mu_x2"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6),ncol=2,byrow=TRUE), 
-    params.inicov=matrix(c('sigma2_x10','sigma_bx1x2',
-                           'sigma_bx1x2','sigma2_x20'),ncol=2,byrow=T)
+    params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
+                           'sigma_bx1x2','sigma2_bx2'),ncol=2,byrow=T)
 )
 
 # mdcov <- prep.noise(
@@ -118,9 +118,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 
 #Using $ with lb and ub assumes that you are adjusting the parameters
-model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
+#model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
 
-model$ub[names(model@ub)] = 10
+#model$ub[names(model@ub)] = 10
 
 #print(model@random.params.inicov)
 
