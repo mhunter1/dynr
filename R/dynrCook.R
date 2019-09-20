@@ -817,9 +817,9 @@ combineModelDataInformationSAEM <- function(model, data){
     
     #H & Z 
     r =formula2design( 
-        model$theta.formula[[1]],
-        model$theta.formula[[2]],
-        model$theta.formula[[3]],
+        model$theta.formula,
+        #model$theta.formula[[2]],
+        #model$theta.formula[[3]],
         covariates=c(data$covariate.names, "1"),
         random.names=model$random.names)    
     r$fixed= r$fixed[ ,colnames(r$fixed) != '0']
@@ -855,6 +855,7 @@ combineModelDataInformationSAEM <- function(model, data){
     model$H <- H
     model$Z <- Z
     model$tspan <- unique(data[['time']])
+	#print(H)
     
 
     return(model)
