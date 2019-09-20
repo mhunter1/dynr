@@ -55,6 +55,16 @@
 ##' Chow, S.-M., Hamaker, E. L., & Allaire, J. C. (2009).
 ##' Using innovative outliers to detect discrete shifts in dynamics in group-based state-space models. _Multivariate Behavioral Research_, 44, 465-496.
 ##' 
+##' @examples
+##' \dontrun{
+##' # See the demo for outlier detection, OutlierDetection.R
+##' dynrCook <- dynr.cook(dynrModel)
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook)
+##' 
+##' # Detect outliers related to 'eta1' out of, say, three latent
+##' # variables c("eta1", "eta2", "eta3"), and all measured variables.
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook, which.state=c("eta1"))
+##' }
 dynr.taste <- function(dynrModel, dynrCook=NULL,
                        which.state, which.obs,
                        conf.level=0.99,
@@ -496,6 +506,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
 ##' a new \code{dynrModel} object the outliers are applied,
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked.
 ##' 
+##' @examples
+##' # dynrTaste2 <- dynr.taste2(dynrModel, dynrCook, dynrTaste)
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
                         delta_inn=c("t", "ind", "jnt", "null"),
                         delta_add=c("t", "ind", "jnt", "null"),

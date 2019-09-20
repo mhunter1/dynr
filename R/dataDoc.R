@@ -145,6 +145,55 @@ NULL
 ##' @usage data(Oscillator)
 ##' @format A data frame with 1000 rows and 5 variables
 ##' 
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' # Data Generation
+##' #require(mvtnorm)
+##' #require(Matrix)
+##' #
+##' #xdim <- 2
+##' #udim <- 1
+##' #ydim <- 1
+##' #tdim <- 1000
+##' #set.seed(315)
+##' #tA <- matrix(c(0, -.3, 1, -.7), xdim, xdim)
+##' #tB <- matrix(c(0), xdim, udim)
+##' #tC <- matrix(c(1, 0), ydim, xdim)
+##' #tD <- matrix(c(0), ydim, udim)
+##' #tQ <- matrix(c(0), xdim, xdim); diag(tQ) <- c(0, 2.2)
+##' #tR <- matrix(c(0), ydim, ydim); diag(tR) <- c(1.5)
+##' #
+##' #x0 <- matrix(c(0, 1), xdim, 1)
+##' #P0 <- diag(c(1), xdim)
+##' #tdx <- matrix(0, xdim, tdim+1)
+##' #tx <- matrix(0, xdim, tdim+1)
+##' #tu <- matrix(0, udim, tdim)
+##' #ty <- matrix(0, ydim, tdim)
+##' #
+##' #tT <- matrix(0:tdim, nrow=1, ncol=tdim+1)
+##' #
+##' #tI <- diag(1, nrow=xdim)
+##' #
+##' #tx[,1] <- x0
+##' #for(i in 2:(tdim+1)){
+##' #	q <- t(rmvnorm(1, rep(0, xdim), tQ))
+##' #	tdx[,i] <- tA %*% tx[,i-1] + tB %*% tu[,i-1] + q
+##' #	expA <- as.matrix(expm(tA * (tT[,i]-tT[,i-1])))
+##' #	intA <- solve(tA) %*% (expA - tI)
+##' #	tx[,i] <- expA %*% tx[, i-1] + intA %*% tB %*% tu[,i-1] + intA %*% q
+##' #	ty[,i-1] <- tC %*% tx[,i] + tD %*% tu[,i-1] + t(rmvnorm(1, rep(0, ydim), tR))
+##' #}
+##' #
+##' #
+##' #
+##' #rownames(ty) <- paste('y', 1:ydim, sep='')
+##' #rownames(tx) <- paste('x', 1:xdim, sep='')
+##' #simdata <- cbind(id=rep(1, tdim), t(ty), times=tT[,-1], t(tx)[-1,])
+##' # write.table(simdata, file='Oscillator.txt', row.names=FALSE, col.names=TRUE)
+##' #
+##' #plot(tx[1,], type='l')
+##' #plot(tT[,-1], ty[1,], type='l')
 NULL
 
 ##' Simulated time series data for a stochastic linear damped oscillator model with logistic time-varying setpoints
@@ -166,6 +215,35 @@ NULL
 ##' @name LogisticSetPointSDE
 ##' @usage data(LogisticSetPointSDE)
 ##' @format A data frame with 2410 rows and 6 variables
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' #require(Sim.DiffProc)
+##' #freq <- -1
+##' #damp <- -.1
+##' #mu <- -2
+##' #r <- .5
+##' #b <- .1
+##' #sigma1 <- 0.1
+##' #sigma2 <- 0.1
+##' #fx <- expression(y, freq*(x-z) + damp*y, r*z*(1-b*z))
+##' #gx <- expression(0, sigma1, 0)
+##' #r3dall <- c()
+##' #for (j in 1:10){
+##' #  r3dtemp <- c(-5,0,.1)
+##' #  r3d <- r3dtemp
+##' #  for (i in seq(0.125, 30, by=0.125)){
+##' #    mod3dtemp <- snssde3d(drift=fx, diffusion=gx, M=1, t0=i-0.125,
+##' #        x0=as.numeric(r3dtemp), T=i, N=500, type="str",
+##' #        method="smilstein")
+##' #    r3dtemp <- rsde3d(mod3dtemp,at=i)
+##' #    r3d <-rbind(r3d,r3dtemp)
+##' #  }
+##' #  r3dall <- rbind(r3dall, cbind(r3d, id=j))
+##' #}
+##' #
+##' #r3dall$obsy <- r3dall$x+rnorm(length(r3dall$x),0,1)
+##' #write.table(r3dall, file="LogisticSetPointSDE.txt")
 NULL
 
 ##' Simulated time series data of a multisubject process factor analysis
@@ -195,6 +273,79 @@ NULL
 ##' @usage data(PFAsim)
 ##' @format A data frame with 2,500 rows and 10 variables
 ##' 
+##' @examples
+##' require(dynr)
+##' # Load the data with
+##' data(PFAsim)
+##' # Create a dynr data object with
+##' dd <- dynr.data(PFAsim, id="ID", time="Time", observed=paste0("V",1:6))
+##' 
+##' #--------------------------------------
+##' # The following was used to generate the data
+##' #set.seed(12345678)
+##' #library(mvtnorm)
+##' ## setting up matrices
+##' #time      <- 50
+##' ## Occasions to throw out to wash away the effects of initial condition
+##' #npad      <- 0
+##' #np        <- 50
+##' #ne        <- 2 #Number of latent variables
+##' #ny        <- 6 #Number of manifest variables
+##' ## Residual variance-covariance matrix
+##' #psi       <- matrix(c(2.77, 2.47,
+##' #                      2.47, 8.40),
+##' #                    ncol = ne, byrow = T)
+##' ## Lambda matrix containing contemporaneous relations among
+##' ## observed variables and 2 latent variables. 
+##' #lambda    <- matrix(c(1, 0,
+##' #                      2, 0,
+##' #                      1, 0,
+##' #                      0, 1,
+##' #                      0, 2,
+##' #                      0, 1),
+##' #                    ncol = ne, byrow = TRUE)
+##' ## Measurement error variances
+##' #theta     <- diag(.5, ncol = ny, nrow = ny)
+##' ## Lagged directed relations among variables
+##' #beta      <- matrix(c(0.5, 0,
+##' #                      0.4, 0.5), 
+##' #                    ncol = ne, byrow = TRUE)
+##' #a0        <- mvtnorm::rmvnorm(1, mean = c(0, 0),
+##' #                                 sigma = matrix(c(2,0,0,1),ncol=ne))
+##' #yall <- matrix(0,nrow = time*np, ncol = ny)
+##' #eall <- matrix(0,nrow = time*np, ncol = ne)
+##' #for (p in 1:np){
+##' #  # Latent variable residuals
+##' #  zeta      <- mvtnorm::rmvnorm(time+npad, mean = c(0, 0), sigma = psi)
+##' #  # Measurement errors
+##' #  epsilon   <- rmvnorm(time, mean = c(0, 0, 0, 0, 0, 0), sigma = theta)
+##' #  # Set up matrix for contemporaneous variables
+##' #  etaC      <- matrix(0, nrow = ne, ncol = time + npad)
+##' #  # Set up matrix for lagged variables
+##' #  etaL      <- matrix(0, nrow = ne, ncol = time + npad + 1)
+##' #  
+##' #  etaL[,1]  <- a0
+##' #  etaC[,1] <- a0
+##' #  # generate factors
+##' #  for (i in 2:(time+npad)){
+##' #    etaL[ ,i] <- etaC[,i-1]
+##' #    etaC[ ,i]   <- beta %*% etaL[ ,i] + zeta[i, ]
+##' #  }
+##' #  etaC <- etaC[,(npad+1):(npad+time)]
+##' #  eta <- t(etaC)
+##' #  
+##' #  # generate observed series
+##' #  y   <- matrix(0, nrow = time, ncol = ny)
+##' #  for (i in 1:nrow(y)){
+##' #    y[i, ] <- lambda %*% eta[i, ] + epsilon[i, ]
+##' #  }
+##' #  yall[(1+(p-1)*time):(p*time),] <- y
+##' #  eall[(1+(p-1)*time):(p*time),] <- eta
+##' #}
+##' #yall <- cbind(rep(1:np,each=time),rep(1:time,np),yall)
+##' #yeall <- cbind(yall,eall)
+##' #write.table(yeall,'PFAsim.txt',row.names=FALSE,
+##' #  col.names=c("ID", "Time", paste0("V", 1:ny), paste0("F", 1:ne)))
 NULL
 
 ##' Simulated time series data for detecting outliers.
@@ -249,6 +400,63 @@ NULL
 ##' @name Outliers
 ##' @usage data(Outliers)
 ##' @format A data frame with 6000 rows and 6 variables
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' # lambda <- matrix(c(1.0, 0.0,
+##' # 0.9, 0.0,
+##' # 0.8, 0.0,
+##' # 0.0, 1.0,
+##' # 0.0, 0.9,
+##' # 0.0, 0.8), ncol=2, byrow=TRUE)
+##' # psi <- matrix(c(0.3, -0.1,
+##' #                 -0.1, 0.3), ncol=2, byrow=TRUE)
+##' # beta <- matrix(c(0.8, -0.2,
+##' #                  -0.2,  0.7), ncol=2, byrow=TRUE)
+##' # theta <- diag(c(0.2, 0.2, 0.2, 0.2, 0.2, 0.2), ncol=6, nrow=6)
+##' # nlat <- 2; nobs <- 6
+##' # mean_0 <- rep(0, nlat)
+##' # psi_inf <- diag(1, 2*2) - kronecker(beta, beta)
+##' # psi_inf_inv <- try(solve(psi_inf), silent=TRUE)
+##' # if(class(psi_inf_inv) == "try-error") {
+##' #   psi_inf_inv <- MASS::ginv(psi_inf)}
+##' # psi_0 <- psi_inf_inv %*% as.vector(psi)
+##' # dim(psi_0) <- c(2, 2)
+##' # # measurement error covariance matrix
+##' # mea_cov <- lambda %*% psi_0 %*% t(lambda) + theta
+##' # resL <- lapply(1:100, function(subj) {
+##' #   # initial state
+##' #   eta_0 <- mvtnorm::rmvnorm(1, mean=mean_0, sigma=psi_0)#[1,nlat]
+##' #   zeta_0 <- mvtnorm::rmvnorm(1, mean=rep(0, nlat), sigma=psi)
+##' #   eta <- matrix(0, nrow=time, ncol=nlat)
+##' #   eta[1, ] <- beta %*% t(eta_0) + t(zeta_0) 
+##' #   zeta <- mvtnorm::rmvnorm(time, mean=rep(0, nlat), sigma=psi)
+##' #   # random shock generation
+##' #   # to avoid shock appearing too early or late (first and last 3)
+##' #   shkLat_time <- sample(4:(time-3), nshockLat)
+##' #   shk_lat <- sample(1:nlat, nshockLat, replace=TRUE)
+##' #   shockLatIdx <- matrix(c(shkLat_time, shk_lat), ncol=2)
+##' #   shockSignL <- sample(c(1,-1), nshockLat, replace=TRUE)
+##' #   colnames(shockLatIdx) <- c("time_L","lat")
+##' #   shockLatV <- shockSignL*( shockMag*sqrt(diag(shockPsi)))[shockLatIdx[,"lat"]]
+##' #   shockLatM <- matrix(0, time, nlat)
+##' #   shockLatM[shockLatIdx] <- shockLatV
+##' #   shkObs_time <- sample(4:(time-3), nshockObs)
+##' #   shk_obs <- sample(1:nobs, nshockObs, replace=TRUE)
+##' #   shockObsIdx <- matrix(c(shkObs_time, shk_obs), ncol=2)
+##' #   shockSignO <- sample(c(1,-1), nshockObs, replace=TRUE)
+##' #   colnames(shockObsIdx) <- c("time_O","obs")
+##' #   shockObsV <- shockSignO*( shockMag*sqrt(diag(mea_cov)) )[shockObsIdx[,"obs"]]
+##' #   shockObsM <- matrix(0, time, nobs)
+##' #   shockObsM[shockObsIdx] <- shockObsV
+##' #   # generate state process WITH shock
+##' #   for (t in 1:(time-1)) {
+##' #     eta[t+1, ] <- shockLatM[t, ] + beta %*% eta[t, ] + zeta[t, ]
+##' #   }
+##' #   # generate observed process
+##' #   y <- shockObsM + eta %*% t(lambda) +
+##' #     mvtnorm::rmvnorm(time, mean=rep(0, nobs), sigma=theta)# epsilon
+##' # }
 NULL
 
 ##' Simulated time series data for multiple imputation in dynamic modeling.

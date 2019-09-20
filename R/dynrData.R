@@ -48,6 +48,12 @@
 ##' @param covariates (optional) a vector of character strings of the names of the covariates in the data,
 ##'  which can be missing.
 ##' 
+##' @examples
+##' data(EMGsim)
+##' dd <- dynr.data(EMGsim, id = 'id', time = 'time', observed = 'EMG', covariates = 'self')
+##' 
+##' z <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
+##' dz <- dynr.data(z)
 dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates){
 	if (is.ts(dataframe)){
 		# ts class 

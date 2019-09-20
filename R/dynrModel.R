@@ -134,6 +134,9 @@ setReplaceMethod("$", "dynrModel",
 ##' @return
 ##' A single number. The total number of observations across all IDs.
 ##' 
+##' @examples
+##' # Let rawModel be the output from dynr.model
+##' #nobs(rawModel)
 nobs.dynrModel <- function(object, ...){
 	dim(object$data$observed)[1]
 }
@@ -526,6 +529,17 @@ setMethod("printex", "dynrModel",
 ##' 	\item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
 ##' }
 ##' 
+##' @examples
+##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
+##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
+##'
+##' #Set relative tolerance on function value via 'options':
+##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
+##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c",
+##' #    options=list(ftol_rel=as.numeric(1e-6)))
+##' 
+##' #For a full demo example, see:
+##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
