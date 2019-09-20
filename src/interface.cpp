@@ -25,17 +25,13 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.Nb = Nb;
 	InfDS.Nmu = Nmu;
 	InfDS.NLambda = NLambda;
-	// to be fixed
 	InfDS.Nbpar = Nbpar;
-	//InfDS.Nbpar = 4;
 	InfDS.Nu = Nu;
 	InfDS.Nbeta = Nbeta;
 	InfDS.Nbetax = Nbeta;
-	InfDS.Nx = NxState + Nbeta;
+	InfDS.Nx = NxState; // in the saem process, Nx remains as NxState; it only becaomes NxState + Nbeta during initial value estimation
 	InfDS.Nsubj = Nsubj;
 	InfDS.totalT = totalT;
-	// Need to be fixed
-	//InfDS.totalT = 300;
 	InfDS.delt = delt;
 	InfDS.maxT = maxT;
 	
@@ -53,7 +49,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.U1(i, j) = U1[i][j];
 		}
 	}
-	InfDS.U1.print("InfDS.U1");
+	//InfDS.U1.print("InfDS.U1");
 
 	InfDS.b.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
