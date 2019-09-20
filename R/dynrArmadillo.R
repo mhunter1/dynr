@@ -171,7 +171,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# Start outputing the functions in converted_function.h
 		#ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\nvoid function_arma_hello_world(void) {\n\t\tarma::mat a(2,2);\n\ta(0, 0) = 1;\n\ta(1, 1) = 2;\n\ta(0, 1) = -3;\n\ta(1, 0) = -2;\n\tprintf(\"hello world!\\n\");\n\ta.print();\n}\n\n"
 		
-		ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\nvoid function_arma_hello_world(void) {return;\n}\n\n"
+		ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\n\n\n"
 		#----------------------------------------------------------------------------------------------
 		# output code for function dynfun
 		ret = "arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){\n\n\t//local parameters\n\tarma::mat y, r, thetaf;\n\t\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\t\n\n\t//input parameters\n\ty = xin;\n\tr.set_size(InfDS.Nx, int(i.n_elem));\n\tr.clear();\n\tr = y;\n"
@@ -391,7 +391,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#ret contains all the transferred code, currently uses ret_head for testing
         #object@c.string <- ret
-		object@c.string <- ret_head
+		object@c.string <- ret
         return(object)	
 	}
 )
