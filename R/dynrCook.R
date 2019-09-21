@@ -490,8 +490,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#[todo] put the b's initial code estimate
         #get the initial values of b
         b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
-		r <- getInitialVauleOfRandomEstimate(dynrModel)
+		r <- getInitialVauleOfEstimate(dynrModel)
         bEst <- r$bEst
+		coefEst <- r$coefEst
 		
 		
 		#b, y0
@@ -1083,7 +1084,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
   return(r)
 }
 
-getInitialVauleOfRandomEstimate<- function(dynrModel){
+getInitialVauleOfEstimate<- function(dynrModel){
   mdcov <- prep.noise(
     values.latent=dynrModel@noise@values.latent,
     params.latent=dynrModel@noise@params.latent,
@@ -1183,10 +1184,13 @@ getInitialVauleOfRandomEstimate<- function(dynrModel){
   pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
   model2@xstart[pos] = coef(fitted_model)[1:5] 
   
-  fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
-                           hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
-  save(fitted_model2, file = "fitted_model2.RData")				   
+  #fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
+  #                         hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
+  
+  #save(fitted_model2, file = "fitted_model2.RData")				   
+  load("fitted_model2.RData")
 
+  library('plyr')
   locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
   
   print('locc')
