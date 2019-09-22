@@ -489,10 +489,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		#[todo] put the b's initial code estimate
         #get the initial values of b
-        b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
+        #b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
 		r <- getInitialVauleOfEstimate(dynrModel)
-        bEst <- r$bEst
+		
 		coefEst <- r$coefEst
+		if(length(sigmab.names) > 0)
+          bEst <- r$bEst
+		
 		
 		
 		#b, y0
@@ -503,18 +506,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
 		print(b)
-		for(i in 1:num.subj){
-		  for (j in 1:length(random.names)){
-			if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
-			  b[i, j] <- 0
-			}
-		  }
-		  for(j in 1:num.x){
-			if(length(model$initial$values.inistate[[1]]) > 0){
-			  y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-			}
-		  }
-		}
+		# for(i in 1:num.subj){
+		  # for (j in 1:length(random.names)){
+			# if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
+			  # b[i, j] <- 0
+			# }
+		  # }
+		  # for(j in 1:num.x){
+			# if(length(model$initial$values.inistate[[1]]) > 0){
+			  # y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
+			# }
+		  # }
+		# }
 		model$initial@y0 <- list(y0)
 		#print (inputs$initial@y0)
 
@@ -840,7 +843,7 @@ combineModelDataInformationSAEM <- function(model, data){
     #print(model$allT) #correct here
 	#print(model$delt) #correct here
 
-    
+	
     #H & Z 
     r =formula2design( 
         model$theta.formula,
@@ -1126,6 +1129,9 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #save(fitted_model, file = "fitted_model.RData")
   load("fitted_model.RData")
   
+  coefEst = coef(fitted_model)
+  return(list(bEst = list(), coefEst = coefEst))
+  
   #[TODO] the following part needs to be revised for multiple b_zeta
   #-----
   print(coef(fitted_model)[dynrModel@noise@paramnames])
@@ -1138,7 +1144,11 @@ getInitialVauleOfEstimate<- function(dynrModel){
   print('mdcov2')
   
   #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
-  user.random.names = dynrModel@dynamics@random.names[1:(length(dynrModel@dynamics@random.names)-length(dynrModel@measurement@state.names))]
+  estimate.names <- unique(as.vector(dynrModel@initial@params.inistate[[1]]))
+  estimate.names <- estimate.names[!estimate.names %in% c('fixed', '0')]
+  
+  #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
+  user.random.names = dynrModel@dynamics@random.names[1:(length(dynrModel@dynamics@random.names)-length(estimate.names))]
   num.y = length(dynrModel@measurement@obs.names)
   state.names2 = c(dynrModel@measurement@state.names, user.random.names)
   meas2 <- prep.measurement(

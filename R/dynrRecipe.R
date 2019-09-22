@@ -2404,16 +2404,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	num.state <- length(state.names)
     num.formula <- length(formula)
 	#beta.names <- startval.names
+	
+	#zeta_? to be estimated
 	for (i in 1:length(startval.names)){
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
+	
+	# generate the formula for states
+	# note: the formula should be removed in dynr.model if the state in prep.init is fixed
 	for(i in 1:num.state){
 	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
-	  #formula[[1]][[i+num.formula+length(startval.names)]] = as.formula(paste0('mu_',state.names[[i]],' ~ 0'))
 	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 	}
-	#print(formula[[1]])
-	#print(beta.names)
 	
 	
 	#process the theta formula
@@ -2450,7 +2452,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   #jacobian = dfdx
   if (missing(jacobian)){
-	jacobian <- autojacobTry(formula2) ##??? formula2 ???
+	jacobian <- autojacobTry(formula2) #formula2: substitute the content within theta.formula to formula
   }
   x$jacobian <- jacobian
   x$paramnames<-names(x$startval)

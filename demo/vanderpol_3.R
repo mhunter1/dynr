@@ -59,13 +59,6 @@ initial <- prep.initial(
                            'sigma_bx1x2','sigma2_bx2'),ncol=2,byrow=T)
 )
 
-# mdcov <- prep.noise(
-    # values.latent=diag(0, 2),
-    # params.latent=diag(c("fixed","fixed"), 2),
-    # values.observed=diag(rep(0.3,2)),
-    # params.observed=diag(c("var_1","var_2"),2) #sigma_e
-# )
-
 mdcov <- prep.noise(
     values.latent=diag(0, 2),
     params.latent=diag(c("fixed","fixed"), 2),
