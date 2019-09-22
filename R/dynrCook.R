@@ -502,19 +502,19 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
-		#print(b)
-		# for(i in 1:num.subj){
-		  # for (j in 1:length(random.names)){
-			# if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
-			  # b[i, j] <- 0
-			# }
-		  # }
-		  # for(j in 1:num.x){
-			# if(length(model$initial$values.inistate[[1]]) > 0){
-			  # y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-			# }
-		  # }
-		# }
+		print(b)
+		for(i in 1:num.subj){
+		  for (j in 1:length(random.names)){
+			if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
+			  b[i, j] <- 0
+			}
+		  }
+		  for(j in 1:num.x){
+			if(length(model$initial$values.inistate[[1]]) > 0){
+			  y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
+			}
+		  }
+		}
 		model$initial@y0 <- list(y0)
 		#print (inputs$initial@y0)
 
@@ -1113,7 +1113,6 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   dynm<-prep.formulaDynamics(
     formula=formula,
-	#formula = formula,
     startval=dynrModel@dynamics@startval,
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
@@ -1128,7 +1127,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   load("fitted_model.RData")
   
   #[TODO] the following part needs to be revised for multiple b_zeta
-  
+  #-----
   print(coef(fitted_model)[dynrModel@noise@paramnames])
   mdcov2 <- prep.noise(
     values.latent=diag(0, 3),
@@ -1162,7 +1161,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), 0),
     values.inicov=values.inicov, 
     params.inicov=params.inicov)
-  print('initial2')
+  #print('initial2')
 
   #if (length(unlist(dynrModel@initial$params.inistate[!dynrModel@initial$params.inistate== "fixed"]))>0)
   #  dynrModel@initial$params.inistate
@@ -1174,12 +1173,12 @@ getInitialVauleOfEstimate<- function(dynrModel){
   dynm2<-prep.formulaDynamics(formula=formula,
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
-  print('dynm2')
+  #print('dynm2')
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data, saem=FALSE,
                     outfile="VanDerPol2_.c")	
-  print('model2')
+  #print('model2')
   
   pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
   model2@xstart[pos] = coef(fitted_model)[1:5] 
@@ -1189,8 +1188,9 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   #save(fitted_model2, file = "fitted_model2.RData")				   
   load("fitted_model2.RData")
-
-  library('plyr')
+  #-----
+  
+  #library('plyr')
   locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
   
   print('locc')

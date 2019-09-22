@@ -8,6 +8,8 @@
 
 #setwd('C:\\Users\\Cynthia\\Documents\\gits\\dynr\\demo')
 library('dynr')
+library('plyr')
+
 state.names = c('x1', 'x2')
 #beta.names = c('zeta0', 'zeta1', 'zeta2', 'mu_x1', 'mu_x2')
 beta.names = c('zeta0', 'zeta1', 'zeta2')
