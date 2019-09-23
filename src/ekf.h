@@ -66,6 +66,14 @@ double ext_kalmanfilter(size_t t, size_t regime,
 
 size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss);
 
+void filter_vector(const gsl_vector *y, const gsl_vector *y_ind, gsl_vector *ysmall);
+
+void filter_matrix_rows(const gsl_matrix *X, const gsl_vector *y_ind, gsl_matrix *Xsmall);
+
+void filter_matrix_cols(const gsl_matrix *X, const gsl_vector *y_ind, gsl_matrix *Xsmall);
+
+void filter_matrix_rows_cols(const gsl_matrix *X, const gsl_vector *y_ind, gsl_matrix *Xsmall);
+
 double ext_kalmanfilter_smoother(size_t t, size_t regime, 
 	gsl_vector *eta_t,  gsl_matrix *error_cov_t,
 	const gsl_vector *y_t_plus_1,const gsl_vector *co_variate, const double *y_time,

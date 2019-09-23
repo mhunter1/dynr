@@ -44,7 +44,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 		MYPRINT("Called brekfis\n");
 	}
     size_t t, regime_j, regime_k, sbj;
-    double neg_log_p, p, log_like=0, innov_determinant;
+    double neg_log_p, p, log_like=0;
 
     size_t col_index;
     double sum_overj;
@@ -98,10 +98,6 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     }
 
     /** input for hamilton filter **/
-    /* handling missing data */
-    gsl_vector *cp_y_t=gsl_vector_alloc(y[0]->size);
-    gsl_vector *y_non_miss=gsl_vector_alloc(y[0]->size);
-    size_t miss_case;
 	
     gsl_vector *pr_t=gsl_vector_alloc(config->num_regime);
 
@@ -136,8 +132,6 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	for(sbj=0; sbj < config->num_sbj; sbj++){
 		for(t=(config->index_sbj)[sbj]; t < (config->index_sbj)[sbj+1]; t++){
 			
-			gsl_vector_memcpy(cp_y_t, y[t]);
-			miss_case = find_miss_data(cp_y_t, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
 			
 			/** step 1: call cda ekalman filter for each possible regime switch **/
 			for(regime_j=0; regime_j < config->num_regime; regime_j++){/*from regime j*/
@@ -201,7 +195,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					print_matrix(error_cov_j_t[regime_j]);
 					MYPRINT("\n");*/
 					
-					innov_determinant=ext_kalmanfilter(t, regime_k,
+					neg_log_p = ext_kalmanfilter(t, regime_k,
 						eta_j_t[regime_j], error_cov_j_t[regime_j],
 						y[t],co_variate[t],y_time,
 						param->eta_noise_cov, param->y_noise_cov,
@@ -253,7 +247,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					MYPRINT("\n");*/
 					
 					/** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
-					neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[regime_j][regime_k], residual_cov[regime_j][regime_k], y_non_miss, innov_determinant);
+					// Computed above: neg_log_p
 					
 					/** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
 					double tooSmallNumber = 1e-322;
@@ -417,8 +411,6 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	
 	gsl_vector_free(pr_t);
 	gsl_matrix_free(like_jk);
-	gsl_vector_free(cp_y_t);
-	gsl_vector_free(y_non_miss);
 	gsl_vector_free(diff_eta_vec);
 	gsl_matrix_free(diff_eta);
 	gsl_matrix_free(modif_p);
@@ -610,16 +602,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
     /************** initialization *****************************************************************/
     size_t t, index_sbj_t, regime_j, regime_k, sbj, tprev;
-    double neg_log_p,p, log_like=0, innov_determinant;
+    double neg_log_p, p, log_like=0;
 
     size_t col_index;
     double sum_overj;
     size_t type;
 
-    /* handling missing data */
-    gsl_vector *cp_y_t=gsl_vector_alloc(y[0]->size);
-    gsl_vector *y_non_miss=gsl_vector_alloc(y[0]->size);
-    size_t miss_case;
 	
 	/** output of extended Kalman filter **/
     /*eta^regime_jk_it|t -- eta_regime_jk_t_plus_1 -- filtered regime specific state estimate */
@@ -778,8 +766,6 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
    /********************************************************************************/
 
         for(t=(config->index_sbj)[sbj]; t<(config->index_sbj)[sbj+1]; t++){
-			gsl_vector_memcpy(cp_y_t, y[t]);
-			miss_case=find_miss_data(cp_y_t, y_non_miss); /* 0 - no miss, 1 - part miss, 2 - all miss*/
 			
         /** step 1: call cda ekalman filter for each possible regime switch **/
 
@@ -836,7 +822,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						tprev = t-1;
 					}
 
-                    innov_determinant=ext_kalmanfilter_smoother(t, regime_k,
+                    neg_log_p = ext_kalmanfilter_smoother(t, regime_k,
                         eta_regime_j_t[tprev][regime_j], error_cov_regime_j_t[tprev][regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
@@ -906,7 +892,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                    MYPRINT("\n");*/
 
                    /** Step 2.2: compute log value of function f(.), i.e., prediction error decomposition function **/
-                   neg_log_p=mathfunction_negloglike_multivariate_normal_invcov(innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], y_non_miss, innov_determinant);
+                   // Computed above: neg_log_p
 					
 					double tooSmallNumber = 1e-322;
 					double tryP = exp(-neg_log_p);
@@ -1105,8 +1091,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 
     gsl_matrix_free(tran_prob_jk);
     gsl_matrix_free(like_jk);
-	gsl_vector_free(cp_y_t);
-	gsl_vector_free(y_non_miss);	
+
 
 
     gsl_vector_free(diff_eta_vec);

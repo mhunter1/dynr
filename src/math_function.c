@@ -19,72 +19,17 @@
  * @param inv_cov_matrix the covariance matrix
  * @return the negative log-likelihood
  */
-double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, const gsl_vector *y_non_miss, double det){
+double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, const gsl_matrix *inv_cov_matrix, size_t num_observed, double det){
 	/*MYPRINT("x(0)=%f\n", gsl_vector_get(x, 0));*/
 	double result = 0;
 	
-	/*handling missing data*/
-	double non_miss_size = mathfunction_sum_vector(y_non_miss); /*miss 0 not 1*/
-	if (non_miss_size!=0){
-		if (non_miss_size < y_non_miss->size){
-			
-			gsl_matrix *inv_cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
-			gsl_matrix *cov_mat_small=gsl_matrix_calloc(non_miss_size,non_miss_size);
-			/*Matrix View: Not efficient
-			clock_t begin, end;
-			double time_spent;
-			begin = clock();			
-			gsl_matrix *temp=gsl_matrix_calloc(non_miss_size,y_non_miss->size);
-			gsl_matrix *invtemp=gsl_matrix_calloc(y_non_miss->size,non_miss_size);
-			for(i=0; i<y_non_miss->size; i++){
-				if(gsl_vector_get(y_non_miss, i)==1){
-					gsl_matrix_set(temp,j,i,1);
-					j=j+1;
-				}
-			}
-		  	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, inv_cov_matrix, temp, 0.0,invtemp); 
-		  	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, temp, invtemp, 0.0, inv_cov_mat_small);
-			end = clock();
-			time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-			MYPRINT("time spent: %lf\n",time_spent);
-			print_matrix(inv_cov_matrix);
-			MYPRINT("det=: %lf\n",det);
-			det=mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
-			print_matrix(inv_cov_mat_small);
-			MYPRINT("det=: %lf\n",det);
-			print_matrix(cov_mat_small);
-			MYPRINT("\n");
-			gsl_matrix_free(temp);
-			gsl_matrix_free(invtemp);
-			*/
-			size_t i,j=0;
-			size_t i_s=0,j_s=0; 
-			for(i=0; i<y_non_miss->size; i++){
-				if(gsl_vector_get(y_non_miss, i)==1){
-					gsl_matrix_set(inv_cov_mat_small,i_s,i_s,gsl_matrix_get(inv_cov_matrix,i,i));
-					j_s=i_s+1;
-					for(j=i+1; j<y_non_miss->size; j++){
-						if(gsl_vector_get(y_non_miss, j)==1){
-							gsl_matrix_set(inv_cov_mat_small,i_s,j_s,gsl_matrix_get(inv_cov_matrix,i,j));
-							gsl_matrix_set(inv_cov_mat_small,j_s,i_s,gsl_matrix_get(inv_cov_matrix,i,j));
-							j_s=j_s+1;
-						}
-					}
-					i_s=i_s+1;
-				}
-			}
-			
-			det=1/mathfunction_inv_matrix_det(inv_cov_mat_small, cov_mat_small);
-			
-			gsl_matrix_free(inv_cov_mat_small);
-			gsl_matrix_free(cov_mat_small);
-		}
+	if (num_observed!=0){
 		
 		gsl_vector *y = gsl_vector_calloc(x->size); /* y will save inv_cov_matrix*x*/
 		double mu; /* save result of x'*inv_cov_matrix*x*/
 		
 		/** compute the log likelihood **/
-		result = (non_miss_size/2.0)*log(M_PI*2);
+		result = (num_observed/2.0)*log(M_PI*2);
 		result += log(det)/2.0;
 		
 		gsl_blas_dgemv(CblasNoTrans, 1.0, inv_cov_matrix, x, 0.0, y); /* y=1*inv_cov_matrix*x+y*/
@@ -96,7 +41,7 @@ double mathfunction_negloglike_multivariate_normal_invcov(const gsl_vector *x, c
 		
 		/** free allocated space **/
 		gsl_vector_free(y);
-	}
+	} // else leave result at 0
 	/* All-missing case starts */
 	
 	/*if(1){
