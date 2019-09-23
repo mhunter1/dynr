@@ -147,21 +147,8 @@ double ext_kalmanfilter(size_t t,
 		func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
 	}
 	
-	/*MYPRINT("eta_pred:\n");
-	print_vector(eta_t_plus_1);
-	MYPRINT("\n");*/
-	
-	
-	/*if(t_plus_1==0 || t_plus_1==1){
-		MYPRINT("eta(%d):",t_plus_1-1);
-		print_vector(eta_t);
-		MYPRINT("\n");
-	}
-	if(t_plus_1==0 || t_plus_1==1){
-		MYPRINT("eta(%d):", t_plus_1);
-		print_vector(eta_t_plus_1);
-		MYPRINT("\n");
-	}*/
+	// copy eta_pred for storeage and return when running for return (i.e. "smoothing")
+    // gsl_vector_memcpy(eta_pred,eta_t_plus_1);
 	
 	
 	/*------------------------------------------------------*\
@@ -175,19 +162,12 @@ double ext_kalmanfilter(size_t t,
 		/*------------------------------------------------------*\
 		* update P *
 		\*------------------------------------------------------*/
-		/*print_matrix(error_cov_t);
-		MYPRINT("\n");
-		exit(0);*/
-		/* error_cov_t_vec = vech(error_cov_t) */
 		for(i=0; i<nx; i++){
 			gsl_vector_set(error_cov_t_vec, i, gsl_matrix_get(error_cov_t, i, i));
 			for (j=i+1; j<nx; j++){
 				gsl_vector_set(error_cov_t_vec, i+j+nx-1, gsl_matrix_get(error_cov_t, i, j));
-				/*MYPRINT("%lu",i+j+nx-1);}*/
 			}
 		}
-		/*print_vector(error_cov_t_vec);
-		MYPRINT("\n");*/
 		
 		/*dpparams include params, eta_t, and eta_noise_cov_vec*/
 		size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
@@ -203,24 +183,23 @@ double ext_kalmanfilter(size_t t,
 			}
 		}
 		
-		/*MYPRINT("y_time:\n");
-		MYPRINT("%f ",y_time[t-1]);
-		MYPRINT("%f",y_time[t]);
-		MYPRINT("\n");
-		MYPRINT("regime: %lu\n",regime);
-		MYPRINT("error_cov_previous:\n");
-		print_vector(error_cov_t_vec);
-		MYPRINT("\n");
-		MYPRINT("parameters:\n");
-		print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
-		MYPRINT("\n");*/
+		if(DEBUG_EKF){
+			MYPRINT("y_time:\n");
+			MYPRINT("%f ",y_time[t-1]);
+			MYPRINT("%f",y_time[t]);
+			MYPRINT("\n");
+			MYPRINT("regime: %lu\n",regime);
+			MYPRINT("error_cov_previous:\n");
+			print_vector(error_cov_t_vec);
+			MYPRINT("\n");
+			MYPRINT("parameters:\n");
+			print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
+			MYPRINT("\n");
+		}
 		
 		
 		func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
 		
-		/*MYPRINT("error_cov_pred:\n");
-		print_vector(Pnewvec);
-		MYPRINT("\n");*/
 		
 		for(i=0; i<nx; i++){
 			gsl_matrix_set(error_cov_t_plus_1, i, i, gsl_vector_get(Pnewvec, i));
@@ -230,21 +209,11 @@ double ext_kalmanfilter(size_t t,
 			}
 		}
 		
-		/*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
-		gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
-		gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
-		gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
-		gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
-		gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
-		gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
-		gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
-		gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
 		
 		gsl_vector_free(error_cov_t_vec);
 		gsl_vector_free(Pnewvec);
 		
 	} else if(!isFirstTime & !isContinuousTime) { /* end continuous time "Update P" calculation */
-		/*NB if((!isFirstTime || isSmoother) & !isContinuousTime)*/
 		
 		/*Update P for discrete time*/
 		gsl_matrix *jacob_dynam = gsl_matrix_calloc(nx,nx);
@@ -254,10 +223,13 @@ double ext_kalmanfilter(size_t t,
 		\*------------------------------------------------------*/
 		// error_cov_t_plus_1 = Predicted P for latent variables
 		
-		func_jacob_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dF_dx,jacob_dynam);
-		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacob_dynam, 0.0, p_jacob_dynam); /* compute P*jacobdynamic'*/
-		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacob_dynam, p_jacob_dynam, 0.0, error_cov_t_plus_1); /* compute jacobdynamic*P*jacobdynamic'*/
-		gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov); /*compute H*P*H'+Q*/
+		func_jacob_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dF_dx, jacob_dynam);
+		/* compute P*jacobdynamic' */
+		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t, jacob_dynam, 0.0, p_jacob_dynam);
+		/* compute jacobdynamic*P*jacobdynamic' */
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, jacob_dynam, p_jacob_dynam, 0.0, error_cov_t_plus_1);
+		/* compute H*P*H'+Q */
+		gsl_matrix_add(error_cov_t_plus_1, eta_noise_cov);
 		
 		gsl_matrix_free(jacob_dynam);
 		gsl_matrix_free(p_jacob_dynam);
@@ -266,21 +238,29 @@ double ext_kalmanfilter(size_t t,
 	}
 	/* End "Update P" */
 	
+	/*NB following line is in smoother but not here*/
+	// copy error_cov_pred for storeage and return when running for return (i.e. "smoothing")
+	// gsl_matrix_memcpy(error_cov_pred, error_cov_t_plus_1);
+	
+	
 	/*------------------------------------------------------*\
 	* innovation vector-- will be used to calculate loglikelihood*
 	\*------------------------------------------------------*/
 	
 	/** step 2.1: compute measurement y_hat(t+1|t) **/
 	
-	/*NB following line is in smoother but not here*/
-	//    gsl_matrix_memcpy(error_cov_pred,error_cov_t_plus_1);
 	
 	if(DEBUG_EKF){
-		MYPRINT("eta(%d):",t);
+		MYPRINT("eta(%d):", t);
 		print_vector(eta_t_plus_1);
 		MYPRINT("\n");
 	}
-	func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);/*innov_v <- y_pred*/
+	
+	/*innov_v <- y_pred*/
+	if(DEBUG_EKF){
+		MYPRINT("About to call measurement function\n");
+	}
+	func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);
 	if(DEBUG_EKF){
 		MYPRINT("y_hat(%d):", t);
 		print_vector(innov_v);
@@ -288,64 +268,49 @@ double ext_kalmanfilter(size_t t,
 	}
 	filter_matrix_rows(H_t_plus_1, y_non_miss_index, H_small);
 	filter_vector(innov_v, y_non_miss_index, innov_v_small);
+	if(DEBUG_EKF){
+		MYPRINT("Just filtered measurement for missing data\n");
+	}
+	
 	
 	/*------------------------------------------------------*\
 	// Predicted Covariance matrix for observed variables
 	* innovation variance--------Rek=Rk+H_t_plus_1%*%Pnew%*%t(H_t_plus_1) -- will be used to calculate loglikelihood*
 	\*------------------------------------------------------*/
+	if(DEBUG_EKF){
+		MYPRINT("Gonna multiply me some P and H\n");
+	}
 	if(num_non_miss > 0){
-		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t_plus_1, H_small, 0.0, ph); /* compute P*H'*/
-		/*mathfunction_matrix_mul(error_cov_t_plus_1, jacob_measure, false, true, ph);*/
-	}
-	
-	if(DEBUG_EKF){
-		MYPRINT("error_cov(%lu):\n", t);
-		print_matrix(error_cov_t_plus_1);
-		MYPRINT("\n");
-	}
-	if(DEBUG_EKF){
-		MYPRINT("Hk:\n");
-		print_matrix(H_t_plus_1);
-		MYPRINT("\n");
-		MYPRINT("Hk_filtered:\n");
-		print_matrix(H_small);
-		MYPRINT("\n");
-		MYPRINT("ph:\n");
-		print_matrix(ph);
-		MYPRINT("\n");
-	}
-	
-	if(num_non_miss > 0){
-		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, H_small, ph, 0.0, innov_cov); /* compute H*P*H'*/
-	}
-	if(DEBUG_EKF){
-		/*MYPRINT("jacob_measure:\n");
-		print_matrix(jacob_measure);
-		MYPRINT("\n");*/
-		MYPRINT("ph:\n");
-		print_matrix(ph);
-		MYPRINT("\n");
-	}
-	/*mathfunction_matrix_mul(jacob_measure, ph, false, false, innov_cov);*/
-	
-	if(DEBUG_EKF){
-		MYPRINT("H*P(%d)*H':\n", t);
-		print_matrix(innov_cov);
-		MYPRINT("R(%d):\n", t);
-		print_matrix(y_noise_cov);
-		MYPRINT("\n");
-		MYPRINT("Filtered R(%d):\n", t);
-		print_matrix(y_noise_cov_small);
-		MYPRINT("\n");
-	}
-	
-	if(num_non_miss > 0){
-		gsl_matrix_add(innov_cov, y_noise_cov_small); /*compute H*P*H'+R*/
+		/* compute P*H' */
+		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t_plus_1, H_small, 0.0, ph);
+		/* compute H*P*H' */
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, H_small, ph, 0.0, innov_cov);
+		if(DEBUG_EKF){
+			MYPRINT("ph:\n");
+			print_matrix(ph);
+			MYPRINT("\n");
+		}
+		/* compute H*P*H' + R */
+		gsl_matrix_add(innov_cov, y_noise_cov_small); 
+		
+		if(DEBUG_EKF){
+			MYPRINT("H*P(%d)*H':\n", t);
+			print_matrix(innov_cov);
+			MYPRINT("R(%d):\n", t);
+			print_matrix(y_noise_cov);
+			MYPRINT("\n");
+			MYPRINT("Filtered R(%d):\n", t);
+			print_matrix(y_noise_cov_small);
+			MYPRINT("\n");
+		}
+		if(DEBUG_EKF){
+			MYPRINT("y_cov(%d):\n", t);
+			print_matrix(innov_cov);
+			MYPRINT("\n");
+		}
 	}
 	if(DEBUG_EKF){
-		MYPRINT("y_cov(%d):\n", t);
-		print_matrix(innov_cov);
-		MYPRINT("\n");
+		MYPRINT("Just multiplied P and H to make PH\n");
 	}
 	
 	
@@ -353,32 +318,36 @@ double ext_kalmanfilter(size_t t,
 	* Kalman Gain------Kk=Pnew%*%t(H_t_plus_1)%*%solve(Rek) *
 	\*------------------------------------------------------*/
 	
-	
+	if(DEBUG_EKF){
+		MYPRINT("Looking to Kalman for some GAINZ\n");
+	}
 	if(num_non_miss > 0){
 		det = mathfunction_inv_matrix_det(innov_cov, inv_innov_cov_small);
+		/* compute P*H*S^{-1} */
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov_small, 0.0, kalman_gain);
+		
+		
+		if(DEBUG_EKF){
+			MYPRINT("inv_innov_cov filtered:\n");
+			print_matrix(inv_innov_cov_small);
+			MYPRINT("\n");
+		}
+		if(DEBUG_EKF){
+			MYPRINT("ph:\n");
+			print_matrix(ph);
+			MYPRINT("\n");
+			MYPRINT("inverse residu:\n");
+			print_matrix(inv_innov_cov_small);
+			MYPRINT("\n");
+			MYPRINT("kalman_gain:\n");
+			print_matrix(kalman_gain);
+			MYPRINT("\n");
+		}
 	}
-	
 	if(DEBUG_EKF){
-		MYPRINT("inv_innov_cov filtered:\n");
-		print_matrix(inv_innov_cov_small);
-		MYPRINT("\n");
+		MYPRINT("Gainz got got.\n");
 	}
 	
-	if(num_non_miss > 0){
-		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov_small, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
-	}
-	
-	if(DEBUG_EKF){
-		MYPRINT("ph:\n");
-		print_matrix(ph);
-		MYPRINT("\n");
-		MYPRINT("inverse residu:\n");
-		print_matrix(inv_innov_cov_small);
-		MYPRINT("\n");
-		MYPRINT("kalman_gain:\n");
-		print_matrix(kalman_gain);
-		MYPRINT("\n");
-	}
 	
 	/*------------------------------------------------------*\
 	* Fitered Estimate *
@@ -388,8 +357,10 @@ double ext_kalmanfilter(size_t t,
 	/** step 2.2: compute prediction residual y-y_hat **/
 	if(num_non_miss > 0){
 		gsl_vector_sub(innov_v_small, y_small);
-		gsl_vector_scale(innov_v_small, -1); /* now innov_v stores the residual, i.e, v(t+1)*/
-		gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v_small, 1.0, eta_t_plus_1); /* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
+		gsl_vector_scale(innov_v_small, -1);
+		/* now innov_v stores the residual, i.e, v(t+1) */
+		/* x(k+1|k+1)=x(k+1|k)+W(k+1)*v(k+1)*/
+		gsl_blas_dgemv(CblasNoTrans, 1.0, kalman_gain, innov_v_small, 1.0, eta_t_plus_1);
 	}
 	
 	if(DEBUG_EKF){
@@ -402,51 +373,20 @@ double ext_kalmanfilter(size_t t,
 	/*------------------------------------------------------*\
 	* Filtered Error Cov Matrix *
 	\*------------------------------------------------------*/
-	/*P_kplus1=Pnew-Kk%*%H_t_plus_1%*%Pnew
-	P[,k] = c(P_kplus1[1,1], P_kplus1[2,2], P_kplus1[3,3], P_kplus1[1,2], P_kplus1[1,3], P_kplus1[2,3]) */
-	
+	/* P_kplus1 = Pnew - Kk%*%H_t_plus_1%*%Pnew */
 	
 	
 	if(num_non_miss > 0){
-		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
-		/*MYPRINT("error_cov(%d):\n", t_plus_1);
-		print_matrix(error_cov_t_plus_1);
-		MYPRINT("\n");*/
+		/* W*S*W'- P = P*H'*W'- P = Pnew*H_t_plus_1'*Kk' - Pnew */
+		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1);
 		
-		gsl_matrix_scale(error_cov_t_plus_1, -1.0); /* compute P-W*S*W'*/
+		/* compute P-W*S*W' */
+		gsl_matrix_scale(error_cov_t_plus_1, -1.0);
 	}
 	
-	/*MYPRINT("error_cov_corrected(%lf):", y_time[t]);
-	print_matrix(error_cov_t_plus_1);
-	MYPRINT("\n");*/
-	
-	
-	/*if(miss_case!=0){
-		MYPRINT("innov_v(%lf)", y_time[t]);
-		print_vector(innov_v);
-		MYPRINT("\n");
-		MYPRINT("inv_innov_cov(%lf):\n", y_time[t]);
-		print_matrix(inv_innov_cov);
-		MYPRINT("\n");
-		MYPRINT("eta_corrected(%lf):", y_time[t]);
-		print_vector(eta_t_plus_1);
-		MYPRINT("\n");
-		MYPRINT("error_cov_corrected(%lf):\n", y_time[t]);
-	print_matrix(error_cov_t_plus_1);
-		MYPRINT("\n");
-	}*/
 	
 	if(DEBUG_EKF){
-		MYPRINT("About to compute likelihood for time %lf", y_time[t]);
-		MYPRINT("\nInputs 1 through 4");
-		MYPRINT("1. Innovation vector");
-		print_vector(innov_v_small);
-		MYPRINT("2. Inverse innovation covariance");
-		print_matrix(inv_innov_cov_small);
-		MYPRINT("3. number of non-missing variables");
-		MYPRINT("%lu", num_non_miss);
-		MYPRINT("4. Determinant of innovation covariance");
-		MYPRINT("%lf", det);
+		MYPRINT("About to compute likelihood for time %lf\n", y_time[t]);
 	}
 	double neg_log_p = mathfunction_negloglike_multivariate_normal_invcov(innov_v_small, inv_innov_cov_small, num_non_miss, det);
 	
@@ -456,6 +396,9 @@ double ext_kalmanfilter(size_t t,
 	}
 	
 	/** free allocated space **/
+	if(DEBUG_EKF){
+		MYPRINT("Freeing allocated space\n");
+	}
 	gsl_matrix_free(ph);
 	gsl_matrix_free(innov_cov); /*NB not freed in ext_kalmanfilter_smoother because it is passed as an argument rather than allocated */
 	gsl_matrix_free(kalman_gain);
@@ -634,21 +577,9 @@ double ext_kalmanfilter_smoother(size_t t,
 	    func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1);
 	}
 
-    /*MYPRINT("eta_pred:\n");
-    print_vector(eta_t_plus_1);
-    MYPRINT("\n");*/
+
     gsl_vector_memcpy(eta_pred,eta_t_plus_1);
 
-    /*if(t_plus_1==0 || t_plus_1==1){
-        MYPRINT("eta(%d):",t_plus_1-1);
-        print_vector(eta_t);
-        MYPRINT("\n");
-    }*/
-    /*if(t_plus_1==0 || t_plus_1==1){
-        MYPRINT("eta(%d):", t_plus_1);
-        print_vector(eta_t_plus_1);
-        MYPRINT("\n");
-    }*/
 	/*------------------------------------------------------*\
 	* update P *
 	\*------------------------------------------------------*/
@@ -658,18 +589,12 @@ double ext_kalmanfilter_smoother(size_t t,
 	    gsl_vector *error_cov_t_vec=gsl_vector_calloc(nx*(nx+1)/2);
 		
 
-		/*print_matrix(error_cov_t);
-		MYPRINT("\n");
-		exit(0);*/
 		for(i=0; i<nx; i++){
 			gsl_vector_set(error_cov_t_vec,i,gsl_matrix_get(error_cov_t,i,i));
 			for (j=i+1;j<nx;j++){
 				gsl_vector_set(error_cov_t_vec,i+j+nx-1,gsl_matrix_get(error_cov_t,i,j));
-				/*MYPRINT("%lu",i+j+nx-1);}*/
 			}
 		}
-		/*print_vector(error_cov_t_vec);
-		MYPRINT("\n");*/
 
 		/*dpparams include params, eta_t, and eta_noise_cov_vec*/
 		size_t n_dpparams=num_func_param+nx+(nx+1)*nx/2;
@@ -685,24 +610,9 @@ double ext_kalmanfilter_smoother(size_t t,
 			}
 		}
 
-		/*MYPRINT("y_time:\n");
-		MYPRINT("%f ",y_time[t-1]);
-		MYPRINT("%f",y_time[t]);
-		MYPRINT("\n");
-		MYPRINT("regime: %lu\n",regime);
-		MYPRINT("error_cov_previous:\n");
-		print_vector(error_cov_t_vec);
-		MYPRINT("\n");
-		MYPRINT("parameters:\n");
-		print_array(dpparams,num_func_param+nx+(nx+1)*nx/2);
-		MYPRINT("\n");*/
 
 
 		func_dynam(y_time[t-1], y_time[t], regime, error_cov_t_vec, dpparams, n_dpparams, co_variate, func_dP_dt, Pnewvec);
-
-		/*MYPRINT("error_cov_pred:\n");
-		print_vector(Pnewvec);
-		MYPRINT("\n");*/
 
 		for(i=0; i<nx; i++){
 			gsl_matrix_set(error_cov_t_plus_1,i,i,gsl_vector_get(Pnewvec,i));
@@ -711,17 +621,6 @@ double ext_kalmanfilter_smoother(size_t t,
 				gsl_matrix_set(error_cov_t_plus_1,j,i,gsl_vector_get(Pnewvec,i+j+nx-1));
 			}
 		}
-
-
-		/*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
-		gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
-		gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
-		gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
-		gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
-		gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
-		gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
-		gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
-		gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
 		
 	    gsl_vector_free(error_cov_t_vec);
 	    gsl_vector_free(Pnewvec);
@@ -748,15 +647,6 @@ double ext_kalmanfilter_smoother(size_t t,
 
     gsl_matrix_memcpy(error_cov_pred,error_cov_t_plus_1);
 
-    /*gsl_matrix_set(error_cov_t_plus_1,0,0,gsl_vector_get(Pnewvec,0));
-    gsl_matrix_set(error_cov_t_plus_1,0,1,gsl_vector_get(Pnewvec,3));
-    gsl_matrix_set(error_cov_t_plus_1,0,2,gsl_vector_get(Pnewvec,4));
-    gsl_matrix_set(error_cov_t_plus_1,1,0,gsl_vector_get(Pnewvec,3));
-    gsl_matrix_set(error_cov_t_plus_1,1,1,gsl_vector_get(Pnewvec,1));
-    gsl_matrix_set(error_cov_t_plus_1,1,2,gsl_vector_get(Pnewvec,5));
-    gsl_matrix_set(error_cov_t_plus_1,2,0,gsl_vector_get(Pnewvec,4));
-    gsl_matrix_set(error_cov_t_plus_1,2,1,gsl_vector_get(Pnewvec,5));
-    gsl_matrix_set(error_cov_t_plus_1,2,2,gsl_vector_get(Pnewvec,2));*/
 
     /*------------------------------------------------------*\
     * innovation vector-- will be used to calculate loglikelihood*
@@ -764,9 +654,6 @@ double ext_kalmanfilter_smoother(size_t t,
 
     /** step 2.1: compute measurement y_hat(t+1|t) **/
     
-        /*MYPRINT("eta(%d):",t_plus_1);
-        print_vector(eta_t_plus_1);
-        MYPRINT("\n");*/
 	if(DEBUG_EKF){
 		MYPRINT("About to call measurement function\n");
 	}
@@ -780,80 +667,32 @@ double ext_kalmanfilter_smoother(size_t t,
 		MYPRINT("Just filtered measurement for missing data\n");
 	}
 	
-    /*MYPRINT("y_hat(%d):", t_plus_1);
-    print_vector(innov_v);
-    MYPRINT("\n");*/
 
     /*------------------------------------------------------*\
     * innovation variance--------Rek=Rk+H_t_plus_1%*%Pnew%*%t(H_t_plus_1) -- will be used to calculate loglikelihood*
     \*------------------------------------------------------*/
 
 	if(DEBUG_EKF){
-		/*MYPRINT("Hk:\n");
-		print_matrix(H_t_plus_1);
-		MYPRINT("\n");
-		MYPRINT("Hk_filtered:\n");
-		print_matrix(H_small);
-		MYPRINT("\n");
-		MYPRINT("ph:\n");
-		print_matrix(ph);
-		MYPRINT("\n");
-		*/
 		MYPRINT("Gonna multiply me some P and H\n");
 	}
 
 	if(num_non_miss > 0){
 	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, error_cov_t_plus_1, H_small, 0.0, ph); /* compute P*H'*/
 	}
-    /*mathfunction_matrix_mul(error_cov_t_plus_1, jacob_measure, false, true, ph);*/
 
 	if(DEBUG_EKF){
-		/*MYPRINT("jacob_measure:\n");
-		print_matrix(jacob_measure);
-		MYPRINT("\n");*/
-		/*MYPRINT("ph:\n");
-		print_matrix(ph);
-		MYPRINT("\n");
-		*/
 		MYPRINT("Just multiplied P and H to make PH\n");
 	}
 
-    /*if(t==0){
-        MYPRINT("error_cov(%lu):\n", t);
-        print_matrix(error_cov_t_plus_1);
-        MYPRINT("\n");
-        MYPRINT("Hk:\n");
-        print_matrix(H_t_plus_1);
-        MYPRINT("\n");
-        MYPRINT("ph:\n");
-        print_matrix(ph);
-        MYPRINT("\n");
-    }*/
 
 	if(num_non_miss > 0){
 	    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, H_small, ph, 0.0, innov_cov); /* compute H*P*H'*/
 	}
-    /*MYPRINT("jacob_measure:\n");
-    print_matrix(jacob_measure);
-    MYPRINT("\n");
-    MYPRINT("ph:\n");
-    print_matrix(ph);
-    MYPRINT("\n");*/
-    /*mathfunction_matrix_mul(jacob_measure, ph, false, false, innov_cov);*/
-
-    /*MYPRINT("y_cov(%d):\n", t_plus_1);
-    print_matrix(innov_cov);
-    MYPRINT("\n");*/
 
 
 	if(num_non_miss > 0){
     	gsl_matrix_add(innov_cov, y_noise_cov_small); /*compute H*P*H'+R*/
 	}
-
-    /*print_matrix(y_noise_cov);
-    print_matrix(innov_cov);
-                 MYPRINT("\n");*/
-
 
     /*------------------------------------------------------*\
     * Kalman Gain------Kk=Pnew%*%t(H_t_plus_1)%*%solve(Rek) *
@@ -865,24 +704,11 @@ double ext_kalmanfilter_smoother(size_t t,
 	}
 
 
-        /*MYPRINT("inv_innov_cov:\n");
-        print_matrix(inv_innov_cov);
-        MYPRINT("\n");
-        exit(0);*/
 
 	if(num_non_miss > 0){
         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, ph, inv_innov_cov_small, 0.0, kalman_gain); /* compute P*H*S^{-1}*/
 	}
 
-        /*MYPRINT("ph:\n");
-        print_matrix(ph);
-        MYPRINT("\n");
-        MYPRINT("inverse residu:\n");
-        print_matrix(inv_innov_cov);
-        MYPRINT("\n");
-        MYPRINT("kalman_gain:\n");
-        print_matrix(kalman_gain);
-        MYPRINT("\n");*/
 
     /*------------------------------------------------------*\
     * Fitered Estimate *
@@ -901,31 +727,19 @@ double ext_kalmanfilter_smoother(size_t t,
 	}
 	// else leave eta_t_plus_1 as is at its predicted value
 
-        /*MYPRINT("eta_corrected(%lf):", y_time[t]);
-        print_vector(eta_t_plus_1);
-        MYPRINT("\n");*/
     /*------------------------------------------------------*\
     * Filtered Error Cov Matrix *
     \*------------------------------------------------------*/
-    /*P_kplus1=Pnew-Kk%*%H_t_plus_1%*%Pnew
-    P[,k]=c(P_kplus1[1,1],P_kplus1[2,2],P_kplus1[3,3],P_kplus1[1,2],P_kplus1[1,3],P_kplus1[2,3])*/
-
 
 
 	if(num_non_miss > 0){
 	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
 
-    /*MYPRINT("error_cov(%d):\n", t_plus_1);
-    print_matrix(error_cov_t_plus_1);
-    MYPRINT("\n");*/
 
 	    gsl_matrix_scale(error_cov_t_plus_1, -1.0); /* compute P-W*S*W'*/
 	}
 	// else leave error_cov_t_plus_1 as is at its predicted value
 
-        /*MYPRINT("error_cov_corrected(%lf):", y_time[t]);
-        print_matrix(error_cov_t_plus_1);
-        MYPRINT("\n");*/
 
 	if(DEBUG_EKF){
 		MYPRINT("About to compute likelihood\n");
