@@ -484,22 +484,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
 		upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
 		
-		#print(lower_bound) 
 
 		
-		#[todo] put the b's initial code estimate
-        #get the initial values of b
-        #b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
+        #get the initial values of b and startvars
 		r <- getInitialVauleOfEstimate(dynrModel)
-		print(r)
 		coefEst <- r$coefEst
         b <- r$bEst
-		#print(b[1:10, ])
-		 
-		  
 		
-		
-		
+		 	
 		#b, y0
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
@@ -515,7 +507,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  }
 		}
 		model$initial@y0 <- list(y0)
-		print (model$initial@y0)
+		#print(model$initial@y0)
 
          
         model <- internalModelPrepSAEM(
@@ -559,7 +551,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			lower_bound=lower_bound,
 			upper_bound=upper_bound,
 			dmudparMu=model@measurement@dmudparMu,
-			dmudparMu2=model@measurement@dmudparMu2
+			dmudparMu2=model@measurement@dmudparMu2,
+			y0=y0
         )
         #print(model$MAXGIB)
 		#print(model$gainpara)

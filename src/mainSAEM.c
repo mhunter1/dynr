@@ -557,6 +557,36 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	
 	
+	//Z
+	double **y0;
+	if (Nsubj > 0 && NxState > 0){
+		temp = (double *)malloc(Nsubj * NxState* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"y0")));
+		UNPROTECT(1);
+		
+		y0 = (double **)malloc((Nsubj + 1)* sizeof(double *));
+		for(row = 0;row < Nsubj; row++){
+			for(col = 0;col < NxState; col++){
+				if(col == 0){
+					y0[row] = (double *)malloc((NxState + 1)* sizeof(double));
+				}
+				y0[row][col] = temp[col * Nsubj + row];
+			}
+		}
+		
+		
+		printf("y0:\n");
+		for(int i = 0; i < Nsubj;i++){
+			for(int u = 0;u < NxState; u++){
+				printf(" %6lf", y0[i][u]);
+			}
+			printf("\n");
+		}
+		
+    }else{
+        y0 = NULL;
+    }
+	
 	/*Inconsistent variables*/
 	//printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
 
