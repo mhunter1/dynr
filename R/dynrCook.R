@@ -491,10 +491,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         #get the initial values of b
         #b <- t(diag(3)%*%matrix(rnorm(600), nrow = 3, ncol=200))
 		r <- getInitialVauleOfEstimate(dynrModel)
-		
+		print(r)
 		coefEst <- r$coefEst
-		if(length(sigmab.names) > 0)
-          bEst <- r$bEst
+        b <- r$bEst
+		#print(b[1:10, ])
+		 
+		  
 		
 		
 		
@@ -503,23 +505,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		num.subj <- length(unique(data$original.data[['id']]))
 		random.names <- model$dynamics@random.names
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
-		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
-		b_x <-  length(random.names) - num.x
-		print(b)
-		# for(i in 1:num.subj){
-		  # for (j in 1:length(random.names)){
-			# if(b[i, j] < model$dynamics@random.lb | b[i, j] > model$dynamics@random.ub){
-			  # b[i, j] <- 0
-			# }
-		  # }
-		  # for(j in 1:num.x){
-			# if(length(model$initial$values.inistate[[1]]) > 0){
-			  # y0[i, j] <- model$initial$values.inistate[[1]][j, 1] + b[i,(b_x+j)]
-			# }
-		  # }
-		# }
+		#b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
+		#b_x <-  length(random.names) - num.x
+		#print(b)
+		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
+		for(i in 1:num.subj){
+		  if(length(model$initial$values.inistate[[1]]) > 0){
+            y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+		  }
+		}
 		model$initial@y0 <- list(y0)
-		#print (inputs$initial@y0)
+		print (model$initial@y0)
 
          
         model <- internalModelPrepSAEM(
@@ -1131,8 +1127,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #save(fitted_model, file = "fitted_model.RData")
   load("fitted_model.RData")
   
-  coefEst = coef(fitted_model)
-  return(list(bEst = list(), coefEst = coefEst))
+  #coefEst = coef(fitted_model)
   
   #[TODO] the following part needs to be revised for multiple b_zeta
   #-----
@@ -1176,7 +1171,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
     formula[[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
-  print(formula)	
+
   dynm2<-prep.formulaDynamics(formula=formula,
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
@@ -1193,17 +1188,22 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   #save(fitted_model2, file = "fitted_model2.RData")				   
   load("fitted_model2.RData")
+  #print('load fitted_model2')
   #-----
   
   #library('plyr')
   locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
   
+  #print('locc')
+  #print(locc)
 
   #Get estimates for bzeta from fitted_model2 and use them as estimates for b
-  bEst = fitted_model2@eta_smooth_final[3,locc] #Use these as the starting values for InfDS.b
+  bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
+  #rownames(bEst) = diag(model2@initial@params.inicov[[1]])
   coefEst = coef(fitted_model2)
 
-  return(list(bEst = bEst, coefEst = coefEst))
+  #print(bEst) 
+  return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
 }
 
 grep_position <- function(x,y){
