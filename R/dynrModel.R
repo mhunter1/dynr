@@ -688,14 +688,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	# [TODO] to be generalized: this chuck may result in error when some variables in inputs$initial$params.inistate are not estimated
 	num.x <- length(inputs$initial$params.inistate[[1]])
 	num.beta <- length(inputs$dynamics@startval)
-	print(num.x, num.beta)
-	print(inputs$dynamics@formula[[1]])
-	print(inputs$dynamics@theta.formula)
+	
 	formula <- inputs$dynamics@formula[[1]][1:(num.x + num.beta)]
 	theta.formula <- inputs$dynamics@theta.formula[1:num.theta]
 	inputs$dynamics@theta.names <- inputs$dynamics@theta.names[1:num.theta]
-	print(formula)
-	print(theta.formula)
+	inputs$dynamics@beta.names <- inputs$dynamics@beta.names[1:num.beta] 
     for (i in 1:length(inputs$initial$params.inistate[[1]])){
       if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
          inputs$initial$params.inistate[[1]][i] != "0" ){
@@ -703,6 +700,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		
 		# only keeps the formula mu_x? ~ 0 when x? is going to be estimated(shown in inputs$initial$params.inistate)
 		formula <- c(formula, inputs$dynamics@formula[[1]][[i+num.x + num.beta]])
+		inputs$dynamics@beta.names = c(inputs$dynamics@beta.names, paste0('mu_',  inputs$measurement@state.names[[i]]))
       }
       
       
@@ -718,8 +716,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       }
     }  
 	
-	print (formula)
-	print (theta.formula)
 	
 	#if some of the mu_x1 and mu_x2 are fixed, revise the differential matrices
 	if(length(inputs$dynamics@formula[[1]]) != length(formula) || 
@@ -728,8 +724,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs$dynamics@theta.formula = theta.formula
 	  inputs$dynamics@formula = list(formula)
 	  
-	  print(inputs$dynamics@theta.names)
-	  print(inputs$dynamics@state.names)
 	  
 	  #formula2: substitute the content within theta.formula
 	  formula2 <- lapply(list(formula), function(x){parseFormulaTheta(x, theta.formula)})

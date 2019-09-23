@@ -3195,7 +3195,7 @@ formula2design <- function(dots, covariates, random.names){
 	
 	print(fmat) #H
 	print(rmat) #Z 
-	return(list(fixed=fmat, random=rmat))
+	return(list(fixed=as.matrix(fmat), random=as.matrix(rmat)))
 }
 
 

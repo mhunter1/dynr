@@ -847,11 +847,13 @@ combineModelDataInformationSAEM <- function(model, data){
     #H & Z 
     r =formula2design( 
         model$theta.formula,
-        #model$theta.formula[[2]],
-        #model$theta.formula[[3]],
         covariates=c(data$covariate.names, "1"),
         random.names=model$random.names)    
-    r$fixed= r$fixed[ ,colnames(r$fixed) != '0']
+    r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])
+	
+	print(r)
+	#print(nrow(as.matrix(r$fixed)))
+	#print(ncol(as.matrix(r$fixed)))
     
     Z= apply(r$random, 1, as.numeric)
     H = matrix(nrow=0, ncol=0)
@@ -1134,14 +1136,13 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   #[TODO] the following part needs to be revised for multiple b_zeta
   #-----
-  print(coef(fitted_model)[dynrModel@noise@paramnames])
+  #print(coef(fitted_model)[dynrModel@noise@paramnames])
   mdcov2 <- prep.noise(
     values.latent=diag(0, 3),
     params.latent=diag(c("fixed","fixed","fixed"), 3),
     values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames]),
     params.observed=diag(dynrModel@noise@paramnames, 3)
   )
-  print('mdcov2')
   
   #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
   estimate.names <- unique(as.vector(dynrModel@initial@params.inistate[[1]]))
@@ -1156,7 +1157,6 @@ getInitialVauleOfEstimate<- function(dynrModel){
     params.load = matrix(c(as.vector(dynrModel@measurement@params.load[[1]]), rep("fixed", 3)), nrow=num.y, ncol= length(state.names2)),
     obs.names = dynrModel@measurement@obs.names,
     state.names = c(dynrModel@measurement@state.names, user.random.names))
-  print('meas2')	
 	
   
   v1 = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
@@ -1171,10 +1171,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), 0),
     values.inicov=values.inicov, 
     params.inicov=params.inicov)
-  #print('initial2')
 
-  #if (length(unlist(dynrModel@initial$params.inistate[!dynrModel@initial$params.inistate== "fixed"]))>0)
-  #  dynrModel@initial$params.inistate
 
   formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
@@ -1183,12 +1180,10 @@ getInitialVauleOfEstimate<- function(dynrModel){
   dynm2<-prep.formulaDynamics(formula=formula,
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
-  #print('dynm2')
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data, saem=FALSE,
                     outfile="VanDerPol2_.c")	
-  #print('model2')
   
   pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
   model2@xstart[pos] = coef(fitted_model)[1:5] 
@@ -1203,12 +1198,10 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #library('plyr')
   locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
   
-  print('locc')
 
   #Get estimates for bzeta from fitted_model2 and use them as estimates for b
   bEst = fitted_model2@eta_smooth_final[3,locc] #Use these as the starting values for InfDS.b
   coefEst = coef(fitted_model2)
-  print('done')
 
   return(list(bEst = bEst, coefEst = coefEst))
 }
