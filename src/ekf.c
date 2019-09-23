@@ -108,8 +108,6 @@ double ext_kalmanfilter(size_t t,
 	filter_vector(y_t_plus_1, y_non_miss_index, y_small);
 	gsl_vector *innov_v_small = gsl_vector_alloc(num_non_miss);
 	
-	gsl_vector *zero_eta = gsl_vector_calloc(eta_t->size);
-	
 	/* Allocate matrix pointers */
 	gsl_matrix *H_t_plus_1=gsl_matrix_calloc(y_t_plus_1->size, nx);
 	gsl_matrix *H_small=gsl_matrix_calloc(num_non_miss, nx);
@@ -407,22 +405,6 @@ double ext_kalmanfilter(size_t t,
 	P[,k] = c(P_kplus1[1,1], P_kplus1[2,2], P_kplus1[3,3], P_kplus1[1,2], P_kplus1[1,3], P_kplus1[2,3]) */
 	
 	
-	/*MYPRINT("ph:\n");
-	print_matrix(ph);
-	MYPRINT("\n");
-	MYPRINT("kalman_gain:\n");
-	print_matrix(kalman_gain);
-	MYPRINT("\n");
-	MYPRINT("error_cov(%d):\n", t_plus_1);
-	print_matrix(Pnew);
-	MYPRINT("\n");*/
-	/*if(miss_case==1){
-		for(i=0; i<y_non_miss->size; i++){
-		if(gsl_vector_get(y_non_miss, i)==1)
-		continue;
-		gsl_matrix_set_col(ph, i, zero_eta); 
-		}
-	}*/
 	
 	if(num_non_miss > 0){
 		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
@@ -477,7 +459,6 @@ double ext_kalmanfilter(size_t t,
 	gsl_matrix_free(innov_cov); /*NB not freed in ext_kalmanfilter_smoother because it is passed as an argument rather than allocated */
 	gsl_matrix_free(kalman_gain);
 	gsl_matrix_free(H_t_plus_1);
-	gsl_vector_free(zero_eta);
 	gsl_vector_free(y_non_miss_index);
 	gsl_vector_free(y_small);
 	gsl_vector_free(innov_v_small);
@@ -617,8 +598,6 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 	filter_matrix_rows_cols(y_noise_cov, y_non_miss_index, y_noise_cov_small);
 	
 	
-	
-    gsl_vector *zero_eta=gsl_vector_calloc(eta_t->size);
 
     /*------------------------------------------------------*\
     * update xk *
@@ -920,22 +899,6 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
     P[,k]=c(P_kplus1[1,1],P_kplus1[2,2],P_kplus1[3,3],P_kplus1[1,2],P_kplus1[1,3],P_kplus1[2,3])*/
 
 
-     /*MYPRINT("ph:\n");
-    print_matrix(ph);
-    MYPRINT("\n");
-    MYPRINT("kalman_gain:\n");
-    print_matrix(kalman_gain);
-    MYPRINT("\n");
-    MYPRINT("error_cov(%d):\n", t_plus_1);
-    print_matrix(Pnew);
-    MYPRINT("\n");*/
-    /*if(miss_case==1){
-        for(i=0; i<y_non_miss->size; i++){
-            if(gsl_vector_get(y_non_miss, i)==1)
-                continue;
-            gsl_matrix_set_col(ph, i, zero_eta); 
-        }
-    }*/
 
 	if(num_non_miss > 0){
 	    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, ph, kalman_gain, -1.0, error_cov_t_plus_1); /* W*S*W'-P=P*H'*W'-P=Pnew*H_t_plus_1'*Kk'-Pnew*/
@@ -965,7 +928,6 @@ double ext_kalmanfilter_smoother(size_t t, size_t regime,
 	gsl_matrix_free(ph);
 	gsl_matrix_free(kalman_gain);
 	gsl_matrix_free(H_t_plus_1);
-	gsl_vector_free(zero_eta);
 	gsl_vector_free(y_non_miss_index);
 	gsl_vector_free(y_small);
 	gsl_vector_free(innov_v_small);
