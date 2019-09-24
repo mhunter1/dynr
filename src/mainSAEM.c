@@ -155,7 +155,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	/*Nb*/
 	SEXP num_random_sexp = PROTECT(getListElement(model_list, "num_random"));
-	int Nb = (size_t) *INTEGER(num_mu_sexp);
+	int Nb = (size_t) *INTEGER(num_random_sexp);
 	DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);
 	
 	/*KKO*/ /*not feed*/
@@ -421,6 +421,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		allT = REAL(PROTECT(getListElement(model_list,"allT")));
 		UNPROTECT(1);
 		
+		
 		//printf("allT:\n");
 		total_time_all_subj = 0;
 		for(row = 0; row < Nsubj; row++){
@@ -428,10 +429,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			total_time_all_subj += allT[row];
 			//printf("total_time_all_subj %lf\n", total_time_all_subj);
 		}
-		printf("\n");
+		//printf("\n");
 		
 		total_time_all_subj_int = (int)(total_time_all_subj + 0.001);
-		printf("total_time_all_subj %d\n", total_time_all_subj_int);
+		//printf("total_time_all_subj %d\n", total_time_all_subj_int);
     }
 
 	/*totalT*/
@@ -459,11 +460,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		mu = REAL(PROTECT(getListElement(model_list,"mu")));
 		UNPROTECT(1);
 		
-		
+		/*
 		printf("mu:\n");
 		for(row = 0; row < Nmu; row++)
 			printf("%lf ", mu[row]);
 		printf("\n");
+		*/
     }
 	else{
 		mu = NULL;
@@ -481,10 +483,12 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		upper_bound = REAL(PROTECT(getListElement(model_list,"upper_bound")));
 		UNPROTECT(1);
 		
+		/*
 		printf("lower and upper bound:\n");
 		for(row = 0; row < Npar; row++)
 			printf("%6lf %6lf\n", lower_bound[row], upper_bound[row]);
 		printf("\n");
+		*/
 	
 	}
 	
@@ -503,6 +507,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
+		/*
 		printf("dmudparMu:\n");
 		for(row = 0; row < Ny; row++){
 			for(col = 0;col < Ny; col++){
@@ -510,6 +515,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("\n");
 		}	
+		*/
 	
     }
 	else{
@@ -585,11 +591,13 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		tobs = INTEGER(PROTECT(getListElement(model_list,"tobs")));
 		UNPROTECT(1);
 	
+		/*
 		printf("tobs:\n");
 		for(i = 59990; i < total_time_all_subj_int;i++){
 			printf(" %d", tobs[i]);
 		}
 		printf("\n");
+		*/
     }else{
         tobs = NULL;
     }
@@ -601,15 +609,14 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
 		UNPROTECT(1);
 	
+		/*
 		printf("timeDiscrete:\n");
 		for(i = 59990; i < 60000;i++){
 			printf(" %lf", timeDiscrete[i]);
-			/*
-			if(i % 300 == 299){
-				printf('\n');
-			}*/
+			
 		}
 		printf("\n");
+		*/
 
     }else{
         timeDiscrete = NULL;
@@ -627,7 +634,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			UNPROTECT(1);
 		}
 		
-		
+		/*
 		printf("Y:\n");
 		for(u = 0;u < Ny; u++){
 			for(i = 0; i < 10;i++){
@@ -635,6 +642,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("\n");
 		}
+		*/
 		
 	}
 	else{
