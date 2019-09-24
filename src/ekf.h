@@ -60,9 +60,12 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	void (*func_jacob_dynam)(const double, const double, size_t, const gsl_vector *, 
 		double *, size_t,const gsl_vector *, 
 		void (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *), gsl_matrix *),
+	gsl_vector *eta_pred,
+	gsl_matrix *error_cov_pred,
 	gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, 
 	gsl_vector *innov_v, gsl_matrix *inv_innov_cov,
-	bool isFirstTime);
+	gsl_matrix *innov_cov,
+	bool isFirstTime, bool isForReturn);
 
 size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss);
 

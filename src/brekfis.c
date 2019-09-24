@@ -195,6 +195,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					print_matrix(error_cov_j_t[regime_j]);
 					MYPRINT("\n");*/
 					
+					gsl_vector *eta_garbage = gsl_vector_alloc(config->dim_latent_var);
+					gsl_matrix *error_garbage = gsl_matrix_calloc(config->dim_latent_var, config->dim_latent_var);
+					gsl_matrix *innov_garbage = gsl_matrix_calloc(config->dim_obs_var, config->dim_obs_var);
 					neg_log_p = ext_kalmanfilter(t, regime_k,
 						eta_j_t[regime_j], error_cov_j_t[regime_j],
 						y[t],co_variate[t],y_time,
@@ -207,10 +210,17 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 						config->func_dF_dx,
 						config->func_dynam,
 						config->func_jacob_dynam,
+						eta_garbage, //eta_pred,
+						error_garbage, //error_cov_pred,
 						eta_jk_t_plus_1[regime_j][regime_k],
 						error_cov_jk_t_plus_1[regime_j][regime_k],
 						innov_v[regime_j][regime_k],
-						residual_cov[regime_j][regime_k], isFirstTime);/*inverse*/
+						residual_cov[regime_j][regime_k], /*inverse*/
+						innov_garbage, // innov_cov
+						isFirstTime, false);
+					gsl_vector_free(eta_garbage);
+					gsl_matrix_free(error_garbage);
+					gsl_matrix_free(innov_garbage);
 					
 					/*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
 					MYPRINT("\n");
@@ -821,8 +831,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 					}else{
 						tprev = t-1;
 					}
-
-                    neg_log_p = ext_kalmanfilter_smoother(t, regime_k,
+                    // formerly called smoother
+                    neg_log_p = ext_kalmanfilter(t, regime_k,
                         eta_regime_j_t[tprev][regime_j], error_cov_regime_j_t[tprev][regime_j],
                         y[t],co_variate[t],y_time,
                         param->eta_noise_cov, param->y_noise_cov,
@@ -836,7 +846,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
-						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime); /*inverse*/
+						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime, true); /*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
