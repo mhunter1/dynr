@@ -10,11 +10,15 @@ using namespace arma;
 #include "MainUseThis.h"
 #define ERROR 0.0000001
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y){
-	printf("check point 0\n");	
-	int i, j, Npar;
+
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *);
+
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete){
+
+
+	//printf("check point 0\n");	
+	int i, j, Npar, tobs_pointer;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
 	arma::mat upperb, lowerb, x1;
@@ -57,7 +61,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.b(i, j) = b[i][j];
 		}
 	}
-	InfDS.b.print("InfDS.b");
+	//InfDS.b.print("InfDS.b");
 
 
 	InfDS.H.set_size(Nsubj* Ntheta, InfDS.Nbetax);
@@ -66,7 +70,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.H(i, j) = H[i][j];
 		}
 	}
-	InfDS.H.print("InfDS.H");
+	//InfDS.H.print("InfDS.H");
 
 	InfDS.Z.set_size(Ntheta, Nb);
 	for(i = 0; i < Ntheta; i++){
@@ -74,7 +78,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.Z(i, j) = Z[i][j];
 		}
 	}
-	InfDS.Z.print("InfDS.Z");
+	//InfDS.Z.print("InfDS.Z");
 
 
 	
@@ -90,7 +94,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			InfDS.Tfilter(i, j) = 1;
 		}
 	}
-	InfDS.Tfilter.print("InfDS.Tfilter");
+	//InfDS.Tfilter.print("InfDS.Tfilter");
 
 	InfDS.lens.set_size(1, Nsubj);
 	for(i = 0; i < Nsubj; i++){
@@ -114,17 +118,23 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	} 
 	InfDS.y0.print("InfDS.y0");
 
-	//to be obtained
+
 	InfDS.timeDiscrete.set_size(Nsubj,1);
+	tobs_pointer = 0;
 	for(i = 0; i < Nsubj; i++){
 		InfDS.timeDiscrete(i).set_size(totalT, 1);
 		InfDS.timeDiscrete(i).zeros();
+		for(j = 0; j < InfDS.allT(i); j++){
+			InfDS.timeDiscrete(i)(j,0) = timeDiscrete[tobs_pointer];
+			tobs_pointer++;
+		}
 	}
-	InfDS.timeDiscrete.print("timeDiscrete");
+	InfDS.timeDiscrete(0).t().print("timeDiscrete(0)");
+
+
 
 	InfDS.tobs.set_size(Nsubj,1);
-	tobs_pointer = 0;
-	
+	tobs_pointer = 0;	
 	for(i = 0; i < Nsubj; i++){
 		InfDS.tobs(i).set_size(InfDS.allT(i), 1);
 		//InfDS.tobs(i).col(0) = span_vec(1, InfDS.allT(i), 1);
@@ -133,7 +143,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			tobs_pointer++;
 		}	
 	}
-	InfDS.tobs(100).print("InfDS.tobs(100)");
+	//InfDS.tobs(100).print("InfDS.tobs(100)");
 	
 	InfDS.Y.set_size(Nsubj,1);
 	for(int y = 0; y < Ny; y++){
@@ -143,7 +153,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 				InfDS.Y(i).set_size(Ny, InfDS.allT(i));
 			}
 			for(j = 0; j < InfDS.allT(i); j++){
-				InfDS.Y(i)(y,j) = Y[tobs_pointer];
+				InfDS.Y(i)(y,j) = Y[y][tobs_pointer];
 				tobs_pointer++;
 			}
 		}
@@ -175,14 +185,14 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 		InfDS.dXtildthetafAll(i).set_size(Ntheta, NxState*InfDS.allT(0,i));
 		InfDS.dXtildthetafAll(i).zeros();
 	}
-	InfDS.dXtildthetafAll(0).print("InfDS.dXtildthetafAll(0)");;
+	//InfDS.dXtildthetafAll(0).print("InfDS.dXtildthetafAll(0)");;
 
 	InfDS.dXtildthetafAll2.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
 		InfDS.dXtildthetafAll2(i).set_size(Ntheta, NxState*InfDS.allT(0,i));
 		InfDS.dXtildthetafAll2(i).zeros();
 	}
-	InfDS.dXtildthetafAll2(0).print("InfDS.dXtildthetafAll2(0)");
+	//InfDS.dXtildthetafAll2(0).print("InfDS.dXtildthetafAll2(0)");
 	
 	
 	InfDS.Sigmab = zeros(Nb, Nb);
