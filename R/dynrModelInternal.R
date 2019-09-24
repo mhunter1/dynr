@@ -162,6 +162,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	dmudparMu=dmudparMu,
 	dmudparMu2=dmudparMu2,
 	y0=y0,
+	#num_time = num_time,
 	options=options #,
 	#func_address=func_address[[1]],
 	#libname=func_address[[2]]

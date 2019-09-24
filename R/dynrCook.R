@@ -524,7 +524,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             verbose=dynrModel@verbose,
             num_theta=length(dynrModel@dynamics@theta.names),
             num_beta=length(dynrModel@dynamics@beta.names),
-            #total_t=length(unique(dynrModel@data$time)),
 			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
             num_lambda=length(lambda.names),
             num_mu=length(dynrModel@measurement@params.int[[1]]),
@@ -552,7 +551,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			upper_bound=upper_bound,
 			dmudparMu=model@measurement@dmudparMu,
 			dmudparMu2=model@measurement@dmudparMu2,
-			y0=y0
+			y0=y0#,
+			#num_time=length(model$tspan) # number of unique time points
         )
         #print(model$MAXGIB)
 		#print(model$gainpara)
@@ -813,24 +813,55 @@ combineModelDataInformationSAEM <- function(model, data){
     #model$max_t <- max(matrix(data[['time']], nrow = model$total_t, ncol= model$num_sbj)[model$total_t, ])
     model$max_t <- max(data[['time']])
 	
+	#all possible time points
+	#InfDS.tspan
+	model$tspan = sort(unique(data[['time']]))
+	model$num_time = length(sort(unique(data[['time']])))
+	#print ('num_time')
+	#print (model$num_time)
+	
     
     model$allT <- rep(0, model$num_sbj)
 	#dif <- matrix(0, model$total_t, ncol= model$num_sbj)
 	model$delt <- 2147493647
-    for (i in unique(data[['id']])){
+	model$tobs <- c()
+	model$Y <- matrix(0,nrow=length(data$observed.names), ncol=length(data[['time']]))
+	
+	for(j in 1:length(data$observed.names)){
+      model$Y[j,] <- data$observed[[j]]
+    }
+	print(model$Y[3,11:20])
+    for (i in sort(unique(data[['id']]))){
         table_i <- data$original.data[data$original.data[['id']] == i, ]
         model$allT[i] <- nrow(table_i)
-		#print(nrow(table_i))
+		#InfDS.tobs{i}
+		pos = sort(unlist(lapply(table_i[['time']], 
+		  function(x, all_time){
+            pos = match(x, all_time)
+            return(pos)
+          }, model$tspan)))
+		model$tobs <- c(model$tobs, pos)
+			
 		for(j in 2:nrow(table_i)){
             #dif[j,i] <- table_i[j, 'time'] - table_i[j - 1, 'time']
 			if(table_i[j, 'time'] - table_i[j - 1, 'time'] < model$delt)
 				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
         }
     }
-	#print(dif)
-	#model$delt <- min(dif[2:model$total_t, ], na.omit = TRUE)
-    #print(model$allT) #correct here
+	print(model$allT) #correct here
 	#print(model$delt) #correct here
+	
+	#InfDS.tobs{i} for all subject i are put in a single array
+	#Use the index InfDS.allT to access it (see the following)
+	#correct here
+	for(i in c(1:5)){
+		print(i)
+		if(i == 1)
+		  print(model$tobs[1:sum(model$allT[1:i])])
+		else
+		  print(model$tobs[(sum(model$allT[1:(i-1)])+1):sum(model$allT[1:i])])
+	}
+    
 
 	
     #H & Z 
@@ -840,7 +871,7 @@ combineModelDataInformationSAEM <- function(model, data){
         random.names=model$random.names)    
     r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])
 	
-	print(r)
+	#print(r)
 	#print(nrow(as.matrix(r$fixed)))
 	#print(ncol(as.matrix(r$fixed)))
     
@@ -874,7 +905,6 @@ combineModelDataInformationSAEM <- function(model, data){
     }
     model$H <- H
     model$Z <- Z
-    model$tspan <- unique(data[['time']])
 	#print(H)
     
 
