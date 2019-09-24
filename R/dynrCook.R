@@ -830,7 +830,7 @@ combineModelDataInformationSAEM <- function(model, data){
 	for(j in 1:length(data$observed.names)){
       model$Y[j,] <- data$observed[[j]]
     }
-	print(model$Y[3,11:20])
+	#print(model$Y[3,11:20])
     for (i in sort(unique(data[['id']]))){
         table_i <- data$original.data[data$original.data[['id']] == i, ]
         model$allT[i] <- nrow(table_i)
@@ -848,19 +848,19 @@ combineModelDataInformationSAEM <- function(model, data){
 				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
         }
     }
-	print(model$allT) #correct here
+	#print(model$allT) #correct here
 	#print(model$delt) #correct here
 	
 	#InfDS.tobs{i} for all subject i are put in a single array
 	#Use the index InfDS.allT to access it (see the following)
 	#correct here
-	for(i in c(1:5)){
-		print(i)
-		if(i == 1)
-		  print(model$tobs[1:sum(model$allT[1:i])])
-		else
-		  print(model$tobs[(sum(model$allT[1:(i-1)])+1):sum(model$allT[1:i])])
-	}
+	# for(i in c(1:5)){
+		# print(i)
+		# if(i == 1)
+		  # print(model$tobs[1:sum(model$allT[1:i])])
+		# else
+		  # print(model$tobs[(sum(model$allT[1:(i-1)])+1):sum(model$allT[1:i])])
+	# }
     
 
 	

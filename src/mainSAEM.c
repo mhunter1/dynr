@@ -577,6 +577,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         y0 = NULL;
     }
 	
+	
 	int *tobs;
 	printf("total_time_all_subj %d\n", total_time_all_subj_int);
 	if (total_time_all_subj_int  > 0){		
@@ -585,15 +586,35 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		UNPROTECT(1);
 	
 		printf("tobs:\n");
-		for(i = 300; i < total_time_all_subj_int;i++){
+		for(i = 59990; i < total_time_all_subj_int;i++){
 			printf(" %d", tobs[i]);
-			if(i % 300 == 299)
-				printf('\n');
 		}
-
+		printf("\n");
     }else{
         tobs = NULL;
     }
+	
+	double *timeDiscrete;
+	printf("total_time_all_subj %d\n", total_time_all_subj_int);
+	if (total_time_all_subj_int  > 0){		
+		timeDiscrete = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
+		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
+		UNPROTECT(1);
+	
+		printf("timeDiscrete:\n");
+		for(i = 59990; i < 60000;i++){
+			printf(" %lf", timeDiscrete[i]);
+			/*
+			if(i % 300 == 299){
+				printf('\n');
+			}*/
+		}
+		printf("\n");
+
+    }else{
+        timeDiscrete = NULL;
+    }
+	
 	
 	if(Ny > 0 && total_time_all_subj_int > 0){
 		Y = (double **)malloc((Ny + 1)* sizeof(double));
@@ -661,7 +682,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time);
+	//interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
