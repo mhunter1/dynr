@@ -24,6 +24,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 
 	//printf("hello world");
 	
+	freeIC = 1;
 	timer = time(NULL);
 	
 	//arma_rng::set_seed_random(); 
@@ -59,7 +60,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	InfDS.dfdx2 = @dfdx2FreeIC;
 	*/
 	
-	InfDS.y0 = arma::zeros<arma::mat> (InfDS.Nsubj, 2);
+	//InfDS.y0 = arma::zeros<arma::mat> (InfDS.Nsubj, 2);
 	InfDS.sy = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
 	InfDS.ES = arma::zeros<arma::mat>(InfDS.par.n_elem, InfDS.par.n_elem);
 	InfDS.EI = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
@@ -104,9 +105,10 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	ssmin = 100; 
 	noIncrease = 0;
 	freeIC = 1;
-	InfDS.scaleb = 1; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
-	InfDS.KKO = 20; //Used in SAEM. Only starts to evaluate whether to transition to stage 2 after KKO iterations.
-
+	//InfDS.scaleb = 1; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
+	//InfDS.KKO = 20; //Used in SAEM. Only starts to evaluate whether to transition to stage 2 after KKO iterations.
+	stop = 0;
+        printf("check point 2 MAXITER %d\n", InfDS.MAXITER);
 	
 	//InfDS.par.print("InfDS.par");
 	//printf("checkpoint M92 entering the k loop\n");	
@@ -114,11 +116,12 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 
 		//disp 'iteration';
 		//k
+		printf("k = %d\n",k);
 
 		isPar = 0;
 		
 		setParsFreeICwb(InfDS); //qqqq	
-	        //printf("checkpoint M101 setParsFreeICwb\n");	
+	        printf("checkpoint M101 setParsFreeICwb\n");	
 		
 		if (stage==2 && switchFlag==0){
 			yesMean= 1;
@@ -158,22 +161,22 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 		//Since beta changes, get Xtild and InfDS.InfDS.dxstardthetafAll and InfDS.dxstardthetafAll2
 	
 		
-		//printf("checkpoint M142\n");	
+		printf("checkpoint M142\n");	
 		//InfDS.par.print("InfDS.par");
 		isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
-		//printf("checkpoint M145 getXtildIC3\n");	
+		printf("checkpoint M145 getXtildIC3\n");	
 		//InfDS.par.print("InfDS.par");
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		//printf("checkpoint M147PropSigb\n");	
+		printf("checkpoint M147PropSigb\n");	
 		//InfDS.par.print("InfDS.par");
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 	
-		//printf("checkpoint M153 enter GIB loop\n");	
+		printf("checkpoint M153 enter GIB loop\n");	
 		//MAXGIB = 5;
 		printf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
@@ -186,7 +189,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 			if (k >= 4){        
 				//printf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(isPar, InfDS, meanb, yesMean, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept);
-				//printf("checkpoint leave drowbGeneral6_opt3\n");	
+				printf("checkpoint leave drowbGeneral6_opt3\n");	
 	                        //InfDS.par.print("InfDS.par");
 			}
         
@@ -194,7 +197,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 			
 			//printf("checkpoint enter getScoreInfoY_tobs_opt\n");
 			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);			
-			//printf("checkpoint leave getScoreInfoY_tobs_opt\n");	
+			printf("checkpoint leave getScoreInfoY_tobs_opt\n");	
         
 	                //InfDS.par.print("InfDS.par");
 			
@@ -239,7 +242,7 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 
 		//%%%%%%%%%%
 		k = k+1;
-		//prev_stage = stage;
+		prev_stage = stage;
 
 		/*remove later*/
 		//break;
@@ -260,11 +263,11 @@ void MainUseThis(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat l
 	printf("(4) Wrap up estimation and write out results\n");
 
 
-	arma::mat dgdpar;
+	//arma::mat dgdpar;
 
 	//If using transformation functions
-	dgdpar = eye(InfDS.par.n_rows, InfDS.par.n_rows);
-	dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
+	//dgdpar = eye(InfDS.par.n_rows, InfDS.par.n_rows);
+	//dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
 
 /*
 	printf("(41) Wrap up estimation and write out results\n");

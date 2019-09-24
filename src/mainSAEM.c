@@ -674,6 +674,40 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         Y = NULL;
     }
 	*/
+
+	double **Sigmab;
+	if (Nb > 0){
+		temp = (double *)malloc((Nb * Nb +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"sigmab")));
+		UNPROTECT(1);
+		
+		Sigmab = (double **)malloc((Nb + 1)* sizeof(double *));
+		for(row = 0;row < Nb; row++){
+			for(col = 0;col < Nb; col++){
+				if(col == 0){
+					Sigmab[row] = (double *)malloc((Nb + 1)* sizeof(double));
+				}
+				Sigmab[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("Sigmab:\n");
+ 		for(row = 0; row < Ny; row++){
+ 			for(col = 0;col < Ny; col++){
+ 				printf(" %lf", Sigmab[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		Sigmab = NULL;
+	}
+
+
+
+
 	
 	/*Inconsistent variables*/
 	//printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);
@@ -682,7 +716,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete);
+	interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

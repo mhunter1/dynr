@@ -12,9 +12,9 @@ using namespace arma;
 
 
 
-extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *);
+extern "C" void interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab){
 
 
 	//printf("check point 0\n");	
@@ -31,13 +31,14 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	InfDS.NLambda = NLambda;
 	InfDS.Nbpar = Nbpar;
 	InfDS.Nu = Nu;
-	InfDS.Nbeta = Nbeta;
+	InfDS.Nbeta = 0;
 	InfDS.Nbetax = Nbeta;
-	InfDS.Nx = NxState; // in the saem process, Nx remains as NxState; it only becaomes NxState + Nbeta during initial value estimation
+	InfDS.Nx = NxState + Nbeta; // in the saem process, Nx remains as NxState; it only becaomes NxState + Nbeta during initial value estimation
 	InfDS.Nsubj = Nsubj;
 	InfDS.totalT = totalT;
 	InfDS.delt = delt;
 	InfDS.maxT = maxT;
+        InfDS.N = 1;
 	
 	/*constant*/
 	InfDS.N = 1;
@@ -45,8 +46,10 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	
 	
 	printf("check point 1\n");	
-	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
 
+	//Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
+	Npar = Ntheta + NLambda + Ny + Nbpar;
+	
 	InfDS.U1.set_size(Nsubj, Nu);
 	for(i = 0; i < Nsubj; i++){
 		for(j = 0; j < Nu; j++){
@@ -143,15 +146,15 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 			tobs_pointer++;
 		}	
 	}
-	//InfDS.tobs(100).print("InfDS.tobs(100)");
+	InfDS.tobs(199).print("InfDS.tobs(199)");
 	
 	InfDS.Y.set_size(Nsubj,1);
+	for(i = 0; i < Nsubj; i++){
+	    InfDS.Y(i).set_size(Ny, InfDS.allT(i));
+	}
 	for(int y = 0; y < Ny; y++){
-		tobs_pointer++;
+		tobs_pointer = 0;
 		for(i = 0; i < Nsubj; i++){
-			if(i == 0){
-				InfDS.Y(i).set_size(Ny, InfDS.allT(i));
-			}
 			for(j = 0; j < InfDS.allT(i); j++){
 				InfDS.Y(i)(y,j) = Y[y][tobs_pointer];
 				tobs_pointer++;
@@ -189,7 +192,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 
 	InfDS.dXtildthetafAll2.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
-		InfDS.dXtildthetafAll2(i).set_size(Ntheta, NxState*InfDS.allT(0,i));
+		InfDS.dXtildthetafAll2(i).set_size(Ntheta*NxState*InfDS.allT(0,i), Ntheta);
 		InfDS.dXtildthetafAll2(i).zeros();
 	}
 	//InfDS.dXtildthetafAll2(0).print("InfDS.dXtildthetafAll2(0)");
@@ -246,7 +249,7 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	
 	InfDS.thetatild = zeros(Npar, 1);
 	InfDS.Xtild.set_size(InfDS.Nx, InfDS.Nsubj, InfDS.totalT);
-	InfDS.Xtild.zeros();
+	//InfDS.Xtild.zeros();
 
 	//SAEM Control Parameters
 	InfDS.MAXGIB = MAXGIB;
@@ -267,6 +270,15 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	lowerb.fill(lb);
 	upperb.set_size(1, Nb);
 	upperb.fill(ub);
+
+	InfDS.Sigmab.set_size(Nb, Nb);
+	for(i = 0; i < Nb; i++){
+		for(j = 0; j < Nb; j++){
+			InfDS.Sigmab(i,j) = Sigmab[i][j];
+		}
+
+	}
+	InfDS.Sigmab.print("sigmab");
 	
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
