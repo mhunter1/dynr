@@ -104,7 +104,10 @@ setClass(Class = "dynrDynamicsFormula",
 		   dfdxdtheta= "list", 
 		   dfdthetadx= "list", 
 		   dfdtheta2= "list",
-		   formula2 = "list"
+		   formula2 = "list",
+		   saem = "logical",
+		   random.params.inicov="matrix",
+		   random.values.inicov="matrix"
            ),
          contains = "dynrDynamics"
 )
@@ -2359,33 +2362,32 @@ autojacob <- function(formula, n, diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE, jacobian, ...){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
 #state.names, theta.formula, theta.names, beta.names
 #function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
   dots <- list(...)
-  print(length(dots))
+ 
+ # If 'theta.formula' are given, saem is TRUE
+  saem <- ('theta.formula' %in% names(dots))	
+  print(paste('SAEM :', saem))
+  
   if(length(dots) > 0){
-    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub'))){
+    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub', 'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
     #if(length(dots) == 5){
     state.names <- dots$state.names
-	#print(state.names)
-	#print(length(state.names))
-    #theta.names <- dots$theta.names
     beta.names <- dots$beta.names
     theta.formula <- dots$theta.formula
-    #intercept.names <- dots$intercept.names
     random.names <- dots$random.names
     random.ub <-dots$random.ub
     random.lb <-dots$random.lb
-    #}
+	random.params.inicov <- dots$random.params.inicov
+	random.values.inicov <- dots$random.values.inicov
+	#}
   }
   
-  #print("second")
   state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  #print(state.names)
-  #print(length(state.names))
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
@@ -2447,7 +2449,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   
   
     
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, ...)
+  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, saem=saem,...)
   
 
   #jacobian = dfdx
@@ -2501,6 +2503,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$random.lb <- random.lb
   x$state.names <- state.names
   x$formula2 <- formula2
+  x$saem <- saem
+  x$random.params.inicov <- random.params.inicov
+  x$random.values.inicov <- random.values.inicov
   
   #print (formula2)
   
