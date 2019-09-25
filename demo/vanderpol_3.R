@@ -100,7 +100,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 								#intercept.names=intercept.names, 
 								random.names=random.names,
 								random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
-								random.values.inicov = matrix(c(1), ncol=1,byrow=TRUE),
+								random.values.inicov = matrix(c(0.9), ncol=1,byrow=TRUE),
 							    random.lb = -5, 
 				                random.ub = 5#,
 								#saem=TRUE
@@ -108,7 +108,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 								
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, saem=TRUE,
+                    noise=mdcov, initial=initial, data=data, #saem=TRUE,
                     outfile="VanDerPol.cpp")
 
 

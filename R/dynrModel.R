@@ -546,9 +546,12 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 #dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, saem=FALSE){
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile, saem=FALSE){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
+    saem <- dynamics$saem
+	print(paste0("saem in dynr.model:" , saem))
+	
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
       states.dyn=states.dyn[[1]]
@@ -745,8 +748,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	# setup InfDS.Sigmab
 	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
 	sigmab.names = unique(as.vector(inputs$initial$params.inicov[[1]]))
+	if('random.names' %in% names(inputs$dynamics)){
+	  sigmab.name <- unique(sigmab.names, as.vector(inputs$dynamics$random.params.inicov))
+	}
 	sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
 
+	
 	if(length(sigmab.names) > 0){
       random.params.inicov = matrix(0L, 
                             nrow = num.x+num.theta, 
@@ -758,12 +765,16 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  #print(inputs$dynamics@random.names)
 	
 	  # set up random.values.inicov, which is InfDS.sigmab
-	  for(i in 1:num.theta){
-        random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
-	    random.values.inicov[i,i] = 1
-	  }
+	  #for(i in 1:num.theta){
+      #  random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
+	  #  random.values.inicov[i,i] = 1.0
+	  #}
+	  #variance/covariance of states
       random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
       random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
+	  #variance/covariance of random.names
+	  random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
+      random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
 	}
 	else{
 	  random.params.inicov = matrix(0L, 
@@ -772,6 +783,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       random.values.inicov = matrix(0L, 
                             nrow = num.theta, 
                             ncol = num.theta)
+	  #for(i in 1:num.theta){
+      #  random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
+	  #  random.values.inicov[i,i] = 1.0
+	  #}
 	  
 	}
 	
