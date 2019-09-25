@@ -441,8 +441,9 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, ...) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
 
+    saem <- dynrModel@dynamics@saem
 	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
@@ -489,7 +490,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         #get the initial values of b and startvars
 		r <- getInitialVauleOfEstimate(dynrModel)
 		coefEst <- r$coefEst
-        b <- r$bEst
+		if('bEst' %in% names(r))
+          b <- r$bEst
 		
 		 	
 		#b, y0
@@ -1115,6 +1117,10 @@ getInitialVauleOfEstimate<- function(dynrModel){
 	values.observed=dynrModel@noise@values.observed,
 	params.observed=dynrModel@noise@params.observed
   )
+  print('mdcov')
+  print(mdcov@params.latent)
+  print(mdcov@params.observed)
+  
 
   meas <- prep.measurement(
     values.load = dynrModel@measurement@values.load,
@@ -1122,6 +1128,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     obs.names = dynrModel@measurement@obs.names,
     state.names = dynrModel@measurement@state.names
   )
+  print('meas')
 
   initial <- prep.initial(
     values.inistate=dynrModel@initial@values.inistate,
@@ -1129,6 +1136,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     values.inicov=dynrModel@initial@values.inicov, 
     params.inicov=dynrModel@initial@params.inicov
   )
+  print('init')
   
   # Formula processing:  
   # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
@@ -1150,14 +1158,17 @@ getInitialVauleOfEstimate<- function(dynrModel){
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
   )
+  print('dynm')
 
   model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=dynrModel@data, saem=FALSE,
+                    noise=mdcov, initial=initial, data=dynrModel@data,
                     outfile='00.c')
+  print('model')
 
-  #fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  #save(fitted_model, file = "fitted_model.RData")
+  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  save(fitted_model, file = "fitted_model.RData")
   load("fitted_model.RData")
+  print(coef(fitted_model))
   
   #coefEst = coef(fitted_model)
   
@@ -1166,11 +1177,11 @@ getInitialVauleOfEstimate<- function(dynrModel){
   # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
-    print(paste("New state variables to be estimated:", user.random.names))
-	
+    	
 	# Add the user-specified random effects into states to be estiamted
 	# state.names2 = state.names + user.random.names
 	state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+	print(paste("New state variables to be estimated:", state.names2))
   }
   else{
     print("There is no random effect variables to be estimated. Initial value estimates are done.")
@@ -1192,15 +1203,23 @@ getInitialVauleOfEstimate<- function(dynrModel){
     params.load = matrix(c(as.vector(dynrModel@measurement@params.load[[1]]), rep("fixed", num.y * length(user.random.names)) ), nrow=num.y, ncol= length(state.names2)),
     obs.names = dynrModel@measurement@obs.names,
     state.names = state.names2)
-	
-  
-  v1 = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
+
+  # Generate the new variance/covariance matrix 
+  # by adding the user-specified random names into states
+  #   - state.names2: c(state.names, random.names)
+  #   - values.inicov: initial values of variance/covariance matrix
+  #       *state.names: from the first fitted model
+  #       *random.names: from user specified in dynrModel@dynamics 
+  num.state = length(dynrModel@measurement@state.names)
+  num.state2 = length(state.names2) 
   values.inicov = diag(1, length(state.names2))
-  values.inicov[1:(nrow(v1)),1:(ncol(v1))]  = v1
+  values.inicov[1:num.state,1:num.state] = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
+  values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
   params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
-  params.inicov[1:(nrow(v1)),1:(ncol(v1))]  = dynrModel@initial@params.inicov[[1]]
-  for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
-    params.inicov[i,i] <- paste0('sigma2_', state.names2[i])
+  params.inicov[1:num.state,1:num.state]  = dynrModel@initial@params.inicov[[1]]
+  params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
+  print(values.inicov)
+  print(params.inicov)
 
   initial2 <- prep.initial(
     values.inistate=c(coef(fitted_model)[as.vector(dynrModel@initial@params.inistate[[1]])], 0),
@@ -1209,27 +1228,30 @@ getInitialVauleOfEstimate<- function(dynrModel){
     params.inicov=params.inicov)
 
 
-  formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
+  #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
-    formula[[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
+    formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
+  print(formula)
 
-  dynm2<-prep.formulaDynamics(formula=formula,
+  dynm2<-prep.formulaDynamics(formula=unlist(formula),
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
+  print('dynm2')						
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
-                    noise=mdcov2, initial=initial2, data=dynrModel@data, saem=FALSE,
-                    outfile="VanDerPol2_.c")	
+                    noise=mdcov2, initial=initial2, data=dynrModel@data,
+                    outfile="VanDerPol2_.c")
+  print('model2')					
   
   pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
   model2@xstart[pos] = coef(fitted_model)[1:5] 
   
-  #fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
-  #                         hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
+  fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
+                           hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
   
-  #save(fitted_model2, file = "fitted_model2.RData")				   
+  save(fitted_model2, file = "fitted_model2.RData")				   
   load("fitted_model2.RData")
-  #print('load fitted_model2')
+  print('load fitted_model2')
   #-----
   
   #library('plyr')

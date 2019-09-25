@@ -745,16 +745,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	#revise the variance/covariance matrix InfDS.sigmab correspondingly
 	#num.theta <- length(inputs$dynamics@random.names[[1]][[1]])
 	
-	# setup InfDS.Sigmab
-	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
-	sigmab.names = unique(as.vector(inputs$initial$params.inicov[[1]]))
-	if('random.names' %in% names(inputs$dynamics)){
-	  sigmab.name <- unique(sigmab.names, as.vector(inputs$dynamics$random.params.inicov))
-	}
-	sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
+	
 
 	
-	if(length(sigmab.names) > 0){
+	#if(.hasSlots(inputs$dynamics,'random.names')){
       random.params.inicov = matrix(0L, 
                             nrow = num.x+num.theta, 
                             ncol = num.x+num.theta)
@@ -764,33 +758,24 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
 	  #print(inputs$dynamics@random.names)
 	
-	  # set up random.values.inicov, which is InfDS.sigmab
-	  #for(i in 1:num.theta){
-      #  random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
-	  #  random.values.inicov[i,i] = 1.0
+	  # setup InfDS.Sigmab
+	  # sigmab.names: unique variables in random.params.inicov that needs to be estimated
+	  sigmab.names <- unique(as.vector(inputs$initial$params.inicov[[1]]))
+	  #if(.hasSlots(inputs$dynamics,'random.names')){
+	  sigmab.names <- unique(sigmab.names, as.vector(inputs$dynamics$random.params.inicov))
 	  #}
-	  #variance/covariance of states
-      random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
-      random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
-	  #variance/covariance of random.names
-	  random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
-      random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
-	}
-	else{
-	  random.params.inicov = matrix(0L, 
-                            nrow = num.theta, 
-                            ncol = num.theta)
-      random.values.inicov = matrix(0L, 
-                            nrow = num.theta, 
-                            ncol = num.theta)
-	  #for(i in 1:num.theta){
-      #  random.params.inicov[i,i] = inputs$dynamics@random.names[[i]]
-	  #  random.values.inicov[i,i] = 1.0
-	  #}
+	  sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
 	  
-	}
-	
-		    
+	  if(length(sigmab.names) > 0){
+	    #variance/covariance of states
+		random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
+		random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
+	    
+		#variance/covariance of random.names
+		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
+		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+	  }
+	#}		    
   }
 
   
