@@ -1134,19 +1134,15 @@ getInitialVauleOfEstimate<- function(dynrModel){
   # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
   # only retrieve the formula with state variables as LHS
   formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
-  print(formula) 
   
   # 2. If theta.formula exists, substitue the content of theta.formula is given
   if(length(dynrModel@dynamics@theta.formula) > 0){
       formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
   }
   
-  
   # 3. Remove the random effect variables and intercept variables
   formula <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})  
 
-  #for(i in 1:length(formula))
-  #  formula[i] <- prep.thetaFormula(formula[i], dynrModel@measurement@params.int, dynrModel@dynamics@random.names)
   
   dynm<-prep.formulaDynamics(
     formula=unlist(formula),
@@ -1159,35 +1155,43 @@ getInitialVauleOfEstimate<- function(dynrModel){
                     noise=mdcov, initial=initial, data=dynrModel@data, saem=FALSE,
                     outfile='00.c')
 
-  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  save(fitted_model, file = "fitted_model.RData")
+  #fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  #save(fitted_model, file = "fitted_model.RData")
   load("fitted_model.RData")
   
   #coefEst = coef(fitted_model)
   
   #[TODO] the following part needs to be revised for multiple b_zeta
-  #-----
-  #print(coef(fitted_model)[dynrModel@noise@paramnames])
+  
+  # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
+  if(.hasSlot(dynrModel@dynamics,'random.names')){
+    user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
+    print(paste("New state variables to be estimated:", user.random.names))
+	
+	# Add the user-specified random effects into states to be estiamted
+	# state.names2 = state.names + user.random.names
+	state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+  }
+  else{
+    print("There is no random effect variables to be estimated. Initial value estimates are done.")
+	return(list(coefEst = coefEst))
+  }
+  
+  # If there is random effect to be estimated, set up a new model
   mdcov2 <- prep.noise(
-    values.latent=diag(0, 3),
-    params.latent=diag(c("fixed","fixed","fixed"), 3),
+    values.latent=diag(0, length(state.names2)),
+    params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
     values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames]),
-    params.observed=diag(dynrModel@noise@paramnames, 3)
+    params.observed=diag(dynrModel@noise@paramnames, length(dynrModel@noise@paramnames))
   )
   
-  #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
-  estimate.names <- unique(as.vector(dynrModel@initial@params.inistate[[1]]))
-  estimate.names <- estimate.names[!estimate.names %in% c('fixed', '0')]
-  
-  #user speficifed random.names (i.e., excluing the b_?? where ?? are state names
-  user.random.names = dynrModel@dynamics@random.names[1:(length(dynrModel@dynamics@random.names)-length(estimate.names))]
   num.y = length(dynrModel@measurement@obs.names)
-  state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+  #lambda matrix
   meas2 <- prep.measurement(
-    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, 3)), nrow=num.y, ncol= length(state.names2)),
-    params.load = matrix(c(as.vector(dynrModel@measurement@params.load[[1]]), rep("fixed", 3)), nrow=num.y, ncol= length(state.names2)),
+    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2)),
+    params.load = matrix(c(as.vector(dynrModel@measurement@params.load[[1]]), rep("fixed", num.y * length(user.random.names)) ), nrow=num.y, ncol= length(state.names2)),
     obs.names = dynrModel@measurement@obs.names,
-    state.names = c(dynrModel@measurement@state.names, user.random.names))
+    state.names = state.names2)
 	
   
   v1 = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
@@ -1197,6 +1201,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   params.inicov[1:(nrow(v1)),1:(ncol(v1))]  = dynrModel@initial@params.inicov[[1]]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
     params.inicov[i,i] <- paste0('sigma2_', state.names2[i])
+
   initial2 <- prep.initial(
     values.inistate=c(coef(fitted_model)[as.vector(dynrModel@initial@params.inistate[[1]])], 0),
     params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), 0),
@@ -1240,6 +1245,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
 
   #print(bEst) 
   return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
+
 }
 
 grep_position <- function(x,y){
