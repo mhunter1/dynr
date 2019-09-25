@@ -1129,14 +1129,27 @@ getInitialVauleOfEstimate<- function(dynrModel){
     values.inicov=dynrModel@initial@values.inicov, 
     params.inicov=dynrModel@initial@params.inicov
   )
-
-  formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   
-  for(i in 1:length(formula))
-    formula[i] <- prep.thetaFormula(formula[i], dynrModel@measurement@params.int, dynrModel@dynamics@random.names)
+  # Formula processing:  
+  # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
+  # only retrieve the formula with state variables as LHS
+  formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
+  print(formula) 
+  
+  # 2. If theta.formula exists, substitue the content of theta.formula is given
+  if(length(dynrModel@dynamics@theta.formula) > 0){
+      formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
+  }
+  
+  
+  # 3. Remove the random effect variables and intercept variables
+  formula <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})  
+
+  #for(i in 1:length(formula))
+  #  formula[i] <- prep.thetaFormula(formula[i], dynrModel@measurement@params.int, dynrModel@dynamics@random.names)
   
   dynm<-prep.formulaDynamics(
-    formula=formula,
+    formula=unlist(formula),
     startval=dynrModel@dynamics@startval,
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
@@ -1144,10 +1157,10 @@ getInitialVauleOfEstimate<- function(dynrModel){
 
   model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=dynrModel@data, saem=FALSE,
-                    outfile="VanDerPol_.c")
+                    outfile='00.c')
 
-  #fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  #save(fitted_model, file = "fitted_model.RData")
+  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  save(fitted_model, file = "fitted_model.RData")
   load("fitted_model.RData")
   
   #coefEst = coef(fitted_model)
