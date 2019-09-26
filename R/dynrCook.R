@@ -492,6 +492,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		coefEst <- r$coefEst
 		if('bEst' %in% names(r))
           b <- r$bEst
+		save(r, 'coefficients.RData')
 		
 		 	
 		#b, y0
