@@ -1182,7 +1182,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
 	# Add the user-specified random effects into states to be estiamted
 	# state.names2 = state.names + user.random.names
 	state.names2 = c(dynrModel@measurement@state.names, user.random.names)
-	print(paste("New state variables to be estimated:", state.names2))
+	#print(paste("New state variables to be estimated:", state.names2))
   }
   else{
     print("There is no random effect variables to be estimated. Initial value estimates are done.")
@@ -1219,8 +1219,8 @@ getInitialVauleOfEstimate<- function(dynrModel){
   params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
   params.inicov[1:num.state,1:num.state]  = dynrModel@initial@params.inicov[[1]]
   params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
-  print(values.inicov)
-  print(params.inicov)
+  #print(values.inicov)
+  #print(params.inicov)
 
   initial2 <- prep.initial(
     values.inistate=c(coef(fitted_model)[as.vector(dynrModel@initial@params.inistate[[1]])], 0),
@@ -1241,7 +1241,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
     formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
-  print(formula)
+  #print(formula)
 
   dynm2<-prep.formulaDynamics(formula=unlist(formula),
                            startval=dynrModel@dynamics@startval,
@@ -1260,8 +1260,8 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
-  
   save(model2, fitted_model2, file = "fitted_model2.RData")				   
+  
   load("fitted_model2.RData")
   #print('load fitted_model2')
   #-----

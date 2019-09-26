@@ -3180,9 +3180,9 @@ formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, proc
 	#dots <- list(...)
 formula2design <- function(dots, covariates, random.names){
 	#dots <- list(...)	
-	print(dots)
-	print(covariates)
-	print(random.names)
+	#print(dots)
+	#print(covariates)
+	#print(random.names)
 	
 	pf <- list(dynr:::processFormula(dots))
 	lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
@@ -3199,8 +3199,8 @@ formula2design <- function(dots, covariates, random.names){
 	dimnames(fmat) <- list(lhs, eleNames)
 	dimnames(rmat) <- list(lhs, random.names)
 	
-	print(fmat) #H
-	print(rmat) #Z 
+	#print(fmat) #H
+	#print(rmat) #Z 
 	return(list(fixed=as.matrix(fmat), random=as.matrix(rmat)))
 }
 
