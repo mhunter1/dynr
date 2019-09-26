@@ -2377,7 +2377,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     }
     #if(length(dots) == 5){
     state.names <- dots$state.names
-    beta.names <- dots$beta.names
+    #beta.names <- dots$beta.names
     theta.formula <- dots$theta.formula
     random.names <- dots$random.names
     random.ub <-dots$random.ub
@@ -2388,13 +2388,14 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   }
   
   state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+  beta.names = names(startval)
  	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
   }
-  if( length(beta.names) != length(names(startval)) || !all(beta.names == names(startval), TRUE)){
-      stop('the variables in startval must be specified following the same order of beta.names')
-  }
+  #if( length(beta.names) != length(names(startval)) || !all(beta.names == names(startval), TRUE)){
+  #    stop('the variables in startval must be specified following the same order of beta.names')
+  #}
   
   if(saem == TRUE){
     # processs the formula

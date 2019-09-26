@@ -96,7 +96,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 								#state.names=state.names,
 								theta.formula=theta.formula,
 								#theta.names=theta.names,
-								beta.names=beta.names,
+								#beta.names=beta.names,
 								#intercept.names=intercept.names, 
 								random.names=random.names,
 								random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
@@ -128,7 +128,7 @@ saemp <- prep.saemParameter(MAXGIB = 10, MAXITER = 10, maxIterStage1 = 1005, gai
 								
 timestart<-Sys.time()
 
-fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 
 timeend<-Sys.time()
 
