@@ -126,8 +126,13 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 saemp <- prep.saemParameter(MAXGIB = 10, MAXITER = 10, maxIterStage1 = 1005, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(0.5, 2.5, 0.5))
 								
+timestart<-Sys.time()
 
 fitted_model <- dynr.cook(model, saem=TRUE, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+
+timeend<-Sys.time()
+
+print(timeend-timestart)
 #print(fitted_model)
 
 
