@@ -35,7 +35,7 @@ nPeople = 200
 nTimes = 300
 #vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
 #vdpData <- read.csv("C:\\Users\\Cynthia\\Documents\\gits\\dynr\\data\\TrueInitY1.txt", header=FALSE)
-vdpData <- read.csv("~/gits/dynr/data/TrueInitY1.txt", header=FALSE)
+vdpData <- read.csv("~/gits/dynr/data/TrueInit_Y1.txt", header=FALSE)
 
 colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
 vdpData$id <- rep(1:nPeople, each=nTimes)
