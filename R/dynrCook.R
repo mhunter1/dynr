@@ -1117,9 +1117,9 @@ getInitialVauleOfEstimate<- function(dynrModel){
 	values.observed=dynrModel@noise@values.observed,
 	params.observed=dynrModel@noise@params.observed
   )
-  print('mdcov')
-  print(mdcov@params.latent)
-  print(mdcov@params.observed)
+  #print('mdcov')
+  #print(mdcov@params.latent)
+  #print(mdcov@params.observed)
   
 
   meas <- prep.measurement(
@@ -1128,7 +1128,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     obs.names = dynrModel@measurement@obs.names,
     state.names = dynrModel@measurement@state.names
   )
-  print('meas')
+  #print('meas')
 
   initial <- prep.initial(
     values.inistate=dynrModel@initial@values.inistate,
@@ -1136,7 +1136,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
     values.inicov=dynrModel@initial@values.inicov, 
     params.inicov=dynrModel@initial@params.inicov
   )
-  print('init')
+  #print('init')
   
   # Formula processing:  
   # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
@@ -1158,19 +1158,18 @@ getInitialVauleOfEstimate<- function(dynrModel){
     isContinuousTime=dynrModel@dynamics@isContinuousTime,
     beta.names=names(dynrModel@dynamics@startval)
   )
-  print('dynm')
+  #print('dynm')
 
   model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=dynrModel@data,
                     outfile='00.c')
-  print('model')
+  #print('model')
 
   fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  save(fitted_model, file = "fitted_model.RData")
+  save(fitted_model, model, file = "fitted_model.RData")
   load("fitted_model.RData")
-  print(coef(fitted_model))
-  
-  #coefEst = coef(fitted_model)
+  #print(coef(fitted_model))
+  coefEst = coef(fitted_model)
   
   #[TODO] the following part needs to be revised for multiple b_zeta
   
@@ -1185,7 +1184,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   }
   else{
     print("There is no random effect variables to be estimated. Initial value estimates are done.")
-	return(list(coefEst = coefEst))
+	return(list(coefEst=coefEst))
   }
   
   # If there is random effect to be estimated, set up a new model
@@ -1227,7 +1226,16 @@ getInitialVauleOfEstimate<- function(dynrModel){
     values.inicov=values.inicov, 
     params.inicov=params.inicov)
 
-
+  # Formula processing:  
+  # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
+  # only retrieve the formula with state variables as LHS
+  formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
+  
+  # 2. If theta.formula exists, substitue the content of theta.formula is given
+  if(length(dynrModel@dynamics@theta.formula) > 0){
+      formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
+  }
+  
   #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
     formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
@@ -1236,22 +1244,24 @@ getInitialVauleOfEstimate<- function(dynrModel){
   dynm2<-prep.formulaDynamics(formula=unlist(formula),
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
-  print('dynm2')						
+  #print('dynm2')						
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data,
                     outfile="VanDerPol2_.c")
-  print('model2')					
+  #print('model2')					
   
-  pos = unlist(lapply(names(coef(fitted_model)[1:5]), grep_position, names(model2$xstart)))
-  model2@xstart[pos] = coef(fitted_model)[1:5] 
+  
+  model2@xstart[names(dynrModel@dynamics@startval)] <- coef(fitted_model)[names(dynrModel@dynamics@startval)]
+  lambda.names <- setdiff(unique(as.vector(dynrModel@measurement@params.load[[1]])), c("fixed",0))
+  model2@xstart[lambda.names] = coef(fitted_model)[lambda.names] 
   
   fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
   
-  save(fitted_model2, file = "fitted_model2.RData")				   
+  save(model2, fitted_model2, file = "fitted_model2.RData")				   
   load("fitted_model2.RData")
-  print('load fitted_model2')
+  #print('load fitted_model2')
   #-----
   
   #library('plyr')
@@ -1268,10 +1278,4 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #print(bEst) 
   return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
 
-}
-
-grep_position <- function(x,y){
-  pos = grep(x,
-             y)
-  return(pos)
 }

@@ -2369,7 +2369,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
  
  # If 'theta.formula' are given, saem is TRUE
   saem <- ('theta.formula' %in% names(dots))	
-  print(paste('SAEM :', saem))
+  #print(paste('SAEM :', saem))
   
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub', 'random.params.inicov', 'random.values.inicov'))){

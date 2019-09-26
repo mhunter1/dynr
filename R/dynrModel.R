@@ -550,7 +550,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
-	print(paste0("saem in dynr.model:" , saem))
+	#print(paste0("saem in dynr.model:" , saem))
 	
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
