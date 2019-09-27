@@ -23,7 +23,9 @@ data("LinearOsc")
 #this step separately for each individual
 
 n = 50 #Number of subjects
+T = 100 #Number of time points
 out2 = matrix(out1$x,ncol=n,byrow=FALSE)
+theTimes = out1$theTimes[1:T]
 norder = 6 #Order of Bsplines - usually 2 higher than roughPenaltyMax
 roughPenaltyMax = 4 #penalization order 
 #  #lambdaLow, lambdaHi, lambdaBy = specify an interval of lambda (a positive smoothing parameter,
@@ -57,7 +59,7 @@ g = lm(d2x~x+dx-1,data=dxall)
 #Component + residuals plot to show the association between smoothed d2x and smoothed x
 #after partialling out the effect of smoothed dx
 par(mgp=c(2.5,0.5,0))
-crPlots(g,terms=~x,smooth=list(smoother=gamLine),
+car::crPlots(g,terms=~x,smooth=list(smoother=gamLine),
         main=c(""),layout=c(1,1),
         cex.lab=1.3,cex.axis=1.2,
         xlab=expression(hat(eta)[i](t)),
@@ -67,7 +69,7 @@ crPlots(g,terms=~x,smooth=list(smoother=gamLine),
 #Component + residuals plot to show the association between smoothed d2x and smoothed dx
 #after partialling out the effect of smoothed x
 par(mgp=c(2.5,0.5,0))
-crPlots(g,terms=~dx,smooth=list(smoother=gamLine),
+car::crPlots(g,terms=~dx,smooth=list(smoother=gamLine),
         main=c(""),layout=c(1,1),
         cex.lab=1.3,cex.axis=1.2,
         xlab=expression(paste(d, hat(eta)[i](t)/dt)),
