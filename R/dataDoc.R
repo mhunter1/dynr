@@ -555,3 +555,57 @@ NULL
 ##' @usage data(TrueInit_Y14)
 ##' @format A data frame with 60,000 rows and 10 variables
 NULL
+
+##' Simulated time series data for a deterministic linear damped oscillator model 
+##' 
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item ID. ID of the systems (1 to 50)
+##'   \item x. Latent level variable
+##'   \item theTimes. Measured time Points
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name LinearOsc
+##' @usage data(LinearOsc)
+##' @format A data frame with 5000 rows and 3 variables
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' #Osc<- function(t, prevState, parms) {
+##' #  x1 <- prevState[1] # x1[t]
+##' #  x2 <- prevState[2] # x2[t]
+##' #  eta1 = parms[1]
+##' #  zeta1 = parms[2]
+##' #  with(as.list(parms), {
+##' #   dx1 <- x2
+##' #    dx2 <- eta1*x1 + zeta1*x2 
+##' #    res<-c(dx1,dx2)
+##' #    list(res)
+##' #  }
+##' #  )
+##' #}
+##' #n = 50 #Number of subjects
+##' #T = 100 #Number of time points
+##' #deltaT = .1 #dt
+##' #lastT = deltaT*T #Value of t_{i,T}
+##' #theTimes  = seq(0, lastT, length=T)  #A list of time values
+##' #
+##' #eta = -.8
+##' #zeta = -.1
+##' #out1 = matrix(NA,T*n,1)
+##' #trueOut = matrix(NA,T*n,1)
+##' #parms = c(eta, zeta)
+##' #  for (i in 1:n){
+##' #  xstart = c(rnorm(1,0,2),rnorm(1,0,.5))
+##' #  out <- lsoda(as.numeric(xstart), theTimes, Osc, parms)
+##' #  trueOut[(1+(i-1)*T):(i*T)] = out[,2]
+##' #  out1[(1+(i-1)*T):(i*T)] = out[,2]+rnorm(T,0,1)
+##' #  }
+##' #
+##' #out1 = data.frame(ID=rep(1:n,each=T),x=out1[,1],
+##' #                  theTimes=rep(theTimes,n))
+##' #save(out,file="LinearOsc.rda")
+NULL
