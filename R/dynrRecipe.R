@@ -3423,19 +3423,26 @@ parseFormulaTheta <- function(formula, theta.formula){
 
 #function for parsing theta.formula (remove intercept terms and random names) 
 prep.thetaFormula <- function(formula, intercept.names, random.names){
+    if(length(formula) == 0)
+	  return(list())
+ 
     fml=lapply(formula, as.character)
     lhs=lapply(fml,function(x){x[[2]]})
     rhs=lapply(fml,function(x){x[[3]]})
     
     for(i in 1:length(formula)){
         formula[[i]]=as.character(formula[[i]])
-        for (j in 1:length(intercept.names)){
-            rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        }
+		if(length(intercept.names) > 0){
+			for (j in 1:length(intercept.names)){
+				rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+			}
+		}
         
-        for (j in 1:length(random.names)){
-            rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-        }
+		if(length(random.names) > 0){
+			for (j in 1:length(random.names)){
+				rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+			}
+		}
         
         formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
     }

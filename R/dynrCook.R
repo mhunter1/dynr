@@ -477,13 +477,39 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		noise.names <- unique(as.vector(dynrModel@noise@params.observed[[1]]))
 		noise.names <- noise.names[!noise.names %in% c('fixed', '0')]
 		
+		if(length(dynrModel@measurement@params.int) > 0 && length(dynrModel@measurement@params.int[[1]]) > 0){
+		  mu.names <- dynrModel@measurement@params.int[[1]]
+		  mu.values <- dynrModel@measurement@values.int[[1]]
+		}
+		else{
+		  mu.names <- logical(0)
+		  mu.values <- logical(0)
+		}
+		
 					
 		# [TODO] to be generalized: bzeta			
         lb <- c(dynrModel@lb, 'b_zeta'=NA)
 		ub <- c(dynrModel@ub, 'b_zeta'=NA)
 		
-		lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
-		upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
+		# organize the lowerbound and upperbound vectors for saem
+		#print('here')
+		param.names <- logical(0)
+		if(length(dynrModel@dynamics@beta.names) > 0)
+		  param.names <- c(param.names, dynrModel@dynamics@beta.names)
+		if(length(dynrModel@measurement@params.int) > 0 && length(dynrModel@measurement@params.int[[1]]) > 0)
+		  param.names <- c(param.names, dynrModel@measurement@params.int[[1]])
+		if(length(lambda.names) > 0)
+		  param.names <- c(param.names, lambda.names)
+		if(length(noise.names) > 0)
+		  param.names <- c(param.names, noise.names)
+		if(length(sigmab.names) > 0)
+		  param.names <- c(param.names, sigmab.names)		
+		#print(param.names)
+		lower_bound <- lb[param.names]
+		upper_bound <- ub[param.names]
+		
+		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
+		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
 		
 
 		
@@ -530,7 +556,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             num_beta=length(dynrModel@dynamics@beta.names),
 			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
             num_lambda=length(lambda.names),
-            num_mu=length(dynrModel@measurement@params.int[[1]]),
+            num_mu=length(mu.names),
             num_random=length(dynrModel@dynamics@random.names),
             theta.formula=dynrModel@dynamics@theta.formula,
             random.names=dynrModel@dynamics@random.names,
@@ -549,8 +575,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			gainpara1 = saemp@gainpara1, 
 			gainparb1 = saemp@gainparb1,
 			num_bpar = length(sigmab.names),
-			sigmab = dynrModel$random.values.inicov,
-			mu = model@measurement@values.int[[1]],
+			sigmab = as.double(dynrModel$random.values.inicov),
+			mu = mu.values,
 			lower_bound=lower_bound,
 			upper_bound=upper_bound,
 			dmudparMu=model@measurement@dmudparMu,
@@ -1193,7 +1219,7 @@ getInitialVauleOfEstimate<- function(dynrModel){
   mdcov2 <- prep.noise(
     values.latent=diag(0, length(state.names2)),
     params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
-    values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames]),
+    values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames],length(dynrModel@noise@paramnames)),
     params.observed=diag(dynrModel@noise@paramnames, length(dynrModel@noise@paramnames))
   )
   

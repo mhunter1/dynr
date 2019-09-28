@@ -762,9 +762,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  # sigmab.names: unique variables in random.params.inicov that needs to be estimated
 	  sigmab.names <- unique(as.vector(inputs$initial$params.inicov[[1]]))
 	  #if(.hasSlots(inputs$dynamics,'random.names')){
-	  sigmab.names <- unique(sigmab.names, as.vector(inputs$dynamics$random.params.inicov))
+	  sigmab.names <- unique(c(sigmab.names, as.vector(inputs$dynamics$random.params.inicov)))
 	  #}
 	  sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
+	  #print(sigmab.names)
 	  
 	  if(length(sigmab.names) > 0){
 	    #variance/covariance of states
@@ -774,6 +775,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#variance/covariance of random.names
 		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
 		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+		
+		#print(num.theta)
+		#print(num.x)
+		#print(random.params.inicov)
+		#print(random.values.inicov)
 	  }
 	#}		    
   }

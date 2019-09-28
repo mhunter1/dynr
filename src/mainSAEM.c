@@ -609,20 +609,22 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
 		UNPROTECT(1);
 	
-		/*
+		
 		printf("timeDiscrete:\n");
-		for(i = 59990; i < 60000;i++){
+		
+		for(i = 0; i < 10;i++){
 			printf(" %lf", timeDiscrete[i]);
 			
 		}
 		printf("\n");
-		*/
+		
+		
 
     }else{
         timeDiscrete = NULL;
     }
 	
-	
+	printf("time %d\n", total_time_all_subj_int);
 	if(Ny > 0 && total_time_all_subj_int > 0){
 		Y = (double **)malloc((Ny + 1)* sizeof(double));
 		SEXP observed_sexp = PROTECT(getListElement(data_list, "observed"));
@@ -634,7 +636,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			UNPROTECT(1);
 		}
 		
-		/*
+		
 		printf("Y:\n");
 		for(u = 0;u < Ny; u++){
 			for(i = 0; i < 10;i++){
@@ -642,7 +644,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("\n");
 		}
-		*/
+		
 		
 	}
 	else{
