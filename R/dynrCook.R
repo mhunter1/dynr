@@ -519,11 +519,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
 		
         #get the initial values of b and startvars
-		r <- getInitialVauleOfEstimate(dynrModel)
+		r <- EstimateRandomAsLV(dynrModel)
 		coefEst <- r$coefEst
 		if('bEst' %in% names(r))
           b <- r$bEst
-		save(r, file = 'coefficient.RData')
+		#save(r, file = 'coefficient.RData')
 		
 		
 		 	
@@ -1143,7 +1143,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
   return(r)
 }
 
-getInitialVauleOfEstimate<- function(dynrModel){
+EstimateRandomAsLV<- function(dynrModel){
   mdcov <- prep.noise(
     values.latent=dynrModel@noise@values.latent,
     params.latent=dynrModel@noise@params.latent,
@@ -1199,8 +1199,8 @@ getInitialVauleOfEstimate<- function(dynrModel){
   #print('model')
 
   fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  save(fitted_model, model, file = "fitted_model.RData")
-  load("fitted_model.RData")
+  #save(fitted_model, model, file = "fitted_model.RData")
+  #load("fitted_model.RData")
   #print(coef(fitted_model))
   coefEst = coef(fitted_model)
   
@@ -1291,10 +1291,10 @@ getInitialVauleOfEstimate<- function(dynrModel){
   
   fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
-  save(model2, fitted_model2, file = "fitted_model2.RData")				   
+  #save(model2, fitted_model2, file = "fitted_model2.RData")				   
   
-  load("fitted_model2.RData")
-  #print('load fitted_model2')
+  #load("fitted_model2.RData")
+  
   #-----
   
   #library('plyr')
@@ -1307,7 +1307,9 @@ getInitialVauleOfEstimate<- function(dynrModel){
   bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
   #rownames(bEst) = diag(model2@initial@params.inicov[[1]])
   coefEst = coef(fitted_model2)
+  print(coefEst) 
 
+  
   #print(bEst) 
   return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
 
