@@ -461,6 +461,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  saemp <-dots$saemp
 	  #print(saemp)
 	}
+	else{
+	  if(saem == TRUE){
+	    saemp <- prep.saemParameter() # all with default parameter
+	  }
+	}
     if(saem==TRUE){
 		#InfDS.Sigmab					
 		#print(dynrModel$random.values.inicov)
