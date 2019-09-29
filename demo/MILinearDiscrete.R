@@ -104,8 +104,9 @@ result <- dynr.mi(model, which.aux=c("x1","x2"),
 
 # Compare true parameters to estimated ones
 truep <- c(a=0.4, b=-0.3, b1=-0.2, a1=0.3,
-           c=0.3, c1=0.3, d=-0.5, d1=-0.4)
-estp <- result$estimation.result[1:8, ]
+           c=0.3, c1=0.3, d=-0.5, d1=-0.4,
+           v_wp = 1, c_hw = 0.3,v_hp = 1)
+estp <- result$estimation.result[1:11, ]
 data.frame(truep, estp)
 
 # Convergence diagnostic check 
