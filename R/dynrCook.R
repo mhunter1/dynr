@@ -38,7 +38,8 @@ setClass(Class =  "dynrCook",
            eta_filtered = "matrix", # LxT
            error_cov_filtered = "array", # LxLxT
            run.times = "numeric",
-           param.names = "character"
+           param.names = "character",
+		   b_est  = "matrix"
          )
 )
 
@@ -444,6 +445,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
 
     saem <- dynrModel@dynamics@saem
+
 	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
@@ -466,6 +468,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	    saemp <- prep.saemParameter() # all with default parameter
 	  }
 	}
+	
+		
     if(saem==TRUE){
 		#InfDS.Sigmab					
 		#print(dynrModel$random.values.inicov)
@@ -517,15 +521,16 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
 		
 
-		
-        #get the initial values of b and startvars
-		r <- EstimateRandomAsLV(dynrModel)
-		coefEst <- r$coefEst
-		if('bEst' %in% names(r))
-          b <- r$bEst
-		#save(r, file = 'coefficient.RData')
-		
-		
+		#get the initial values of b and startvars
+		fitted_model <- EstimateRandomAsLV(dynrModel)
+		coefEst <- coef(fitted_model)
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		print('Starting values:')
+		print(dynrModel@xstart)
+		if('b_est' %in% names(fitted_model))
+			b <- fitted_model@b_est
+		return(fitted_model)
 		 	
 		#b, y0
 		num.x <- length(model$initial$params.inistate[[1]])
@@ -1217,7 +1222,8 @@ EstimateRandomAsLV<- function(dynrModel){
   }
   else{
     print("There is no random effect variables to be estimated. Initial value estimates are done.")
-	return(list(coefEst=coefEst))
+	#return(list(coefEst=coefEst))
+	return(fitted_model)
   }
   
   # If there is random effect to be estimated, set up a new model
@@ -1305,12 +1311,14 @@ EstimateRandomAsLV<- function(dynrModel){
 
   #Get estimates for bzeta from fitted_model2 and use them as estimates for b
   bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
-  #rownames(bEst) = diag(model2@initial@params.inicov[[1]])
+  fitted_model2@b_est = bEst
+  
   coefEst = coef(fitted_model2)
   print(coefEst) 
 
   
   #print(bEst) 
-  return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
+  #return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
+  return(fitted_model2)
 
 }
