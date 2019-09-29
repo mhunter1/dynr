@@ -1,6 +1,6 @@
 #---------------------------------------------------------------------
 # Author: Yanling Li and Linying Ji
-# Date: 2019-05-09
+# Date: 2019-09-29
 # Filename: MILinearDiscrete.R
 # Purpose: An illustrative example of using dynr.mi to implement
 # multiple imputation with a vector autoregressive model
@@ -32,7 +32,7 @@ d=-0.5; d1=-0.4;
 
 # noise variance and covariance
 v_wp = 1
-c_hw = 0.05
+c_hw = 0.3
 v_hp = 1
 
 # Load data 
@@ -53,10 +53,8 @@ meas <- prep.measurement(
 )
 
 # Define elements of the dynamic model
-formula =list(
-  list(wp ~ a*wp + b*hp + c*ca + d*cn,
-       hp ~ a1*hp + b1*wp +c1*ca + d1*cn
-  ))
+formula =list(wp ~ a*wp + b*hp + c*ca + d*cn,
+       hp ~ a1*hp + b1*wp +c1*ca + d1*cn)
 
 dynm  <- prep.formulaDynamics(formula=formula,
                               startval=c(a = .4, b = -.3, b1=-.2, a1=.3, 
@@ -65,20 +63,20 @@ dynm  <- prep.formulaDynamics(formula=formula,
 
 # Define the initial conditions of the model
 initial <- prep.initial(
-  values.inistate=c(-.5,-.9),
+  values.inistate=c(.15,.15),
   params.inistate=c('mu_wp', 'mu_hp'),
-  values.inicov=matrix(c(1,-0.3,
-                         -0.3,1),byrow=T,ncol=2),
+  values.inicov=matrix(c(1,.1,
+                         .1,1),byrow=T,ncol=2),
   params.inicov=matrix(c("v_11","c_21",
                          "c_21","v_22"),byrow=T,ncol=2))
 
 # Define the covariance structures of the measurement noise
 # covariance matrix and the dynamic noise covariance matrix
 mdcov <- prep.noise(
-  values.latent=matrix(c(1,0,
-                         0,1),byrow=T,ncol=2), 
-  params.latent=matrix(c("v_wp","fixed",
-                         "fixed","v_hp"),byrow=T,ncol=2), 
+  values.latent=matrix(c(1,.3,
+                         .3,1),byrow=T,ncol=2), 
+  params.latent=matrix(c("v_wp","c_hw",
+                         "c_hw","v_hp"),byrow=T,ncol=2), 
   values.observed=diag(rep(0,2)), 
   params.observed=diag(c('fixed','fixed'),2)) 
 
@@ -88,8 +86,11 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=rawdata,
                     outfile=paste("trial.c",sep=""))
 
+# Plot the Formula 
 printex(model, ParameterAs = model$param.names, printInit = TRUE, printRS = FALSE,
         outFile = "MILinearDiscrete.tex")
+
+plotFormula(model, ParameterAs = model$param.names, printDyn = TRUE, printMeas = TRUE)
 
 # An example of using dynr.mi() function to implement multiple imputation and parameter estimation procedures
 result <- dynr.mi(model, which.aux=c("x1","x2"), 
@@ -108,7 +109,5 @@ estp <- result$estimation.result[1:8, ]
 data.frame(truep, estp)
 
 # Convergence diagnostic check 
-# trace plots
-result$trace.plot
 # Rhat plot
 result$Rhat.plot
