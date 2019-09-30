@@ -156,17 +156,17 @@ summaryResults <- function(object, ...){
            }
 
 print.summary.dynrCook <- function(x, digits = max(3L, getOption("digits") - 3L), signif.stars = getOption("show.signif.stars"), ...){
-	cat("Coefficients:\n")
-	printCoefmat(x$Coefficients, cs.ind=c(1L, 2L, 4L, 5L), tst.ind=3L, zap.ind=6L, digits = digits, signif.stars = signif.stars, ...)
-	cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(x$neg2LL,2))))
-	cat(paste0("\nAIC = ", sprintf("%.02f", round(x$AIC,2))))
-	cat(paste0("\nBIC = ", sprintf("%.02f", round(x$BIC,2))))
-	cat("\n")
-	invisible(x)
+    cat("Coefficients:\n")
+    printCoefmat(x$Coefficients, cs.ind=c(1L, 2L, 4L, 5L), tst.ind=3L, zap.ind=6L, digits = digits, signif.stars = signif.stars, ...)
+    cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(x$neg2LL,2))))
+    cat(paste0("\nAIC = ", sprintf("%.02f", round(x$AIC,2))))
+    cat(paste0("\nBIC = ", sprintf("%.02f", round(x$BIC,2))))
+    cat("\n")
+    invisible(x)
 }
 
 coef.summary.dynrCook <- function(object, ...){
-	object$Coefficients
+    object$Coefficients
 }
 
 ##' Get the summary of a dynrCook object
@@ -186,15 +186,15 @@ summary.dynrCook <- summaryResults
 
 
 displayDynrCook <- function(x, ...){
-	maxChar <- max(nchar(sn <- slotNames(x)))
-	tfmt <- paste0("..$ %-", maxChar, "s:")
-	for(aslot in sn){
-		if( !(aslot %in% c("conf.intervals", "hessian", "transformed.inv.hessian", "neg.log.likelihood", "param.names")) ){
-			cat(sprintf(tfmt, aslot))
-			str(slot(x, aslot))
-		}
-	}
-	return(invisible(x))
+    maxChar <- max(nchar(sn <- slotNames(x)))
+    tfmt <- paste0("..$ %-", maxChar, "s:")
+    for(aslot in sn){
+        if( !(aslot %in% c("conf.intervals", "hessian", "transformed.inv.hessian", "neg.log.likelihood", "param.names")) ){
+            cat(sprintf(tfmt, aslot))
+            str(slot(x, aslot))
+        }
+    }
+    return(invisible(x))
 }
 
 setMethod("print", "dynrCook", function(x, ...) { 
@@ -305,16 +305,6 @@ vcov.dynrCook <- function(object, ...){
     dimnames(rt) <- list(nm, nm)
     return(rt)
 }
-# TODO redefine this method as MDH proposed
-#vcov.dynrCook <- function(object, transformed=TRUE, ...){
-#	nm <- names(coef(object))
-#	 if(transformed){
-#  	    rt <- object@transformed.inv.hessian
-#	 } else {
-#	   rt <- object@inv.hessian}
-#	dimnames(rt) <- list(nm, nm)
-#	return(rt)
-#}
 
 ##' Extract the free parameter names of a dynrCook object
 ##' 
@@ -346,9 +336,7 @@ setMethod("$", "dynrCook",
 ##' @param object a fitted model object
 ##' @param parm which parameters are to be given confidence intervals
 ##' @param level the confidence level
-##' @param type The type of confidence interval to compute. See details. Partial name matching is used.
-##' @param transformation For \code{type='endpoint.transformation'} the transformation function used.
-##' @param ... further named arguments. Ignored.
+##' @param ... further names arguments. Ignored.
 ##' 
 ##' @details
 ##' The \code{parm} argument can be a numeric vector or a vector of names. If it is missing then it defaults to using all the parameters.
@@ -370,12 +358,12 @@ setMethod("$", "dynrCook",
 ##' @examples
 ##' # Let cookedModel be the output from dynr.cook
 ##' #confint(cookedModel)
-confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
-	type <- match.arg(type)
-	tlev <- (1-level)/2
-	confx <- qnorm(1-tlev)
-	
-	vals <- coef(object)
+confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method","endpoint.transformation"), transformation= NULL, ...){
+  type<-match.arg(type)
+  tlev <- (1-level)/2
+  confx <- qnorm(1-tlev)
+  
+  vals <- coef(object)
     if(missing(parm)){
         parm <- names(vals)
     }
@@ -387,10 +375,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
     CI <- matrix(c(vals - SE*confx, vals + SE*confx), ncol=2)
     }
     if(type == "endpoint.transformation"){
-		tSEalt <- sqrt(diag(object$inv.hessian))
-		CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
-		# TODO Fix the above to use the vcov method to extract the inverse Hessian instead
-		#  and especially give the User the ability to only get SOME of the free parameters via the 'param' argument
+      tSEalt<-sqrt(diag(object$inv.hessian))
+      CI <- matrix(c(transformation(object$fitted.parameters - tSEalt*confx), transformation(object$fitted.parameters + tSEalt*confx)),ncol=2)
     }
     dimnames(CI) <- list(names(vals), c(paste(tlev*100, "%"), paste((1 - tlev)*100, "%")) )
     return(CI)
@@ -446,9 +432,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' OUT_OF_MEMORY \tab -3 \tab Ran out of memory. \cr
 ##' ROUNDOFF_LIMITED \tab -4 \tab Halted because roundoff errors limited progress. (In this case, the optimization still typically returns a useful result.) \cr
 ##' FORCED_STOP \tab -5 \tab Halted because of a forced termination: the user called nlopt_force_stop(opt) on the optimization's nlopt_opt object opt from the user's objective function or constraints. \cr
-##' NONFINITE_FIT \tab -6 \tab Fit function is not finite (i.e., is NA, NaN, Inf or -Inf). \cr
 ##' }
-##' The last row of this table corresponding to an exit code of -6, is not from NLOPT, but rather is specific to the \code{dynr} package.
 ##' 
 ##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
@@ -687,66 +671,80 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     #gc() # garbage collection
     cat('Original exit flag: ', output$exitflag, '\n')
     # Check to make sure likelihood is not NaN.
-	output$exitflag <- ifelse(!is.finite(output$neg.log.likelihood), -6, output$exitflag)
+    output$exitflag <- ifelse(is.na(output$neg.log.likelihood), -6, output$exitflag)
     # Use lookup table for exit flags
     cat('Modified exit flag: ', output$exitflag, '\n')
     cat(.ExitFlags[as.character(output$exitflag)], '\n')
-	cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
-	cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
-	output2 <- endProcessing(output, transformation, conf.level)
-	if (output$exitflag > 0 && output2$hessian.status == 0 && sum(output2$bad.standard.errors) == 0){
-		cat('Successful trial\n')
-	} else {
-		if(hessian_flag){
-			msg <- paste0("These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors], collapse=", "), ".")
-			warning(msg, call.=FALSE)
-		}
-	}
-	names(output2$transformed.parameters) <- dynrModel$param.names
-	if(debug_flag){
-		obj <- new("dynrDebug", output2)
-	}else{
-		obj <- new("dynrCook", output2)
-	}
-	
-	obj@param.names <- dynrModel$param.names
-	#populate transformed estimates to dynrModel
-	#model<<-PopBackModel(model, obj@transformed.parameters)
-	
-	finalEqualStart <- model$xstart == obj@fitted.parameters
-	if(any(finalEqualStart) && optimization_flag){
-		warning(paste0("Some parameters were left at their starting values.\nModel might not be identified, need bounds, or need different starting values.\nParameters that were unmoved: ", paste(obj@param.names[finalEqualStart], collapse=", ", sep="")), call.=FALSE)
-	}
-	
-	frontendStop <- Sys.time()
-	totalTime <- frontendStop-frontendStart
-	backendTime <- backendStop-backendStart
-	frontendTime <- totalTime-backendTime
-	obj@run.times <- as.double(c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime), units="secs")
-	cat('Total Time:', totalTime, '\n')
-	cat('Backend Time:', backendTime, '\n')
-	rm(output2)
-	rm(output)
-	gc()
-	return(obj)
+    
+    diagH = diag(output$hessian.matrix)
+    diagH[diagH==0] = 10e-14
+    diag(output$hessian.matrix) = diagH
+    cat('Original fitted parameters: ', output$fitted.parameters, '\n', fill=TRUE)
+    cat('Transformed fitted parameters: ', transformation(output$fitted.parameters), '\n', fill=TRUE)
+    # if any of the Hessian elements are non-finite or the overall Hessian is non-positive definite
+    #  set status = 0, otherwise it is 1
+    nonfiniteH <- any(!is.finite(output$hessian.matrix))
+    nonpdH <- !is.positive.definite2(output$hessian.matrix)
+    status = ifelse(nonfiniteH || nonpdH, 0, 1)
+    output2 <- endProcessing(output, transformation, conf.level)
+    if (output$exitflag > 0 && status==1 && length(dynrModel$param.names[output2$bad.standard.errors])==0){
+        cat('Successful trial\n')
+    } else {
+        #cat('Check the hessian matrix from your dynr output. \n')
+        #cat('Hessian Matrix:',  '\n')
+        #print(output$hessian.matrix)
+        cat('\n')
+        if(nonfiniteH){
+            msg <- paste("Non-finite values in the Hessian matrix.")
+            warning(msg)
+        } else if(nonpdH || length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
+            msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
+            if (length(dynrModel$param.names[output2$bad.standard.errors]) > 0){
+                msg <- paste(c(msg,"These parameters may have untrustworthy standard errors: ", paste(dynrModel$param.names[output2$bad.standard.errors],collapse=", "),"."),collapse="")  
+            }
+            warning(msg)
+        }
+    }
+    names(output2$transformed.parameters) <- dynrModel$param.names
+    if(debug_flag){
+        obj <- new("dynrDebug", output2)
+    }else{
+        obj <- new("dynrCook", output2)
+    }
+    
+    obj@param.names <- dynrModel$param.names
+    #populate transformed estimates to dynrModel
+    #model<<-PopBackModel(model, obj@transformed.parameters)
+    
+    finalEqualStart <- model$xstart == obj@fitted.parameters
+    if(any(finalEqualStart) && optimization_flag){
+        warning(paste0("Some parameters were left at their starting values.\nModel might not be identified, need bounds, or need different starting values.\nParameters that were unmoved: ", paste(obj@param.names[finalEqualStart], collapse=", ", sep="")))
+    }
+    
+    frontendStop <- Sys.time()
+    totalTime <- frontendStop-frontendStart
+    backendTime <- backendStop-backendStart
+    frontendTime <- totalTime-backendTime
+    obj@run.times <- as.numeric(c(totalTime=totalTime, backendTime=backendTime, frontendTime=frontendTime))
+    cat('Total Time:', totalTime, '\n')
+    cat('Backend Time:', backendTime, '\n')
+    rm(output2)
+    rm(output)
+    gc()
+    return(obj)
 }
 
 
-failedProcessing <- function(x, transformation){
-	cat('Failed trial\n')
-	tParam <- transformation(x$fitted.parameters)
-	x$transformed.parameters <- tParam
-	
-	nParam <- length(x$fitted.parameters)
-	x$standard.errors <- rep(as.numeric(NA), nParam)
-	x$standard.errors.untransformed <- rep(as.numeric(NA), nParam)
-	x$transformed.inv.hessian <- matrix(as.numeric(NA), nrow=nParam, ncol=nParam)
-	x$inv.hessian <- matrix(as.numeric(NA), nrow=nParam, ncol=nParam)
-	x$conf.intervals <- matrix(as.numeric(NA), nrow=nParam, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-	x$conf.intervals.endpoint.trans <- matrix(as.numeric(NA), nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-	x$bad.standard.errors <- rep(TRUE, nParam)
-	x$hessian.status <- 1
-	return(x)
+endProcessing2 <- function(x, transformation){
+    cat('Doing end processing for a failed trial\n')
+    tParam <- transformation(x$fitted.parameters)
+    x$transformed.parameters <- tParam
+    
+    nParam <- length(x$fitted.parameters)
+    x$standard.errors <- rep(999,nParam)
+    x$transformed.inv.hessian <- matrix(999, nrow=nParam,ncol=nParam)
+    x$conf.intervals <- matrix(999, nrow=nParam,ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+    return(x)
 }
 
 
@@ -762,104 +760,79 @@ failedProcessing <- function(x, transformation){
 
 #J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
 
-endProcessing <- function(x, transformation, conf.level){
-	cat('Doing end processing\n')
-	x <- checkHessian(x, transformation)
-	confx <- qnorm(1-(1-conf.level)/2)
-	
-	if(!all(is.na(x$inv.hessian))){
-		#Numerical Jacobian
-		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
-		iHess0 <- J %*% (MASS::ginv(x$hessian.matrix)) %*% t(J)
-		bad.SE <- diag(iHess0) < 0
-		
-		iHess <- J %*% x$inv.hessian %*% t(J)
-		tSE <- sqrt(diag(iHess))
-		tParam <- transformation(x$fitted.parameters)
-		CI <- c(tParam - tSE*confx, tParam + tSE*confx)
-		
-		# EndPoint Transformation
-		tSEalt <- sqrt(diag(x$inv.hessian))
-		x$standard.errors.untransformed <- tSEalt
-		CIalt <- c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx))
-		x$conf.intervals.endpoint.trans <- matrix(CIalt, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-		
-		
-		x$transformed.parameters <- tParam
-		x$standard.errors <- tSE
-		x$transformed.inv.hessian <- iHess
-		x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
-		x$bad.standard.errors <- bad.SE
-	}
-	return(x)
-}
+# TODO adjust endProcessing logic/workflow.  We're computing some things twice, and sometimes in different ways.
 
-checkHessian <- function(x, transformation){
-	# if any of these warnings get tripped
-	#  increase value of hessian.status
-	#  Any value greater than 0 is bad
-	failHess <- 0
-	# If the log lik is not finite replace the non-computed Hessian with all NAs
-	if(!is.finite(x$neg.log.likelihood)){
-		x$hessian.matrix <- matrix(NA, nrow(x$hessian.matrix), ncol(x$hessian.matrix))
-		x <- failedProcessing(x, transformation)
-		return(x)
-	}
-	# Warn if any of the Hessian elements are NA
-	if(any(!is.finite(x$hessian.matrix))){
-		warning("Found infinite, NaN, or missing values in Hessian.  Add that to the list of things that are problematic:\nproblematic <- c('mankind instead of humankind', 'claims of Cherokee heritage', 'gender income gap', ..., 'your Hessian')", call.=FALSE)
-		x <- failedProcessing(x, transformation)
-		return(x)
-	}
-	diagH <- diag(x$hessian.matrix)
-	zdiag <- diagH == 0
-	if(any(zdiag)){
-		#warning("The following diagonal elements of the Hessian were zero")
-		# No warning?
-		diagH[zdiag] <- 10e-14
-		diag(x$hessian.matrix) <- diagH
-	}
-	if (is.positive.definite(x$hessian.matrix) || is.positive.definite2(x$hessian.matrix)){ #N.B. We use both is.positive.definite() and is.positive.definite2().  Not sure why?
-		useHess <- x$hessian.matrix
-	} else{
-		failHess <- failHess + 1
-		msg <- "Hessian is not positive definite. The standard errors were computed using the nearest positive definite approximation to the Hessian matrix."
-		warning(msg, call.=FALSE)
-		useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
-	}
-	V1 <- try(solve(useHess))
-	if(class(V1) == "try-error"){
-		failHess <- failHess + 1
-		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.", call.=FALSE)
-		V1 <- MASS::ginv(useHess)
-	}
-	x$inv.hessian <- V1
-	x$hessian.status <- failHess
-	return(x)
+endProcessing <- function(x, transformation, conf.level){
+    cat('Doing end processing\n')
+    confx <- qnorm(1-(1-conf.level)/2)
+    if (is.positive.definite(x$hessian.matrix)){ #N.B. We use is.positive.definite() here, but is.positive.definite2() above.  Why?
+        useHess <- x$hessian.matrix
+    }
+    else{
+        useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
+    }
+    V1 <- try(solve(useHess))
+    if(class(V1) == "try-error"){
+        warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.")
+        V1 <- MASS::ginv(useHess)
+    }
+    
+    #Identifies too many problematic parameters
+    #evector <- eigen(x$hessian.matrix)$vectors
+    #bad.values <- eigen(x$hessian.matrix)$values < 0
+    #bad.evec <-  evector[,bad.values]
+    #bad.evec <- apply(bad.evec,2,function(x){abs(x/sum(x))}) #normalize within column
+    #bad.evecj <- apply(bad.evec,2,function(x){x > .5})#For each column find the substantial row (param) entries  
+    #bad.SE <- apply(bad.evecj,1,function(x){ifelse(length(x[x=="TRUE"]) > 0, TRUE,FALSE)}) #Flag parameters that have been identified as problematic at least once
+    
+    #Numerical Jacobian
+    J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
+    iHess0 <- J %*% (MASS::ginv(x$hessian)) %*% t(J)
+    bad.SE <- diag(iHess0) < 0
+    
+    iHess <- J %*% V1 %*% t(J)
+    tSE <- sqrt(diag(iHess))
+    tParam <- transformation(x$fitted.parameters) #Can do
+    CI <- c(tParam - tSE*confx, tParam + tSE*confx)
+    
+    # EndPoint Transformation
+    tSEalt<-sqrt(diag(V1))
+    x$standard.errors.untransformed <- tSEalt
+    CIalt <- c(transformation(x$fitted.parameters - tSEalt*confx), transformation(x$fitted.parameters + tSEalt*confx))
+    x$conf.intervals.endpoint.trans <- matrix(CIalt, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+    
+    
+    x$transformed.parameters <- tParam #Can do
+    x$standard.errors <- tSE
+    x$inv.hessian <- V1
+    x$transformed.inv.hessian <- iHess
+    x$conf.intervals <- matrix(CI, ncol=2, dimnames=list(NULL, c('ci.lower', 'ci.upper')))
+    x$bad.standard.errors <- bad.SE
+    return(x)
 }
 
 preProcessModel <- function(x){
-	# Make sure that starting values are stored as double in R
-	# so that C doesn't think they are integers (e.g. 1 vs 1.0)
-	x$xstart <- as.double(x$xstart)
-	x$ub <- as.double(x$ub)
-	x$lb <- as.double(x$lb)
-	return(x)
+    # Make sure that starting values are stored as double in R
+    # so that C doesn't think they are integers (e.g. 1 vs 1.0)
+    x$xstart <- as.double(x$xstart)
+    x$ub <- as.double(x$ub)
+    x$lb <- as.double(x$lb)
+    return(x)
 }
 
 
 combineModelDataInformation <- function(model, data){
-	# TODO add argument to dynrModel a la "usevars"
-	# process usevars together with dynrData to drop
-	# things from it that are not in usevars.
-	model$num_sbj <- as.integer(length(unique(data[['id']])))
-	model$dim_obs_var <- as.integer(ncol(data$observed))
-	if ("covariates" %in% names(data)){
-	  model$dim_co_variate <- as.integer(ncol(data$covariates))
-	}else{
-	  model$dim_co_variate <- as.integer(0)
-	}
-	return(model)
+    # TODO add argument to dynrModel a la "usevars"
+    # process usevars together with dynrData to drop
+    # things from it that are not in usevars.
+    model$num_sbj <- as.integer(length(unique(data[['id']])))
+    model$dim_obs_var <- as.integer(ncol(data$observed))
+    if ("covariates" %in% names(data)){
+      model$dim_co_variate <- as.integer(ncol(data$covariates))
+    }else{
+      model$dim_co_variate <- as.integer(0)
+    }
+    return(model)
 }
 
 combineModelDataInformationSAEM <- function(model, data){
@@ -979,11 +952,11 @@ combineModelDataInformationSAEM <- function(model, data){
 }
 
 is.null.pointer <- function(pointer){
-	a <- attributes(pointer)
-	attributes(pointer) <- NULL
-	out <- identical(pointer, new("externalptr"))
-	attributes(pointer) <- a
-	return(out)
+    a <- attributes(pointer)
+    attributes(pointer) <- NULL
+    out <- identical(pointer, new("externalptr"))
+    attributes(pointer) <- a
+    return(out)
 }
 
 
@@ -993,8 +966,8 @@ is.null.pointer <- function(pointer){
 # If the matrix is not PD, this check is 1.25x slower.
 # If the matrix has a zero eigenvalue, this check may not be useful.
 is.positive.definite <- function(x){
-	ret <- try(chol(x), silent=TRUE)
-	ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
+    ret <- try(chol(x), silent=TRUE)
+    ifelse(any(is(ret) %in% "try-error"), FALSE, TRUE)
 }
 
 is.positive.definite2 <- function(x) {
@@ -1003,19 +976,19 @@ is.positive.definite2 <- function(x) {
 
 # From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
 .ExitFlags <- c(
-	'-5'='Optimization halted because of a forced termination.',
-	'-4'='Optimization halted because of roundoff errors.',
-	'-3'='Optimization failed. Ran out of memory.',
-	'-2'='Optimization halted. Lower bounds are bigger than upper bounds.',
-	'-1'='Optimization failed. Check starting values.',
-	'0'='Optimization has been turned off.',
-	'1'='Optimization terminated successfully',
-	'2'='Optimization stopped because objective function reached stopval',
-	'3'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
-	'4'='Optimization terminated successfully: xtol_rel or xtol_abs was reached.',
-	'5'='Maximum number of function evaluations reached. Increase maxeval or change starting values.',
-	'6'='Maximum optimization time reached. Increase maxtime or change starting values.',
-	'-6'='Likelihood function is NaN and could not find a way out. Optimizer gave up but is not at a converged optimum.')
+    '-5'='Optimization halted because of a forced termination.',
+    '-4'='Optimization halted because of roundoff errors.',
+    '-3'='Optimization failed. Ran out of memory.',
+    '-2'='Optimization halted. Lower bounds are bigger than upper bounds.',
+    '-1'='Optimization failed. Check starting values.',
+    '0'='Optimization has been turned off.',
+    '1'='Optimization terminated successfully',
+    '2'='Optimization stopped because objective function reached stopval',
+    '3'='Optimization terminated successfully: ftol_rel or ftol_abs was reached.',
+    '4'='Optimization terminated successfully: xtol_rel or xtol_abs was reached.',
+    '5'='Maximum number of function evaluations reached. Increase maxeval or change starting values.',
+    '6'='Maximum optimization time reached. Increase maxtime or change starting values.',
+    '-6'='Likelihood function is NaN and could not find a way out. Optimizer gave up but is not at a converged optimum.')
 
 PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
   if (class(values.matrix)=="list"){

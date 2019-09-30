@@ -1,4 +1,4 @@
-AC_INIT(dynr, 0.1, mhunter.ou@gmail.com)
+AC_INIT(dynr, 0.1, mhunter@ou.edu)
 
 : ${R_HOME=`R RHOME`}
 if test -z "${R_HOME}"; then

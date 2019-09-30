@@ -35,10 +35,10 @@ meas <- prep.measurement(
 
 #---- (1b) Initial conditions ----
 initial <- prep.initial(
-	values.inistate=rep(list(c(0, 0)), 2),
-	params.inistate=rep(list(c("fixed", "fixed")), 2),
-	values.inicov=rep(list(diag(1, 2)), 2), 
-	params.inicov=rep(list(diag("fixed", 2)), 2),
+	values.inistate=c(0, 0),
+	params.inistate=c("fixed", "fixed"),
+	values.inicov=diag(1, 2), 
+	params.inicov=diag("fixed", 2),
 	values.regimep=c(1.3865, 0),
 	params.regimep=c("fixed", "fixed")
 )

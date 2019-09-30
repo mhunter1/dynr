@@ -46,9 +46,9 @@ Note
 /* get the list element named str, or return NULL */
 SEXP getListElement(SEXP list, const char *str)
 {
-	SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-	size_t i;
-	for (i = 0; i < length(list); i++){
+    SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
+    size_t i;
+    for (i = 0; i < length(list); i++){
 		if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
 			elmt = VECTOR_ELT(list, i);
 			break;
@@ -68,203 +68,203 @@ SEXP getListElement(SEXP list, const char *str)
  */
 SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in)
 {
-	size_t index,index_col,index_row;
-	bool debug_flag = *LOGICAL(PROTECT(debug_flag_in));
-	bool optimization_flag = *LOGICAL(PROTECT(optimization_flag_in));
-	bool hessian_flag = *LOGICAL(PROTECT(hessian_flag_in));
-	bool verbose_flag = *LOGICAL(PROTECT(verbose_flag_in));
-	bool weight_flag = *LOGICAL(PROTECT(weight_flag_in));
-	/** =======================Interface : Start to Set up the data and the model========================= **/
-	
-	static Data_and_Model data_model;
+    size_t index,index_col,index_row;
+    bool debug_flag=*LOGICAL(PROTECT(debug_flag_in));
+	bool optimization_flag=*LOGICAL(PROTECT(optimization_flag_in));
+	bool hessian_flag=*LOGICAL(PROTECT(hessian_flag_in));
+	bool verbose_flag=*LOGICAL(PROTECT(verbose_flag_in));
+	bool weight_flag=*LOGICAL(PROTECT(weight_flag_in));
+    /** =======================Interface : Start to Set up the data and the model========================= **/
+
+    static Data_and_Model data_model;
 	data_model.pc.verbose_flag = (bool) verbose_flag;
-	
-	/* From the SEXP called model_list, get the list element named "num_sbj" */
+
+    /* From the SEXP called model_list, get the list element named "num_sbj" */
 	/*number of subjects*/
 	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
-	data_model.pc.num_sbj = (size_t) *INTEGER(num_sbj_sexp);
+	data_model.pc.num_sbj=(size_t) *INTEGER(num_sbj_sexp);
 	DYNRPRINT(verbose_flag, "num_sbj: %lu\n", (long unsigned int) data_model.pc.num_sbj);
 	
 	/*number of function parameters*/
 	SEXP num_func_param_sexp = PROTECT(getListElement(model_list, "num_func_param"));
-	data_model.pc.num_func_param = (size_t) *INTEGER(num_func_param_sexp);
+	data_model.pc.num_func_param=(size_t) *INTEGER(num_func_param_sexp);
 	DYNRPRINT(verbose_flag, "num_func_param: %lu\n", (long unsigned int) data_model.pc.num_func_param);
 	
 	/*number of latent variables*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
-	data_model.pc.dim_latent_var = (size_t) *INTEGER(dim_latent_var_sexp);
+	data_model.pc.dim_latent_var=(size_t) *INTEGER(dim_latent_var_sexp);
 	DYNRPRINT(verbose_flag, "dim_latent_var: %lu\n", (long unsigned int) data_model.pc.dim_latent_var);
 	
 	/*number of observed variables*/
 	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
-	data_model.pc.dim_obs_var = (size_t) *INTEGER(dim_obs_var_sexp);
+	data_model.pc.dim_obs_var=(size_t) *INTEGER(dim_obs_var_sexp);
 	DYNRPRINT(verbose_flag, "dim_obs_var: %lu\n", (long unsigned int) data_model.pc.dim_obs_var);
 	
 	/*number of covariates*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
-	data_model.pc.dim_co_variate = (size_t) *INTEGER(dim_co_variate_sexp);
+	data_model.pc.dim_co_variate=(size_t) *INTEGER(dim_co_variate_sexp);
 	DYNRPRINT(verbose_flag, "dim_co_variate: %lu\n", (long unsigned int) data_model.pc.dim_co_variate);
 	
 	/*number of regimes*/
 	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
-	data_model.pc.num_regime = (size_t) *INTEGER(num_regime_sexp);
+	data_model.pc.num_regime=(size_t) *INTEGER(num_regime_sexp);
 	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) data_model.pc.num_regime);
-	
-	/*function specifications*/
-	SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
+
+    /*function specifications*/
+    SEXP func_address_list = PROTECT(getListElement(model_list, "func_address"));
 	
 	SEXP f_measure_sexp = PROTECT(getListElement(func_address_list, "f_measure"));
 	SEXP f_regime_switch_sexp = PROTECT(getListElement(func_address_list, "f_regime_switch"));
 	SEXP f_noise_cov_sexp = PROTECT(getListElement(func_address_list, "f_noise_cov"));
 	SEXP f_initial_condition_sexp = PROTECT(getListElement(func_address_list, "f_initial_condition"));
 	SEXP f_transform_sexp = PROTECT(getListElement(func_address_list, "f_transform"));
-	*(void **) (&data_model.pc.func_measure) = R_ExternalPtrAddr(f_measure_sexp);
-	*(void **) (&data_model.pc.func_regime_switch) = R_ExternalPtrAddr(f_regime_switch_sexp);
-	*(void **) (&data_model.pc.func_noise_cov) = R_ExternalPtrAddr(f_noise_cov_sexp);
-	*(void **) (&data_model.pc.func_initial_condition) = R_ExternalPtrAddr(f_initial_condition_sexp);
-	*(void **) (&data_model.pc.func_transform) = R_ExternalPtrAddr(f_transform_sexp);
-	
-	/*
-	 *   data_model.pc.func_dx_dt=function_dx_dt;
-	 *   data_model.pc.func_dP_dt=function_dP_dt;
-	 *   data_model.pc.func_initial_condition=function_initial_condition;
-	 *   data_model.pc.func_regime_switch=function_regime_switch;
-	 *   data_model.pc.func_noise_cov=function_noise_cov;
-	 */
+    *(void **) (&data_model.pc.func_measure) = R_ExternalPtrAddr(f_measure_sexp);
+    *(void **) (&data_model.pc.func_regime_switch) = R_ExternalPtrAddr(f_regime_switch_sexp);
+    *(void **) (&data_model.pc.func_noise_cov) = R_ExternalPtrAddr(f_noise_cov_sexp);
+    *(void **) (&data_model.pc.func_initial_condition) = R_ExternalPtrAddr(f_initial_condition_sexp);
+    *(void **) (&data_model.pc.func_transform) = R_ExternalPtrAddr(f_transform_sexp);
+
+/*
+ *   data_model.pc.func_dx_dt=function_dx_dt;
+ *   data_model.pc.func_dP_dt=function_dP_dt;
+ *   data_model.pc.func_initial_condition=function_initial_condition;
+ *   data_model.pc.func_regime_switch=function_regime_switch;
+ *   data_model.pc.func_noise_cov=function_noise_cov;
+ */
 	/*whether a continuous-time model is used*/
 	SEXP isContinuousTime_sexp = PROTECT(getListElement(model_list, "isContinuousTime"));
-	data_model.pc.isContinuousTime = *LOGICAL(isContinuousTime_sexp);
+	data_model.pc.isContinuousTime=*LOGICAL(isContinuousTime_sexp);
 	DYNRPRINT(verbose_flag, "isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
 	
-	if (data_model.pc.isContinuousTime){
+    if (data_model.pc.isContinuousTime){
 		SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
 		SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
 		SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
-		*(void **) (&data_model.pc.func_dx_dt) = R_ExternalPtrAddr(f_dx_dt_sexp);
-		*(void **) (&data_model.pc.func_dF_dx) = R_ExternalPtrAddr(f_dF_dx_sexp);
-		*(void **) (&data_model.pc.func_dP_dt) = R_ExternalPtrAddr(f_dP_dt_sexp);
-		data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
-		if (data_model.pc.adaodesolver){
-			data_model.pc.func_dynam=function_dynam_ada;
-		} else {
-			data_model.pc.func_dynam=rk4_odesolver;
-		}
+	    *(void **) (&data_model.pc.func_dx_dt) = R_ExternalPtrAddr(f_dx_dt_sexp);
+	    *(void **) (&data_model.pc.func_dF_dx) = R_ExternalPtrAddr(f_dF_dx_sexp);
+	    *(void **) (&data_model.pc.func_dP_dt) = R_ExternalPtrAddr(f_dP_dt_sexp);
+	    data_model.pc.adaodesolver=false;/*true: use adapative ode solver; false: RK4*/
+	    if (data_model.pc.adaodesolver){
+	        data_model.pc.func_dynam=function_dynam_ada;
+	    }else{
+	        data_model.pc.func_dynam=rk4_odesolver;
+	    }
 		data_model.pc.func_jacob_dynam=function_jacob_dynam_rk4;
-	} else {
-		data_model.pc.func_dx_dt = NULL;
-		data_model.pc.func_dF_dx = NULL;
-		data_model.pc.func_dP_dt = NULL;
+    }else{
+	    data_model.pc.func_dx_dt=NULL;
+	    data_model.pc.func_dF_dx=NULL;
+	    data_model.pc.func_dP_dt=NULL;
 		SEXP f_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_dynamic"));
 		SEXP f_jacob_dynamic_sexp = PROTECT(getListElement(func_address_list, "f_jacob_dynamic"));
-		*(void **) (&data_model.pc.func_dynam) = R_ExternalPtrAddr(f_dynamic_sexp);
-		*(void **) (&data_model.pc.func_jacob_dynam) = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
-	}
+    	*(void **) (&data_model.pc.func_dynam) = R_ExternalPtrAddr(f_dynamic_sexp);
+    	*(void **) (&data_model.pc.func_jacob_dynam) = R_ExternalPtrAddr(f_jacob_dynamic_sexp);
+    }
 	
-	data_model.pc.isnegloglikeweightedbyT = weight_flag;
-	data_model.pc.second_order = false;
-	
-	/*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
-	/*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
-	/*n subjects -> n+1 indices*/
-	data_model.pc.index_sbj = (size_t *)malloc((data_model.pc.num_sbj+1)*sizeof(size_t *));
-	
-	double *ptr_index;/*used for multiple times*/
+    data_model.pc.isnegloglikeweightedbyT=weight_flag;
+    data_model.pc.second_order=false;
+
+    /*specify the start position for each subject: User always need to provide a txt file called tStart.txt*/
+    /*for example, 500 time points for each sbj, specify 0 500 1000 ... 10000 also the end point*/
+    /*n subjects -> n+1 indices*/
+    data_model.pc.index_sbj=(size_t *)malloc((data_model.pc.num_sbj+1)*sizeof(size_t *));
+
+    double *ptr_index;/*used for multiple times*/
 	int *ptr_index_int;
-	ptr_index_int = INTEGER(PROTECT(getListElement(data_list, "tstart")));
-	for(index=0; index <= data_model.pc.num_sbj; index++){
-		data_model.pc.index_sbj[index] = ptr_index_int[index];
-	}
-	/*DYNRPRINT(verbose_flag, "index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);*/
-	
-	data_model.pc.total_obs = *(data_model.pc.index_sbj+data_model.pc.num_sbj); /*total observations for all subjects*/
-	DYNRPRINT(verbose_flag, "total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
-	
-	/** read in the data**/
+    ptr_index_int=INTEGER(PROTECT(getListElement(data_list, "tstart")));
+    for(index=0;index<=data_model.pc.num_sbj;index++){
+        data_model.pc.index_sbj[index]= ptr_index_int[index];
+    }
+    /*DYNRPRINT(verbose_flag, "index_sbj 2: %lu\n", (long unsigned int) data_model.pc.index_sbj[1]);*/
+
+    data_model.pc.total_obs=*(data_model.pc.index_sbj+data_model.pc.num_sbj);/*total observations for all subjects*/
+    DYNRPRINT(verbose_flag, "total_obs: %lu\n", (long unsigned int) data_model.pc.total_obs);
+
+    /** read in the data**/
 	/*observed data*/
 	SEXP observed_sexp = PROTECT(getListElement(data_list,"observed")); 
 	/*covariates*/
 	SEXP covariates_sexp = PROTECT(getListElement(data_list,"covariates"));
-	
-	data_model.y=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
-	size_t t;
-	for(t=0; t < data_model.pc.total_obs; t++){
-		data_model.y[t] = gsl_vector_calloc(data_model.pc.dim_obs_var);
-		/*y[t] corresponds to y(), which is a gsl_vector; loop through total_obj*/
-	}
-	
-	// Create enough_length as number of digits ( ceil(log10(x)) ) in which ever is larger: numObs or numCovar
-	// Add a few for good measure
-	size_t enough_length = (ceil( log10( (double) data_model.pc.dim_obs_var > data_model.pc.dim_co_variate ? data_model.pc.dim_obs_var : data_model.pc.dim_co_variate )) + 7) * sizeof(char);
-	char *str_number = (char *)malloc(enough_length);
-	char *str_name = (char *)malloc(enough_length+7);
-	
-	for(index=0;index<data_model.pc.dim_obs_var;index++){
-		snprintf(str_number, enough_length, "%lu", (long unsigned int) index+1);
-		snprintf(str_name, enough_length, "%s%lu", "obs", (long unsigned int) index+1);
-		/*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
-		  DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
-		ptr_index = REAL(PROTECT(getListElement(observed_sexp, str_name)));
-		for(t=0; t < data_model.pc.total_obs; t++){
-			gsl_vector_set(data_model.y[t], index, ptr_index[t]);
-		}
+		
+    data_model.y=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
+    size_t t;
+    for(t=0; t<data_model.pc.total_obs; t++){
+        data_model.y[t]=gsl_vector_calloc(data_model.pc.dim_obs_var);/*y[t] corresponds to y(),which is a gsl_vector; loop through total_obj*/
+
+    }
+
+    size_t enough_length=(ceil(log10((double)data_model.pc.dim_obs_var>data_model.pc.dim_co_variate?data_model.pc.dim_obs_var:data_model.pc.dim_co_variate))+1)*sizeof(char);
+    char *str_number=(char *)malloc(enough_length);
+    char str_name[enough_length+7];
+
+    for(index=0;index<data_model.pc.dim_obs_var;index++){
+        sprintf(str_number, "%lu", (long unsigned int) index+1);
+        sprintf(str_name, "%s", "obs");
+        /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
+        DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
+        ptr_index=REAL(PROTECT(getListElement(observed_sexp, strncat(str_name, str_number, strlen(str_number)))));
+        for(t=0; t<data_model.pc.total_obs; t++){
+            gsl_vector_set(data_model.y[t],index, ptr_index[t]);
+        }
 		UNPROTECT(1);
-	}
-	
-	
-	if (data_model.pc.dim_co_variate > 0){
-		data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
-		
-		for(t=0; t < data_model.pc.total_obs; t++){
-			data_model.co_variate[t] = gsl_vector_calloc(data_model.pc.dim_co_variate);
-		}
-		
-		for(index=0; index < data_model.pc.dim_co_variate; index++){
-			snprintf(str_number, enough_length, "%lu", (long unsigned int) index+1);
-			snprintf(str_name, enough_length, "%s%lu", "covar", (long unsigned int) index+1);
-			/*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
-			  DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
-			ptr_index = REAL(PROTECT(getListElement(covariates_sexp, str_name)));
-			for(t=0; t < data_model.pc.total_obs; t++){
-				gsl_vector_set(data_model.co_variate[t], index, ptr_index[t]);
-			}
+    }
+
+
+    if (data_model.pc.dim_co_variate > 0){
+    data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
+
+        for(t=0; t<data_model.pc.total_obs; t++){
+            data_model.co_variate[t]=gsl_vector_calloc(data_model.pc.dim_co_variate);
+        }
+
+
+        for(index=0;index<data_model.pc.dim_co_variate;index++){
+            sprintf(str_number, "%lu", (long unsigned int) index+1);
+            sprintf(str_name, "%s", "covar");
+            /*DYNRPRINT(verbose_flag, "The str_number is %s\n",str_number);
+            DYNRPRINT(verbose_flag, "The str_name length is %lu\n",strlen(str_name));*/
+	        ptr_index=REAL(PROTECT(getListElement(covariates_sexp, strncat(str_name, str_number, strlen(str_number)))));
+            for(t=0; t<data_model.pc.total_obs; t++){
+                gsl_vector_set(data_model.co_variate[t],index, ptr_index[t]);
+            }
 			UNPROTECT(1);
-		}
-	} else {
-		data_model.co_variate = (gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
+        }
 		
-		for(t=0; t < data_model.pc.total_obs; t++){
-			data_model.co_variate[t] = NULL;
-		}
-	}
-	
-	data_model.y_time = (double *)malloc(data_model.pc.total_obs*sizeof(double));
-	memcpy(data_model.y_time, REAL(PROTECT(getListElement(data_list, "time"))), data_model.pc.total_obs*sizeof(double));
-	
-	/*DYNRPRINT(verbose_flag, "In main_R:\n");
-	print_vector(data_model.y[0]);
-	DYNRPRINT(verbose_flag, "\n");
-	print_vector(data_model.co_variate[0]);
-	DYNRPRINT(verbose_flag, "\n");
-	DYNRPRINT(verbose_flag, "y_time_1 is %lf\n",data_model.y_time[0]);
-	*/
-	
-	/** Optimization options **/
-	SEXP option_list = PROTECT(getListElement(model_list, "options"));
-	SEXP xtol_rel_sexp = PROTECT(getListElement(option_list, "xtol_rel"));
-	SEXP stopval_sexp = PROTECT(getListElement(option_list, "stopval"));
-	SEXP ftol_rel_sexp = PROTECT(getListElement(option_list, "ftol_rel"));
-	SEXP ftol_abs_sexp = PROTECT(getListElement(option_list, "ftol_abs"));
-	SEXP maxeval_sexp = PROTECT(getListElement(option_list, "maxeval"));
-	SEXP maxtime_sexp = PROTECT(getListElement(option_list, "maxtime"));
-	double *xtol_rel = REAL(xtol_rel_sexp);
-	double *stopval = REAL(stopval_sexp);
-	double *ftol_rel = REAL(ftol_rel_sexp);
-	double *ftol_abs = REAL(ftol_abs_sexp);
-	int *maxeval = INTEGER(maxeval_sexp);
-	double *maxtime = REAL(maxtime_sexp);
-	
-	/** Optimization bounds and starting values **/
-	
+    }else{
+        data_model.co_variate=(gsl_vector **)malloc(data_model.pc.total_obs*sizeof(gsl_vector *));
+        
+        for(t=0; t<data_model.pc.total_obs; t++){
+            data_model.co_variate[t]=NULL;
+        }
+    }
+
+    data_model.y_time=(double *)malloc(data_model.pc.total_obs*sizeof(double));
+        memcpy(data_model.y_time,REAL(PROTECT(getListElement(data_list, "time"))),data_model.pc.total_obs*sizeof(double));
+
+    /*DYNRPRINT(verbose_flag, "In main_R:\n");
+    print_vector(data_model.y[0]);
+    DYNRPRINT(verbose_flag, "\n");
+    print_vector(data_model.co_variate[0]);
+    DYNRPRINT(verbose_flag, "\n");
+    DYNRPRINT(verbose_flag, "y_time_1 is %lf\n",data_model.y_time[0]);
+    */
+
+    /** Optimization options **/
+    SEXP option_list = PROTECT(getListElement(model_list, "options"));
+        SEXP xtol_rel_sexp = PROTECT(getListElement(option_list, "xtol_rel"));
+        SEXP stopval_sexp = PROTECT(getListElement(option_list, "stopval"));
+        SEXP ftol_rel_sexp = PROTECT(getListElement(option_list, "ftol_rel"));
+        SEXP ftol_abs_sexp = PROTECT(getListElement(option_list, "ftol_abs"));
+        SEXP maxeval_sexp = PROTECT(getListElement(option_list, "maxeval"));
+        SEXP maxtime_sexp = PROTECT(getListElement(option_list, "maxtime"));
+    double *xtol_rel = REAL(xtol_rel_sexp);
+    double *stopval = REAL(stopval_sexp);
+    double *ftol_rel = REAL(ftol_rel_sexp);
+    double *ftol_abs = REAL(ftol_abs_sexp);
+    int *maxeval = INTEGER(maxeval_sexp);
+    double *maxtime = REAL(maxtime_sexp);
+
+    /** Optimization bounds and starting values **/
+
     double params[data_model.pc.num_func_param];
     	memcpy(params,REAL(PROTECT(getListElement(model_list, "xstart"))),sizeof(params));
     /*DYNRPRINT(verbose_flag, "Array paramvec allocated.\n");*/
@@ -490,9 +490,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			eta_pred_t, error_cov_pred_t, 
 			innov_v_t, residual_cov_t);
 
-	    if (optimization_flag & ( (status < 0) | (!isfinite(neg_log_like)) ) ) {
+	    if (optimization_flag & (status< 0)) {
 			MYPRINT("nlopt failed!\n");
-			MYPRINT("Skipping Hessian computation.\n");
 	    }else if (hessian_flag){
 			MYPRINT("Starting Hessian calculation ...\n");
 		    data_model.pc.isnegloglikeweightedbyT=false;
@@ -616,7 +615,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	     DYNRPRINT(verbose_flag, "error_cov_smooth_final created and copied.\n");
 
 		 SEXP dims_pr_t_given_T=PROTECT(allocVector(INTSXP,2));
-		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}), 2*sizeof(int));
+		 memcpy(INTEGER(dims_pr_t_given_T), ((int[]){data_model.pc.num_regime,  data_model.pc.total_obs}),2*sizeof(int));
 		 SEXP pr_t_given_T = PROTECT(Rf_allocArray(REALSXP,dims_pr_t_given_T));
 		 index=0;
 		 ptr_index=REAL(pr_t_given_T);
@@ -650,7 +649,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		 	 
  		/*filtered state estimate*/
  		SEXP dims_eta_filtered=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_eta_filtered), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(int));
+ 		memcpy(INTEGER(dims_eta_filtered), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}),2*sizeof(INTEGER(dims_eta_filtered)));
  		SEXP eta_filtered = PROTECT(Rf_allocArray(REALSXP, dims_eta_filtered));
  		index = 0;
  		ptr_index = REAL(eta_filtered);
@@ -689,7 +688,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*predicted state estimate*/
  		SEXP dims_eta_predicted=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_eta_predicted), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(int));
+ 		memcpy(INTEGER(dims_eta_predicted), ((int[]){data_model.pc.dim_latent_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_eta_predicted)));
  		SEXP eta_predicted = PROTECT(Rf_allocArray(REALSXP, dims_eta_predicted));
  		index = 0;
  		ptr_index = REAL(eta_predicted);
@@ -725,7 +724,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
  		/*innovation vector*/
  		SEXP dims_innov_vec=PROTECT(allocVector(INTSXP, 2));
- 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_obs_var, data_model.pc.total_obs}), 2*sizeof(int));
+ 		memcpy(INTEGER(dims_innov_vec), ((int[]){data_model.pc.dim_obs_var, data_model.pc.total_obs}), 2*sizeof(INTEGER(dims_innov_vec)));
  		SEXP innov_vec = PROTECT(Rf_allocArray(REALSXP, dims_innov_vec));
  		index = 0;
  		ptr_index = REAL(innov_vec);
@@ -947,5 +946,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 
     return res_list;
 }
+
+
 
 

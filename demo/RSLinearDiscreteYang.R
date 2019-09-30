@@ -47,10 +47,10 @@ recReg <- prep.regimes(
 #---- (3d) Initial condition specification ----
 
 recIni <- prep.initial(
-  values.inistate=rep(list(matrix(0, 1, 1)), 2),
-  params.inistate=rep(list(matrix('fixed', 1, 1)), 2),
-  values.inicov=rep(list(matrix(1, 1, 1)), 2),
-  params.inicov=rep(list(matrix('fixed', 1, 1)), 2),
+  values.inistate=matrix(0, 1, 1),
+  params.inistate=matrix('fixed', 1, 1),
+  values.inicov=matrix(1, 1, 1),
+  params.inicov=matrix('fixed', 1, 1),
   values.regimep=c(10, 0),
   params.regimep=c('fixed', 'fixed'))
 

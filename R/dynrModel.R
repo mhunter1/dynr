@@ -491,6 +491,8 @@ setMethod("printex", "dynrModel",
 
 .logisticCFunction <- "/**\n * This function takes a double and gives back a double\n * It computes the logistic function (i.e. the inverse of the logit link function)\n * @param x, the double value e.g. a normally distributed number\n * @return logistic(x), the double value e.g. a number between 0 and 1\n */\ndouble mathfunction_logistic(const double x){\n\tdouble value = 1.0/(1.0 + exp(-x));\n\treturn value;\n}\n"
 
+
+# armadillo version
 .softmaxCFunction <- "/**\n * This function takes a gsl_vector and modifies its second argument (another gsl_vector)\n * It computes the softmax function (e.g. for multinomial logistic regression)\n * @param x, vector of double values e.g. a vector of normally distributed numbers\n * @param result, softmax(x), e.g. a vector of numbers between 0 and 1 that sum to 1\n */\nvoid mathfunction_softmax(const gsl_vector *x, gsl_vector *result){\n\t/* Elementwise exponentiation */\n\tsize_t index=0;\n\tfor(index=0; index < x->size; index++){\n\t\tgsl_vector_set(result, index, exp(gsl_vector_get(x, index)));\n\t}\n\t\n\t/* Sum for the scaling coeficient */\n\tdouble scale = 0.0;\n\tfor(index=0; index < x->size; index++){\n\t\tscale += gsl_vector_get(result, index);\n\t}\n\t\n\t/* Multiply all elements of result by 1/scale */\n\tgsl_blas_dscal(1/scale, result);\n}\n"
 
 .cfunctions <- paste(.logisticCFunction, .softmaxCFunction, sep="\n")
@@ -508,7 +510,7 @@ setMethod("printex", "dynrModel",
 ##' a dynrRegimes object prepared with \code{\link{prep.regimes}} and argument transform is for 
 ##' a dynrTrans object prepared with \code{\link{prep.tfun}}.
 ##' @param outfile a character string of the name of the output C script of model functions to be compiled 
-##' for parameter estimation. The default is the name for a potential temporary file returned by tempfile().
+##' for parameter estimation.
 ##' 
 ##' @details
 ##' A \code{dynrModel} is a collection of recipes.  The recipes are constructed with the functions \code{\link{prep.measurement}}, \code{\link{prep.noise}}, \code{\link{prep.formulaDynamics}}, \code{\link{prep.matrixDynamics}}, \code{\link{prep.initial}}, and in the case of regime-switching models \code{\link{prep.regimes}}.  Additionally, data must be prepared with \code{\link{dynr.data}} and added to the model.
@@ -543,7 +545,8 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
+#dynr.model <- function(dynamics, measurement, noise, initial, data, random, ..., outfile, saem=FALSE){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
@@ -556,17 +559,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       stop("Formulas should be specified in the same order for different regimes.")
     }
     if (saem==FALSE && !all(measurement@state.names == states.dyn)){
-      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+      stop("The state.names slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
     #else if (saem==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
     #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
     #}
   }
   if (!all(measurement@obs.names == data$observed.names)){
-    stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
-  }
-  if (!is.null(data$covariate.names) & !all(measurement@exo.names %in% data$covariate.names)){
-    stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    stop("The obs.names slot of the 'dynrMeasurement' object should match the observed argument passed to the dynr.data() function.")
   }
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
@@ -581,8 +581,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
     }else if (any(time.check["full",])){
       if ("covariates" %in% names(data)){
-        names(data$covariates) <- data$covariate.names
-        names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed, data$covariates)
         
         data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
@@ -593,7 +591,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
         covariate.names = data$covariate.names
         data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
       }else{
-        names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
         
         data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
@@ -634,23 +631,18 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
-  if(saem == FALSE){
-	  if(any(sapply(inputs, class) %in% 'dynrTrans')){
-		inputs$transform<-createRfun(inputs$transform, param.data, 
-									 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
-									 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
-									 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
-		#at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
-	  }else{
-		inputs$transform <- createRfun(prep.tfun(), param.data, 
-									 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
-									 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
-									 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
-	  }
-	  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+  if(any(sapply(inputs, class) %in% 'dynrTrans')){
+    inputs$transform<-createRfun(inputs$transform, param.data, 
+                                 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
+                                 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
+                                 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
+    #at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
+  }else{
+    inputs$transform <- createRfun(prep.tfun(), param.data, 
+                                 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
+                                 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
+                                 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
   }
-  
   
   
   
@@ -795,17 +787,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   
 
-  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
-    numRegimes <- dim(inputs$regimes$values)[1]
-  } else {
-    numRegimes <- 1L
-  }
-  
-  all.regimes <- sapply(inputs, impliedRegimes)
-  if(!all(all.regimes %in% c(1, max(all.regimes)))){
-    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), "\nNumber of regimes must be 1 or ", max(all.regimes), "\n", "On Wednesdays we wear pink!"))
-  }
-  
   # writeCcode on each recipe
   if(saem==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
@@ -839,7 +820,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   names(obj.dynrModel@xstart) <- obj.dynrModel@param.names
   names(obj.dynrModel@ub) <- obj.dynrModel@param.names
   names(obj.dynrModel@lb) <- obj.dynrModel@param.names
-  
+  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
+    obj.dynrModel@num_regime<-dim(inputs$regimes$values)[1]
+  }
    
   
   
@@ -880,23 +863,5 @@ addVariableToThetaFormula  <- function(formula, variable.names){
     
     #print(as.formula(paste0(lhs, ' ~ ', rhs)))
     return(as.formula(paste0(lhs, ' ~ ', rhs)))
-}
-
-impliedRegimes <- function(recipe){
-	if(inherits(recipe, 'dynrRecipe')){
-		sn <- slotNames(recipe)
-		vs <- grep('^values\\.', sn, value=TRUE)
-		if(length(vs) > 0){
-			sl <- lapply(vs, FUN=slot, object=recipe)
-			nr <- max(sapply(sl, FUN=function(x){if(is.list(x)){return(length(x))} else {return(1)}}))
-		} else if(inherits(recipe, 'dynrRegimes')){
-			nr <- dim(recipe$values)[1]
-		} else {
-			nr <- 1
-		}
-	} else {
-		nr <- 1
-	}
-	return(nr)
 }
 
