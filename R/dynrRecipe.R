@@ -53,8 +53,8 @@ setClass(Class = "dynrMeasurement",
            params.exo = "list",
            values.int = "list",
            params.int = "list",
-           state.names="character",
-           obs.names="character",
+           state.names = "character",
+           obs.names = "character",
            exo.names="character",
 		   dmudparMu="matrix",
 		   dmudparMu2="matrix"
@@ -90,6 +90,8 @@ setClass(Class = "dynrDynamicsFormula",
            paramnames = "character",
            formula = "list",
            jacobian = "list",
+           formulaOriginal = "list",
+           jacobianOriginal = "list",
 		   state.names = "character",
 		   theta.names = "character",
 		   beta.names = "character",
@@ -260,7 +262,7 @@ setMethod("$", "dynrRecipe",
 
 printRecipeOrModel <- function(x, ...){
 	for(aslot in slotNames(x)){
-		if( !(aslot %in% c("c.string", "startval", "paramnames")) ){
+		if( !(aslot %in% c("c.string", "startval", "paramnames", "formulaOriginal", "jacobianOriginal")) ){
 			cat(" $", aslot, "\n", sep="")
 			print(slot(x, aslot))
 			cat("\n")
@@ -319,32 +321,29 @@ setGeneric("printex", function(object, ParameterAs,
 })
 
 setMethod("printex", "dynrMeasurement",
-          function(object, ParameterAs, 
-			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
-			  show=TRUE, AsMatrix=TRUE){
-            if (AsMatrix){
-              meas_loadings=lapply(object$values.load, .xtableMatrix, show)
-              meas_int=lapply(object$values.int, .xtableMatrix, show)
-              meas_exo=lapply(object$values.exo, .xtableMatrix, show)
-              meas_exo.names=.xtableMatrix(matrix(object$exo.names,ncol=1), show)
-              meas_list = list(meas_loadings=meas_loadings,meas_int=meas_int,
-                               meas_exo=meas_exo,meas_exo.names=meas_exo.names)
-              return(invisible(meas_list))
-            }else{#not to use matrix
-              #Matrix to Formula
-              meas_loadings <- lapply(object$values.load,matrix2formula,multbyColnames=T)
-              meas_int <- lapply((object)$values.int,matrix2formula,multbyColnames=F)
-              meas_exo <- lapply((object)$values.exo,matrix2formula,multbyColnames=T)
-              meas_fml <- addLLFormulas(list_list_formulae = meas_loadings, 
-                                        VecNamesToAdd = c("meas_int","meas_exo"))
-              #Formula to LaTex
-              meas_tex=lapply(meas_fml, formula2tex, 
-                              LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "", 
-                              LHSeqPre = "", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "")
-              return(meas_tex)
-            }
-            
-          }
+	function(object, ParameterAs, printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show=TRUE, AsMatrix=TRUE){
+		if (AsMatrix){
+			meas_loadings <- lapply(object$values.load, .xtableMatrix, show)
+			meas_int <- lapply(object$values.int, .xtableMatrix, show)
+			meas_exo <- lapply(object$values.exo, .xtableMatrix, show)
+			meas_exo.names <- .xtableMatrix(matrix(object$exo.names, ncol=1), show)
+			meas_list <- list(meas_loadings=meas_loadings, meas_int=meas_int,
+				meas_exo=meas_exo, meas_exo.names=meas_exo.names)
+			return(invisible(meas_list))
+		} else { #not to use matrix
+			#Matrix to Formula
+			meas_loadings <- lapply(object$values.load, matrix2formula, multbyColnames=TRUE)
+			meas_int <- lapply(object$values.int, matrix2formula, multbyColnames=FALSE)
+			meas_exo <- lapply(object$values.exo, matrix2formula, multbyColnames=TRUE)
+			meas_fml <- addLLFormulas(list_list_formulae = meas_loadings,
+				VecNamesToAdd = c("meas_int", "meas_exo"))
+			#Formula to LaTex
+			meas_tex=lapply(meas_fml, formula2tex,
+				LHSvarPre = "", LHSvarPost = "", RHSvarPre = "", RHSvarPost = "",
+				LHSeqPre = "", LHSeqPost = "", RHSeqPre = "", RHSeqPost = "")
+			return(meas_tex)
+		}
+	}
 )
 
 setMethod("printex", "dynrDynamicsMatrix",
@@ -544,7 +543,7 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
 })
 
 .exchangeNamesAndNumbers <- function(params, names){
-	matrix(match(params, names, nomatch=0), nrow(params), ncol(params))
+	matrix(match(params, names, nomatch=0), nrow(params), ncol(params), dimnames=dimnames(params))
 }
 
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
@@ -620,6 +619,8 @@ setMethod("paramName2Number", "dynrDynamicsFormula",
 
 setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
           function(object, paramList){
+            object@formulaOriginal <- object@formula
+            object@jacobianOriginal <- object@jacobian
             object@formula = .replaceNamesbyNumbers(object@formula, paramList)
             object@jacobian =.replaceNamesbyNumbers(object@jacobian, paramList)
             return(object)
@@ -732,150 +733,54 @@ setMethod("writeCcode", "dynrMeasurement",
 # not sure what to do here yet
 setMethod("writeCcode", "dynrDynamicsFormula",
 	function(object, covariates){
-	  formula <- object$formula
-	  jacob <- object$jacobian
-	  nregime=length(formula)
-	  n=sapply(formula,length)
-	  
-	  fml=lapply(formula,processFormula)
-	  lhs=lapply(fml,function(x){lapply(x,"[[",1)})
-	  rhs=lapply(fml,function(x){lapply(x,"[[",2)})
-	  
-	  fmlj=lapply(jacob,processFormula)
-	  row=lapply(fmlj,function(x){lapply(x,"[[",1)})
-	  col=lapply(fmlj,function(x){lapply(x,"[[",2)})
-	  rhsj=lapply(fmlj,function(x){lapply(x,"[[",3)})
-	  
-	  for (i in 1:length(covariates)){
-	    selected <- covariates[i]
-	    get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected)-1,")")
-	    rhs <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhs), function(x){eval(parse(text=x))})
-	    rhsj <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhsj), function(x){eval(parse(text=x))})
-	  }
-	  
-	  if (object@isContinuousTime){
-	    #function_dx_dt
-	    ret="void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
-	    
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
-	        for (i in 1:n[r]){
-	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[r]][[i]])
-	          }
-	          ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:n){
-	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(x,",j-1,")"),rhs[[1]][[i]])
-	        }
-	        ret=paste(ret,paste0("\tgsl_vector_set(F_dx_dt,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	    
-	    #function_dF_dx
-	    ret=paste0(ret,"\n\n/**\n* The dF/dx function\n* The partial derivative of the jacobian of the DE function with respect to the variable x\n* @param param includes at the end the current state estimates in the same order as the states following the model parameters\n*/void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
-	        for (i in 1:length(jacob[[r]])){
-	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[r]][[i]])
-	          }
-	          
-	          ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:length(jacob[[1]])){
-	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("param[NUM_PARAM+",j-1,"]"),rhsj[[1]][[i]])
-	        }
-	        
-	        ret=paste(ret,paste0("\tgsl_matrix_set(F_dx_dt_dx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	    
-	  }else{
-	    #function_dynam
-	    ret="void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam,const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
-	    
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("\tcase ",r-1,":"),sep="\n\t")
-	        for (i in 1:n[r]){
-	          for (j in 1:length(lhs[[r]])){
-	            rhs[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[r]][[i]])
-	          }
-	          ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:n){
-	        for (j in 1:length(lhs[[1]])){
-	          rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhs[[1]][[i]])
-	        }
-	        ret=paste(ret,paste0("\tgsl_vector_set(x_tend,",i-1,",",rhs[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	    
-	    #function_jacob_dynam
-	    ret=paste0(ret,"\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
-	    if (nregime>1){
-	      ret=paste(ret,"switch (regime) {",sep="\n\t")
-	      for (r in 1:nregime){
-	        ret=paste(ret,paste0("case ",r-1,":"),sep="\n\t")
-	        for (i in 1:length(jacob[[r]])){
-	          for (j in 1:length(lhs[[r]])){
-	            rhsj[[r]][[i]]=gsub(paste0("\\<",lhs[[r]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[r]][[i]])
-	          }
-	          
-	          ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(lhs[[r]]==row[[r]][[i]])-1,",",which(lhs[[r]]==col[[r]][[i]])-1,",",rhsj[[r]][[i]],");"),sep="\n\t")    
-	        }
-	        ret=paste(ret,paste0("break;\n"),sep="\n\t")
-	        
-	      }
-	      ret=paste(ret,paste0("\t}"),sep="\n\t")
-	      
-	    }else{
-	      for (i in 1:length(jacob[[1]])){
-	        for (j in 1:length(lhs[[1]])){
-	          rhsj[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("gsl_vector_get(xstart,",j-1,")"),rhsj[[1]][[i]])
-	        }
-	        
-	        ret=paste(ret,paste0("\tgsl_matrix_set(Jx,",which(unlist(lhs[[1]])==row[[1]][[i]])-1,",",which(unlist(lhs[[1]])==col[[1]][[i]])-1,",",rhsj[[1]][[i]],");"),sep="\n\t")    
-	      }
-	    }
-	    
-	    ret=paste0(ret,"\n\t}")
-	  }
+		formula <- object$formula
+		jacob <- object$jacobian
+		nregime <- length(formula)
+		n <- sapply(formula, length)
+		nj <- sapply(jacob, length)
+		
+		fml <- lapply(formula, processFormula)
+		lhs <- lapply(fml, function(x){lapply(x, "[[", 1)})
+		rhs <- lapply(fml, function(x){lapply(x, "[[", 2)})
+		
+		fmlj <- lapply(jacob, processFormula)
+		row <- lapply(fmlj, function(x){lapply(x, "[[", 1)})
+		col <- lapply(fmlj, function(x){lapply(x, "[[", 2)})
+		rhsj <- lapply(fmlj, function(x){lapply(x, "[[", 3)})
+		
+		for (i in 1:length(covariates)){
+			selected <- covariates[i]
+			get <- paste0("gsl_vector_get(co_variate, ", which(covariates == selected)-1, ")")
+			rhs <- lapply(gsub(paste0("\\<", selected, "\\>"), get, rhs), function(x){eval(parse(text=x))})
+			rhsj <- lapply(gsub(paste0("\\<", selected, "\\>"), get, rhsj), function(x){eval(parse(text=x))})
+		}
+		
+		if (object@isContinuousTime){
+			#function_dx_dt
+			ret <- "void function_dx_dt(double t, size_t regime, const gsl_vector *x, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dx_dt){"
+			
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhs, target1='gsl_vector_get(x, ', close=')', target2='gsl_vector_set(F_dx_dt, ', vector=TRUE))
+			
+			#function_dF_dx
+			ret <- paste0(ret, "\n\n/**\n* The dF/dx function\n* The partial derivative of the jacobian of the DE function with respect to the variable x\n* @param param includes at the end the current state estimates in the same order as the states following the model parameters\n*/void function_dF_dx(double t, size_t regime, double *param, const gsl_vector *co_variate, gsl_matrix *F_dx_dt_dx){")
+			
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=nj, lhs=lhs, rhs=rhsj, target1='param[NUM_PARAM+', close=']', target2='gsl_matrix_set(F_dx_dt_dx, ', row=row, col=col))
+			
+		} else{ # is Discrete Time
+			#function_dynam
+			ret <- "void function_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t n_gparam, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, const gsl_vector *, double *, size_t, const gsl_vector *, gsl_vector *),\n\tgsl_vector *x_tend){"
+			
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=n, lhs=lhs, rhs=rhs, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_vector_set(x_tend, ', vector=TRUE))
+			
+			#function_jacob_dynam
+			ret <- paste0(ret, "\n\nvoid function_jacob_dynam(const double tstart, const double tend, size_t regime, const gsl_vector *xstart,\n\tdouble *param, size_t num_func_param, const gsl_vector *co_variate,\n\tvoid (*g)(double, size_t, double *, const gsl_vector *, gsl_matrix *),\n\tgsl_matrix *Jx){")
+			
+			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=nj, lhs=lhs, rhs=rhsj, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_matrix_set(Jx, ', row=row, col=col))
+			
+		} # end discrete time ifelse
 	  #browser()
-	  object@c.string <- ret
-	  return(object)
+		object@c.string <- ret
+		return(object)
 	}
 )
 #Example
@@ -887,6 +792,32 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 # )
 # dynam<-prep.formulaDynamics(formula=formula,startval=c(a1=.3,a2=.4,c12=-.5,c21=-.5),isContinuousTime=FALSE)
 # cat(writeCcode(dynam)$c.string)
+
+cswapDynamicsFormula <- function(lhs, index, rhs, vtarget, close){
+	return(gsub(paste0("\\<", lhs, "\\>"), paste0(vtarget, index, close), rhs))
+}
+
+cswapDynamicsFormulaLoop <- function(nregime, n, lhs, rhs, target1, close, target2, vector=FALSE, row=NULL, col=NULL){
+	ans <- paste0("\n\t", "switch (regime) {")
+	for (r in 1:nregime){
+		ans <- paste(ans, paste0("\tcase ", r-1, ":"), sep="\n\t")
+		for (i in 1:n[r]){
+			for (j in 1:length(lhs[[r]])){
+				rhs[[r]][[i]] <- cswapDynamicsFormula(lhs=lhs[[r]][[j]], index=j-1, rhs=rhs[[r]][[i]], vtarget=target1, close=close)
+			}
+			if(vector){
+				ans <- paste(ans, paste0("\t\t", target2, i-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+			} else {
+				ans <- paste(ans, paste0("\t\t", target2, which(lhs[[r]] == row[[r]][[i]])-1, ", ", which(lhs[[r]] == col[[r]][[i]])-1, ", ", rhs[[r]][[i]], ");"), sep="\n\t")
+			}
+		}
+		ans <- paste(ans, paste0("\t\tbreak;"), sep="\n\t")
+	}
+	ans <- paste(ans, paste0("}"), sep="\n\t")
+	
+	ans <- paste0(ans, "\n}")
+	return(ans)
+}
 
 setMethod("writeCcode", "dynrDynamicsMatrix",
 	function(object, covariates){
@@ -1578,18 +1509,18 @@ setMethod("diag", "character", #diag.character <-
 
 
 # allow free/fixed to be used in values/params arguments
-preProcessValues <- function(x){
+preProcessValues <- function(x, rowNam, colNam){
 	x[is.na(x)] <- 'freed'
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
-		rowNam <- NULL
-		colNam <- NULL
+		if(missing(rowNam)) rowNam <- NULL
+		if(missing(colNam)) colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
-		rowNam <- rownames(x)
-		colNam <- colnames(x)
+		if(missing(rowNam)) rowNam <- rownames(x)
+		if(missing(colNam)) colNam <- colnames(x)
 	}
 	x <- c(x)
 	xl <- tolower(x)
@@ -1605,18 +1536,18 @@ preProcessValues <- function(x){
 	return(x)
 }
 
-preProcessParams <- function(x){
+preProcessParams <- function(x, rowNam, colNam){
 	if (!is.null(x)) {x[is.na(x)] <- 'fixed'}
 	if(is.null(dim(x))){
 		numRow <- length(x)
 		numCol <- 1
-		rowNam <- NULL
-		colNam <- NULL
+		if(missing(rowNam)) rowNam <- NULL
+		if(missing(colNam)) colNam <- NULL
 	} else {
 		numRow <- nrow(x)
 		numCol <- ncol(x)
-		rowNam <- rownames(x)
-		colNam <- colnames(x)
+		if(missing(rowNam)) rowNam <- rownames(x)
+		if(missing(colNam)) colNam <- colnames(x)
 	}
 	x <- c(x)
 	xl <- tolower(x)
@@ -1654,10 +1585,10 @@ coProcessValuesParams <- function(values=NULL, params=NULL, missingOK=FALSE){
 	}
 	vdim <- sapply(lapply(values, as.matrix), dim)
 	pdim <- sapply(lapply(params, as.matrix), dim)
-	if(length(vdim) > 0 && apply(vdim, 1, function(x) length(unique(x)) > 1)){
+	if(length(vdim) > 0 && any(apply(vdim, 1, function(x) length(unique(x)) > 1))){
 		stop("Some of the 'values' list elements are not the same size as each other\nNot cool, Donny.")
 	}
-	if(length(pdim) > 0 && apply(pdim, 1, function(x) length(unique(x)) > 1)){
+	if(length(pdim) > 0 && any(apply(pdim, 1, function(x) length(unique(x)) > 1))){
 		stop("Some of the 'params' list elements are not the same size as each other\nNo-go for launch.")
 	}
 	if(any(vdim != pdim)){
@@ -1798,7 +1729,7 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##' #Two factor model with a cross loading
 ##' prep.loadings(list(eta1=paste0('y', 1:4), eta2=c('y5', 'y2', 'y6')), 
 ##' paste0("lambda_", c("21", "31", "41", "22", "62")))
-prep.loadings <- function(map, params, idvar, exo.names=character(0), intercept=FALSE){
+prep.loadings <- function(map, params=NULL, idvar, exo.names=character(0), intercept=FALSE){
 	if(missing(idvar)){
 		idvar <- sapply(map, '[', 1)
 	}
@@ -1919,11 +1850,11 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	
 	
 	if(missing(obs.names)){
-		obs.names = paste0('y',1:nrow(values.load[[1]]))
+		obs.names <- paste0('y',1:nrow(values.load[[1]]))
 	}
 	
 	if(missing(state.names)){
-		state.names = paste0('state',1:ncol(values.load[[1]]))
+		state.names <- paste0('state',1:ncol(values.load[[1]]))
 	}
 	
 	if(missing(exo.names)){
@@ -1939,19 +1870,44 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 		stop("'exo.names' uses some of the same names more than once.\n  You cannot be the King of Crimson with this indiscipline.")
 	}
 	
-	values.load <- lapply(values.load, preProcessValues)
-	params.load <- lapply(params.load, preProcessParams)
-	values.exo <- lapply(values.exo, preProcessValues)
-	params.exo <- lapply(params.exo, preProcessParams)
-	values.int <- lapply(values.int, preProcessValues)
-	params.int <- lapply(params.int, preProcessParams)
-	
 	values.load <- lapply(values.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	#params.load <- lapply(params.load, preProcessNames, obs.names, state.names, 'values.load', 'obs.names', 'state.names')
 	values.exo <- lapply(values.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
 	#params.exo <- lapply(params.exo, preProcessNames, obs.names, exo.names, 'values.exo', 'obs.names', 'exo.names')
 	values.int <- lapply(values.int, preProcessNames, obs.names, character(0), 'values.int', 'obs.names')
 	#params.int <- lapply(params.int, preProcessNames, obs.names, 'values.int', 'obs.names')
+	
+	values.load <- lapply(values.load, preProcessValues, rowNam=obs.names, colNam=state.names)
+	params.load <- lapply(params.load, preProcessParams, rowNam=obs.names, colNam=state.names)
+	values.exo <- lapply(values.exo, preProcessValues, rowNam=obs.names, colNam=exo.names)
+	params.exo <- lapply(params.exo, preProcessParams, rowNam=obs.names, colNam=exo.names)
+	values.int <- lapply(values.int, preProcessValues, rowNam=obs.names, colNam='one')
+	params.int <- lapply(params.int, preProcessParams, rowNam=obs.names, colNam='one')
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.load=values.load, values.exo=values.exo, values.int=values.int), length)
+	msg <- paste0("Y'all iz trippin! Different numbers of regimes implied:\n'load' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes.")
+	mr <- max(nregs)
+	if(!all(nregs %in% c(0, 1, mr))){
+		stop(msg)
+	} else if (!all(nregs %in% c(0, mr))){
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.load, params.load, 'values.load', 'loadings', mr)
+			values.load <- ae[[1]]
+			params.load <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.exo, params.exo, 'values.exo', 'covariate regressions', mr)
+			values.exo <- ae[[1]]
+			params.exo <- ae[[2]]
+		}
+		if(nregs[3] == 1){
+			ae <- autoExtendSubRecipe(values.int, params.int, 'values.int', 'intercepts', mr)
+			values.int <- ae[[1]]
+			params.int <- ae[[2]]
+		}
+	}
 	
 	sv <- c(extractValues(values.load, params.load), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
 	pn <- c(extractParams(params.load), extractParams(params.exo), extractParams(params.int))
@@ -1968,6 +1924,14 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	return(new("dynrMeasurement", x))
 }
 
+regime1msg <- "\nEven non-regime-switching parts of a recipe must match in their numbers of regimes.\nE.g., use rep(list(blah), 3) to make 'blah' repeat 3 times in a list."
+
+autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg){
+	v <- rep(values, maxReg)
+	p <- rep(params, maxReg)
+	message(paste0("Oi, Chap! I found 1 regime for '",  formalName, "'  but ", maxReg, " regimes elsewhere, so I extended the ", informalName, " to match.\nIf this is what you wanted, all is sunshine and puppy dogs."))
+	return(list(v, p))
+}
 
 #------------------------------------------------------------------------------
 # Error covariance matrix
@@ -2022,12 +1986,6 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	values.observed <- r$values
 	params.observed <- r$params
 	
-	if(length(values.observed) != length(values.latent)){
-		msg <- paste0("Stuff and nonsense: number of regimes for observed covariance (", length(values.observed),
-			") is not equal to that for the latent covariance(", length(values.latent), ").")
-		stop(msg)
-	}
-	
 	values.latent <- lapply(values.latent, preProcessValues)
 	params.latent <- lapply(params.latent, preProcessParams)
 	values.observed <- lapply(values.observed, preProcessValues)
@@ -2037,6 +1995,26 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 	lapply(params.latent, checkSymmetric, name="params.latent")
 	lapply(values.observed, checkSymmetric, name="values.observed")
 	lapply(params.observed, checkSymmetric, name="params.observed")
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.latent=values.latent, values.observed=values.observed), length)
+	msg <- paste0("Different numbers of regimes implied:\n'latent' has ", nregs[1], " and 'observed' has ",  nregs[2], " regimes.\nCardi B don't like it like that!")
+	mr <- max(nregs)
+	if(!all(nregs %in% c(1, mr))){
+		stop(msg)
+	} else if(!all(nregs %in% mr)) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.latent, params.latent, 'values.latent', 'latent covariances', mr)
+			values.latent <- ae[[1]]
+			params.latent <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.observed, params.observed, 'values.observed', 'observed covariances', mr)
+			values.observed <- ae[[1]]
+			params.observed <- ae[[2]]
+		}
+	}
 	
 	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
 	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
@@ -2617,10 +2595,36 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	# Check that the number of covariates implied by the 'covariates' arg is the same as that
 	#  implied by the number of columns in the 'values.exo' arg.
 	matCovariates <- lapply(lapply(values.exo, dim), "[[", 2)
+	if(length(matCovariates) == 0){matCovariates <- 0}
 	argCovariates <- length(covariates)
 	if(!all(matCovariates == argCovariates)){
-		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates, collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
+		msg <- paste0("Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (", paste(matCovariates[[1]], collapse=", "), ") covariates, but the 'covariates' arg says there are (", argCovariates, ").")
 		stop(msg)
+	}
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.dyn=values.dyn, values.exo=values.exo, values.int=values.int), length)
+	msg <- paste0("Different numbers of regimes implied:\n'dyn' has ", nregs[1], ", 'exo' has ",  nregs[2], ", and 'int' has ", nregs[3], " regimes.\nWhat do you want from me? I'm not America's Sweetheart!")
+	mr <- max(nregs)
+	if(!all(nregs %in% c(0, 1, mr))){
+		stop(msg)
+	} else if(!all(nregs %in% c(0, mr))) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.dyn, params.dyn, 'values.dyn', 'dynamics', mr)
+			values.dyn <- ae[[1]]
+			params.dyn <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.exo, params.exo, 'values.exo', 'covariate regessions', mr)
+			values.exo <- ae[[1]]
+			params.exo <- ae[[2]]
+		}
+		if(nregs[3] == 1){
+			ae <- autoExtendSubRecipe(values.int, params.int, 'values.int', 'intercepts', mr)
+			values.int <- ae[[1]]
+			params.int <- ae[[2]]
+		}
 	}
 	
 	sv <- c(extractValues(values.dyn, params.dyn), extractValues(values.exo, params.exo), extractValues(values.int, params.int))
@@ -2774,7 +2778,7 @@ processFormula<-function(formula.list){
 ##' being in each regime and all associated parameter specifications.
 ##' The initial probabilities are specified in multinomial logistic regression form.  When there are no covariates, this implies multinomial logistic regression with intercepts only.  In particular, the initial probabilities not not specified on a 0 to 1 probability scale, but rather a negative infinity to positive infinity log odds scale.  Fixing an initial regime probability to zero does not mean zero probability.  It translates to a comparison log odds scale against which other regimes will be judged.
 ##' 
-##' The structure of the initial state vector and the initial probability vector depends on the presence of covariates.  When there are no covariates these should be vectors, or equivalently single-column matrices.  When there are covariates they should have \eqn{c+1} columns for \eqn{c} covariates.  The number of rows should be the number of regimes for the initial regimes, or the number of latent states for the initial states.
+##' The structure of the initial state vector and the initial probability vector depends on the presence of covariates.  When there are no covariates these should be vectors, or equivalently single-column matrices.  When there are covariates they should have \eqn{c+1} columns for \eqn{c} covariates.  For \code{values.regimep} and \code{params.regimep} the number of rows should be the number of regimes.  For \code{inistate} and \code{inicov} the number of rows should be the number of latent states.  Of course, \code{inicov} is a square and symmetric so its number of rows should be the same as its number of columns.
 ##' 
 ##' When \code{deviation=FALSE}, the non-deviation form of the multinomial logistic regression is used. This form has a separate intercept term for each entry of the initial probability vector. When \code{deviation=TRUE}, the deviation form of the multinomial logistic regression is used. This form has an intercept term that is common to all rows of the initial probability vector. The rows are then distinguished by their own individual deviations from the common intercept. The deviation form requires the same reference row constraint as the non-deviation form (described below). By default the reference row is taken to be the row with all zero covariate effects.  Of course, if there are no covariates and the deviation form is desired, then the user must provide the reference row.
 ##' 
@@ -2868,10 +2872,6 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	values.inicov <- r$values
 	params.inicov <- r$params
 	
-	if(length(values.inistate) != length(values.inicov)){
-		stop('Initial state means and covariance matrix imply different numbers of regimes.')
-	}
-	
 	
 	values.inistate <- lapply(values.inistate, preProcessValues)
 	params.inistate <- lapply(params.inistate, preProcessParams)
@@ -2881,8 +2881,6 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	params.inicov <- lapply(params.inicov, preProcessParams)
 	lapply(values.inicov, checkSymmetric, name="values.inicov")
 	lapply(params.inicov, checkSymmetric, name="params.inicov")
-	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
-	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
 	if(nrow(values.inistate[[1]]) != nrow(values.inicov[[1]])){
 		stop(paste0('Number of latent variables implied by initial state and initial covariance differ:\n',
@@ -2942,6 +2940,30 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 		}
 	}
 	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(values.inistate=values.inistate, values.inicov=values.inicov), length)
+	nregs <- c(nregs, nrow(values.regimep))
+	mr <- max(nregs)
+	msg <- paste0("Initial state means, initial state covariance matrix, and initial regime probabilities imply different numbers of regimes:\n'inistate' has ",
+			nregs[1], ", 'inicov' has ",  nregs[2], ", and 'regimep' has ", nregs[3], " regimes.\nEven Black Eyed Peas know that's not how you get it started.")
+	if(!all(nregs %in% c(1, mr)) || (nregs[3]==1 & any(nregs[-3] > 1))){
+		stop(msg)
+	} else if(!all(nregs %in% mr)) {
+		if(nregs[1] == 1){
+			ae <- autoExtendSubRecipe(values.inistate, params.inistate, 'values.inistate', 'initial states', mr)
+			values.inistate <- ae[[1]]
+			params.inistate <- ae[[2]]
+		}
+		if(nregs[2] == 1){
+			ae <- autoExtendSubRecipe(values.inicov, params.inicov, 'values.inicov', 'initial covariances', mr)
+			values.inicov <- ae[[1]]
+			params.inicov <- ae[[2]]
+		}
+	}
+	
+	values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
+	values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
 	
 	sv <- c(extractValues(values.inistate, params.inistate), extractValues(values.inicov.inv.ldl, params.inicov, symmetric=TRUE), extractValues(values.regimep, params.regimep))
 	pn <- c(extractParams(params.inistate), extractParams(params.inicov), extractParams(params.regimep))
@@ -3009,15 +3031,15 @@ prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
 
 #------------------------------------------------------------------------------
 
-formula2string<-function(formula.list){
-  tuple=lapply(formula.list,as.list)
-  lhs=sapply(tuple,function(x){paste0(deparse(x[[2]],width.cutoff = 500L),collapse="")})
-  rhs=sapply(tuple,function(x){paste0(deparse(x[[3]],width.cutoff = 500L),collapse="")})
-  return(list(lhs=lhs,rhs=rhs))
+formula2string <- function(formula.list){
+	tuple <- lapply(formula.list, as.list)
+	lhs <- sapply(tuple, function(x){paste0(deparse(x[[2]], width.cutoff = 500L), collapse="")})
+	rhs <- sapply(tuple, function(x){paste0(deparse(x[[3]], width.cutoff = 500L), collapse="")})
+	return(list(lhs=lhs, rhs=rhs))
 }
 
 
-matrix2formula <- function(x,multbyColnames=TRUE){
+matrix2formula <- function(x, multbyColnames=TRUE){
 	if(!is.matrix(x)){
 		stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
 	}
@@ -3029,12 +3051,12 @@ matrix2formula <- function(x,multbyColnames=TRUE){
 	}
 	preds <- character(nrow(x))
 	for(i in 1:nrow(x)){
-	  if (multbyColnames==FALSE){
-	    preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
-	  }else{
-		  preds[i] <- paste(rownames(x)[i], paste(x[i,], 
-		                       colnames(x), sep='*', collapse=' + '), sep=' ~ ')
-		  } 
+		if (multbyColnames==FALSE){
+			preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
+		}else{
+			preds[i] <- paste(rownames(x)[i], paste(x[i,],
+		                      colnames(x), sep='*', collapse=' + '), sep=' ~ ')
+			}
 	}
 	if(is.numeric(x)){
 		preds <- gsub(' 1\\*', ' ', preds)
@@ -3085,24 +3107,25 @@ addFormulas <- function(f1, f2){
 #addFormulas(f2, f1)
 
 addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
-  nRegime <- length(list_list_formulae)
-  for (j in 1:nRegime){
-    neq <- length(list_list_formulae[[j]])
-    for (k in 1:neq){
-      AddedFml <- list_list_formulae[[j]][[k]]
-      for (l in 1:length(VecNamesToAdd)){
-        list_list_formulae_add=get(VecNamesToAdd[l], parent.frame())#eval(parse(text=VecNamesToAdd[l]),environment())
-        if (length(list_list_formulae_add)>0){
-          if (length(list_list_formulae_add[[j]])>0){
-            AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]],AddedFml)
-          }
-        }
-      }
-      list_list_formulae[[j]][[k]] <- AddedFml
-    }
-  }
-  return(list_list_formulae)
+	nRegime <- length(list_list_formulae)
+	for (j in 1:nRegime){
+		neq <- length(list_list_formulae[[j]])
+		for (k in 1:neq){
+			AddedFml <- list_list_formulae[[j]][[k]]
+			for (l in 1:length(VecNamesToAdd)){
+				list_list_formulae_add <- get(VecNamesToAdd[l], parent.frame()) #eval(parse(text=VecNamesToAdd[l]),environment())
+				if (length(list_list_formulae_add) > 0){
+					if (length(list_list_formulae_add[[j]]) > 0){
+						AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]], AddedFml)
+					}
+				}
+			}
+			list_list_formulae[[j]][[k]] <- AddedFml
+		}
+	}
+	return(list_list_formulae)
 }
+
 
 
 #------------------------------------------------------------------------------

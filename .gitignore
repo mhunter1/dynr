@@ -9,6 +9,7 @@ src-i386/
 src-x64/
 build/
 # The following list of roxygen built man pages is automatically updated
+man/autoplot.dynrTaste.Rd
 man/coef.dynrCook.Rd
 man/confint.dynrCook.Rd
 man/diag-character-method.Rd
@@ -19,6 +20,9 @@ man/dynr.ldl.Rd
 man/dynr.mi.Rd
 man/dynr.model.Rd
 man/dynr.plotFreq.Rd
+man/dynr.taste.Rd
+man/dynr.taste2.Rd
+man/dynr.version.Rd
 man/dynrCook-class.Rd
 man/dynrDynamics-class.Rd
 man/dynrInitial-class.Rd
@@ -39,6 +43,7 @@ man/nobs.dynrCook.Rd
 man/nobs.dynrModel.Rd
 man/NonlinearDFAsim.Rd
 man/Oscillator.Rd
+man/Outliers.Rd
 man/PFAsim.Rd
 man/plot.dynrCook.Rd
 man/plotFormula.Rd
@@ -54,4 +59,5 @@ man/prep.tfun.Rd
 man/printex.Rd
 man/RSPPsim.Rd
 man/summary.dynrCook.Rd
+man/VARsim.Rd
 man/vcov.dynrCook.Rd

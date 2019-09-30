@@ -101,7 +101,7 @@ printex(model,ParameterAs=model$param.names,show=FALSE,printInit=TRUE,
 
 
 # Estimate free parameters
-res <- dynr.cook(model)
+res <- dynr.cook(model, verbose=FALSE)
 # Examine results
 summary(res)
 

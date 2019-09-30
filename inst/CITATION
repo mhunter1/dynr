@@ -1,0 +1,66 @@
+# Default language, no need to uncomment
+# citHeader("To cite package 'dynr' in publications use:")
+# citFooter(paste("BibTeX entries for LaTeX users are obtained by:\n\n",
+#	"toBibtex(citation('dynr'))\n\n"))
+# 
+# Non-default language, uncomment to use
+#citHeader("To cite package 'dynr' in publications use:")
+#citFooter(paste("BibTeX entries for LaTeX users are obtained by:\n\n",
+#	"toBibtex(citation('dynr'))\n\n",
+#	"dynr was developed with support from NIH/NIDA grants:\n\n",
+#	"R37-DA018673, R25-DA026119, R21-DA024304\n\n"))
+
+citEntry(entry="article",
+	title = paste("What's for {dynr}: A package for linear and nonlinear dynamic modeling in {R}"),
+	author = c(
+		person("Lu", "Ou"),
+		person(c("Michael", "D."), "Hunter"),
+		person("Sy-Miin", "Chow")),
+	journal = "The R Journal",
+	year  = "in press",
+	pages = "1-20",
+	doi = "",
+	textVersion = paste("Lu Ou,", "Michael D. Hunter,",
+		"and Sy-Miin Chow.",
+		"(in press). What's for dynr: A package for linear and nonlinear dynamic modeling in R. The R Journal,",
+		"  , 1-20. doi: "))
+
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+title <- paste0("{", meta$Package, "}", ": ", meta$Title)
+
+#citEntry(entry = "Manual",
+#	title = paste0("{", meta$Package, "}", ": ", meta$Title),
+#	author = c(
+#		person("Lu", "Ou"),
+#		person(c("Michael", "D."), "Hunter"),
+#		person("Sy-Miin", "Chow")),
+#	year = year,
+#	note = note,
+#	url = "https://CRAN.R-project.org/package=dynr",
+#	textVersion = paste0("Lu Ou, Michael D. Hunter, and Sy-Miin Chow.",
+#		"(", year, "). ", meta$Package, ": ", meta$Title, ". ", note, "."))
+
+# Can add other citEntry() calls similar to above for the "Manual"
+#  or other papers.
+
+#citEntry(entry="article",
+#	title = paste("{dynr.mi}: An {R} Program for Multiple Imputation in Dynamic Modeling"),
+#	author = c(
+#		person("Yanling", "Li"),
+#		person("Linying", "Ji"),
+#		person("Zita", "Oravecz"),
+#		person(c("Timothy", "R."), "Brick"),
+#		person(c("Michael", "D."), "Hunter"),
+#		person("Sy-Miin", "Chow")),
+#	journal = "International Journal of Computer, Electrical, Automation, Control and Information Engineering",
+#	volume = "13",
+#	year  = "2019",
+#	pages = "302-311",
+#	doi = "",
+#	textVersion = paste("Yanling Li,", "Linying Ji,", "Zita Oravecz,", "Timothy R. Brick,", "Michael D. Hunter,", "and Sy-Miin Chow.",
+#		"(2019).",
+#		"dynr.mi: An R Program for Multiple Imputation in Dynamic Modeling.",
+#		"International Journal of Computer, Electrical, Automation, Control and Information Engineering,",
+#		"13, 302-311."))
+
