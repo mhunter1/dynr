@@ -1227,7 +1227,7 @@ EstimateRandomAsLV<- function(dynrModel){
 
   model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=dynrModel@data,
-                    outfile='00.c')
+                    outfile=tempfile())
   #print('model')
 
   fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
@@ -1314,7 +1314,7 @@ EstimateRandomAsLV<- function(dynrModel){
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data,
-                    outfile="VanDerPol2_.c")
+                    outfile=tempfile())
   #print('model2')					
   
   
