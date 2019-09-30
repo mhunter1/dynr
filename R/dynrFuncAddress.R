@@ -8,7 +8,7 @@
 .C2funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
 
   #-------Set some variables: This function may later be extended----------
-  language="C++"
+  language="C"
   #-------Get the full name of the library----------
   if ( .Platform$OS.type == "windows" ) outfile <- gsub("\\\\", "/", outfile)
   libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
@@ -66,8 +66,10 @@ CompileCode <- function(code, language, verbose, libLFile) {
 
     ## windows gsl flags
     LIB_GSL <- Sys.getenv("LIB_GSL")
-    gsl_cflags <- sprintf( "-I%s/include", LIB_GSL)
-    gsl_libs   <- sprintf( "-L%s/lib/%s -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
+    LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+    LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
+    gsl_cflags <- sprintf( "-I\"%s/include\"", LIB_GSL)
+    gsl_libs   <- sprintf( "-L\"%s/lib/%s\" -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
   }else {
     ## UNIX-alike build
 

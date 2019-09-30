@@ -10,8 +10,7 @@ require(dynr)
 
 # ---- Read in the data ----
 data(RSPPsim)
-useIds <- 1:10
-data <- dynr.data(RSPPsim[RSPPsim$id %in% useIds, ], id = "id", time = "time",
+data <- dynr.data(RSPPsim, id = "id", time = "time",
     observed = c("x", "y"), covariate = "cond")
 
 # ---- Prepare the recipes (i.e., specifies modeling functions) ----
@@ -31,10 +30,10 @@ meas <- prep.measurement(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-    values.inistate = rep(list(c(3, 1)), 2),
-    params.inistate = rep(list(c("fixed", "fixed")), 2),
-    values.inicov = rep(list(diag(c(0.01, 0.01))), 2),
-    params.inicov = rep(list(diag("fixed", 2)), 2),
+    values.inistate = c(3, 1),
+    params.inistate = c("fixed", "fixed"),
+    values.inicov = diag(c(0.01, 0.01)),
+    params.inicov = diag("fixed", 2),
     values.regimep = c(.8473, 0), #initial regime log odds
     params.regimep = c("fixed", "fixed"))
 
@@ -112,14 +111,6 @@ res <- dynr.cook(model, verbose = FALSE)
 
 # Examine results
 summary(res)
-
-
-big_params <- c(a=1.985016, b=3.973195, c=0.994044, d=0.991659, e=0.230407, f=4.947956,
-	var_epsilon=0.253479, int_1=-2.616825, int_2=0.000000, spl_1=2.171486, slp_2=3.762120)
-cbind(est_params=coef(res), big_params=big_params)
-
-testthat::expect_true(sqrt(mean((coef(res) - big_params)^2)) < 0.08)
-
 
 #Plot of model equations in terms of parameter names
 plotFormula(model, ParameterAs = names(model)) +

@@ -347,3 +347,147 @@ NULL
 ##' #write.table(yeall,'PFAsim.txt',row.names=FALSE,
 ##' #  col.names=c("ID", "Time", paste0("V", 1:ny), paste0("F", 1:ne)))
 NULL
+
+##' Simulated time series data for detecting outliers.
+##' 
+##' This is a list object containing true outliers, the dataset, and the saved result from running dynr.taste.
+##' 
+##' The true outliers for observed variables are saved in `Outliers$generated$shockO'.
+##' \itemize{
+##'   \item id. Six outliers were added for each ID. 
+##'   \item time_O. Time points where the outliers were added.
+##'   \item obs. Variable indices where the outliers were added.
+##'   \item shock.O. The magnitude of outliers.
+##' }
+##' 
+##' The true outliers for state variables are saved in `Outliers$generated$shockL'.
+##' \itemize{
+##'   \item id. Three outliers were added for each ID. 
+##'   \item time_L. Time points where the outliers were added.
+##'   \item lat. Variable indices where the outliers were added.
+##'   \item shock.L. The magnitude of outliers.
+##' }
+##' 
+##' A dataset simulated based on state-space model including the outliers. The data is saved in `Outliers$generated$y'.
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. ID of the systems (1 to 100)
+##'   \item times. Time indices (100 time points for each participant)
+##'   \item V1 - V6. observed variables
+##' }
+##' 
+##' The detected innovative outliers from dynr.taste for this dataset, which is used for testing whether the dynr.taste replicate the same result. The data is saved in `Outliers$detect_O'.
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. IDs
+##'   \item time_L. Time points where the outliers were detected
+##'   \item obs. Variable indices for observed variables where the outliers were detected
+##' }
+##' 
+##' The detected additive outliers from dynr.taste for this dataset, which is used for testing whether the dynr.taste replicate the same result. The data is saved in `Outliers$detect_L'.
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. IDs
+##'   \item time_L. Time points where the outliers were detected
+##'   \item obs. Variable indices for latent variables where the outliers were detected
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name Outliers
+##' @usage data(Outliers)
+##' @format A data frame with 6000 rows and 6 variables
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' # lambda <- matrix(c(1.0, 0.0,
+##' # 0.9, 0.0,
+##' # 0.8, 0.0,
+##' # 0.0, 1.0,
+##' # 0.0, 0.9,
+##' # 0.0, 0.8), ncol=2, byrow=TRUE)
+##' # psi <- matrix(c(0.3, -0.1,
+##' #                 -0.1, 0.3), ncol=2, byrow=TRUE)
+##' # beta <- matrix(c(0.8, -0.2,
+##' #                  -0.2,  0.7), ncol=2, byrow=TRUE)
+##' # theta <- diag(c(0.2, 0.2, 0.2, 0.2, 0.2, 0.2), ncol=6, nrow=6)
+##' # nlat <- 2; nobs <- 6
+##' # mean_0 <- rep(0, nlat)
+##' # psi_inf <- diag(1, 2*2) - kronecker(beta, beta)
+##' # psi_inf_inv <- try(solve(psi_inf), silent=TRUE)
+##' # if(class(psi_inf_inv) == "try-error") {
+##' #   psi_inf_inv <- MASS::ginv(psi_inf)}
+##' # psi_0 <- psi_inf_inv %*% as.vector(psi)
+##' # dim(psi_0) <- c(2, 2)
+##' # # measurement error covariance matrix
+##' # mea_cov <- lambda %*% psi_0 %*% t(lambda) + theta
+##' # resL <- lapply(1:100, function(subj) {
+##' #   # initial state
+##' #   eta_0 <- mvtnorm::rmvnorm(1, mean=mean_0, sigma=psi_0)#[1,nlat]
+##' #   zeta_0 <- mvtnorm::rmvnorm(1, mean=rep(0, nlat), sigma=psi)
+##' #   eta <- matrix(0, nrow=time, ncol=nlat)
+##' #   eta[1, ] <- beta %*% t(eta_0) + t(zeta_0) 
+##' #   zeta <- mvtnorm::rmvnorm(time, mean=rep(0, nlat), sigma=psi)
+##' #   # random shock generation
+##' #   # to avoid shock appearing too early or late (first and last 3)
+##' #   shkLat_time <- sample(4:(time-3), nshockLat)
+##' #   shk_lat <- sample(1:nlat, nshockLat, replace=TRUE)
+##' #   shockLatIdx <- matrix(c(shkLat_time, shk_lat), ncol=2)
+##' #   shockSignL <- sample(c(1,-1), nshockLat, replace=TRUE)
+##' #   colnames(shockLatIdx) <- c("time_L","lat")
+##' #   shockLatV <- shockSignL*( shockMag*sqrt(diag(shockPsi)))[shockLatIdx[,"lat"]]
+##' #   shockLatM <- matrix(0, time, nlat)
+##' #   shockLatM[shockLatIdx] <- shockLatV
+##' #   shkObs_time <- sample(4:(time-3), nshockObs)
+##' #   shk_obs <- sample(1:nobs, nshockObs, replace=TRUE)
+##' #   shockObsIdx <- matrix(c(shkObs_time, shk_obs), ncol=2)
+##' #   shockSignO <- sample(c(1,-1), nshockObs, replace=TRUE)
+##' #   colnames(shockObsIdx) <- c("time_O","obs")
+##' #   shockObsV <- shockSignO*( shockMag*sqrt(diag(mea_cov)) )[shockObsIdx[,"obs"]]
+##' #   shockObsM <- matrix(0, time, nobs)
+##' #   shockObsM[shockObsIdx] <- shockObsV
+##' #   # generate state process WITH shock
+##' #   for (t in 1:(time-1)) {
+##' #     eta[t+1, ] <- shockLatM[t, ] + beta %*% eta[t, ] + zeta[t, ]
+##' #   }
+##' #   # generate observed process
+##' #   y <- shockObsM + eta %*% t(lambda) +
+##' #     mvtnorm::rmvnorm(time, mean=rep(0, nobs), sigma=theta)# epsilon
+##' # }
+NULL
+
+##' Simulated time series data for multiple imputation in dynamic modeling.
+##' 
+##' A dataset simulated using a vector autoregressive (VAR) model of order 1 with 
+##' two observed variables and two covariates. Data are generated following 
+##' the simulation design illustrated by Ji and colleagues (2018). Specifically, 
+##' missing data are generated following the missing at random (MAR) condition under which 
+##' the probability of missingness in both dependent variables and covariates is conditioned
+##' on two completely observed auxiliary variables.   
+##' 
+##' The variables are as follows:
+##' \itemize{
+##'   \item ID. ID of the participant (1 to 100)
+##'   \item Time. Time index (100 time points from each subject)
+##'   \item ca. Covariate 1
+##'   \item cn. Covariate 2
+##'   \item wp. Dependent variable 1
+##'   \item hp. Dependent variable 2
+##'   \item x1. Auxiliary variable 1
+##'   \item x2. Auxiliary variable 2
+##' }
+##' 
+##' @references
+##' Ji, L., Chow, S-M., Schermerhorn, A.C., Jacobson, N.C., & Cummings, E.M. (2018). Handling 
+##' Missing Data in the Modeling of Intensive Longitudinal Data. Structural Equation Modeling: 
+##' A Multidisciplinary Journal, 1-22.
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name VARsim
+##' @usage data(VARsim)
+##' @format A data frame with 10000 rows and 8 variables
+NULL
