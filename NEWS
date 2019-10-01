@@ -1,3 +1,17 @@
+dynr 0.1.15-X
+--------------
+
+2019-10-01
+
+New features include:
+* Multiple imputation for missing data with dynr.mi() function
+* New demo for multiple imputation called MILinearDiscrete
+* New demo for time-varying parameters called SDETVP
+
+Bug fixes and performance tweaks include:
+* MAJOR BUG FIXES with missing data
+
+
 dynr 0.1.14-9
 --------------
 
