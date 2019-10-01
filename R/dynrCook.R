@@ -458,9 +458,9 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, ...) {
 
-    saem <- dynrModel@dynamics@saem
+    #saem <- dynrModel@dynamics@saem
 
 	
     frontendStart <- Sys.time()
@@ -643,6 +643,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
         return(output)
     }
+	else if (saem == FALSE && length(dynrModel$dynamics@theta.formula) > 0){
+		#get the initial values of b and startvars
+		fitted_model <- EstimateRandomAsLV(dynrModel)
+		coefEst <- coef(fitted_model)
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		print('Starting values:')
+		print(dynrModel@xstart)
+		if('b_est' %in% names(fitted_model))
+			b <- fitted_model@b_est
+		return(fitted_model)
+	}
     
     #internalModelPrep convert dynrModel to a model list
     model <- internalModelPrep(
@@ -1176,67 +1188,66 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
 }
 
 EstimateRandomAsLV<- function(dynrModel){
-  mdcov <- prep.noise(
-    values.latent=dynrModel@noise@values.latent,
-    params.latent=dynrModel@noise@params.latent,
-	values.observed=dynrModel@noise@values.observed,
-	params.observed=dynrModel@noise@params.observed
-  )
-  #print('mdcov')
-  #print(mdcov@params.latent)
-  #print(mdcov@params.observed)
+  # mdcov <- prep.noise(
+    # values.latent=dynrModel@noise@values.latent,
+    # params.latent=dynrModel@noise@params.latent,
+	# values.observed=dynrModel@noise@values.observed,
+	# params.observed=dynrModel@noise@params.observed
+  # )
+  # #print('mdcov')
+  # #print(mdcov@params.latent)
+  # #print(mdcov@params.observed)
   
 
-  meas <- prep.measurement(
-    values.load = dynrModel@measurement@values.load,
-    params.load = dynrModel@measurement@params.load,
-    obs.names = dynrModel@measurement@obs.names,
-    state.names = dynrModel@measurement@state.names
-  )
-  #print('meas')
+  # meas <- prep.measurement(
+    # values.load = dynrModel@measurement@values.load,
+    # params.load = dynrModel@measurement@params.load,
+    # obs.names = dynrModel@measurement@obs.names,
+    # state.names = dynrModel@measurement@state.names
+  # )
+  # #print('meas')
 
-  initial <- prep.initial(
-    values.inistate=dynrModel@initial@values.inistate,
-    params.inistate=dynrModel@initial@params.inistate,
-    values.inicov=dynrModel@initial@values.inicov, 
-    params.inicov=dynrModel@initial@params.inicov
-  )
-  #print('init')
+  # initial <- prep.initial(
+    # values.inistate=dynrModel@initial@values.inistate,
+    # params.inistate=dynrModel@initial@params.inistate,
+    # values.inicov=dynrModel@initial@values.inicov, 
+    # params.inicov=dynrModel@initial@params.inicov
+  # )
+  # #print('init')
   
-  # Formula processing:  
-  # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
-  # only retrieve the formula with state variables as LHS
-  formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
+  # # Formula processing:  
+  # # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
+  # # only retrieve the formula with state variables as LHS
+  # formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
   
-  # 2. If theta.formula exists, substitue the content of theta.formula is given
-  if(length(dynrModel@dynamics@theta.formula) > 0){
-      formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
-  }
+  # # 2. If theta.formula exists, substitue the content of theta.formula is given
+  # if(length(dynrModel@dynamics@theta.formula) > 0){
+      # formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
+  # }
   
-  # 3. Remove the random effect variables and intercept variables
-  formula <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})  
+  # # 3. Remove the random effect variables and intercept variables
+  # formula <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})  
 
   
-  dynm<-prep.formulaDynamics(
-    formula=unlist(formula),
-    startval=dynrModel@dynamics@startval,
-    isContinuousTime=dynrModel@dynamics@isContinuousTime,
-    beta.names=names(dynrModel@dynamics@startval)
-  )
-  #print('dynm')
+  # dynm<-prep.formulaDynamics(
+    # formula=unlist(formula),
+    # startval=dynrModel@dynamics@startval,
+    # isContinuousTime=dynrModel@dynamics@isContinuousTime,
+    # beta.names=names(dynrModel@dynamics@startval)
+  # )
+  # #print('dynm')
 
-  model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=dynrModel@data,
-                    outfile=tempfile())
-  #print('model')
+  # model <- dynr.model(dynamics=dynm, measurement=meas,
+                    # noise=mdcov, initial=initial, data=dynrModel@data,
+                    # outfile=tempfile())
+  # #print('model')
 
-  fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  #save(fitted_model, model, file = "fitted_model.RData")
-  #load("fitted_model.RData")
-  #print(coef(fitted_model))
-  coefEst = coef(fitted_model)
+  # fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
+  # #save(fitted_model, model, file = "fitted_model.RData")
+  # #load("fitted_model.RData")
+  # #print(coef(fitted_model))
+  # coefEst = coef(fitted_model)
   
-  #[TODO] the following part needs to be revised for multiple b_zeta
   
   # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
   if(.hasSlot(dynrModel@dynamics,'random.names')){
@@ -1248,19 +1259,22 @@ EstimateRandomAsLV<- function(dynrModel){
 	#print(paste("New state variables to be estimated:", state.names2))
   }
   else{
-    print("There is no random effect variables to be estimated. Initial value estimates are done.")
+    stop("There is no random effect variables to be estimated. Initial value estimates are done.")
 	#return(list(coefEst=coefEst))
-	return(fitted_model)
+	return(list())
   }
+  
+  
   
   # If there is random effect to be estimated, set up a new model
   mdcov2 <- prep.noise(
     values.latent=diag(0, length(state.names2)),
     params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
-    values.observed=diag(coef(fitted_model)[dynrModel@noise@paramnames],length(dynrModel@noise@paramnames)),
-    params.observed=diag(dynrModel@noise@paramnames, length(dynrModel@noise@paramnames))
+	values.observed=dynrModel@noise@values.observed[[1]],
+	params.observed=dynrModel@noise@params.observed[[1]]
   )
   
+
   num.y = length(dynrModel@measurement@obs.names)
   #lambda matrix
   meas2 <- prep.measurement(
@@ -1278,24 +1292,22 @@ EstimateRandomAsLV<- function(dynrModel){
   num.state = length(dynrModel@measurement@state.names)
   num.state2 = length(state.names2) 
   values.inicov = diag(1, length(state.names2))
-  values.inicov[1:num.state,1:num.state] = matrix(coef(fitted_model)[dynrModel@initial@params.inicov[[1]]],nrow=nrow(dynrModel@initial@params.inicov[[1]]),ncol=ncol(dynrModel@initial@params.inicov[[1]]))
+  values.inicov[1:num.state,1:num.state] = dynrModel@initial@values.inicov[[1]]
   values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
   params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
   params.inicov[1:num.state,1:num.state]  = dynrModel@initial@params.inicov[[1]]
   params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
-  #print(values.inicov)
-  #print(params.inicov)
-
+  
   initial2 <- prep.initial(
-    values.inistate=c(coef(fitted_model)[as.vector(dynrModel@initial@params.inistate[[1]])], 0),
-    params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), 0),
+    values.inistate=c(as.vector(dynrModel@initial@values.inistate[[1]]), rep(0, num.state2 - num.state)),
+    params.inistate=c(as.vector(dynrModel@initial@params.inistate[[1]]), rep("fixed", num.state2 - num.state)),
     values.inicov=values.inicov, 
     params.inicov=params.inicov)
 
   # Formula processing:  
   # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
   # only retrieve the formula with state variables as LHS
-  formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
+  formula <- list(dynrModel@dynamics@formulaOriginal[[1]][1:length(dynrModel@measurement@state.names)])
   
   # 2. If theta.formula exists, substitue the content of theta.formula is given
   if(length(dynrModel@dynamics@theta.formula) > 0){
@@ -1310,7 +1322,7 @@ EstimateRandomAsLV<- function(dynrModel){
   dynm2<-prep.formulaDynamics(formula=unlist(formula),
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
-  #print('dynm2')						
+  #print(dynm2@theta.formula)						
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data,
@@ -1318,9 +1330,9 @@ EstimateRandomAsLV<- function(dynrModel){
   #print('model2')					
   
   
-  model2@xstart[names(dynrModel@dynamics@startval)] <- coef(fitted_model)[names(dynrModel@dynamics@startval)]
-  lambda.names <- setdiff(unique(as.vector(dynrModel@measurement@params.load[[1]])), c("fixed",0))
-  model2@xstart[lambda.names] = coef(fitted_model)[lambda.names] 
+  #model2@xstart[names(dynrModel@dynamics@startval)] <- coef(fitted_model)[names(dynrModel@dynamics@startval)]
+  #lambda.names <- setdiff(unique(as.vector(dynrModel@measurement@params.load[[1]])), c("fixed",0))
+  #model2@xstart[lambda.names] = coef(fitted_model)[lambda.names] 
   
   fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
@@ -1331,17 +1343,17 @@ EstimateRandomAsLV<- function(dynrModel){
   #-----
   
   #library('plyr')
-  locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
+  #locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
   
   #print('locc')
   #print(locc)
 
   #Get estimates for bzeta from fitted_model2 and use them as estimates for b
-  bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
-  fitted_model2@b_est = bEst
+  #bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
+  #fitted_model2@b_est = bEst
   
-  coefEst = coef(fitted_model2)
-  print(coefEst) 
+  #coefEst = coef(fitted_model2)
+  #print(coefEst) 
 
   
   #print(bEst) 

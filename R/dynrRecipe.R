@@ -2340,13 +2340,11 @@ autojacob <- function(formula, n, diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
-#state.names, theta.formula, theta.names, beta.names
-#function(formula, startval = numeric(0), isContinuousTime=FALSE, saem=FALSE,state.names, theta.formula, theta.names, jacobian, dfdtheta, dfdx2, dfdxdtheta, dfdthetadx, dfdtheta2)
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ..., saem = FALSE){
   dots <- list(...)
  
- # If 'theta.formula' are given, saem is TRUE
-  saem <- ('theta.formula' %in% names(dots))	
+  # If 'theta.formula' are given, saem is TRUE
+  #saem <- ('theta.formula' %in% names(dots))	
   #print(paste('SAEM :', saem))
   
   if(length(dots) > 0){
@@ -2357,7 +2355,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     state.names <- dots$state.names
     #beta.names <- dots$beta.names
     theta.formula <- dots$theta.formula
-    random.names <- dots$random.names
+    #random.names <- dots$random.names
     random.ub <-dots$random.ub
     random.lb <-dots$random.lb
 	random.params.inicov <- dots$random.params.inicov
@@ -2373,9 +2371,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
   }
-  #if( length(beta.names) != length(names(startval)) || !all(beta.names == names(startval), TRUE)){
-  #    stop('the variables in startval must be specified following the same order of beta.names')
-  #}
+
   
   if(saem == TRUE){
     # processs the formula
@@ -2430,7 +2426,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   
   
     
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, saem=saem,...)
+  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, saem=saem, formulaOriginal=formula, ...)
   
 
   #jacobian = dfdx
@@ -2438,6 +2434,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	jacobian <- autojacobTry(formula2) #formula2: substitute the content within theta.formula to formula
   }
   x$jacobian <- jacobian
+  x$jacobianOriginal <- jacobian
   x$paramnames<-names(x$startval)
   
   if(saem == FALSE)

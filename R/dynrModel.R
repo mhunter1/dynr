@@ -543,11 +543,10 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
-dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
+dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile(), saem = FALSE){
   # check the order of the names
   if (class(dynamics) == "dynrDynamicsFormula"){
-    saem <- dynamics$saem
-	#print(paste0("saem in dynr.model:" , saem))
+    #saem <- dynamics$saem
 	
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
@@ -634,7 +633,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
-  if(saem == FALSE){
+  if(saem == FALSE && length(inputs$dynamics@theta.formula) == 0){
 	  if(any(sapply(inputs, class) %in% 'dynrTrans')){
 		inputs$transform<-createRfun(inputs$transform, param.data, 
 									 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
@@ -809,8 +808,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # writeCcode on each recipe
   if(saem==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-    inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
-    inputs <- sapply(inputs, writeCcode, data$covariate.names)
+	if(length(dynamics@theta.formula) == 0){ # original dynr
+		inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+		inputs <- sapply(inputs, writeCcode, data$covariate.names)
+	}
   } else if(saem==TRUE){
     inputs <- sapply(inputs, writeArmadilloCode, covariate.names)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
@@ -824,7 +825,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #initiate a dynrModel object
   if(saem==FALSE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+    #if(length(dynm@theta.formula) == 0){
+      obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+	#}
+	#else{
+	#  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
+	#}
   }
   else if(saem==TRUE){
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
