@@ -47,9 +47,9 @@ meas <- prep.measurement(
 	values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
-    state.names=state.names,
-	values.int=c(3, 1, 0),
-	params.int=intercept.names) #intercept.names = c('mu1', 'mu2', 'mu3')
+    state.names=state.names) #,
+	#values.int=c(3, 1, 0),
+	#params.int=intercept.names) #intercept.names = c('mu1', 'mu2', 'mu3')
 
 
 initial <- prep.initial(
