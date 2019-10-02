@@ -2340,15 +2340,15 @@ autojacob <- function(formula, n, diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ..., saem = FALSE){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
  
   # If 'theta.formula' are given, saem is TRUE
   #saem <- ('theta.formula' %in% names(dots))	
   #print(paste('SAEM :', saem))
-  
+  saem <- FALSE # default: call original dynr
   if(length(dots) > 0){
-    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub', 'random.params.inicov', 'random.values.inicov'))){
+    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub', 'random.params.inicov', 'random.values.inicov', 'saem'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
     #if(length(dots) == 5){
@@ -2361,6 +2361,14 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	random.params.inicov <- dots$random.params.inicov
 	random.values.inicov <- dots$random.values.inicov
 	#}
+	
+	#obtaining saem option
+	if('saem' %in% names(dots)){
+		saem <- dots$saem
+	}
+	else{
+		saem <- FALSE
+	}
   }
   
   state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))

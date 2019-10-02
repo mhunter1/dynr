@@ -458,7 +458,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, saem=FALSE, ...) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
 
     #saem <- dynrModel@dynamics@saem
 
@@ -475,9 +475,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     }
     
 	dots <- list(...)
+	saem <- FALSE  #default: saem is FALSE (calling original dynr)
 	if(length(dots) > 0){
-	  saemp <-dots$saemp
-	  #print(saemp)
+	  #obtaining saem parameters
+	  if('saemp' %in% names(dots)){
+	    saemp <-dots$saemp
+	  }
+	  
+	  #obtaining saem option
+	  if('saem' %in% names(dots)){
+        saem <- dots$saem
+      }
 	}
 	else{
 	  if(saem == TRUE){
