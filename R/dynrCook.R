@@ -1187,68 +1187,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
   return(r)
 }
 
-EstimateRandomAsLV<- function(dynrModel){
-  # mdcov <- prep.noise(
-    # values.latent=dynrModel@noise@values.latent,
-    # params.latent=dynrModel@noise@params.latent,
-	# values.observed=dynrModel@noise@values.observed,
-	# params.observed=dynrModel@noise@params.observed
-  # )
-  # #print('mdcov')
-  # #print(mdcov@params.latent)
-  # #print(mdcov@params.observed)
-  
-
-  # meas <- prep.measurement(
-    # values.load = dynrModel@measurement@values.load,
-    # params.load = dynrModel@measurement@params.load,
-    # obs.names = dynrModel@measurement@obs.names,
-    # state.names = dynrModel@measurement@state.names
-  # )
-  # #print('meas')
-
-  # initial <- prep.initial(
-    # values.inistate=dynrModel@initial@values.inistate,
-    # params.inistate=dynrModel@initial@params.inistate,
-    # values.inicov=dynrModel@initial@values.inicov, 
-    # params.inicov=dynrModel@initial@params.inicov
-  # )
-  # #print('init')
-  
-  # # Formula processing:  
-  # # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
-  # # only retrieve the formula with state variables as LHS
-  # formula <- list(dynrModel@dynamics@formula[[1]][1:length(dynrModel@measurement@state.names)])
-  
-  # # 2. If theta.formula exists, substitue the content of theta.formula is given
-  # if(length(dynrModel@dynamics@theta.formula) > 0){
-      # formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
-  # }
-  
-  # # 3. Remove the random effect variables and intercept variables
-  # formula <- lapply(formula, function(x){prep.thetaFormula(x, dynrModel@measurement@params.int, dynrModel@dynamics@random.names)})  
-
-  
-  # dynm<-prep.formulaDynamics(
-    # formula=unlist(formula),
-    # startval=dynrModel@dynamics@startval,
-    # isContinuousTime=dynrModel@dynamics@isContinuousTime,
-    # beta.names=names(dynrModel@dynamics@startval)
-  # )
-  # #print('dynm')
-
-  # model <- dynr.model(dynamics=dynm, measurement=meas,
-                    # noise=mdcov, initial=initial, data=dynrModel@data,
-                    # outfile=tempfile())
-  # #print('model')
-
-  # fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, saem=FALSE)
-  # #save(fitted_model, model, file = "fitted_model.RData")
-  # #load("fitted_model.RData")
-  # #print(coef(fitted_model))
-  # coefEst = coef(fitted_model)
-  
-  
+EstimateRandomAsLV<- function(dynrModel){  
   # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
