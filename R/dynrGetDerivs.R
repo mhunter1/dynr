@@ -107,3 +107,100 @@ getdx <- function(theTimes,norder,roughPenaltyMax,lambda,dataMatrix,derivOrder){
   return(list(out,basisCoef,basis2))
 }
 
+
+#---- Functions by Marco Bachl to perform Johnson-Neyman and plots of simple slopes/region of significance ----
+#at https://rpubs.com/bachl/jn-plot
+#Function to implement the Johnson-Neyman technique
+jnt <- function(.lm, predictor, moderator, alpha=.05) {
+  b1 = coef(.lm)[predictor]
+  b3 = coef(.lm)[stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor))]
+  se_b1 = coef(summary(.lm))[predictor, 2]
+  se_b3 = coef(summary(.lm))[stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor)), 2]
+  print(paste0("b1 = ", b1))
+  print(paste0("\nb3 = ", b3))
+  print(paste0("\nseb1 = ", se_b1))
+  print(paste0("seb3 = ", se_b3))
+  COV_b1b3 = vcov(.lm)[predictor, stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor))]
+  t_crit = qt(1-alpha/2, .lm$df.residual)
+  # see Bauer & Curran, 2005
+  a = t_crit^2 * se_b3^2 - b3^2
+  b = 2 * (t_crit^2 * COV_b1b3 - b1 * b3)
+  c = t_crit^2 * se_b1^2 - b1^2
+  jn = c(
+    (-b - sqrt(b^2 - 4 * a * c)) / (2 * a),
+    (-b + sqrt(b^2 - 4 * a * c)) / (2 * a)
+  )
+  JN = sort(unname(jn))
+  JN = JN[JN>=min(.lm$model[,moderator]) & JN<=max(.lm$model[,moderator])]
+  JN
+}
+
+##' A Function to plot simple slopes and region of significance.
+##' @param .lm A regression object from running a linear model of the form: 
+##' lm(y~ x1+x2+x1:x2), yielding: y = b0 + b1*x1 + b2*x2 + b3*x1*x2 + residual. 
+##' In this case, one may rewrite the lm as y = b0 + (b1+b3*x2)*x1 + b2*x2 + residual,
+##' where (b1+b3*x2) is referred to as the simple slope of x1, x1 is the predictor,
+##' and x2 is the moderator whose values yield different simple slope values for x1. 
+##' @param predictor The independent variable for which simple slope is requested
+##' @param moderator The moderator whose values affect the simple slopes of the predictor. 
+##' Appears on the horizontal axis.
+##' @param alpha The designated alpha level for the Johnson-Neyman technique
+##' @params jn A binary flag requesting the Johnson-Neyman test (T or F)
+##' @params title0 Title for the plot
+##' @params predictorLab Label for the predictor
+##' @params moderatorLab Label for the moderator
+##' 
+##' @return A region of significance plot with simple slopes of the predictor on
+##' the vertical axis, and values of the moderator on the horizontal axis.
+##' 
+##' @references 
+##' Adapted from functions written by Marco Bachl to perform the Johnson-Neyman test 
+##' and produce a plot of simple slopes and region of significance available at:
+##' https://rpubs.com/bachl/jn-plot
+##' 
+##' @examples
+##' # g = lm(y~x1:x2,data=data) 
+##' # theta_plot(g, predictor = "x1", moderator = "x2", 
+##' #           alpha = .05, jn = T, title0=" ",
+##' #           predictorLab = "x1", moderatorLab = "x2")
+theta_plot <- function(.lm, predictor, moderator, 
+                       alpha=.05, jn=F,title0,
+                       predictorLab, moderatorLab) {
+  theme_set(theme_minimal())
+  .data = tibble::tibble(b1 = coef(.lm)[predictor],
+                     b3 = coef(.lm)[stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor))],
+                     Z = quantile(.lm$model[,moderator], seq(0,1,.01)),
+                     theta = b1 + Z * b3,
+                     se_b1 = coef(summary(.lm))[predictor, 2],
+                     COV_b1b3 = vcov(.lm)[predictor, stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor))],
+                     se_b3 = coef(summary(.lm))[stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor)), 2],
+                     se_theta = sqrt(se_b1^2 + 2 * Z * COV_b1b3 + Z^2 * se_b3^2),
+                     ci.lo_theta = theta+qt(alpha/2, .lm$df.residual)*se_theta,
+                     ci.hi_theta = theta+qt(1-alpha/2, .lm$df.residual)*se_theta)
+  if (jn) {
+    JN = jnt(.lm=.lm, predictor=predictor, moderator=moderator, alpha=alpha)
+    JN_lines = geom_vline(xintercept=JN, linetype=2)
+    JN_regions = ifelse(length(JN) == 0, 
+                        "no significance regions or \nentire range of the moderator is in the significance region", 
+                        paste(round(JN,2), collapse = "; "))
+    Xlab = paste0(moderatorLab, " (JN Significance Regions: ", JN_regions,")")
+  }
+  else {
+    Xlab = moderator
+    JN_lines = NULL
+  }
+ # .data magrittr::%>%
+    ggplot(.data,aes(Z, theta, ymin=ci.lo_theta, ymax=ci.hi_theta)) + 
+    geom_ribbon(alpha = .2) + geom_line() + 
+    ggtitle(paste(title0, "Simple slope of", predictorLab, 
+                  "as function of", moderatorLab)) + 
+    geom_hline(yintercept=0, linetype=2) + 
+    labs(x = Xlab, y= "Simple slope") + 
+    JN_lines +
+    theme(axis.text=element_text(size=13),
+          axis.title=element_text(size=14,face="bold"))
+  
+}
+
+
+
