@@ -493,7 +493,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  }
 	}
 	
-		
+	#print(names(dynrModel$dynamics))
+    #print(.hasSlot(dynrModel$dynamics, 'theta.formula'))	
     if(saem==TRUE){
 		#InfDS.Sigmab					
 		#print(dynrModel$random.values.inicov)
@@ -651,7 +652,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
         return(output)
     }
-	else if (saem == FALSE && length(dynrModel$dynamics@theta.formula) > 0){
+	else if (saem == FALSE && .hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0){
 		#get the initial values of b and startvars
 		fitted_model <- EstimateRandomAsLV(dynrModel)
 		coefEst <- coef(fitted_model)
@@ -681,6 +682,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     libname <- model$libname
     model$libname <- NULL
     
+	
     
     
     model <- combineModelDataInformation(model, data)

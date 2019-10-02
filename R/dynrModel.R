@@ -642,7 +642,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
-  if(saem == FALSE && length(inputs$dynamics@theta.formula) == 0){
+  if(saem == FALSE || !('theta.formula' %in% names(inputs$dynamics))){
 	  if(any(sapply(inputs, class) %in% 'dynrTrans')){
 		inputs$transform<-createRfun(inputs$transform, param.data, 
 									 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
@@ -814,10 +814,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), "\nNumber of regimes must be 1 or ", max(all.regimes), "\n", "On Wednesdays we wear pink!"))
   }
   
+
   # writeCcode on each recipe
   if(saem==FALSE){
     # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-	if(length(dynamics@theta.formula) == 0){ # original dynr
+	if(!('theta.formula' %in% names(dynamics))){ # original dynr
 		inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
 		inputs <- sapply(inputs, writeCcode, data$covariate.names)
 	}
