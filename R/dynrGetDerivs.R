@@ -145,10 +145,10 @@ jnt <- function(.lm, predictor, moderator, alpha=.05) {
 ##' @param moderator The moderator whose values affect the simple slopes of the predictor. 
 ##' Appears on the horizontal axis.
 ##' @param alpha The designated alpha level for the Johnson-Neyman technique
-##' @params jn A binary flag requesting the Johnson-Neyman test (T or F)
-##' @params title0 Title for the plot
-##' @params predictorLab Label for the predictor
-##' @params moderatorLab Label for the moderator
+##' @param jn A binary flag requesting the Johnson-Neyman test (T or F)
+##' @param title0 Title for the plot
+##' @param predictorLab Label for the predictor
+##' @param moderatorLab Label for the moderator
 ##' 
 ##' @return A region of significance plot with simple slopes of the predictor on
 ##' the vertical axis, and values of the moderator on the horizontal axis.
