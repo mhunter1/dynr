@@ -3090,7 +3090,10 @@ gslcovariate.front <- function(selected, covariates){
 
 
 
-#parseFormulaTheta: retrieve the LHS and RHS of the theta.formula
+
+##' A internal-use function for retrieving the LHS and RHS of the theta.formula
+##' @param formula the formula 
+##' @param theta.formula the theta formula
 parseFormulaTheta <- function(formula, theta.formula){
 	#fun
     fml=lapply(formula, as.character)
@@ -3116,7 +3119,11 @@ parseFormulaTheta <- function(formula, theta.formula){
 }
 
 
-#function for parsing theta.formula (remove intercept terms and random names) 
+ 
+##' A internal-use function for removing intercept terms and random names in the formula 
+##' @param formula the formula that are going to be processed
+##' @param intercept.names variables that are going to be removed if it appears in formula
+##' @param random.names variables that are going to be removed if it appears in formula
 prep.thetaFormula <- function(formula, intercept.names, random.names){
     if(length(formula) == 0)
 	  return(list())
