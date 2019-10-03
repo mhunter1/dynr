@@ -34,7 +34,9 @@ man/dynrRegimes-class.Rd
 man/dynrTrans-class.Rd
 man/EMG.Rd
 man/EMGsim.Rd
+man/getdx.Rd
 man/internalModelPrep.Rd
+man/LinearOsc.Rd
 man/LogisticSetPointSDE.Rd
 man/logLik.dynrCook.Rd
 man/names-dynrCook-method.Rd
@@ -44,9 +46,11 @@ man/nobs.dynrModel.Rd
 man/NonlinearDFAsim.Rd
 man/Oscillator.Rd
 man/Outliers.Rd
+man/parseFormulaTheta.Rd
 man/PFAsim.Rd
 man/plot.dynrCook.Rd
 man/plotFormula.Rd
+man/plotGCV.Rd
 man/PPsim.Rd
 man/prep.formulaDynamics.Rd
 man/prep.initial.Rd
@@ -56,9 +60,11 @@ man/prep.measurement.Rd
 man/prep.noise.Rd
 man/prep.regimes.Rd
 man/prep.tfun.Rd
+man/prep.thetaFormula.Rd
 man/printex.Rd
 man/RSPPsim.Rd
 man/summary.dynrCook.Rd
+man/theta_plot.Rd
 man/TrueInit_Y1.Rd
 man/TrueInit_Y14.Rd
 man/VARsim.Rd
