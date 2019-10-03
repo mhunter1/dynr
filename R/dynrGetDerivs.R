@@ -202,5 +202,3 @@ theta_plot <- function(.lm, predictor, moderator,
   
 }
 
-
-
