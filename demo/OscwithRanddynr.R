@@ -34,7 +34,7 @@ initial <- prep.initial(
     values.inicov=matrix(c(20, 0,
                             0, 5), ncol=2, byrow=TRUE), 
     params.inicov=matrix(c( 'v_x0','fixed',
-                           'fixed','v_dx0'), ncol=2, byrow=T))
+                           'fixed','v_dx0'), ncol=2, byrow=TRUE))
 
 # Noises
 mdcov <- prep.noise(
@@ -44,7 +44,7 @@ mdcov <- prep.noise(
     params.observed=diag("var_e", 1))
 
 
-# dynamics	
+# Dynamics	
 formula = list(x ~ dx,
                dx ~ eta_i * x + zeta*dx)
 
@@ -64,7 +64,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 							
 # -----Cooking materials ----
 
-# Put all the recipes together in a Model Specification
+# Put all the recipes together in a model specification
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,
                     outfile="osc.cpp")
