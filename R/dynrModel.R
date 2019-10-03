@@ -597,13 +597,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
-  if('armadillo' %in% names(inputs)){inputs$armadillo <- NULL}
-  # beginning of new version to actually process the 'options' argument correctly
-  #  # gather inputs
-  #  extraArg <- list(...)
-  #  extraNames <- match.arg(names(extraArg), c('options', 'regimes', 'transform'), several.ok=TRUE)
-  #  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
-  #  if('armadillo' %in% names(inputs)){inputs$armadillo <- NULL}
+  
 
   # Figure out what the unique parameters are
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))

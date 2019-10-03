@@ -89,7 +89,17 @@ setClass(Class = "dynrDynamicsFormula",
            jacobian = "list",
            formulaOriginal = "list",
            jacobianOriginal = "list",
-           isContinuousTime = "logical"
+
+
+		   random.names = "character",
+
+		   theta.formula = "list",
+
+           isContinuousTime = "logical",
+
+		   saem = "logical",
+		   random.params.inicov="matrix",
+		   random.values.inicov="matrix"
            ),
          contains = "dynrDynamics"
 )
@@ -632,7 +642,6 @@ setGeneric("writeCcode",
            })
 
 
-
 setMethod("writeCcode", "dynrMeasurement",
 	function(object, covariates){
 		values.load <- object$values.load
@@ -728,6 +737,7 @@ setMethod("writeCcode", "dynrDynamicsFormula",
 			ret <- paste0(ret, cswapDynamicsFormulaLoop(nregime=nregime, n=nj, lhs=lhs, rhs=rhsj, target1='gsl_vector_get(xstart, ', close=')', target2='gsl_matrix_set(Jx, ', row=row, col=col))
 			
 		} # end discrete time ifelse
+	  #browser()
 		object@c.string <- ret
 		return(object)
 	}
@@ -890,6 +900,7 @@ setMethod("writeCcode", "dynrDynamicsMatrix",
 				"}\n\n",
 				sep="\n")
 		}
+		
 		object@c.string <- ret
 		return(object)
 	}
@@ -2270,7 +2281,32 @@ autojacob<-function(formula,n){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
+  dots <- list(...)
+
+
+  if(length(dots) > 0){
+    if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
+      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+    }
+	
+	if('theta.formula' %in% names(dots))
+      theta.formula <- dots$theta.formula
+	if('random.names' %in% names(dots))  
+      random.names <- dots$random.names
+    if('random.params.inicov' %in% names(dots))
+      random.params.inicov <- dots$random.params.inicov
+	if('random.values.inicov' %in% names(dots))
+	  random.values.inicov <- dots$random.values.inicov
+
+
+  }
+  
+  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+  if(length(startval) > 0){
+    beta.names = names(startval)
+  }
+ 	
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector')
   }
@@ -2298,7 +2334,16 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$jacobian <- jacobian
   x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobian
-  x$paramnames<-names(x$startval)
+  x$paramnames <-names(x$startval)
+
+  if('theta.formula' %in% names(dots))
+    x$theta.formula <- theta.formula
+  if('random.names' %in% names(dots))
+    x$random.names <- random.names
+  if('random.params.inicov' %in% names(dots))
+    x$random.params.inicov <- random.params.inicov
+  if('random.values.inicov' %in% names(dots))
+    x$random.values.inicov <- random.values.inicov
   return(new("dynrDynamicsFormula", x))
 }
 
@@ -3038,4 +3083,65 @@ gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, fromFill="", toFill=
 gslcovariate.front <- function(selected, covariates){
 	gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
 }
+
+#------------------------------------------------------------------------------
+# functions that are used in only SAEM
+
+
+
+#parseFormulaTheta: retrieve the LHS and RHS of the theta.formula
+parseFormulaTheta <- function(formula, theta.formula){
+	#fun
+    fml=lapply(formula, as.character)
+	lhs=lapply(fml,function(x){x[[2]]})
+	rhs=lapply(fml,function(x){x[[3]]})
+	
+	#thetai
+	fmlt=lapply(theta.formula, as.character)
+	lhst=lapply(fmlt,function(x){x[[2]]})
+	rhst=lapply(fmlt,function(x){x[[3]]})
+
+	for(i in 1:length(formula)){
+	    formula[[i]]=as.character(formula[[i]])
+	    for (j in 1:length(lhst)){
+    		# gsub (a, b, c) : in c replace a with b
+    		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
+	    }
+	    formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+	}
+    
+
+	return(formula)
+}
+
+
+#function for parsing theta.formula (remove intercept terms and random names) 
+prep.thetaFormula <- function(formula, intercept.names, random.names){
+    if(length(formula) == 0)
+	  return(list())
+ 
+    fml=lapply(formula, as.character)
+    lhs=lapply(fml,function(x){x[[2]]})
+    rhs=lapply(fml,function(x){x[[3]]})
+    
+    for(i in 1:length(formula)){
+        formula[[i]]=as.character(formula[[i]])
+		if(length(intercept.names) > 0){
+			for (j in 1:length(intercept.names)){
+				rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+			}
+		}
+        
+		if(length(random.names) > 0){
+			for (j in 1:length(random.names)){
+				rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+			}
+		}
+        
+        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+    }
+    return(formula)
+}
+
+
 
