@@ -16,6 +16,7 @@ options(scipen=999)
 
 #Loading simulated data generated using the linear oscillator model
 data("LinearOsc")
+load('LinearOsc.rda')
 
 
 #Structure the one indicator for n individuals into a matrix with n columns

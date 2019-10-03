@@ -2211,6 +2211,7 @@ autojacob<-function(formula,n){
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
+##' @param ... Further named arguments
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.

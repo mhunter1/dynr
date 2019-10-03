@@ -958,7 +958,7 @@ EstimateRandomAsLV<- function(dynrModel){
   
   # 2. If theta.formula exists, substitue the content of theta.formula is given
   if(length(dynrModel@dynamics@theta.formula) > 0){
-      formula <- lapply(formula, function(x){parseFormulaTheta(x, theta.formula)})  
+      formula <- lapply(formula, function(x){parseFormulaTheta(x, dynrModel@dynamics@theta.formula)})  
   }
   
   #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]

@@ -5,7 +5,7 @@
 ##' @param norder Order of Bsplines - usually 2 higher than roughPenaltyMax
 ##' @param roughPenaltyMax  Penalization order. Usually set to 2 higher than the highest-order derivatives desired
 ##' @param dataMatrix Data of size total number of time points x  total number of subjects
-##' @param LowLambda Lower limit of lambda values to be tested. Here, lambda is a 
+##' @param lowLambda Lower limit of lambda values to be tested. Here, lambda is a 
 ##' positive smoothing parameter, with larger values resulting in greater smoothing)
 ##' @param upLambda Upper limit of lambda
 ##' @param lambdaInt The interval of lambda values to be tested.
@@ -167,6 +167,8 @@ theta_plot <- function(.lm, predictor, moderator,
                        alpha=.05, jn=F,title0,
                        predictorLab, moderatorLab) {
   theme_set(theme_minimal())
+  b1 = NULL; b3 = NULL; Z = NULL; theta = NULL; se_b1 = NULL; COV_b1b3 = NULL
+  se_b3 = NULL; se_theta = NULL; ci.lo_theta=NULL; ci.hi_theta = NULL
   .data = tibble::tibble(b1 = coef(.lm)[predictor],
                      b3 = coef(.lm)[stringi::stri_startswith_fixed(names(coef(.lm)), paste0(predictor,":")) | stringi::stri_endswith_fixed(names(coef(.lm)), paste0(":",predictor))],
                      Z = quantile(.lm$model[,moderator], seq(0,1,.01)),
