@@ -587,7 +587,7 @@ NULL
 ##' #  }
 ##' #  )
 ##' #}
-##' #n = 50 #Number of subjects
+##' #n = 10 #Number of subjects
 ##' #T = 100 #Number of time points
 ##' #deltaT = .1 #dt
 ##' #lastT = deltaT*T #Value of t_{i,T}
@@ -605,7 +605,7 @@ NULL
 ##' #  out1[(1+(i-1)*T):(i*T)] = out[,2]+rnorm(T,0,1)
 ##' #  }
 ##' #
-##' #out1 = data.frame(ID=rep(1:n,each=T),x=out1[,1],
+##' #LinearOsc= data.frame(ID=rep(1:n,each=T),x=out1[,1],
 ##' #                  theTimes=rep(theTimes,n))
-##' #save(out,file="LinearOsc.rda")
+##' #save(LinearOsc,file="LinearOsc.rda")
 NULL
