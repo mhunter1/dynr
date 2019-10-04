@@ -11,8 +11,8 @@ options(scipen=999)
 
 #Variables in this data set are: 
 #ID = ID of participants
-#x = true score 
-#theTimes = time index
+#x = true scores
+#theTimes = time indices
 
 #Loading simulated data generated using the linear oscillator model
 data("LinearOsc")
@@ -24,8 +24,8 @@ data("LinearOsc")
 
 n = 10 #Number of subjects
 T = 100 #Number of time points
-out2 = matrix(LinearOsc$x,ncol=n,byrow=FALSE)
-theTimes = LinearOsc$theTimes[1:T]
+out2 = matrix(x,ncol=n,byrow=FALSE)
+theTimes = theTimes[1:T]
 norder = 6 #Order of Bsplines - usually 2 higher than roughPenaltyMax
 roughPenaltyMax = 4 #penalization order 
 #  #lambdaLow, lambdaHi, lambdaBy = specify an interval of lambda (a positive smoothing parameter,
