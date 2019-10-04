@@ -1,5 +1,5 @@
-importFrom("graphics", "text", "plot", "abline","title","par")
-importFrom("stats", "D", "as.formula", "coef", "formula", "logLik", "qnorm", "time", "nobs", "vcov", "confint", "deviance", "is.ts", "na.omit", "printCoefmat", "pt", "pchisq", "qchisq", "qt","quantile")
+importFrom("graphics", "text", "plot", "abline", "title", "par", "arrows", "lines", "locator", "points")
+importFrom("stats", "D", "as.formula", "coef", "formula", "logLik", "qnorm", "time", "nobs", "vcov", "confint", "deviance", "is.ts", "na.omit", "printCoefmat", "pt", "pchisq", "qchisq", "qt", "quantile", "setNames")
 importFrom("utils", "str", ".DollarNames", "packageVersion")
 importFrom("MASS", "ginv")
 importFrom("Matrix", "nearPD")
