@@ -3143,7 +3143,34 @@ substituteFormula <- function(formula, term.formula){
 }
 
 
-
-
-
+##' A internal-use function for removing intercept terms and random names in the formula 
+##' @param formula the formula that are going to be processed
+##' @param intercept.names variables that are going to be removed if it appears in formula
+##' @param random.names variables that are going to be removed if it appears in formula
+#prep.thetaFormula <- function(formula, intercept.names, random.names){
+#    if(length(formula) == 0)
+#	  return(list())
+# 
+#    fml=lapply(formula, as.character)
+#    lhs=lapply(fml,function(x){x[[2]]})
+#    rhs=lapply(fml,function(x){x[[3]]})
+#    
+#    for(i in 1:length(formula)){
+#        formula[[i]]=as.character(formula[[i]])
+#		if(length(intercept.names) > 0){
+#			for (j in 1:length(intercept.names)){
+#				rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+#			}
+#		}
+#        
+#		if(length(random.names) > 0){
+#			for (j in 1:length(random.names)){
+#				rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+#			}
+#		}
+#        
+#        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+#    }
+#    return(formula)
+#}
 
