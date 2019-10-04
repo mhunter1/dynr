@@ -86,7 +86,7 @@ summary(fitted_model)
 # estimated b in fitted_model@eta_smooth_final
 # true b in the in the 10th column of the input data set
 cor(fitted_model@eta_smooth_final[3,data$tstart[2:201]],
-    vdp$trueb[data$tstart[2:201]])
+    vdpData$trueb[data$tstart[2:201]])
 
 
 
