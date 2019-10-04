@@ -892,7 +892,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
   return(r)
 }
 
-EstimateRandomAsLV<- function(dynrModel){  
+EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
   # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
   #browser()
   if(.hasSlot(dynrModel@dynamics,'random.names')){
@@ -971,12 +971,11 @@ EstimateRandomAsLV<- function(dynrModel){
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data,
-                    outfile=tempfile())
+                    outfile=dynrModel@outfile)
   
   
   
-  fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
-                           hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
+  fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
   
 
   
