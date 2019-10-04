@@ -1,15 +1,16 @@
 #------------------------------------------------------------------------------
-# Author: Sy-Miin Chow, Hui-Ju Hung
+# Author: Sy-Miin Chow & Hui-Ju Hung
 # Date: 2019-09-28
 # Filename: OSCwithRand.R
 # Purpose: An illustrative example for using dynr to estimate random effects
 #          for damped oscillator model with random effects in eta, 
-#          and random initial conditions (ICs). Fixed effects for covariates
-#          on eta are specified via dynamic formula. 
+#          and random initial conditions (ICs). Fixed and random effects on
+#          eta, a frequency-related parameter, is specified via the function
+#          prep.thetaFormula
 #------------------------------------------------------------------------------
 
 library('dynr')
-
+options(scipen=999)
 
 # ---- Read in the data ----
 data(oscData)
@@ -48,6 +49,8 @@ mdcov <- prep.noise(
 formula = list(x ~ dx,
                dx ~ eta_i * x + zeta*dx)
 
+#Specifies the structure of the fixed and random effects of the person-specific
+#parameter, eta_i in the ODE (dynamic) formula
 theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
 
 dynm<-prep.formulaDynamics(formula=formula,
@@ -70,9 +73,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     outfile="osc.cpp")
 
 
-# Estimate free parameters								
+# Estimate free parameters		
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, 
-                        hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+                        hessian_flag = TRUE, verbose=FALSE, debug_flag=TRUE)
 
 
 

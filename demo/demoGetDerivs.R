@@ -16,17 +16,16 @@ options(scipen=999)
 
 #Loading simulated data generated using the linear oscillator model
 data("LinearOsc")
-load('LinearOsc.rda')
 
 
 #Structure the one indicator for n individuals into a matrix with n columns
 #If different individuals have different number of rows, consider doing
 #this step separately for each individual
 
-n = 50 #Number of subjects
+n = 10 #Number of subjects
 T = 100 #Number of time points
-out2 = matrix(out1$x,ncol=n,byrow=FALSE)
-theTimes = out1$theTimes[1:T]
+out2 = matrix(LinearOsc$x,ncol=n,byrow=FALSE)
+theTimes = LinearOsc$theTimes[1:T]
 norder = 6 #Order of Bsplines - usually 2 higher than roughPenaltyMax
 roughPenaltyMax = 4 #penalization order 
 #  #lambdaLow, lambdaHi, lambdaBy = specify an interval of lambda (a positive smoothing parameter,
@@ -76,4 +75,38 @@ car::crPlots(g,terms=~dx,
         xlab=expression(paste(d, hat(eta)[i](t)/dt)),
         ylab=expression(paste("Component+Residuals ", "  ",d^2,hat(eta)[i](t)/dt^2))
 )
+
+
+# ---- Plot of simple slopes and region of significance ----
+g2 = lm(d2x~x+dx+x:dx-1,data=dxall) #Adding an interaction term to illustrate some
+# functions for probing interaction effects
+summary(g2) #In this case the data were generated without any interaction effect.
+#With larger T or n, sometimes spurious interaction effects may be detected
+#due to shared variability between x and dx.
+theta_plot(g2, predictor = "x", moderator = "dx", 
+           alpha = .05, jn = T, title0=" ",
+           predictorLab = "x", moderatorLab = "dx")
+
+# ---- Phase portrait ----
+Osc <- function(t, y, parameters) {
+  dy <- numeric(2)
+  dy[1] <- y[2]
+  dy[2] <- parameters[1]*y[1]+parameters[2]*dy[1]   
+  return(list(dy))
+}
+
+param <- coef(g)
+phaseR::flowField(Osc, xlim = c(-3, 3), 
+                  ylim = c(-3, 3),
+                  xlab="x", ylab="dx/dt",
+                  main=paste0("Oscillator model"),
+                  cex.main=2,
+                  parameters = param, 
+                  points = 15, add = FALSE,
+                  col="blue",
+                  arrow.type="proportional",
+                  arrow.head=.05)  
+IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
+phaseR::trajectory(Osc, y0 = IC,  
+                   parameters = param,tlim=c(0,10))
 

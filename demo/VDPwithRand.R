@@ -45,6 +45,8 @@ mdcov <- prep.noise(
 # Dynamics	
 formula = list(x1 ~ x2,
                x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2)
+
+#To have random effect in the parameter, zeta_i, specified via theta.formula
 theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zeta)
 
 dynm<-prep.formulaDynamics(formula=formula,
