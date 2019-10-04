@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # Author: Sy-Miin Chow, Hui-Ju Hung
 # Date: 2019-09-28
-# Filename: OscwithRand.R
+# Filename: OSCwithRand.R
 # Purpose: An illustrative example for using dynr to estimate random effects
 #          for damped oscillator model with random effects in eta, 
 #          and random initial conditions (ICs). Fixed effects for covariates
