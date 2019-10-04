@@ -3120,8 +3120,9 @@ parseFormulaTheta <- function(formula, theta.formula){
 
 
  
-##' A internal-use function for removing intercept terms and random names in the formula 
-##' @param formula the formula that are going to be processed
+##' An internal function to prepare the specification of theta.formula, 
+##' a formula that shows the structure of unit-specific dynamic parameters
+##' @param formula the formula to be processed
 ##' @param intercept.names variables that are going to be removed if it appears in formula
 ##' @param random.names variables that are going to be removed if it appears in formula
 prep.thetaFormula <- function(formula, intercept.names, random.names){

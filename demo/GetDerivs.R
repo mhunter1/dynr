@@ -107,5 +107,5 @@ dynr.flowField(Osc, xlim = c(-3, 3),
                   arrow.head=.05)  
 IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
 dynr.trajectory(Osc, y0 = IC,  
-                   parameters = param,tlim=c(0,10))
+                   parameters = param,tlim=c(0,50))
 
