@@ -3091,17 +3091,22 @@ gslcovariate.front <- function(selected, covariates){
 
 
 
-##' A internal-use function for retrieving the LHS and RHS of the theta.formula
-##' @param formula the formula 
-##' @param theta.formula the theta formula
-parseFormulaTheta <- function(formula, theta.formula){
+##' A internal-use only function for substituting formula. If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}
+##' @param formula a list of original formulas
+##' @param term.formula a list of term formulas
+##'
+##' @return a list of formulas after the replacement
+##' @examples
+##' #substitutedformula <- substituteFormula(formula, term.formula)
+#parseFormulaTheta <- function(formula, theta.formula){
+substituteFormula <- function(formula, term.formula){
 	#fun
     fml=lapply(formula, as.character)
 	lhs=lapply(fml,function(x){x[[2]]})
 	rhs=lapply(fml,function(x){x[[3]]})
 	
 	#thetai
-	fmlt=lapply(theta.formula, as.character)
+	fmlt=lapply(term.formula, as.character)
 	lhst=lapply(fmlt,function(x){x[[2]]})
 	rhst=lapply(fmlt,function(x){x[[3]]})
 
