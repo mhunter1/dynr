@@ -1,7 +1,7 @@
-dynr 0.1.15-X
+dynr 0.1.15-1
 --------------
 
-2019-10-01
+2019-10-04
 
 New features include:
 * Multiple imputation for missing data with dynr.mi() function
