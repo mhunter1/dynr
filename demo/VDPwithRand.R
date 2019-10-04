@@ -10,7 +10,7 @@ library('dynr')
 
 # ---- Read in the data ----
 
-load('../data/vdpData.rda')
+data(vdpData)
 data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1','y2','y3'),
                  covariates=c("u1","u2"))

@@ -1,18 +1,18 @@
 #------------------------------------------------------------------------------
 # Author: Sy-Miin Chow, Hui-Ju Hung
 # Date: 2019-09-28
-# Filename: OscwithRanddynr.R
+# Filename: OscwithRand.R
 # Purpose: An illustrative example for using dynr to estimate random effects
-# Model script for damped oscillator model with 
-# random effects in eta, and random initial conditions (ICs). 
-# Fixed effects for covariates on eta are specified via dynamic formula. 
+#          for damped oscillator model with random effects in eta, 
+#          and random initial conditions (ICs). Fixed effects for covariates
+#          on eta are specified via dynamic formula. 
 #------------------------------------------------------------------------------
 
 library('dynr')
 
 
 # ---- Read in the data ----
-load('../data/oscData.rda')
+data(oscData)
 data <- dynr.data(oscData, id="id", time="times",
                  observed=c('y1'),
                  covariates=c("u1","u2"))
@@ -34,7 +34,7 @@ initial <- prep.initial(
     values.inicov=matrix(c(20, 0,
                             0, 5), ncol=2, byrow=TRUE), 
     params.inicov=matrix(c( 'v_x0','fixed',
-                           'fixed','v_dx0'), ncol=2, byrow=TRUE))
+                           'fixed','v_dx0'), ncol=2, byrow=T))
 
 # Noises
 mdcov <- prep.noise(
@@ -44,7 +44,7 @@ mdcov <- prep.noise(
     params.observed=diag("var_e", 1))
 
 
-# Dynamics	
+# dynamics	
 formula = list(x ~ dx,
                dx ~ eta_i * x + zeta*dx)
 
@@ -64,7 +64,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 							
 # -----Cooking materials ----
 
-# Put all the recipes together in a model specification
+# Put all the recipes together in a Model Specification
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data,
                     outfile="osc.cpp")
