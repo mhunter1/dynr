@@ -7,7 +7,6 @@
 # dx2(t)/dt = eta*x1(t) + zeta*x2(t)
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 require('dynr') 
-options(scipen=999)
 
 #Variables in this data set are: 
 #ID = ID of participants
@@ -22,10 +21,10 @@ data("LinearOsc")
 #If different individuals have different number of rows, consider doing
 #this step separately for each individual
 
-n = 10 #Number of subjects
-T = 100 #Number of time points
-out2 = matrix(x,ncol=n,byrow=FALSE)
-theTimes = theTimes[1:T]
+n = length(unique(LinearOsc$ID)) #Number of subjects is 10
+T = max(table(LinearOsc$ID)) #Number of time points is 100
+out2 = matrix(LinearOsc$x,ncol=n,byrow=FALSE)
+theTimes = LinearOsc$theTimes[1:T]
 norder = 6 #Order of Bsplines - usually 2 higher than roughPenaltyMax
 roughPenaltyMax = 4 #penalization order 
 #  #lambdaLow, lambdaHi, lambdaBy = specify an interval of lambda (a positive smoothing parameter,
