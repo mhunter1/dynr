@@ -519,38 +519,6 @@ NULL
 ##' 
 ##' @docType data
 ##' @keywords datasets
-##' @name TrueInit_Y1
-##' @usage data(TrueInit_Y1)
-##' @format A data frame with 60,000 rows and 10 variables
-NULL
-
-##' Another simulated multilevel multi-subject time series of a Van der Pol Oscillator
-##' 
-##' A dataset simulated using methods described in the reference below.
-##'  
-##'  Reference:
-##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
-##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
-##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
-##'  Psychometrika, 81(1), 102-134.
-##'
-##' The variables are as follows:
-##' 
-##' \itemize{
-##'   \item batch. Batch number from simulation
-##'   \item kk. Unclear
-##'   \item trueInit. True initial condition
-##'   \item id. Person ID
-##'   \item time. Continuous time of measurement
-##'   \item y1. Observed score 1
-##'   \item y2. Observed score 2
-##'   \item y3. Observed score 3
-##'   \item co1. Covariate 1
-##'   \item co2. Covariate 2
-##' }
-##' 
-##' @docType data
-##' @keywords datasets
 ##' @name TrueInit_Y14
 ##' @usage data(TrueInit_Y14)
 ##' @format A data frame with 60,000 rows and 10 variables
@@ -608,4 +576,57 @@ NULL
 ##' #LinearOsc= data.frame(ID=rep(1:n,each=T),x=out1[,1],
 ##' #                  theTimes=rep(theTimes,n))
 ##' #save(LinearOsc,file="LinearOsc.rda")
+NULL
+
+##' Another simulated multilevel multi-subject time series of a Van der Pol Oscillator
+##' 
+##' A dataset simulated using methods described in the reference below.
+##'  
+##'  Reference:
+##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
+##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
+##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
+##'  Psychometrika, 81(1), 102-134.
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item batch. Batch number from simulation
+##'   \item kk. Unclear
+##'   \item trueInit. True initial condition
+##'   \item id. Person ID
+##'   \item time. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item y2. Observed score 2
+##'   \item y3. Observed score 3
+##'   \item u1. Covariate 1
+##'   \item u2. Covariate 2
+##'   \item trueb. True value of person-specific random effect	
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name vdpData
+##' @usage data(vdpData)
+##' @format A data frame with 60,000 rows and 11 variables
+NULL
+
+##' Another simulated multilevel multi-subject time series of a damped oscillator model
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. Person ID
+##'   \item times. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item u1. Covariate 1
+##'   \item u2. Covariate 2
+##'   \item trueb. True value of person-specific random effect	
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name oscData
+##' @usage data(oscData)
+##' @format A data frame with 1,800 rows and 6 variables
 NULL
