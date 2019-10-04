@@ -69,7 +69,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 
 # Estimate free parameters	
-fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE)
+fitted_model <- dynr.cook(model, verbose=FALSE)
 
 
 
