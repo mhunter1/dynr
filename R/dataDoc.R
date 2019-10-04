@@ -529,7 +529,7 @@ NULL
 ##' The variables are as follows:
 ##' 
 ##' \itemize{
-##'   \item ID. ID of the systems (1 to 50)
+##'   \item ID. ID of the systems (1 to 10)
 ##'   \item x. Latent level variable
 ##'   \item theTimes. Measured time Points
 ##' }
@@ -538,7 +538,7 @@ NULL
 ##' @keywords datasets
 ##' @name LinearOsc
 ##' @usage data(LinearOsc)
-##' @format A data frame with 5000 rows and 3 variables
+##' @format A data frame with 1000 rows and 3 variables
 ##' @examples
 ##' # The following was used to generate the data
 ##' #--------------------------------------
