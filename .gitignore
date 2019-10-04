@@ -15,6 +15,7 @@ man/confint.dynrCook.Rd
 man/diag-character-method.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
+man/dynr.flowField.Rd
 man/dynr.ggplot.Rd
 man/dynr.ldl.Rd
 man/dynr.mi.Rd
@@ -22,6 +23,7 @@ man/dynr.model.Rd
 man/dynr.plotFreq.Rd
 man/dynr.taste.Rd
 man/dynr.taste2.Rd
+man/dynr.trajectory.Rd
 man/dynr.version.Rd
 man/dynrCook-class.Rd
 man/dynrDynamics-class.Rd
@@ -44,6 +46,7 @@ man/names-dynrModel-method.Rd
 man/nobs.dynrCook.Rd
 man/nobs.dynrModel.Rd
 man/NonlinearDFAsim.Rd
+man/oscData.Rd
 man/Oscillator.Rd
 man/Outliers.Rd
 man/parseFormulaTheta.Rd
@@ -65,7 +68,7 @@ man/printex.Rd
 man/RSPPsim.Rd
 man/summary.dynrCook.Rd
 man/theta_plot.Rd
-man/TrueInit_Y1.Rd
 man/TrueInit_Y14.Rd
 man/VARsim.Rd
 man/vcov.dynrCook.Rd
+man/vdpData.Rd
