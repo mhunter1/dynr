@@ -4,9 +4,6 @@ Title: Dynamic Modeling in R
 Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mhunter.ou@gmail.com", comment=c(ORCID = "0000-0002-3651-6709")),
     person("Sy-Miin", "Chow", role="aut", comment=c(ORCID = "0000-0003-1938-027X")))
-Author: Lu Ou [aut],
-    Michael D. Hunter [aut, cre],
-    Sy-Miin Chow [aut]
 Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>
 Depends: R (>= 3.0.0), ggplot2
 Imports: MASS, Matrix, numDeriv, xtable, latex2exp, grid, reshape2, plyr, mice, magrittr, Rdpack, methods, fda, car, stringi, tibble, deSolve
