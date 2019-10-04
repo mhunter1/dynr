@@ -7,6 +7,10 @@ New features include:
 * Multiple imputation for missing data with dynr.mi() function
 * New demo for multiple imputation called MILinearDiscrete
 * New demo for time-varying parameters called SDETVP
+* New wrapper functions for computing smoothed derivative estimates using penalized B-splines implemented with the fda package
+* New plotting functions, including functions to generate diagnostic plots from smoothed derivative estimates, and plot phase portraits
+* New demo for computing and visualizing smoothed derivative estimates in GetDerivs
+* New functionality in dynr.cook() to estimate continuous-time dynamic models with mixed effects through use of theta.formula
 
 Bug fixes and performance tweaks include:
 * MAJOR BUG FIXES with missing data
