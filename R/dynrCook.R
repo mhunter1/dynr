@@ -964,47 +964,22 @@ EstimateRandomAsLV<- function(dynrModel){
   #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
   for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
     formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
-  #print(formula)
 
   dynm2<-prep.formulaDynamics(formula=unlist(formula),
                            startval=dynrModel@dynamics@startval,
                            isContinuousTime=dynrModel@dynamics@isContinuousTime)
-  #print(dynm2@theta.formula)						
 						   
   model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                     noise=mdcov2, initial=initial2, data=dynrModel@data,
                     outfile=tempfile())
-  #print('model2')					
   
   
-  #model2@xstart[names(dynrModel@dynamics@startval)] <- coef(fitted_model)[names(dynrModel@dynamics@startval)]
-  #lambda.names <- setdiff(unique(as.vector(dynrModel@measurement@params.load[[1]])), c("fixed",0))
-  #model2@xstart[lambda.names] = coef(fitted_model)[lambda.names] 
   
   fitted_model2 <- dynr.cook(model2, optimization_flag = TRUE, 
                            hessian_flag = FALSE, verbose=FALSE, debug_flag=FALSE)
-  #save(model2, fitted_model2, file = "fitted_model2.RData")				   
   
-  #load("fitted_model2.RData")
-  
-  #-----
-  
-  #library('plyr')
-  #locc=plyr::ddply(data.frame(id=dynrModel@data$id,time=dynrModel@data$time,index=1:length(dynrModel@data$time)), .(id), function(x){x$index[which(x$time==max(x$time))]})[,2]
-  
-  #print('locc')
-  #print(locc)
-
-  #Get estimates for bzeta from fitted_model2 and use them as estimates for b
-  #bEst = fitted_model2@eta_smooth_final[ ,locc] #Use these as the starting values for InfDS.b
-  #fitted_model2@b_est = bEst
-  
-  #coefEst = coef(fitted_model2)
-  #print(coefEst) 
 
   
-  #print(bEst) 
-  #return(list(bEst = t(as.matrix(bEst)), coefEst = coefEst))
   return(fitted_model2)
 
 }
