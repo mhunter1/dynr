@@ -18,6 +18,7 @@ import(ggplot2)
 import(methods)
 import(fda)
 import(car)
+import(deSolve)
 exportPattern("^dynr.+")
 exportPattern("^prep.+")
 #exportPattern("^[^\\.]") #export everything

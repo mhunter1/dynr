@@ -96,7 +96,7 @@ Osc <- function(t, y, parameters) {
 }
 
 param <- coef(g)
-phaseR::flowField(Osc, xlim = c(-3, 3), 
+dynr.flowField(Osc, xlim = c(-3, 3), 
                   ylim = c(-3, 3),
                   xlab="x", ylab="dx/dt",
                   main=paste0("Oscillator model"),
@@ -107,6 +107,6 @@ phaseR::flowField(Osc, xlim = c(-3, 3),
                   arrow.type="proportional",
                   arrow.head=.05)  
 IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
-phaseR::trajectory(Osc, y0 = IC,  
+dynr.trajectory(Osc, y0 = IC,  
                    parameters = param,tlim=c(0,10))
 
