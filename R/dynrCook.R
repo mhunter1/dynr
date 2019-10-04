@@ -894,12 +894,13 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
 }
 
 EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
-  # Obtain user-speficifed random.names (i.e., excluing the b_?? where ?? are state names)
+  # Restructure mixed effects structured via theta.formula into an expanded model with 
+  # random effects as additional state variables and cook it.
   #browser()
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
     	
-	# Add the user-specified random effects into states to be estiamted
+	# Add the user-specified random effects into states to be estimated
 	# state.names2 = state.names + user.random.names
 	state.names2 = c(dynrModel@measurement@state.names, user.random.names)
 	#print(paste("New state variables to be estimated:", state.names2))
@@ -957,7 +958,7 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
   # only retrieve the formula with state variables as LHS
   formula <- list(dynrModel@dynamics@formulaOriginal[[1]][1:length(dynrModel@measurement@state.names)])
   
-  # 2. If theta.formula exists, substitue the content of theta.formula is given
+  # 2. If theta.formula exists, substitute the content of theta.formula 
   if(length(dynrModel@dynamics@theta.formula) > 0){
       formula <- lapply(formula, function(x){substituteFormula(x, dynrModel@dynamics@theta.formula)})  
   }

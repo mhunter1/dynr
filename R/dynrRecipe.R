@@ -2211,7 +2211,22 @@ autojacob<-function(formula,n){
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
-##' @param ... Further named arguments
+##' @param ... further named arguments. Some of these arguments may include:
+##' 
+##' theta.formula = a list consisting of formula(s) of the form 
+##'  list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
+##'  + 1 * rand_par), where par is a parameter is a unit- (e.g., person-) 
+##'  specific that appears in a dynamic formula and is assumed to follow
+##'  a linear mixed effects structure. Here, b_p are fixed effects 
+##'  parameters; covariate_1, ..., covariate_p are known covariates as ??pdeclared in
+##'  dynr.data, and b_p is a random effect component representing unit i's random deviation
+##'  in par value from that predicted by b_0 + covariate_1*b_1 + ... + covariate_p*b_p 
+##'
+##' random.names = names of random effect components in the theta.formula
+##'
+##' random.params.inicov = names of elements in the covariance matrix of the random effect components
+##'
+##' random.values.inicov = starting values of elements in the covariance matrix of the random effect components
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -2225,6 +2240,10 @@ autojacob<-function(formula,n){
 ##' in the model. For most nonlinear models, such differentiations can be handled automatically by
 ##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
+##' When theta.formula and other accompanying elements in "..." are provided, the program
+##' automatically inserts the random effect components specified in random.names as additional
+##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
+##' that the expanded model satisfies conditions such as observability for the estimation to work.
 ##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model

@@ -246,12 +246,17 @@ theta_plot <- function(.lm, predictor, moderator,
 ##' to their original input values. 
 ##' 
 ##' The only new elements are:
+##' 
 ##' dx = A matrix. In the case of a two dimensional system, the values of the 
 ##' derivative of the first dependent derivative at all evaluated points.
-##' dy = A matrix. In the case of a two dimensional system, the values of the derivative of the second dependent variable at all evaluated points. In the case of a one dimensional system, the values of the derivative of the dependent variable at all evaluated points.
-##' x	= A vector. In the case of a two dimensional system, the values of the first dependent variable at which the derivatives were computed. In the case of a one dimensional system, the values of the independent variable at which the derivatives were computed.
-##' y	= A vector. In the case of a two dimensional system, the values of the second dependent variable at which the derivatives were computed. In the case of a one dimensional system, the values of the dependent variable at which the derivatives were computed.
 ##' 
+##' dy = A matrix. In the case of a two dimensional system, the values of the derivative of the second dependent variable at all evaluated points. In the case of a one dimensional system, the values of the derivative of the dependent variable at all evaluated points.
+##'
+##' x	= A vector. In the case of a two dimensional system, the values of the first dependent variable at which the derivatives were computed. In the case of a one dimensional system, the values of the independent variable at which the derivatives were computed.
+##'
+##' y	= A vector. In the case of a two dimensional system, the values of the second dependent variable at which the derivatives were computed. In the case of a one dimensional system, the values of the dependent variable at which the derivatives were computed.
+##'
+##'  
 ##' @references 
 ##' Grayling, Michael J. (2014). phaseR: An R Package for Phase Plane Analysis of Autonomous
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
@@ -493,11 +498,15 @@ dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.
 ##' 
 ##' The only new elements are:
 ##' t = A vector containing the values of the independent variable at each integration step.
+##'
 ##' x	= In the two dimensional system case, a matrix whose columns are the 
 ##' numerically computed values of the first dependent variable for each set of ICs.
+##'
 ##' y	= In the two dimensional system case, a matrix whose columns are the numerically computed values of the second dependent variable for each initial condition. In the one dimensional system case, a matrix whose columns are the numerically computed values of the dependent variable for each initial condition.
+##'
 ##' y0	= As per input, but converted to a matrix if supplied as a vector initially.
-##' ##' 
+##' 
+##' 
 ##' @references 
 ##' Grayling, Michael J. (2014). phaseR: An R Package for Phase Plane Analysis of Autonomous
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
