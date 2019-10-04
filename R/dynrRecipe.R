@@ -3124,38 +3124,7 @@ substituteFormula <- function(formula, term.formula){
 }
 
 
- 
-##' An internal function to prepare the specification of theta.formula, 
-##' a formula that shows the structure of unit-specific dynamic parameters
-##' @param formula the formula to be processed
-##' @param intercept.names variables that are going to be removed if it appears in formula
-##' @param random.names variables that are going to be removed if it appears in formula
-prep.thetaFormula <- function(formula, intercept.names, random.names){
-    if(length(formula) == 0)
-	  return(list())
- 
-    fml=lapply(formula, as.character)
-    lhs=lapply(fml,function(x){x[[2]]})
-    rhs=lapply(fml,function(x){x[[3]]})
-    
-    for(i in 1:length(formula)){
-        formula[[i]]=as.character(formula[[i]])
-		if(length(intercept.names) > 0){
-			for (j in 1:length(intercept.names)){
-				rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-			}
-		}
-        
-		if(length(random.names) > 0){
-			for (j in 1:length(random.names)){
-				rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
-			}
-		}
-        
-        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
-    }
-    return(formula)
-}
+
 
 
 
