@@ -23,7 +23,7 @@ citEntry(entry="article",
 	textVersion = paste("Lu Ou,", "Michael D. Hunter,",
 		"and Sy-Miin Chow.",
 		"(2019). What's for dynr: A package for linear and nonlinear dynamic modeling in R. The R Journal,",
-		"11, 1-20. doi: 10.32614/RJ-2019-012"))
+		"11, 1-20."))
 
 year <- sub("-.*", "", meta$Date)
 note <- sprintf("R package version %s", meta$Version)
