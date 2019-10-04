@@ -424,6 +424,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' \code{eta_filtered}, \code{error_cov_filtered} and \code{pr_t_given_t} are respectively 
 ##' time-varying filtered latent variable mean estimates, filtered error covariance matrix estimates, 
 ##' and filtered regime probability.
+##' Note that if \code{theta.formula} is provided in \code{dynrModel@dynamics}, this assumes  that random effects are present in the dynamic equation. This would call an internal function to insert the random effect components as additional state variables. In this case, the last set of elements (rows) in \code{eta_smooth_final} would contain the estimated random effect components.
 ##' 
 ##' When \code{debug_flag} is TRUE, then additional information is passed into the cooked model. 
 ##' \code{eta_predicted}, \code{error_cov_predicted}, \code{innov_vec}, and \code{residual_cov} are respectively 
