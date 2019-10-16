@@ -291,6 +291,6 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	int batch = 1;
 	//int seed = 1;
 	printf("calling...\n");
-	MainUseThis(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed);
+	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed);
 	return;
 }
