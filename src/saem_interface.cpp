@@ -7,7 +7,7 @@ using namespace arma;
 #include "supplementary_function.h"
 #include "converted_function.h"
 
-#include "MainUseThis.h"
+#include "saem_estimation.h"
 #define ERROR 0.0000001
 
 
