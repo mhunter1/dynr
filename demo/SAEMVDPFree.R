@@ -1,9 +1,8 @@
 #------------------------------------------------------------------------------
 # Author: Hui-Ju Hung
 # Date: 2019-05-23
-# Filename: vanderpol_3.R
+# Filename: SAEMVDPFree.R
 # Purpose: Model script for dynr/SAEM gateway function, Van Der Pol fucntion 
-# Note: Workable for developer dynr on arma branch
 #------------------------------------------------------------------------------
 
 #setwd('C:\\Users\\Cynthia\\Documents\\gits\\dynr\\demo')
