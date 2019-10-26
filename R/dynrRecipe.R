@@ -2358,22 +2358,17 @@ autojacob <- function(formula, n, diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
   dots <- list(...)
 
-	#obtaining saem option
-	if('saem' %in% names(dots)){
-		saem <- dots$saem
-	}
-	else{
-		saem <- FALSE
-	}
+
+
 
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
-	
+
 	if('theta.formula' %in% names(dots))
       theta.formula <- dots$theta.formula
 	if('random.names' %in% names(dots))  
@@ -2390,17 +2385,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(length(startval) > 0){
     beta.names = names(startval)
   }
- 	
-	else{
-		saem <- FALSE
-	}
-  }
-  
-  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  if(length(startval) > 0){
-    beta.names = names(startval)
-  }
- 	
+
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector.')
   }
@@ -2417,19 +2402,22 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     num.formula <- length(formula)
 	#beta.names <- startval.names
 	
+	# [todo]: the following part is only for freeIC
 	#zeta_? to be estimated
 	for (i in 1:length(startval.names)){
 	  formula[[i+num.formula]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
 	}
 	
+	# [todo]: the following part is only for freeIC
 	# generate the formula for states
 	# note: the formula should be removed in dynr.model if the state in prep.init is fixed
 	for(i in 1:num.state){
 	  formula[[i+num.formula+length(startval.names)]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
 	  beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 	}
-	
-	
+
+
+	# [todo]: the following part is only for freeIC
 	#process the theta formula
 	num.theta.formula <- length(theta.formula)
     for (i in 1:length(state.names)){
@@ -2456,30 +2444,32 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		formula2 <- formula
 	}
   }
+
   
-  
-    
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, saem=saem, formulaOriginal=formula, ...)
   
 
   #jacobian = dfdx
   if (missing(jacobian)){
-	jacobian <- autojacobTry(formula2) #formula2: substitute the content within theta.formula to formula
+    jacobian <- autojacobTry(formula2) #formula2: substitute the content within theta.formula to formula
   }
-	
-	# Check that all 'values' imply 0, 1, or the same number of regimes.
-	# Note that the 'values' and 'params' have already been checked to imply this.
-	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
-	if(nregs[1] != nregs[2]){
-		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
-	}
+
+  # Check that all 'values' imply 0, 1, or the same number of regimes.
+  # Note that the 'values' and 'params' have already been checked to imply this.
+  nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+  if(nregs[1] != nregs[2]){
+    stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+  }
   x$jacobian <- jacobian
   x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobian
   x$paramnames <-names(x$startval)
   
   if(saem == FALSE)
+    return(new("dynrDynamicsFormula", x))
 
+  # The following is only for saem
+  
   if('theta.formula' %in% names(dots))
     x$theta.formula <- theta.formula
   if('random.names' %in% names(dots))
@@ -2488,9 +2478,12 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     x$random.params.inicov <- random.params.inicov
   if('random.values.inicov' %in% names(dots))
     x$random.values.inicov <- random.values.inicov
-	return(new("dynrDynamicsFormula", x))
-	
-  #the following parts are only used for saem	
+  if('random.ub' %in% names(dots))
+    x$random.ub <- random.ub
+  if('random.lb' %in% names(dots))
+    x$random.lb <- random.lb
+  
+
   formula_onlystate=retriveStateFormula(formula[[1]], state.names)
   
   #if (missing(dfdtheta)){
@@ -2523,17 +2516,16 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$beta.names <- beta.names
   
   
-  x$theta.formula <- theta.formula
+  #x$theta.formula <- theta.formula
   x$theta.names <- theta.names
-  #x$intercept.names <- intercept.names
-  x$random.names <- random.names
-  x$random.ub <- random.ub
-  x$random.lb <- random.lb
+  #x$random.names <- random.names
+  #x$random.ub <- random.ub
+  #x$random.lb <- random.lb
   x$state.names <- state.names
   x$formula2 <- formula2
   x$saem <- saem
-  x$random.params.inicov <- random.params.inicov
-  x$random.values.inicov <- random.values.inicov
+  #x$random.params.inicov <- random.params.inicov
+  #x$random.values.inicov <- random.values.inicov
   
   #print (formula2)
   
