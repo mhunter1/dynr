@@ -491,3 +491,142 @@ NULL
 ##' @usage data(VARsim)
 ##' @format A data frame with 10000 rows and 8 variables
 NULL
+
+##' Simulated multilevel multi-subject time series of a Van der Pol Oscillator
+##' 
+##' A dataset simulated using methods described in the reference below.
+##'  
+##'  Reference:
+##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
+##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
+##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
+##'  Psychometrika, 81(1), 102-134.
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item batch. Batch number from simulation
+##'   \item kk. Unclear
+##'   \item trueInit. True initial condition
+##'   \item id. Person ID
+##'   \item time. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item y2. Observed score 2
+##'   \item y3. Observed score 3
+##'   \item co1. Covariate 1
+##'   \item co2. Covariate 2
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name TrueInit_Y14
+##' @usage data(TrueInit_Y14)
+##' @format A data frame with 60,000 rows and 10 variables
+NULL
+
+##' Simulated time series data for a deterministic linear damped oscillator model 
+##' 
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item ID. ID of the systems (1 to 10)
+##'   \item x. Latent level variable
+##'   \item theTimes. Measured time Points
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name LinearOsc
+##' @usage data(LinearOsc)
+##' @format A data frame with 1000 rows and 3 variables
+##' @examples
+##' # The following was used to generate the data
+##' #--------------------------------------
+##' #Osc<- function(t, prevState, parms) {
+##' #  x1 <- prevState[1] # x1[t]
+##' #  x2 <- prevState[2] # x2[t]
+##' #  eta1 = parms[1]
+##' #  zeta1 = parms[2]
+##' #  with(as.list(parms), {
+##' #   dx1 <- x2
+##' #    dx2 <- eta1*x1 + zeta1*x2 
+##' #    res<-c(dx1,dx2)
+##' #    list(res)
+##' #  }
+##' #  )
+##' #}
+##' #n = 10 #Number of subjects
+##' #T = 100 #Number of time points
+##' #deltaT = .1 #dt
+##' #lastT = deltaT*T #Value of t_{i,T}
+##' #theTimes  = seq(0, lastT, length=T)  #A list of time values
+##' #
+##' #eta = -.8
+##' #zeta = -.1
+##' #out1 = matrix(NA,T*n,1)
+##' #trueOut = matrix(NA,T*n,1)
+##' #parms = c(eta, zeta)
+##' #  for (i in 1:n){
+##' #  xstart = c(rnorm(1,0,2),rnorm(1,0,.5))
+##' #  out <- lsoda(as.numeric(xstart), theTimes, Osc, parms)
+##' #  trueOut[(1+(i-1)*T):(i*T)] = out[,2]
+##' #  out1[(1+(i-1)*T):(i*T)] = out[,2]+rnorm(T,0,1)
+##' #  }
+##' #
+##' #LinearOsc= data.frame(ID=rep(1:n,each=T),x=out1[,1],
+##' #                  theTimes=rep(theTimes,n))
+##' #save(LinearOsc,file="LinearOsc.rda")
+NULL
+
+##' Another simulated multilevel multi-subject time series of a Van der Pol Oscillator
+##' 
+##' A dataset simulated using methods described in the reference below.
+##'  
+##'  Reference:
+##'  Chow, S., Lu, Z., Sherwood, A., and Zhu, H. (2016). Fitting Nonlinear Ordinary
+##'  Differential Equation Models with Random Effects and Unknown Initial Conditions
+##'  Using the Stochastic Approximation Expectation-Maximization (SAEM) Algorithm.
+##'  Psychometrika, 81(1), 102-134.
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item batch. Batch number from simulation
+##'   \item kk. Unclear
+##'   \item trueInit. True initial condition
+##'   \item id. Person ID
+##'   \item time. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item y2. Observed score 2
+##'   \item y3. Observed score 3
+##'   \item u1. Covariate 1
+##'   \item u2. Covariate 2
+##'   \item trueb. True value of person-specific random effect	
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name vdpData
+##' @usage data(vdpData)
+##' @format A data frame with 60,000 rows and 11 variables
+NULL
+
+##' Another simulated multilevel multi-subject time series of a damped oscillator model
+##'
+##' The variables are as follows:
+##' 
+##' \itemize{
+##'   \item id. Person ID
+##'   \item times. Continuous time of measurement
+##'   \item y1. Observed score 1
+##'   \item u1. Covariate 1
+##'   \item u2. Covariate 2
+##'   \item trueb. True value of person-specific random effect	
+##' }
+##' 
+##' @docType data
+##' @keywords datasets
+##' @name oscData
+##' @usage data(oscData)
+##' @format A data frame with 1,800 rows and 6 variables
+NULL

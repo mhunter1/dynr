@@ -50,12 +50,12 @@ regime switching,
 nonlinear
 }
 
-\keyword{
-State-space modeling
-dynamic model
-differential equation
-regime switching
-nonlinear}
+\concept{State-space modeling}
+\concept{dynamic model}
+\concept{differential equation}
+\concept{regime switching}
+\concept{nonlinear}
+\concept{Time series}
 
 \seealso{
 For other annotated tutorials using the \pkg{dynr} package see
@@ -66,14 +66,20 @@ https://quantdev.ssri.psu.edu/resources/what%E2%80%99s-dynr-package-linear-and-n
 
 \examples{
 # For installation instructions see the package vignette below
+\dontrun{
 vignette(package='dynr', 'InstallationForUsers')
+}
 # This should open a pdf/html file to guide you through proper
 #  installation and configuration.
 
 #For illustrations of the functions in dynr, check out some of the demo examples in:
+\dontrun{
 demo(package='dynr')
+}
 
 #For example, to run the demo 'LinearSDE' type
 # the following without the comment character (#) in front of it.
-#demo('LinearSDE', package='dynr')
+\dontrun{
+demo('LinearSDE', package='dynr')
+}
 }

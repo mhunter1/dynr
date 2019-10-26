@@ -2268,8 +2268,22 @@ autojacob <- function(formula, n, diff.variables){
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
-##' @param ... Further named arguments to be passed.  Valid examples are \code{state.names},
-##' \code{theta.formula}, \code{theta.names}, and \code{beta.names}
+##' @param ... further named arguments. Some of these arguments may include:
+##' 
+##' theta.formula = a list consisting of formula(s) of the form 
+##'  list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
+##'  + 1 * rand_par), where par is a parameter is a unit- (e.g., person-) 
+##'  specific that appears in a dynamic formula and is assumed to follow
+##'  a linear mixed effects structure. Here, b_p are fixed effects 
+##'  parameters; covariate_1, ..., covariate_p are known covariates as ??pdeclared in
+##'  dynr.data, and b_p is a random effect component representing unit i's random deviation
+##'  in par value from that predicted by b_0 + covariate_1*b_1 + ... + covariate_p*b_p 
+##'
+##' random.names = names of random effect components in the theta.formula
+##'
+##' random.params.inicov = names of elements in the covariance matrix of the random effect components
+##'
+##' random.values.inicov = starting values of elements in the covariance matrix of the random effect components
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -2283,6 +2297,10 @@ autojacob <- function(formula, n, diff.variables){
 ##' in the model. For most nonlinear models, such differentiations can be handled automatically by
 ##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
+##' When theta.formula and other accompanying elements in "..." are provided, the program
+##' automatically inserts the random effect components specified in random.names as additional
+##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
+##' that the expanded model satisfies conditions such as observability for the estimation to work.
 ##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
@@ -2342,30 +2360,37 @@ autojacob <- function(formula, n, diff.variables){
 ##'                           isContinuousTime=TRUE)
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
- 
-  # If 'theta.formula' are given, saem is TRUE
-  #saem <- ('theta.formula' %in% names(dots))	
-  #print(paste('SAEM :', saem))
-  saem <- FALSE # default: call original dynr
-  if(length(dots) > 0){
-    if(!all(names(dots) %in% c('state.names', 'theta.formula', 'theta.names', 'beta.names', 'random.names', 'random.lb', 'random.ub', 'random.params.inicov', 'random.values.inicov', 'saem'))){
-      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
-    }
-    #if(length(dots) == 5){
-    state.names <- dots$state.names
-    #beta.names <- dots$beta.names
-    theta.formula <- dots$theta.formula
-    #random.names <- dots$random.names
-    random.ub <-dots$random.ub
-    random.lb <-dots$random.lb
-	random.params.inicov <- dots$random.params.inicov
-	random.values.inicov <- dots$random.values.inicov
-	#}
-	
+
 	#obtaining saem option
 	if('saem' %in% names(dots)){
 		saem <- dots$saem
 	}
+	else{
+		saem <- FALSE
+	}
+
+  if(length(dots) > 0){
+    if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
+      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+    }
+	
+	if('theta.formula' %in% names(dots))
+      theta.formula <- dots$theta.formula
+	if('random.names' %in% names(dots))  
+      random.names <- dots$random.names
+    if('random.params.inicov' %in% names(dots))
+      random.params.inicov <- dots$random.params.inicov
+	if('random.values.inicov' %in% names(dots))
+	  random.values.inicov <- dots$random.values.inicov
+
+
+  }
+  
+  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+  if(length(startval) > 0){
+    beta.names = names(startval)
+  }
+ 	
 	else{
 		saem <- FALSE
 	}
@@ -2441,11 +2466,28 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if (missing(jacobian)){
 	jacobian <- autojacobTry(formula2) #formula2: substitute the content within theta.formula to formula
   }
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+	if(nregs[1] != nregs[2]){
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+	}
   x$jacobian <- jacobian
+  x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobian
-  x$paramnames<-names(x$startval)
+  x$paramnames <-names(x$startval)
   
   if(saem == FALSE)
+
+  if('theta.formula' %in% names(dots))
+    x$theta.formula <- theta.formula
+  if('random.names' %in% names(dots))
+    x$random.names <- random.names
+  if('random.params.inicov' %in% names(dots))
+    x$random.params.inicov <- random.params.inicov
+  if('random.values.inicov' %in% names(dots))
+    x$random.values.inicov <- random.values.inicov
 	return(new("dynrDynamicsFormula", x))
 	
   #the following parts are only used for saem	
@@ -3502,4 +3544,74 @@ prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, 
 	x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO)
 	return(new("dynrSaemParameter", x))
 }
+
+#------------------------------------------------------------------------------
+# functions that are used in only SAEM
+
+
+
+
+##' A internal-use only function for substituting formula. If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}
+##' @param formula a list of original formulas
+##' @param term.formula a list of term formulas
+##'
+##' @return a list of formulas after the replacement
+##' @examples
+##' #substitutedformula <- substituteFormula(formula, term.formula)
+#parseFormulaTheta <- function(formula, theta.formula){
+substituteFormula <- function(formula, term.formula){
+	#fun
+    fml=lapply(formula, as.character)
+	lhs=lapply(fml,function(x){x[[2]]})
+	rhs=lapply(fml,function(x){x[[3]]})
+	
+	#thetai
+	fmlt=lapply(term.formula, as.character)
+	lhst=lapply(fmlt,function(x){x[[2]]})
+	rhst=lapply(fmlt,function(x){x[[3]]})
+
+	for(i in 1:length(formula)){
+	    formula[[i]]=as.character(formula[[i]])
+	    for (j in 1:length(lhst)){
+    		# gsub (a, b, c) : in c replace a with b
+    		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
+	    }
+	    formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+	}
+    
+
+	return(formula)
+}
+
+
+##' A internal-use function for removing intercept terms and random names in the formula 
+##' @param formula the formula that are going to be processed
+##' @param intercept.names variables that are going to be removed if it appears in formula
+##' @param random.names variables that are going to be removed if it appears in formula
+#prep.thetaFormula <- function(formula, intercept.names, random.names){
+#    if(length(formula) == 0)
+#	  return(list())
+# 
+#    fml=lapply(formula, as.character)
+#    lhs=lapply(fml,function(x){x[[2]]})
+#    rhs=lapply(fml,function(x){x[[3]]})
+#    
+#    for(i in 1:length(formula)){
+#        formula[[i]]=as.character(formula[[i]])
+#		if(length(intercept.names) > 0){
+#			for (j in 1:length(intercept.names)){
+#				rhs[[i]]=gsub(paste0(intercept.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+#			}
+#		}
+#        
+#		if(length(random.names) > 0){
+#			for (j in 1:length(random.names)){
+#				rhs[[i]]=gsub(paste0(random.names[j]),paste0("0"),rhs[[i]], fixed = TRUE)
+#			}
+#		}
+#        
+#        formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+#    }
+#    return(formula)
+#}
 

@@ -61,6 +61,6 @@ A Note to developers: there is a bug in `roxygen2` such that the latest version 
 
 * Michael D. Hunter is the Repo owner and admin
 * Sy-Miin Chow is the principle investigator on the grant that funds dynr
-* Other members of the development team include but are not limited to Lu Ou, Meng Chen, Linying Ji, and Hui-Ju Hung
+* Other members of the development team include but are not limited to Lu Ou, Meng Chen, Linying Ji, Hui-Ju Hung, and Yanling Li
 
-Contact the Repo owner to obtain read and write permissions to this repository.
+Contact the Repo owner to obtain write permission to this repository.

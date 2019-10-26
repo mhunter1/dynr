@@ -544,16 +544,7 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  dots <- list(...)
-  
-  #obtaining saem option
-  saem <- FALSE
-  if(length(dots) > 0 && 'saem' %in% names(dots)){
-    saem <- dots$saem
-  }
-  
-  
-  # check the order of the names
+  #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     #saem <- dynamics$saem
 	
