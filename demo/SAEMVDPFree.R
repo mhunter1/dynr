@@ -31,6 +31,7 @@ meas <- prep.measurement(
 initial <- prep.initial(
     values.inistate=c(3, 1),
     params.inistate=c("mu_x1", "mu_x2"),
+    #params.inistate=c("fixed", "fixed"),
     values.inicov=matrix(c(.5,.2,
                            .2,.6), ncol=2, byrow=TRUE), 
     params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
@@ -71,7 +72,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, #saem=TRUE,
+                    noise=mdcov, initial=initial, data=data, #saem=TRUE, 
                     outfile="VanDerPol.cpp")
 
 

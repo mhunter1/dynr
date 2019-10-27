@@ -2361,7 +2361,7 @@ autojacob <- function(formula, n, diff.variables){
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
   dots <- list(...)
 
-  browser()
+  #browser()
 
 
   if(length(dots) > 0){
@@ -2406,7 +2406,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     num.formula <- length(formula)
     #beta.names <- startval.names
     
-    # [This part is to extend the state names (i.e., including beta.names). Not needed here, because th]
+    # [This part is to extend the state names (i.e., including beta.names).]
     # [Not needed here]
     # # [todo]: the following part is only for freeIC
     # #zeta_? to be estimated
