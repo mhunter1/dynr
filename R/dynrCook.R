@@ -604,7 +604,7 @@ endProcessing <- function(x, transformation, conf.level){
 		#Numerical Jacobian
 		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
 		iHess0 <- J %*% (MASS::ginv(x$hessian.matrix)) %*% t(J)
-		bad.SE <- diag(iHess0) < 0
+		bad.SE <- is.na(diag(iHess0)) | diag(iHess0) < 0
 		
 		iHess <- J %*% x$inv.hessian %*% t(J)
 		tSE <- sqrt(diag(iHess))
