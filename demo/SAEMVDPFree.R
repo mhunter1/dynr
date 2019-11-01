@@ -67,7 +67,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            random.values.inicov = matrix(c(0.9), ncol=1,byrow=TRUE),
                            random.lb = -5, 
                            random.ub = 5,
-                           saem=TRUE)
+                           saem=FALSE
+                           )
 
 
 

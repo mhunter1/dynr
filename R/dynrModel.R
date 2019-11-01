@@ -545,6 +545,7 @@ setMethod("printex", "dynrModel",
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
   #check the order of the names 
+  #browser()
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
 	
@@ -589,8 +590,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-        covariate.names = data$covariate.names
-        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
+        #covariate.names = data$covariate.names
+        #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
+		data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
         names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
@@ -600,7 +602,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-        data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
+        #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
+		data <- dynr.data(data.new.dataframe, observed = data$observed.names)
       }
     }
   }
@@ -844,7 +847,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	#}		    
   }
 
-  browser()
+  #browser()
   
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -860,15 +863,16 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
 
   # writeCcode on each recipe
-  if(saem==FALSE){
-    # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-	if(!('theta.formula' %in% names(dynamics))){ # original dynr
-		inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
-		inputs <- sapply(inputs, writeCcode, data$covariate.names)
-	}
-  } else if(saem==TRUE){
-    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
-  } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
+  inputs <- sapply(inputs, writeCcode, data$covariate.names)
+  # if(saem==FALSE){
+    # # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
+	# if(!('theta.formula' %in% names(dynamics))){ # original dynr
+		# inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+		# inputs <- sapply(inputs, writeCcode, data$covariate.names)
+	# }
+  # } else if(saem==TRUE){
+    # inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
+  # } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
