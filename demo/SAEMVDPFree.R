@@ -9,12 +9,14 @@ library('dynr')
 library('plyr')
 
 
-nPeople = 200
-nTimes = 300
-vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
-colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
-vdpData$id <- rep(1:nPeople, each=nTimes)
+# nPeople = 200
+# nTimes = 300
+# vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
+# colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+# vdpData$id <- rep(1:nPeople, each=nTimes)
 
+
+data(vdpData)
 data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1', 'y2', 'y3'),
                  covariates=c("u1", "u2"))
