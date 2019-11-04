@@ -725,7 +725,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	sigmab.names <- all.params[unique(as.vector(inputs$initial$params.inicov[[1]]))]
 	sigmab.names <- unique(c(sigmab.names, as.vector(inputs$dynamics$random.params.inicov)))
 	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
-	  
+	
 	if(length(sigmab.names) > 0){
 		#variance/covariance of states
 		random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
@@ -735,10 +735,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
 		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
 		
-		#print(num.theta)
-		#print(num.x)
-		#print(random.params.inicov)
-		#print(random.values.inicov)
 	}
   }
 
@@ -756,15 +752,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   # writeCcode on each recipe
   inputs <- sapply(inputs, writeCcode, data$covariate.names)
-  # if(saem==FALSE){
-    # # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-	# if(!('theta.formula' %in% names(dynamics))){ # original dynr
-		# inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
-		# inputs <- sapply(inputs, writeCcode, data$covariate.names)
-	# }
-  # } else if(saem==TRUE){
-    # inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
-  # } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
