@@ -649,10 +649,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
 	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   }
-  
-  
-  
-  
+
+
   if(saem==TRUE){
     # examine whether it is freeIC or fixed IC case
 	inistate.names <- unique(as.vector(inputs$initial@params.inistate))
@@ -669,8 +667,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		freeIC = FALSE
 	}
 	
-	num.x <- length(inputs$dynamics@formula[[1]])
-	num.theta <- length(inputs$dynamics@theta.formula)
+	
 	if(freeIC == TRUE){
 	  formula <- inputs$dynamics@formula[[1]]
 	  theta.formula <- inputs$dynamics@theta.formula
@@ -713,25 +710,21 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  #inputs$dynamics@formula[[1]] <- formula
 	  #inputs$dynamics@theta.formula <- theta.formula
 	}
-	
 
+    num.x <- length(inputs$dynamics@formula[[1]])
+    num.theta <- length(inputs$dynamics@theta.formula)
     random.params.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
                             ncol = num.x + num.theta)
     random.values.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
                             ncol = num.x + num.theta)
-    
-	#print(inputs$dynamics@random.names)
-	
+
 	# setup InfDS.Sigmab
 	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
 	sigmab.names <- all.params[unique(as.vector(inputs$initial$params.inicov[[1]]))]
-	#if(.hasSlots(inputs$dynamics,'random.names')){
 	sigmab.names <- unique(c(sigmab.names, as.vector(inputs$dynamics$random.params.inicov)))
-	#}
 	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
-	#print(sigmab.names)
 	  
 	if(length(sigmab.names) > 0){
 		#variance/covariance of states
@@ -746,12 +739,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#print(num.x)
 		#print(random.params.inicov)
 		#print(random.values.inicov)
-	  }
-	#}		    
+	}
   }
-
-  #browser()
-  
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
@@ -784,14 +773,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   param.data$param.value=unique.values
   
+  #browser()
   #initiate a dynrModel object
   if(saem==FALSE){
-    #if(length(dynm@theta.formula) == 0){
-      obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-	#}
-	#else{
-	#  obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
-	#}
+    # note: random.params.inicov of EstimateRandomAsLV is prepared in dynr.cook. Thus there is no need to attached it here
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
+
   }
   else if(saem==TRUE){
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
