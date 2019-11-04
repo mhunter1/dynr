@@ -548,26 +548,30 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #browser()
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
-	
+
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
       states.dyn=states.dyn[[1]]
     }else{
       stop("Formulas should be specified in the same order for different regimes.")
     }
-    if (saem==FALSE && !all(measurement@state.names == states.dyn)){
+
+    if (!all(measurement@state.names == states.dyn)){
       stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
     #else if (saem==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
     #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
     #}
   }
+
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
+
   if (!is.null(data$covariate.names) & !all(measurement@exo.names %in% data$covariate.names)){
     stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
   }
+
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
   if (!dynamics$isContinuousTime){
@@ -577,6 +581,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       return(c(spacing = sum(difference%%min(difference)) > 1e-6, #can be a very small positive number
                full = sum(diff(difference)) > 1e-6))
     })
+	
     if(any(time.check["spacing",])){
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
     }else if (any(time.check["full",])){
@@ -592,7 +597,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
         
         #covariate.names = data$covariate.names
         #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
-		data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
+        data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
         names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
@@ -603,7 +608,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
         })
         
         #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
-		data <- dynr.data(data.new.dataframe, observed = data$observed.names)
+        data <- dynr.data(data.new.dataframe, observed = data$observed.names)
       }
     }
   }
@@ -664,45 +669,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		freeIC = FALSE
 	}
 	
-    # handle the random effect matrix b
-    # replace the name init_x? as inputs$initial$params.inistate[[i]]
-    # for (i in 1:length(inputs$initial$params.inistate[[1]])){
-      # #state.names
-      # inputs$dynamics@state.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@state.names)
-      
-      
-      # inputs$dynamics@beta.names <- gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], inputs$dynamics@beta.names)
-      
-      # #formula
-      # inputs$dynamics@formula[[1]] <- lapply(as.character(inputs$dynamics@formula[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #jacobian
-      # inputs$dynamics@jacobian[[1]] <- lapply(as.character(inputs$dynamics@jacobian[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #dfdtheta
-      # inputs$dynamics@dfdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #dfdx2
-      # inputs$dynamics@dfdx2[[1]] <- lapply(as.character(inputs$dynamics@dfdx2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #dfdxdtheta
-      # inputs$dynamics@dfdxdtheta[[1]] <- lapply(as.character(inputs$dynamics@dfdxdtheta[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #dfdthetadx
-      # inputs$dynamics@dfdthetadx[[1]] <- lapply(as.character(inputs$dynamics@dfdthetadx[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-      # #dfdtheta2
-      # inputs$dynamics@dfdtheta2[[1]] <- lapply(as.character(inputs$dynamics@dfdtheta2[[1]]), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})       
-      
-      # #theta.formula
-      # inputs$dynamics@theta.formula <- lapply(as.character(inputs$dynamics@theta.formula), function(x){as.formula(gsub(paste0('init_',inputs$measurement$state.names[[i]]), inputs$initial@params.inistate[[1]][[i]], x))})
-      
-    # }
-    
-    #browser()
-    # num.theta: number of theta formula that the user specifies.
-    #num.theta <- length(inputs$dynamics@theta.formula) - length(inputs$initial$params.inistate[[1]])
-	#num.theta <- length(inputs$dynamics@theta.formula)
 	num.x <- length(inputs$dynamics@formula[[1]])
 	num.theta <- length(inputs$dynamics@theta.formula)
 	if(freeIC == TRUE){
