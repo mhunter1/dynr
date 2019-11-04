@@ -714,70 +714,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  #inputs$dynamics@theta.formula <- theta.formula
 	}
 	
-	# this part is currently not needed
-	# # check if the theta for this state needs to be estimated. 
-    # # revise formula and theta.formula correspondingly.
-	# # [TODO] to be generalized: this chuck may result in error when some variables in inputs$initial$params.inistate are not estimated
-	# num.x <- length(inputs$initial$params.inistate[[1]])
-	# num.beta <- length(inputs$dynamics@startval)
-	
-	# formula <- inputs$dynamics@formula[[1]][1:(num.x + num.beta)]
-	# theta.formula <- inputs$dynamics@theta.formula[1:num.theta]
-	# inputs$dynamics@theta.names <- inputs$dynamics@theta.names[1:num.theta]
-	# inputs$dynamics@beta.names <- inputs$dynamics@beta.names[1:num.beta] 
-    # for (i in 1:length(inputs$initial$params.inistate[[1]])){
-      # if(inputs$initial$params.inistate[[1]][i] != "fixed" &&  
-         # inputs$initial$params.inistate[[1]][i] != "0" ){
-        # inputs$dynamics@theta.formula[[i+num.theta]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta]], inputs$initial$params.inistate[[1]][i])
-		
-		# # only keeps the formula mu_x? ~ 0 when x? is going to be estimated(shown in inputs$initial$params.inistate)
-		# formula <- c(formula, inputs$dynamics@formula[[1]][[i+num.x + num.beta]])
-		# inputs$dynamics@beta.names = c(inputs$dynamics@beta.names, paste0('mu_',  inputs$measurement@state.names[[i]]))
-      # }
-      
-      
-      # if(inputs$initial$params.inicov[[1]][i, i] != "fixed" && 
-         # inputs$initial$params.inicov[[1]][i, i] != "0" ){
-        # inputs$dynamics@random.names <- append(inputs$dynamics@random.names, paste0('b_',inputs$measurement@state.names[[i]]))
-        # inputs$dynamics@theta.formula[[i+num.theta]] <- addVariableToThetaFormula(inputs$dynamics@theta.formula[[i+num.theta]], inputs$dynamics@random.names[[i+num.theta]])
-		
-		# inputs$dynamics@theta.names <- c(inputs$dynamics@theta.names, paste0(inputs$measurement@state.names[[i]], '_0'))
-		
-		# #only keeps the theta.formula x?_0 ~0 when x? is going to be estimated(shown in inputs$initial$params.inistate)
-		# theta.formula <- c(theta.formula, inputs$dynamics@theta.formula[[i+num.theta]])
-      # }
-    # }  
-	
-	
-	# #if some of the mu_x1 and mu_x2 are fixed, revise the differential matrices
-	# if(length(inputs$dynamics@formula[[1]]) != length(formula) || 
-	   # length(inputs$dynamics@theta.formula) != length(theta.formula)){
-	   
-	  # inputs$dynamics@theta.formula = theta.formula
-	  # inputs$dynamics@formula = list(formula)
-	  
-	  
-	  # #formula2: substitute the content within theta.formula
-	  # formula2 <- lapply(list(formula), function(x){parseFormulaTheta(x, theta.formula)})
-	  
-	  
-	  
-	  # inputs$dynamics@jacobian <- autojacobTry(formula2)
-	  # #inputs$dynamics@dfdtheta <- autojacobTry(formula[[1]][1:num.x], diff.variables=inputs$dynamics@theta.names)
-	  # #inputs$dynamics@dfdx <- autojacobTry(formula[[1]][1:num.x], diff.variables=inputs$dynamics@state.names)
-	  # #inputs$dynamics@dfdxdtheta <- autojacobTry(inputs$dynamics@dfdx, diff.variables=inputs$dynamics@theta.names)
-	  # #inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=inputs$dynamics@state.names)
-	  # #inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=inputs$dynamics@theta.names)
-	# }
-    # #print (inputs$dynamics@theta.formula)
-    
-	# #revise the variance/covariance matrix InfDS.sigmab correspondingly
-	# #num.theta <- length(inputs$dynamics@random.names[[1]][[1]])
-	
-	
 
-	
-	#if(.hasSlots(inputs$dynamics,'random.names')){
     random.params.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
                             ncol = num.x + num.theta)
