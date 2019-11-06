@@ -57,9 +57,10 @@ setMethod("writeArmadilloCode", "dynrDynamicsMatrix",
 
 setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	function(object, covariates){
+		#browser()
 		formula <- object$formula
 		formula2 <- object$formula2
-		jacob <- object$jacobian
+		jacob <- object$jacobianOriginal
 		dfdtheta<- object$dfdtheta
 		dfdx2<- object$dfdx2
 		dfdxdtheta<- object$dfdxdtheta
@@ -67,7 +68,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		dfdtheta2<- object$dfdtheta2
 		state.names <- object$state.names
 		theta.names <- object$theta.names
-		intercept.names <- object$intercept.names
+		#intercept.names <- object$intercept.names
 		random.names <- object$random.names
 		theta.formula <-object$theta.formula
 		nregime=length(formula)
@@ -129,7 +130,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# - the variable name of thetaf is from the LHS of theta.formula
 		# - in jacobian (dfdx), LHS of theta.formula is already replaced by RHS of theta.formula in rhsj (to get correct differentiation), thus, we replace the RHS of theta formula by thetaf
 		rhs <- lapply(rhs, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsj <- lapply(rhsj, function(x){gsub(paste0(rhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		rhsj <- lapply(rhsj, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		rhsp <- lapply(rhsp, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		rhsx2 <- lapply(rhsx2, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		rhsxp <- lapply(rhsxp, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
@@ -137,7 +138,6 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		rhsp2 <- lapply(rhsp2, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		
 		
-		# [todo] replace constants with corresponding names, e.g., omega = InfDS.omega
 		
 		# Replace the covariate to corresponding variables in SAEM (i.e., InfDS.U1)
         for (i in 1:length(covariate.names)){
@@ -305,6 +305,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# Output dfdxdp
 		ret=paste0(ret, "arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx * InfDS.Nx, InfDS.Ntheta, y.n_cols);\n")
 		
+		#browser()
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhsxp, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	

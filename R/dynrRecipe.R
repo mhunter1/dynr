@@ -2417,8 +2417,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   #jacobian = dfdx
   if (missing(jacobian)){
-    if(saem == TRUE)
+    if(saem == TRUE){
       jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
+	  jacobianOriginal <- autojacobTry(formula)
+	}
     else
       jacobian <- autojacobTry(formula) 
   }
@@ -2431,7 +2433,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   }
   x$jacobian <- jacobian
   x$formulaOriginal <- x$formula
-  x$jacobianOriginal <- jacobian
+  x$jacobianOriginal <- jacobianOriginal
   x$paramnames <-names(x$startval)
   
   if(saem == FALSE)

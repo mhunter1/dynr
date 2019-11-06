@@ -683,7 +683,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
       # generate the formula for states
       # note: the formula should be removed in dynr.model if the state in prep.init is fixed
-	  state.names <- inputs$measurement$state.names
+	  state.names <- inputs$dynamics$state.names
       for(i in 1:length(state.names)){
         if(state.names[[i]] > 0){
 		  formula[[length(formula) + 1]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
@@ -694,7 +694,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
       #process the theta formula
       #num.theta.formula <- length(theta.formula)
-	  theta.names <- c()
+	  theta.names <- inputs$dynamics$theta.names
       for (i in 1:length(state.names)){
         # generate the theta.formula for states
         # for state x, the corresponding theta.names = x_0
@@ -705,13 +705,24 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           theta.names[[length(theta.names) + 1]] <- paste0(state.names[[i]],'_0')
 		}
       }
+	  inputs$dynamics@theta.names <- theta.names
 	  
 	  # extended formula here
-	  #inputs$dynamics@formula[[1]] <- formula
-	  #inputs$dynamics@theta.formula <- theta.formula
+	  #browser()
+	  #inputs$dynamics@formula <- list(formula)
+	  inputs$dynamics@theta.formula <- theta.formula
+	  
+	  #inputs$dynamics@jacobianOriginal <- autojacobTry(list(formula))
+	  inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formula, diff.variables=theta.names)
+	  dfdx <- autojacobTry(inputs$dynamics@formula, diff.variables=state.names)
+	  #inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
+	  inputs$dynamics@dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
+	  inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)
+	  inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
 	}
 
-    num.x <- length(inputs$dynamics@formula[[1]])
+    #num.x <- length(inputs$dynamics@formula[[1]])
+	num.x <- length(inputs$measurement$state.names)
     num.theta <- length(inputs$dynamics@theta.formula)
     random.params.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
@@ -751,7 +762,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
 
   # writeCcode on each recipe
-  inputs <- sapply(inputs, writeCcode, data$covariate.names)
+  if(saem == FALSE){
+    inputs <- sapply(inputs, writeCcode, data$covariate.names)
+  }
+  else if (saem == TRUE){
+    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
+  } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
