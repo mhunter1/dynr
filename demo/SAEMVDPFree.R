@@ -25,9 +25,9 @@ meas <- prep.measurement(
     values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
-    state.names=c('x1', 'x2')) #,
-    #values.int=c(3, 1, 0),
-    #params.int=c('mu1', 'mu2', 'mu3'))
+    state.names=c('x1', 'x2'),
+    values.int=matrix(c(3, 1, 0), ncol=1),
+    params.int=matrix(c('mu1', 'mu2', 'mu3'), ncol=1))
 
 
 initial <- prep.initial(
@@ -69,7 +69,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                            random.values.inicov = matrix(c(0.9), ncol=1,byrow=TRUE),
                            random.lb = -5, 
                            random.ub = 5,
-                           saem=FALSE
+                           saem=TRUE
                            )
 
 
