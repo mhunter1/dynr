@@ -393,7 +393,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		#ret contains all the transferred code, currently uses ret_head for testing
         #object@c.string <- ret
 		object@c.string <- ret
-        return(object)	
+        return(object)
 	}
 )
 

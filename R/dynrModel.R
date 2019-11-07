@@ -33,7 +33,11 @@ setClass(Class =  "dynrModel",
            options="list",
            param.names="character",
            random.params.inicov = "matrix",
-           random.values.inicov = "matrix"
+           random.values.inicov = "matrix",
+		   dLambdaparLambd2="matrix",
+		   dLambdparLamb="matrix",
+		   dmudparMu="matrix",
+		   dmudparMu2="matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -745,8 +749,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#variance/covariance of random.names
 		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
 		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
-		
 	}
+	
+	#browser()
+    dmudparMu <- differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]])
+    dmudparMu2 <- differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]])
+	dLambdparLamb <- differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]])
+    dLambdaparLambd2 <- differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]])
+	browser()
   }
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -784,7 +794,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   }
   else if(saem==TRUE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdaparLambd2=dLambdaparLambd2), inputs))
   }
   
   
@@ -859,35 +869,7 @@ impliedRegimes <- function(recipe){
 
 
 
-differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
-	#browser()
-	if(is.vector(inputs)){
-		inputs <- as.matrix(inputs, ncol=1)
-		#rownames(inputs) <- inputs
-	}
-	
-	if(length(variable.names) > 0){
-		variable.names <- unique(as.vector(variable.names))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
-	} else {
-		variable.names <- unique(as.vector(inputs))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
-	}
 
-	ret <- matrix(0, nrow= length(inputs), ncol= length(variable.names))
-	#rownames(ret) <- rep(rownames(inputs), length(inputs)/nrow(inputs))
-	rownames(ret) <- as.vector(inputs)
-	colnames(ret) <- variable.names
-	for(i in 1:length(inputs)){
-		for(j in 1:length(variable.names)){
-			ret[i,j] <- D(as.expression(inputs[i]),variable.names[j])
-			#print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
-		}
-	}
-	
-
-	return(ret)
-}
 
 
 

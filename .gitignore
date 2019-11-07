@@ -13,6 +13,7 @@ man/autoplot.dynrTaste.Rd
 man/coef.dynrCook.Rd
 man/confint.dynrCook.Rd
 man/diag-character-method.Rd
+man/differentiateMatrixOfVariable.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.flowField.Rd
