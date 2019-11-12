@@ -3598,7 +3598,7 @@ returnExponentialSymbolicTerm <- function(inputs){
 
 differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
 	#inputs in call
-	browser()
+	#browser()
 	if(is.vector(inputs)){
 		inputs <- as.matrix(inputs, ncol=1)
 		#rownames(inputs) <- inputs

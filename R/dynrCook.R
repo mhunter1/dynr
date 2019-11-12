@@ -628,8 +628,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			mu = mu.values,
 			lower_bound=lower_bound,
 			upper_bound=upper_bound,
-			dmudparMu=model@measurement@dmudparMu,
-			dmudparMu2=model@measurement@dmudparMu2,
+			dmudparMu=model@dmudparMu,
+			dmudparMu2=model@dmudparMu2,
+			dSigmaede=model@dSigmaede,
+			dSigmaede2=model@dSigmaede2,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )

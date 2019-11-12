@@ -37,7 +37,9 @@ setClass(Class =  "dynrModel",
 		   dLambdaparLambd2="matrix",
 		   dLambdparLamb="matrix",
 		   dmudparMu="matrix",
-		   dmudparMu2="matrix"
+		   dmudparMu2="matrix",
+		   dSigmaede="matrix",
+		   dSigmaede2="matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -756,7 +758,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     dmudparMu2 <- differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]])
 	dLambdparLamb <- differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]])
     dLambdaparLambd2 <- differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]])
-	browser()
+	
+	#browser()
+	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
+	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
+	dSigmaede <-  differentiateMatrixOfVariable2(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
+	dSigmaede2<- differentiateMatrixOfVariable2(dSigmaede, sigmae.params)
+	#browser()
   }
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -794,7 +802,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   }
   else if(saem==TRUE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdaparLambd2=dLambdaparLambd2), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdaparLambd2=dLambdaparLambd2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2), inputs))
   }
   
   
