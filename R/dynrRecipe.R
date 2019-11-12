@@ -3588,3 +3588,44 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 
 	return(t(ret))
 }
+
+returnExponentialSymbolicTerm <- function(inputs){
+	ret <- sapply(inputs, function(term){
+								as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
+	ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
+	return(ret)
+}
+
+differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
+	#inputs in call
+	browser()
+	if(is.vector(inputs)){
+		inputs <- as.matrix(inputs, ncol=1)
+		#rownames(inputs) <- inputs
+	}
+	else{
+		inputs <- as.matrix(as.vector(inputs), ncol=1)
+	}
+	
+	if(length(variable.names) > 0){
+		variable.names <- unique(as.vector(variable.names))
+		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+	} else {
+		variable.names <- unique(as.vector(inputs))
+		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+	}
+
+	ret <- matrix(list(), nrow= length(inputs), ncol= length(variable.names))
+	#rownames(ret) <- rep(rownames(inputs), length(inputs)/nrow(inputs))
+	rownames(ret) <- as.vector(inputs)
+	colnames(ret) <- variable.names
+	for(i in 1:length(inputs)){
+		for(j in 1:length(variable.names)){
+			ret[i,j] <- list(D(inputs[[i]],variable.names[j]))
+			#print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
+		}
+	}
+	
+
+	return(t(ret))
+}
