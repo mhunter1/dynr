@@ -3629,3 +3629,54 @@ differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
 
 	return(t(ret))
 }
+
+symbolicLDLDecomposition <- function(a){
+	if(!is.matrix(a) || nrow(a) != ncol(a))
+		stop("The variable 'a' must be a square matrix")
+	
+	n <- nrow(a)
+	#L <- matrix(list(0), n, n)
+	#D <- diag(list(1), n)
+	L <- rep(list(0), n*n)
+	D <- rep(list(1), n)
+	
+	a = matrix(sapply(a, function(x){deparse(as.list(as.formula(paste0('var~', as.character(x))))[[3]])}), nrow=nrow(a), ncol=ncol(a))
+	
+	#browser()
+	for(i in 1:n){
+		#D[i,i]
+		#if(!is.character(a[i,i][[1]]))
+		term <- a[i,i][[1]]
+		if(i > 1){
+			for(k in 1:(i-1)){
+				#term <- paste(term, '-', as.character(eval(L[i,k][[1]]*L[i,k][[1]]*D[k,k][[1]])))
+				term <- as.character(paste0(term, '-(', L[i+(k-1)*n][[1]], ')^2*(', D[k][[1]], ')'))
+			}
+		}
+		#D[i][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
+		D[i][[1]] <- term
+		if(i < n){
+			for(j in (i+1):n){
+				term <- a[j,i][[1]]
+				
+				if(i > 1){
+					for(k in 1:(i-1)){
+						term <- as.character(paste0(term, '-(', L[j+(k-1)*n][[1]], ')*(', L[i+(k-1)*n][[1]], ')*(', D[k][[1]], ')'))
+					}
+				}
+				#L[j+(i-1)*n][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
+				term <- paste0('(', term, ')/(', D[i][[1]],')')
+				L[j+(i-1)*n][[1]] <- term
+			}
+		}
+		L[i+(i-1)*n][[1]] <- "1"
+		
+	}
+	
+	L2 = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	
+	D2 = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	
+	return(list(L=L2, D=D2))
+
+}
