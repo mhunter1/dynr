@@ -3642,9 +3642,15 @@ symbolicLDLDecomposition <- function(a){
 	ret <- rep(list(0), n*n)
 	temp <- rep(list(0), n*n)
 	
-	a = matrix(sapply(a, function(x){deparse(as.list(as.formula(paste0('var~', as.character(x))))[[3]])}), nrow=nrow(a), ncol=ncol(a))
+	if(is.character(a[1,1])){
+		# the input variable, in the type of "character" 
+		a = matrix(sapply(a, function(x){list(x)}), nrow=nrow(a), ncol=ncol(a))
+	} else {
+		# the input is expression, in the type of "call"
+		a = matrix(sapply(a, function(x){return(deparse(unlist(x)))}), nrow=nrow(a), ncol=ncol(a))
+	}
+	# the element in a should be a list with a element, which contains the expression in the form of character
 	
-	#browser()
 	for(i in 1:n){
 		#D[i,i]
 		#if(!is.character(a[i,i][[1]]))
