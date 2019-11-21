@@ -3639,6 +3639,8 @@ symbolicLDLDecomposition <- function(a){
 	#D <- diag(list(1), n)
 	L <- rep(list(0), n*n)
 	D <- rep(list(1), n)
+	ret <- rep(list(0), n*n)
+	temp <- rep(list(0), n*n)
 	
 	a = matrix(sapply(a, function(x){deparse(as.list(as.formula(paste0('var~', as.character(x))))[[3]])}), nrow=nrow(a), ncol=ncol(a))
 	
@@ -3673,10 +3675,35 @@ symbolicLDLDecomposition <- function(a){
 		
 	}
 	
-	L2 = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	#L*D
+	for(i in 1:n){
+		for(j in 1:n){
+			temp[i+(j-1)*n][[1]] <- paste0('(', L[i+(j-1)*n][[1]], ')*(', D[j][[1]],')')
+		}
+	}
 	
-	D2 = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	#D*t(L)
+	for(i in 1:n){
+		for(j in 1:n){
+			term <- paste0('(', temp[i][[1]],')*(', L[j][[1]],')')
+			if(n>1){
+				for(k in 2:n){
+					term <- paste0('(', term, ')+(', temp[i+(k-1)*n][[1]],')*(', L[j+(k-1)*n][[1]],')')
+				}
+			}
+			ret[i+(j-1)*n][[1]]<- term
+		}
+	}
 	
-	return(list(L=L2, D=D2))
+	#L = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	
+	#D = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	
+	
+	ret = matrix(sapply(ret, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	
+	#return(list(L=L, D=D, r=ret))
+	
+	return(ret)
 
 }
