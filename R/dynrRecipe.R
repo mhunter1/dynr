@@ -3590,8 +3590,20 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 }
 
 returnExponentialSymbolicTerm <- function(inputs){
-	ret <- sapply(inputs, function(term){
+	#browser()
+	if(is.character(inputs[1,1])){
+		ret <- sapply(inputs, function(term){
 								as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
+		
+	} else {
+		#ret <- sapply(inputs, function(term){
+		#						return(as.list(as.formula(paste0('y ~ exp(', deparse(term[[1]], width.cutoff = 500), ')')))[[3]])})
+		ret = rep(list(), ncol(inputs) *nrow(inputs))
+		for(i in 1:nrow(inputs)){
+			for(j in 1:ncol(inputs)){
+				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
+		}}
+	}
 	ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
 	return(ret)
 }
