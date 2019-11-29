@@ -3559,6 +3559,25 @@ substituteFormula <- function(formula, term.formula){
 #    return(formula)
 #}
 
+returnExponentialSymbolicTerm <- function(inputs){
+	#browser()
+	if(is.character(inputs[1,1])){
+		ret <- sapply(inputs, function(term){
+								as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
+		
+	} else {
+		#ret <- sapply(inputs, function(term){
+		#						return(as.list(as.formula(paste0('y ~ exp(', deparse(term[[1]], width.cutoff = 500), ')')))[[3]])})
+		ret = rep(list(), ncol(inputs) *nrow(inputs))
+		for(i in 1:nrow(inputs)){
+			for(j in 1:ncol(inputs)){
+				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
+		}}
+	}
+	ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
+	return(ret)
+}
+
 differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 	#browser()
 	if(is.vector(inputs)){
@@ -3589,24 +3608,7 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 	return(t(ret))
 }
 
-returnExponentialSymbolicTerm <- function(inputs){
-	#browser()
-	if(is.character(inputs[1,1])){
-		ret <- sapply(inputs, function(term){
-								as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
-		
-	} else {
-		#ret <- sapply(inputs, function(term){
-		#						return(as.list(as.formula(paste0('y ~ exp(', deparse(term[[1]], width.cutoff = 500), ')')))[[3]])})
-		ret = rep(list(), ncol(inputs) *nrow(inputs))
-		for(i in 1:nrow(inputs)){
-			for(j in 1:ncol(inputs)){
-				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
-		}}
-	}
-	ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
-	return(ret)
-}
+
 
 differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
 	#inputs in call
@@ -3633,7 +3635,11 @@ differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
 	colnames(ret) <- variable.names
 	for(i in 1:length(inputs)){
 		for(j in 1:length(variable.names)){
-			ret[i,j] <- list(D(inputs[[i]],variable.names[j]))
+			if(is.character(inputs[[i]])){
+				ret[i,j] <- D(as.symbol(inputs[i]),variable.names[j])
+			} else{
+				ret[i,j] <- list(D(inputs[[i]],variable.names[j]))
+			}
 			#print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
 		}
 	}
