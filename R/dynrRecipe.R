@@ -3578,39 +3578,39 @@ returnExponentialSymbolicTerm <- function(inputs){
 	return(ret)
 }
 
+# differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
+	# #browser()
+	# if(is.vector(inputs)){
+		# inputs <- as.matrix(inputs, ncol=1)
+		# #rownames(inputs) <- inputs
+	# }
+	
+	# if(length(variable.names) > 0){
+		# variable.names <- unique(as.vector(variable.names))
+		# variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+	# } else {
+		# variable.names <- unique(as.vector(inputs))
+		# variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+	# }
+
+	# ret <- matrix(0, nrow= length(inputs), ncol= length(variable.names))
+	# #rownames(ret) <- rep(rownames(inputs), length(inputs)/nrow(inputs))
+	# rownames(ret) <- as.vector(inputs)
+	# colnames(ret) <- variable.names
+	# for(i in 1:length(inputs)){
+		# for(j in 1:length(variable.names)){
+			# ret[i,j] <- D(as.symbol(inputs[i]),variable.names[j])
+			# #print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
+		# }
+	# }
+	
+
+	# return(t(ret))
+# }
+
+
+# merage differentiateMatrixOfVariable and differentiateMatrixOfVariable2
 differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
-	#browser()
-	if(is.vector(inputs)){
-		inputs <- as.matrix(inputs, ncol=1)
-		#rownames(inputs) <- inputs
-	}
-	
-	if(length(variable.names) > 0){
-		variable.names <- unique(as.vector(variable.names))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
-	} else {
-		variable.names <- unique(as.vector(inputs))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
-	}
-
-	ret <- matrix(0, nrow= length(inputs), ncol= length(variable.names))
-	#rownames(ret) <- rep(rownames(inputs), length(inputs)/nrow(inputs))
-	rownames(ret) <- as.vector(inputs)
-	colnames(ret) <- variable.names
-	for(i in 1:length(inputs)){
-		for(j in 1:length(variable.names)){
-			ret[i,j] <- D(as.symbol(inputs[i]),variable.names[j])
-			#print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
-		}
-	}
-	
-
-	return(t(ret))
-}
-
-
-
-differentiateMatrixOfVariable2 <- function(inputs, variable.names=character(0)){
 	#inputs in call
 	#browser()
 	if(is.vector(inputs)){

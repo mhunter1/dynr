@@ -162,7 +162,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	dmudparMu=dmudparMu,
 	dmudparMu2=dmudparMu2,
 	dLambdparLamb=dLambdparLamb,
-	dLambdaparLambd2=dLambdaparLambd2,
+	dLambdparLamb2=dLambdparLamb2,
 	dSigmaede=dSigmaede,
 	dSigmaede2=dSigmaede2,
 	y0=y0,
