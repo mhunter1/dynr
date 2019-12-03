@@ -165,6 +165,8 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	dLambdparLamb2=dLambdparLamb2,
 	dSigmaede=dSigmaede,
 	dSigmaede2=dSigmaede2,
+	dSigmabdb=dSigmabdb,
+	dSigmabdb2=dSigmabdb2,
 	y0=y0,
 	#num_time = num_time,
 	options=options #,

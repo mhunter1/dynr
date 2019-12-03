@@ -39,7 +39,9 @@ setClass(Class =  "dynrModel",
 		   dmudparMu="matrix",
 		   dmudparMu2="matrix",
 		   dSigmaede="matrix",
-		   dSigmaede2="matrix"
+		   dSigmaede2="matrix",
+		   dSigmabdb="matrix",
+		   dSigmabdb2="matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -673,7 +675,55 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		freeIC = FALSE
 	}
 	
-	# For freeIC ones, extend the equations and redo the corresponding differentiation
+
+
+    #num.x <- length(inputs$dynamics@formula[[1]])
+	num.x <- length(inputs$measurement$state.names)
+    num.theta <- length(inputs$dynamics@theta.formula)
+    random.params.inicov = matrix(0L, 
+                            nrow = num.x + num.theta, 
+                            ncol = num.x + num.theta)
+    random.values.inicov = matrix(0L, 
+                            nrow = num.x + num.theta, 
+                            ncol = num.x + num.theta)
+
+	# setup InfDS.Sigmab
+	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
+	sigmab.names <- all.params[unique(as.vector(inputs$initial$params.inicov[[1]]))]
+	sigmab.names <- unique(c(as.vector(inputs$dynamics$random.params.inicov), sigmab.names))
+	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
+	
+	if(length(sigmab.names) > 0){
+		#variance/covariance of states
+		random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
+		random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
+	    
+		#variance/covariance of random.names
+		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
+		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+		
+		#browser()
+		#LDL transformation
+		sigmab <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
+		
+		dSigmabdb <- differentiateMatrixOfVariable(sigmab, sigmab.names)
+		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, sigmab.names)
+	}
+	
+	#browser()
+    dmudparMu <- differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]])
+    dmudparMu2 <- differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]])
+	dLambdparLamb <- differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]])
+    dLambdparLamb2 <- differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]])
+	
+	#browser()
+	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
+	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
+	dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
+	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
+	#browser()
+	
+		# For freeIC ones, extend the equations and redo the corresponding differentiation
 	if(freeIC == TRUE){
 	  formula <- inputs$dynamics@formula[[1]]
 	  theta.formula <- inputs$dynamics@theta.formula
@@ -726,45 +776,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)
 	  inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
 	}
-
-    #num.x <- length(inputs$dynamics@formula[[1]])
-	num.x <- length(inputs$measurement$state.names)
-    num.theta <- length(inputs$dynamics@theta.formula)
-    random.params.inicov = matrix(0L, 
-                            nrow = num.x + num.theta, 
-                            ncol = num.x + num.theta)
-    random.values.inicov = matrix(0L, 
-                            nrow = num.x + num.theta, 
-                            ncol = num.x + num.theta)
-
-	# setup InfDS.Sigmab
-	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
-	sigmab.names <- all.params[unique(as.vector(inputs$initial$params.inicov[[1]]))]
-	sigmab.names <- unique(c(sigmab.names, as.vector(inputs$dynamics$random.params.inicov)))
-	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
-	
-	if(length(sigmab.names) > 0){
-		#variance/covariance of states
-		random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
-		random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
-	    
-		#variance/covariance of random.names
-		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
-		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
-	}
-	
-	#browser()
-    dmudparMu <- differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]])
-    dmudparMu2 <- differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]])
-	dLambdparLamb <- differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]])
-    dLambdparLamb2 <- differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]])
-	
-	#browser()
-	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
-	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
-	dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
-	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
-	#browser()
   }
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -802,7 +813,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   }
   else if(saem==TRUE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2), inputs))
   }
   
   
