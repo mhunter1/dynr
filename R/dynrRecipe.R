@@ -3676,7 +3676,17 @@ symbolicLDLDecomposition <- function(a){
 		if(i > 1){
 			for(k in 1:(i-1)){
 				#term <- paste(term, '-', as.character(eval(L[i,k][[1]]*L[i,k][[1]]*D[k,k][[1]])))
-				term <- as.character(paste0(term, '-(', L[i+(k-1)*n][[1]], ')^2*(', D[k][[1]], ')'))
+				e_l <- evaluateExpression(L[i+(k-1)*n][[1]])
+				e_d <- evaluateExpression(D[k][[1]])
+				if(!is.na(e_l) && e_l == 0){
+					term <- term
+				}
+				else if(!is.na(e_d) && e_d == 0){
+					term <- term
+				}
+				else{
+					term <- as.character(paste0(term, '-(', L[i+(k-1)*n][[1]], ')^2*(', D[k][[1]], ')'))
+				}
 			}
 		}
 		#D[i][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
@@ -3687,11 +3697,24 @@ symbolicLDLDecomposition <- function(a){
 				
 				if(i > 1){
 					for(k in 1:(i-1)){
-						term <- as.character(paste0(term, '-(', L[j+(k-1)*n][[1]], ')*(', L[i+(k-1)*n][[1]], ')*(', D[k][[1]], ')'))
+						e_l <- evaluateExpression(L[i+(k-1)*n][[1]])
+						e_d <- evaluateExpression(D[k][[1]])
+						if(!is.na(e_l) && e_l == 0){
+							term <- term
+						}
+						else if(!is.na(e_d) && e_d == 0){
+							term <- term
+						}
+						else{
+							term <- as.character(paste0(term, '-(', L[j+(k-1)*n][[1]], ')*(', L[i+(k-1)*n][[1]], ')*(', D[k][[1]], ')'))
+						}
 					}
 				}
 				#L[j+(i-1)*n][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
-				term <- paste0('(', term, ')/(', D[i][[1]],')')
+				e_t <- evaluateExpression(term)
+				if(is.na(e_t) || e_t != 0){
+					term <- paste0('(', term, ')/(', D[i][[1]],')')
+				}
 				L[j+(i-1)*n][[1]] <- term
 			}
 		}
@@ -3700,9 +3723,20 @@ symbolicLDLDecomposition <- function(a){
 	}
 	
 	#L*D
+	browser()
 	for(i in 1:n){
 		for(j in 1:n){
-			temp[i+(j-1)*n][[1]] <- paste0('(', L[i+(j-1)*n][[1]], ')*(', D[j][[1]],')')
+			e_l <- evaluateExpression(L[i+(j-1)*n][[1]])
+			e_d <- evaluateExpression(D[j][[1]])
+			if(!is.na(e_l) && e_l == 0){
+				term <- term
+			}
+			else if(!is.na(e_d) && e_d == 0){
+				term <- term
+			}
+			else{
+				temp[i+(j-1)*n][[1]] <- paste0('(', L[i+(j-1)*n][[1]], ')*(', D[j][[1]],')')
+			}
 		}
 	}
 	
@@ -3712,7 +3746,17 @@ symbolicLDLDecomposition <- function(a){
 			term <- paste0('(', temp[i][[1]],')*(', L[j][[1]],')')
 			if(n>1){
 				for(k in 2:n){
-					term <- paste0('(', term, ')+(', temp[i+(k-1)*n][[1]],')*(', L[j+(k-1)*n][[1]],')')
+					e_l <- evaluateExpression(temp[i+(k-1)*n][[1]])
+					e_d <- evaluateExpression(L[j+(k-1)*n][[1]])
+					if(!is.na(e_l) && e_l == 0){
+						term <- term
+					}
+					else if(!is.na(e_d) && e_d == 0){
+						term <- term
+					}
+					else{
+						term <- paste0('(', term, ')+(', temp[i+(k-1)*n][[1]],')*(', L[j+(k-1)*n][[1]],')')
+					}
 				}
 			}
 			ret[i+(j-1)*n][[1]]<- term
@@ -3730,4 +3774,19 @@ symbolicLDLDecomposition <- function(a){
 	
 	return(ret)
 
+}
+
+#term in character
+evaluateExpression <- function(a){
+	if(is.numeric(a) == TRUE)
+		return(a)
+	if(is.character(a) == FALSE)
+		stop('evaluateExpression: term should be in the type of character')
+	
+	value=NA
+	tryCatch(
+		{value=eval(as.list(as.formula(paste0('x ~ ',a)))[[3]])},
+		error=function(e){value=NA})
+	
+	return(value)
 }
