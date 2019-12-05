@@ -2417,11 +2417,15 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if (missing(jacobian)){
     if(saem == TRUE){
       jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
-	  jacobianOriginal <- autojacobTry(formula)
+	  #jacobianOriginal <- autojacobTry(formula)
 	}
     else
       jacobian <- autojacobTry(formula) 
   }
+  
+  #if(saem == TRUE){
+  jacobianOriginal <- autojacobTry(formula)
+  #}
 
   # Check that all 'values' imply 0, 1, or the same number of regimes.
   # Note that the 'values' and 'params' have already been checked to imply this.
@@ -3744,7 +3748,7 @@ symbolicLDLDecomposition <- function(a){
 		
 	}
 	
-	browser()
+	#browser()
 	# exponentail tranformation of D
 	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
 	
