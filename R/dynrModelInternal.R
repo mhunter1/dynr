@@ -156,6 +156,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	gainparb1 = gainparb1,
 	num_bpar=num_bpar,
 	sigmab=sigmab,
+	sigmae=sigmae,
 	mu = mu,
 	lower_bound=lower_bound,
 	upper_bound=upper_bound,

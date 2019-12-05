@@ -714,6 +714,36 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	else{
 		Sigmab = NULL;
 	}
+	
+	double **Sigmae;
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"sigmae")));
+		UNPROTECT(1);
+		
+		Sigmae = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					Sigmab[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				Sigmab[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("Sigmae:\n");
+ 		for(row = 0; row < Ny; row++){
+ 			for(col = 0;col < Ny; col++){
+ 				printf(" %lf", Sigmab[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		Sigmae = NULL;
+	}
 
 
 

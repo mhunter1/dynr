@@ -14,7 +14,7 @@ using namespace arma;
 
 extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **);
 
-void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab){
+void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae){
 
 
 	//printf("check point 0\n");	
@@ -198,12 +198,15 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 	//InfDS.dXtildthetafAll2(0).print("InfDS.dXtildthetafAll2(0)");
 	
 	
+	//the following part needs to be generalized 201-211
 	InfDS.Sigmab = zeros(Nb, Nb);
 	InfDS.dSigmabdb = zeros(InfDS.Nbpar, Nb*Nb);
 	InfDS.dSigmabdb2 = zeros(InfDS.Nbpar*Nb*Nb, InfDS.Nbpar);
 	
 	InfDS.dLambdparLamb = zeros(NLambda, Ny * InfDS.Nx);
+	InfDS.dLambdparLamb2 = zeros(NLambda* Ny * InfDS.Nx, NLambda);
 	
+	InfDS.Sigmae = zeros(Ny, Ny);
 	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	
 	InfDS.dSigmaede = zeros(Ny, Ny*Ny);
 	
@@ -279,6 +282,15 @@ void interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int
 
 	}
 	InfDS.Sigmab.print("sigmab");
+	
+	InfDS.Sigmae.set_size(Ny, Ny);
+	for(i = 0; i < Ny; i++){
+		for(j = 0; j < Ny; j++){
+			InfDS.Sigmae(i,j) = Sigmae[i][j];
+		}
+
+	}
+	InfDS.Sigmab.print("sigmae");
 	
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
