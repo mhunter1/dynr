@@ -3559,24 +3559,46 @@ substituteFormula <- function(formula, term.formula){
 #    return(formula)
 #}
 
+# returnExponentialSymbolicTerm <- function(inputs){
+	# #browser()
+	# if(is.character(inputs[1,1])){
+		# ret <- sapply(inputs, function(term){
+								# as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
+		
+	# } else {
+		# #ret <- sapply(inputs, function(term){
+		# #						return(as.list(as.formula(paste0('y ~ exp(', deparse(term[[1]], width.cutoff = 500), ')')))[[3]])})
+		# ret = rep(list(), ncol(inputs) *nrow(inputs))
+		# for(i in 1:nrow(inputs)){
+			# for(j in 1:ncol(inputs)){
+				# ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
+		# }}
+	# }
+	# ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
+	# return(ret)
+# }
+
+# only do exp to diag ones
 returnExponentialSymbolicTerm <- function(inputs){
 	#browser()
-	if(is.character(inputs[1,1])){
-		ret <- sapply(inputs, function(term){
-								as.list(as.formula(paste0('y ~ exp(', term, ')')))[[3]]})
-		
-	} else {
-		#ret <- sapply(inputs, function(term){
-		#						return(as.list(as.formula(paste0('y ~ exp(', deparse(term[[1]], width.cutoff = 500), ')')))[[3]])})
-		ret = rep(list(), ncol(inputs) *nrow(inputs))
-		for(i in 1:nrow(inputs)){
-			for(j in 1:ncol(inputs)){
+	
+	ret = rep(list(), ncol(inputs) *nrow(inputs))
+	for(i in 1:nrow(inputs)){
+		for(j in 1:ncol(inputs)){
+			
+			if(is.character(inputs[i,j])){
+				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', inputs[i,j], ')')))[[3]])
+			} else {
 				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
-		}}
+			}
+			
+		}
 	}
+	
 	ret <- matrix(ret, ncol = ncol(inputs), nrow=nrow(inputs))
 	return(ret)
 }
+
 
 # differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 	# #browser()
@@ -3722,8 +3744,11 @@ symbolicLDLDecomposition <- function(a){
 		
 	}
 	
-	#L*D
 	browser()
+	# exponentail tranformation of D
+	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
+	
+	#L*D
 	for(i in 1:n){
 		for(j in 1:n){
 			e_l <- evaluateExpression(L[i+(j-1)*n][[1]])
