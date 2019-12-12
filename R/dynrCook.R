@@ -460,9 +460,6 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
 
-    #saem <- dynrModel@dynamics@saem
-
-	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
     data <- dynrModel$data
@@ -474,46 +471,25 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
       # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
     }
     
-	#browser()
 	if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0 && dynrModel$dynamics$saem==FALSE){
 		#get the initial values of b and startvars
 		fitted_model <- EstimateRandomAsLV(dynrModel, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
 		coefEst <- coef(fitted_model)
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		#print('Starting values:')
-		#print(dynrModel@xstart)
-		#if('b_est' %in% names(fitted_model))
-		#	b <- fitted_model@b_est
 		return(fitted_model)
 	}	#internalModelPrep convert dynrModel to a model list
 
 	dots <- list(...)
-	saem <- FALSE  #default: saem is FALSE (calling original dynr)
+	saem <- dynrModel$dynamics$saem 
 	if(length(dots) > 0){
 	  #obtaining saem parameters
 	  if('saemp' %in% names(dots)){
 	    saemp <-dots$saemp
 	  }
-	  
-	  #obtaining saem option
-	  if('saem' %in% names(dots)){
-        saem <- dots$saem
-      }
-	}
-	else{
-	  if(saem == TRUE){
-	    saemp <- prep.saemParameter() # all with default parameter
-	  }
 	}
 	
-	#print(names(dynrModel$dynamics))
-    #print(.hasSlot(dynrModel$dynamics, 'theta.formula'))	
     if(saem==TRUE){
-		#InfDS.Sigmab					
-		#print(dynrModel$random.values.inicov)
-
-		#InfDS.bpar
 		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
 		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
 		#print(sigmab.names)
@@ -521,12 +497,15 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		lambda.names <- unique(as.vector(dynrModel@measurement$params.load[[1]]))
 		lambda.names <- lambda.names[!lambda.names %in% c('fixed', '0')]
+		lambda.names <- dynrModel@param.names[lambda.names]
 		
 		noise.names <- unique(as.vector(dynrModel@noise@params.observed[[1]]))
 		noise.names <- noise.names[!noise.names %in% c('fixed', '0')]
+		noise.names <- dynrModel@param.names[noise.names]
 		
 		if(length(dynrModel@measurement@params.int) > 0 && length(dynrModel@measurement@params.int[[1]]) > 0){
 		  mu.names <- dynrModel@measurement@params.int[[1]]
+		  mu.names <- dynrModel@param.names[mu.names]
 		  mu.values <- dynrModel@measurement@values.int[[1]]
 		}
 		else{
@@ -544,8 +523,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		param.names <- logical(0)
 		if(length(dynrModel@dynamics@beta.names) > 0)
 		  param.names <- c(param.names, dynrModel@dynamics@beta.names)
-		if(length(dynrModel@measurement@params.int) > 0 && length(dynrModel@measurement@params.int[[1]]) > 0)
-		  param.names <- c(param.names, dynrModel@measurement@params.int[[1]])
+		if(length(mu.names) > 0)
+		  param.names <- c(param.names, mu.names)
 		if(length(lambda.names) > 0)
 		  param.names <- c(param.names, lambda.names)
 		if(length(noise.names) > 0)
@@ -561,23 +540,27 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 
 		#get the initial values of b and startvars
-		fitted_model <- EstimateRandomAsLV(dynrModel)
-		coefEst <- coef(fitted_model)
-		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		print('Starting values:')
-		print(dynrModel@xstart)
-		if('b_est' %in% names(fitted_model))
-			b <- fitted_model@b_est
-		return(fitted_model)
+		#temporarily commenting out start
+		# fitted_model <- EstimateRandomAsLV(dynrModel)
+		# coefEst <- coef(fitted_model)
+		# estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		# dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		# print('Starting values:')
+		# print(dynrModel@xstart)
+		# if('b_est' %in% names(fitted_model))
+			# b <- fitted_model@b_est
+		#temporarily commenting out end
 		 	
+		
 		#b, y0
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
+		# ******examined (not extended)
 		random.names <- model$dynamics@random.names
+		random.names <- c(model$dynamics@random.names, 'x1_0', 'x2_0')
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
-		#b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
-		#b_x <-  length(random.names) - num.x
+		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
+		b_x <-  length(random.names) - num.x
 		#print(b)
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
 		for(i in 1:num.subj){
@@ -588,7 +571,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model$initial@y0 <- list(y0)
 		#print(model$initial@y0)
 
-         
+
+        #browser() 
         model <- internalModelPrepSAEM(
             num_regime=dynrModel@num_regime,
             dim_latent_var=dynrModel@dim_latent_var,
@@ -606,9 +590,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
             num_lambda=length(lambda.names),
             num_mu=length(mu.names),
-            num_random=length(dynrModel@dynamics@random.names),
+            num_random=length(random.names),
             theta.formula=dynrModel@dynamics@theta.formula,
-            random.names=dynrModel@dynamics@random.names,
+            random.names=random.names,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]), #column-major
             b= b,
@@ -625,7 +609,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			gainparb1 = saemp@gainparb1,
 			num_bpar = length(sigmab.names),
 			sigmab = as.double(dynrModel$random.values.inicov),
-			sigmae = as.double(dynrModel@dynamics$values.observed[[1]]),
+			sigmae = as.double(dynrModel@noise$values.observed[[1]]),
 			mu = mu.values,
 			lower_bound=lower_bound,
 			upper_bound=upper_bound,
@@ -633,6 +617,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dmudparMu2=model@dmudparMu2,
 			dSigmaede=model@dSigmaede,
 			dSigmaede2=model@dSigmaede2,
+			dLambdparLamb=model@dLambdparLamb,
+			dLambdparLamb2=model@dLambdparLamb2,
+			dSigmabdb = model@dSigmabdb,
+			dSigmabdb2 = model@dSigmabdb2,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )

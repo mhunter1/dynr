@@ -3589,13 +3589,19 @@ returnExponentialSymbolicTerm <- function(inputs){
 	ret = rep(list(), ncol(inputs) *nrow(inputs))
 	for(i in 1:nrow(inputs)){
 		for(j in 1:ncol(inputs)){
-			
+			if(i == j){
 			if(is.character(inputs[i,j])){
 				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', inputs[i,j], ')')))[[3]])
 			} else {
 				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ exp(', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
 			}
-			
+			} else {
+			#if(is.character(inputs[i,j])){
+				ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ (', inputs[i,j], ')')))[[3]])
+			#} else {
+				#ret[nrow(inputs)*(j-1)+i] <- list(as.list(as.formula(paste0('y ~ (', deparse(inputs[i,j][[1]], width.cutoff = 500), ')')))[[3]])
+			#}
+			}
 		}
 	}
 	
@@ -3665,12 +3671,13 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 				ret[i,j] <- D(as.symbol(inputs[i]),variable.names[j])
 			} else{
 				ret[i,j] <- list(D(inputs[[i]],variable.names[j]))
+				#ret[i,j] <- D(inputs[[i]],variable.names[j])
 			}
 			#print(paste(matrix[i],variable.names[j], D(as.symbol(matrix[i]),variable.names[j])))
 		}
 	}
-	
 
+	ret = matrix(sapply(ret, function(term){term[[1]]}), nrow(ret), ncol(ret))
 	return(t(ret))
 }
 
@@ -3750,7 +3757,7 @@ symbolicLDLDecomposition <- function(a){
 	
 	#browser()
 	# exponentail tranformation of D
-	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
+	#D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
 	
 	#L*D
 	for(i in 1:n){
