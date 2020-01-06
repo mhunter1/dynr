@@ -87,7 +87,7 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 #Using $ with lb and ub assumes that you are adjusting the parameters
 #model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
 #model$ub[names(model@ub)] = 10
-#print(model@random.params.inicov)
+print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 10, 
                             MAXITER = 10, 
