@@ -1,6 +1,6 @@
 # README #
 
-This README documents the steps necessary to get `dynr` cooking.  That was the first of many food-based puns.  It will not be the last.
+This README file documents the steps necessary to get `dynr` cooking.  That was the first of many food-based puns.  It will not be the last.
 
 [![](http://cranlogs.r-pkg.org/badges/dynr)](https://cran.r-project.org/package=dynr)
 
