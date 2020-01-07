@@ -3677,9 +3677,10 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 		}
 	}
 
-	ret = matrix(sapply(ret, function(term){term[[1]]}), nrow(ret), ncol(ret))
+	#ret = matrix(sapply(ret, function(term){term[[1]]}), nrow(ret), ncol(ret))
 	return(t(ret))
 }
+
 
 symbolicLDLDecomposition <- function(a){
 	if(!is.matrix(a) || nrow(a) != ncol(a))
@@ -3756,8 +3757,31 @@ symbolicLDLDecomposition <- function(a){
 	}
 	
 	#browser()
+	par_list <- vector()
+	for(i in 1:n){
+		e_t <- evaluateExpression(D[i][[1]]) 
+		if(is.na(e_t)){
+			new_par <- paste0('par', length(par_list))
+			D[i][[1]] <- new_par
+			par_list <- c(par_list, new_par)
+		}
+	}
+	
+	#browser()
+	for(i in 1:n){
+		for(j in 1:n){
+		e_t <- evaluateExpression(L[i+(j-1)*n][[1]]) 
+			if(i != j && is.na(e_t)){
+				new_par <- paste0('par', length(par_list))
+				L[i+(j-1)*n][[1]] <- new_par
+				par_list <- c(par_list, new_par)
+			}
+		}
+	}
+	
+	#browser()
 	# exponentail tranformation of D
-	#D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
+	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
 	
 	#L*D
 	for(i in 1:n){
@@ -3811,6 +3835,7 @@ symbolicLDLDecomposition <- function(a){
 	return(ret)
 
 }
+
 
 #term in character
 evaluateExpression <- function(a){
