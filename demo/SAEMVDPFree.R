@@ -106,4 +106,4 @@ fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, 
 timeend<-Sys.time()
 
 print(timeend-timestart)
-#test
+
