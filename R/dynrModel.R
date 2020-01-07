@@ -706,15 +706,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#LDL transformation
 		sigmab <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
 		
-		dSigmabdb <- differentiateMatrixOfVariable(sigmab, sigmab.names)
-		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, sigmab.names)
+		dSigmabdb <- unList(differentiateMatrixOfVariable(sigmab, sigmab.names))
+		dSigmabdb2 <- unList(differentiateMatrixOfVariable(dSigmabdb, sigmab.names))
 	}
 	
 	#browser()
-    dmudparMu <- differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]])
-    dmudparMu2 <- differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]])
-	dLambdparLamb <- differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]])
-    dLambdparLamb2 <- differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]])
+    dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
+    dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
+	dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
+    dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
 	
 	#browser()
 	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]

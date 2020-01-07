@@ -3836,6 +3836,11 @@ symbolicLDLDecomposition <- function(a){
 
 }
 
+unList <- function(ret){
+	ret = matrix(sapply(ret, function(term){term[[1]]}), nrow(ret), ncol(ret))
+	return(ret)
+}
+
 
 #term in character
 evaluateExpression <- function(a){
