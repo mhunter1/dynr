@@ -96,7 +96,8 @@ saemp <- prep.saemParameter(MAXGIB = 10,
                             gainparb = 3.000000, 
                             gainpara1 = 0.900000, 
                             gainparb1 = 1.000000, 
-                            bAdaptParams = c(0.5, 2.5, 0.5))
+                            bAdaptParams = c(0.5, 2.5, 0.5),
+							KKO=30)
 
 timestart<-Sys.time()
 
