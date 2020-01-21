@@ -432,22 +432,25 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			total_time_all_subj += allT[row];
 			//printf("total_time_all_subj %lf\n", total_time_all_subj);
 		}
-		printf("\n");
+		//printf("\n");
 		
 		total_time_all_subj_int = (int)(total_time_all_subj + 0.001);
 		printf("total_time_all_subj %d\n", total_time_all_subj_int);
     }
 
+	printf("here %d\n", totalT);
 	/*tspan*/
 	if (totalT > 0){
 		tspan = (double *)malloc((num_time+1)* sizeof(double));
 		tspan = REAL(PROTECT(getListElement(model_list,"tspan")));
 		UNPROTECT(1);
 		
+		/*
 		printf("tspan:\n");
 		for(row = 0; row < num_time; row++)
 			printf("%lf ", tspan[row]);
 		printf("\n");
+		*/
 		
     }
 	else{
@@ -587,6 +590,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }
 	
 	
+	
+	
+	printf("time %d\n", total_time_all_subj_int);
+	
 	int *tobs;
 	printf("total_time_all_subj %d\n", total_time_all_subj_int);
 	if (total_time_all_subj_int  > 0){		
@@ -605,29 +612,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         tobs = NULL;
     }
 	
-	double *timeDiscrete;
-	printf("total_time_all_subj %d\n", total_time_all_subj_int);
-	if (total_time_all_subj_int  > 0){		
-		timeDiscrete = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
-		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
-		UNPROTECT(1);
 	
-		
-		printf("timeDiscrete:\n");
-		
-		for(i = 0; i < 10;i++){
-			printf(" %lf", timeDiscrete[i]);
-			
-		}
-		printf("\n");
-		
-		
-
-    }else{
-        timeDiscrete = NULL;
-    }
-	
-	printf("time %d\n", total_time_all_subj_int);
 	if(Ny > 0 && total_time_all_subj_int > 0){
 		Y = (double **)malloc((Ny + 1)* sizeof(double));
 		SEXP observed_sexp = PROTECT(getListElement(data_list, "observed"));
@@ -716,9 +701,32 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		Sigmae = NULL;
 	}
 
+	
 
+	/*has error ask*/
+	/*
+	double *timeDiscrete;
+	printf("total_time_all_subj %d\n", total_time_all_subj_int);
+	if (total_time_all_subj_int  > 0){
+		
+		timeDiscrete = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
+		printf("timeDiscrete(1):\n");
+		timeDiscrete = REAL(PROTECT(getListElement(model_list, "time_")));
+		UNPROTECT(1);
+		printf("timeDiscrete(2):\n");
+		
+		for(i = 0; i < 10;i++){
+			printf(" %lf", timeDiscrete[i]);
+			
+		}
+		printf("\n");
+		
+		
 
-
+    }else{
+        timeDiscrete = NULL;
+    }
+	*/
 	
 	/*Inconsistent variables*/
 	//printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);

@@ -621,11 +621,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dLambdparLamb2=model@dLambdparLamb2,
 			dSigmabdb = model@dSigmabdb,
 			dSigmabdb2 = model@dSigmabdb2,
+			time_=model$data$time,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )
         #print(model$MAXGIB)
 		#print(model$gainpara)
+		
         
         libname <- model$libname
         model$libname <- NULL
@@ -652,7 +654,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         # gc()
         # backendStart <- Sys.time()
         
-        
+        print('here')
+		print(model$time_[1:10])
+		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 
         return(output)
@@ -906,6 +910,7 @@ combineModelDataInformationSAEM <- function(model, data){
 	model$num_time = length(sort(unique(data[['time']])))
 	#print ('num_time')
 	#print (model$num_time)
+	#print(model$tspan) 
 	
     
     model$allT <- rep(0, model$num_sbj)
