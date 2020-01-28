@@ -3832,7 +3832,7 @@ symbolicLDLDecomposition <- function(a){
 	
 	#return(list(L=L, D=D, r=ret))
 	
-	return(ret)
+	return(list(ldl=ret, pars=par_list))
 
 }
 

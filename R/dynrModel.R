@@ -710,12 +710,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 			random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
 			random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
 		}
-		#browser()
+		browser()
 		#LDL transformation
-		sigmab <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
+		ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
 		
-		dSigmabdb <- unList(differentiateMatrixOfVariable(sigmab, sigmab.names))
-		dSigmabdb2 <- unList(differentiateMatrixOfVariable(dSigmabdb, sigmab.names))
+		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
+		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
 	}
 	
 	#browser()

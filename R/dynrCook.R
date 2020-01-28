@@ -553,7 +553,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		 	
 		
 		#b, y0
-		browser()
+		#browser()
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
 		# ******examined (not extended)
