@@ -2303,7 +2303,9 @@ autojacob<-function(formula,n){
 ##'                           isContinuousTime=TRUE)
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
-
+  if(length(startval) == 0){
+    warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
+  }
 
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
