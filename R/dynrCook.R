@@ -553,19 +553,26 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		 	
 		
 		#b, y0
+		browser()
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
 		# ******examined (not extended)
 		random.names <- model$dynamics@random.names
-		random.names <- c(model$dynamics@random.names, 'x1_0', 'x2_0')
+		#random.names <- c(model$dynamics@random.names, 'x1_0', 'x2_0')
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
 		#print(b)
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
+		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
-            y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+		    if(model@freeIC){
+              y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+			}
+			else{
+			  y0[i, ] <- model$initial$values.inistate[[1]]
+			}
 		  }
 		}
 		model$initial@y0 <- list(y0)
@@ -957,6 +964,7 @@ combineModelDataInformationSAEM <- function(model, data){
 
 	
     #H & Z 
+	browser()
     r =formula2design( 
         model$theta.formula,
         covariates=c(data$covariate.names, "1"),

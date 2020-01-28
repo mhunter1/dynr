@@ -41,7 +41,8 @@ setClass(Class =  "dynrModel",
 		   dSigmaede="matrix",
 		   dSigmaede2="matrix",
 		   dSigmabdb="matrix",
-		   dSigmabdb2="matrix"
+		   dSigmabdb2="matrix",
+		   freeIC="logical"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -661,10 +662,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   if(saem==TRUE){
     # examine whether it is freeIC or fixed IC case
-	inistate.names <- unique(as.vector(inputs$initial@params.inistate))
-	inistate.names <- inistate.names[!inistate.names %in% c(0)]
-	inicov.names <- unique(as.vector(inputs$initial@params.inicov))
-	inicov.names <- inicov.names[!inicov.names %in% c(0)]
+	inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
+	inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
+	inicov.names <- unique(as.vector(inputs$initial@params.inicov[[1]]))
+	inicov.names <- inicov.names[!inicov.names %in% c(0, 'fixed')]
 	if(length(inistate.names) == 0 && length(inicov.names) > 0){
 		warning('The params.inistate in prep.initial are fixed, but params.inicov are free')
 	}
@@ -675,17 +676,23 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		freeIC = FALSE
 	}
 	
+	#browser()
+	print("freeIC")
+	print(freeIC)
 
 
     #num.x <- length(inputs$dynamics@formula[[1]])
+	
 	num.x <- length(inputs$measurement$state.names)
     num.theta <- length(inputs$dynamics@theta.formula)
-    random.params.inicov = matrix(0L, 
+	
+	random.params.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
                             ncol = num.x + num.theta)
-    random.values.inicov = matrix(0L, 
+	random.values.inicov = matrix(0L, 
                             nrow = num.x + num.theta, 
                             ncol = num.x + num.theta)
+	
 
 	# setup InfDS.Sigmab
 	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
@@ -694,14 +701,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
 	
 	if(length(sigmab.names) > 0){
-		#variance/covariance of states
-		random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
-		random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
-	    
-		#variance/covariance of random.names
-		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
-		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
-		
+		if(freeIC){
+			#variance/covariance of states
+			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
+			random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
+			
+			#variance/covariance of random.names
+			random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
+			random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+		}
 		#browser()
 		#LDL transformation
 		sigmab <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
@@ -723,7 +731,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
 	#browser()
 	
-		# For freeIC ones, extend the equations and redo the corresponding differentiation
+	# For freeIC ones, extend the equations and redo the corresponding differentiation
 	if(freeIC == TRUE){
 	  formula <- inputs$dynamics@formula[[1]]
 	  theta.formula <- inputs$dynamics@theta.formula
@@ -813,7 +821,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   }
   else if(saem==TRUE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC), inputs))
   }
   
   
