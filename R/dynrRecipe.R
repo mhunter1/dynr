@@ -2304,7 +2304,11 @@ autojacob<-function(formula,n){
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
 
-
+  # if the argument formula is not a list 
+  if(!is.list(formula)){
+    stop('The first argument needs to be a list of formulas. Please check.')
+  }
+  
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
