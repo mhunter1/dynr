@@ -156,6 +156,9 @@ coef.dynrModel <- function(object, ...){
 
 ##' @rdname coef.dynrCook
 `coef<-.dynrModel` <- function(object, value){
+	if(length(coef(object)) != length(value)){
+		stop(paste0("Number of model coeficients (", length(coef(object)), ") does not match number assigned (", length(value), ")."))
+	}
 	object <- PopBackModel(object, value)
 	return(object)
 }

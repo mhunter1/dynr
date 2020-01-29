@@ -470,7 +470,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	  # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
 	  }
 	
-	#browser()
 	if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0){
 		#get the initial values of b and startvars
 		fitted_model <- EstimateRandomAsLV(dynrModel, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
@@ -604,7 +603,7 @@ endProcessing <- function(x, transformation, conf.level){
 		#Numerical Jacobian
 		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
 		iHess0 <- J %*% (MASS::ginv(x$hessian.matrix)) %*% t(J)
-		bad.SE <- diag(iHess0) < 0
+		bad.SE <- is.na(diag(iHess0)) | diag(iHess0) < 0
 		
 		iHess <- J %*% x$inv.hessian %*% t(J)
 		tSE <- sqrt(diag(iHess))
@@ -896,7 +895,6 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
 EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
   # Restructure mixed effects structured via theta.formula into an expanded model with 
   # random effects as additional state variables and cook it.
-  #browser()
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
     	

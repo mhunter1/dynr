@@ -1,7 +1,7 @@
 Package: dynr
 Date: @DATE@
 Title: Dynamic Modeling in R
-Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
+Authors@R: c(person("Lu", "Ou", role="aut"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mhunter.ou@gmail.com", comment=c(ORCID = "0000-0002-3651-6709")),
     person("Sy-Miin", "Chow", role="aut", comment=c(ORCID = "0000-0003-1938-027X")))
 Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>

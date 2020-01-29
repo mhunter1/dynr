@@ -2309,6 +2309,12 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     stop('The first argument needs to be a list of formulas. Please check.')
   }
   
+
+  if(length(startval) == 0){
+    warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
+  }
+
+
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
