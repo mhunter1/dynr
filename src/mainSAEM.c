@@ -589,9 +589,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
         y0 = NULL;
     }
 	
-	
-	
-	
+
 	printf("time %d\n", total_time_all_subj_int);
 	
 	int *tobs;
@@ -640,7 +638,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	
 	
-
+	
 	double **Sigmab;
 	if (Nb > 0){
 		temp = (double *)malloc((Nb * Nb +  1)* sizeof(double));
@@ -656,20 +654,18 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				Sigmab[row][col] = temp[col * Nb + row];
 			}
 		}
-		
-		
  		printf("Sigmab:\n");
  		for(row = 0; row < Ny; row++){
  			for(col = 0;col < Ny; col++){
  				printf(" %lf", Sigmab[row][col]);
  			}
  		printf("\n");
-		}	
- 																			
+		}
 	}
 	else{
 		Sigmab = NULL;
 	}
+	
 	
 	double **Sigmae;
 	if (Ny > 0){
@@ -701,7 +697,129 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		Sigmae = NULL;
 	}
 
+	/*----*/
 	
+	double **dSigmaede;
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny * Ny +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dSigmaede")));
+		UNPROTECT(1);
+		
+		dSigmaede = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dSigmaede[row] = (double *)malloc((Ny *  Ny + 1)* sizeof(double));
+				}
+				dSigmaede[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("dSigmaede:\n");
+ 		for(row = 0; row < Ny; row++){
+ 			for(col = 0;col < Ny * Ny; col++){
+ 				printf(" %lf", dSigmaede[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dSigmaede = NULL;
+	}
+	
+	double **dSigmaede2;
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny * Ny +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dSigmaede2")));
+		UNPROTECT(1);
+		
+		dSigmaede2 = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dSigmaede2[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				dSigmaede2[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("dSigmaede2:\n");
+ 		for(row = 0; row < Ny * Ny * Ny; row++){
+ 			for(col = 0;col < Ny; col++){
+ 				printf(" %lf", dSigmaede2[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dSigmaede2 = NULL;
+	}
+	
+	/*
+	double **dSigmabdb;
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb")));
+		UNPROTECT(1);
+		
+		dSigmabdb = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dSigmabdb[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				dSigmabdb[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("dSigmabdb:\n");
+ 		for(row = 0; row < Ny; row++){
+ 			for(col = 0;col < Ny; col++){
+ 				printf(" %lf", dSigmabdb[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dSigmabdb = NULL;
+	}
+	
+	double **dSigmabdb2;
+	if (Ny > 0){
+		temp = (double *)malloc((Ny * Ny +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb2")));
+		UNPROTECT(1);
+		
+		dSigmabdb2 = (double **)malloc((Ny + 1)* sizeof(double *));
+		for(row = 0;row < Ny; row++){
+			for(col = 0;col < Ny; col++){
+				if(col == 0){
+					dSigmabdb2[row] = (double *)malloc((Ny + 1)* sizeof(double));
+				}
+				dSigmabdb2[row][col] = temp[col * Nb + row];
+			}
+		}
+		
+		
+ 		printf("dSigmabdb2:\n");
+ 		for(row = 0; row < Ny; row++){
+ 			for(col = 0;col < Ny; col++){
+ 				printf(" %lf", dSigmabdb2[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dSigmabdb2 = NULL;
+	}
+	*/
 
 	/*has error ask*/
 	/*

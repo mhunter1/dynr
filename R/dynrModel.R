@@ -710,7 +710,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 			random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
 			random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
 		}
-		browser()
+		#browser()
 		#LDL transformation
 		ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
 		

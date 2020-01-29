@@ -38,10 +38,12 @@ initial <- prep.initial(
                            .2,.6), ncol=2, byrow=TRUE), 
     params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
                            'sigma_bx1x2','sigma2_bx2'), ncol=2, byrow=TRUE)
+    #params.inicov=matrix(c('fixed','fixed',
+    #                       'fixed','fixed'), ncol=2, byrow=TRUE) 
 )
 
 mdcov <- prep.noise(
-    values.latent=diag(0, 2),
+    values.latent=diag(0, 2), # check If SAEM 0 & non zero, warning
     params.latent=diag(c("fixed","fixed"), 2),
     values.observed=diag(rep(0.3,3)),
     params.observed=diag(c("var_1","var_2","var_3"),3)
@@ -78,7 +80,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
                     outfile="VanDerPol.cpp")
 
-
+print('here')
+print(model@freeIC)
 #-10
 #exp(-10) 
 #InfDS.lowBound(11:16) = log(10e-8);

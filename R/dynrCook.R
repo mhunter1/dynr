@@ -553,22 +553,32 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		 	
 		
 		#b, y0
-		#browser()
+		
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
 		# ******examined (not extended)
-		random.names <- model$dynamics@random.names
-		#random.names <- c(model$dynamics@random.names, 'x1_0', 'x2_0')
+		if(model@freeIC == FALSE){
+		  random.names <- model$dynamics@random.names}
+		else{
+		  x.names <- dynrModel@measurement@state.names
+		  random.names <- c(model$dynamics@random.names, paste0('b_',x.names))
+		  print (random.names)
+		}
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
 		#print(b)
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
 		
+		browser()
+		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, list(var_1=log(0.3), var_2=(0.3), var_3=(0.3)))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, list(var_1=(0.3), var_2=(0.3), var_3=(0.3)))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
 		    if(model@freeIC){
               y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+			  #y0[i, ] <- model$initial$values.inistate[[1]] 
 			}
 			else{
 			  y0[i, ] <- model$initial$values.inistate[[1]]
