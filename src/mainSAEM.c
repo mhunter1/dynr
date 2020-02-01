@@ -707,11 +707,11 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		
 		dSigmaede = (double **)malloc((Ny + 1)* sizeof(double *));
 		for(row = 0;row < Ny; row++){
-			for(col = 0;col < Ny; col++){
+			for(col = 0;col < Ny *  Ny; col++){
 				if(col == 0){
 					dSigmaede[row] = (double *)malloc((Ny *  Ny + 1)* sizeof(double));
 				}
-				dSigmaede[row][col] = temp[col * Nb + row];
+				dSigmaede[row][col] = temp[col * Ny + row];
 			}
 		}
 		
@@ -731,17 +731,17 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	double **dSigmaede2;
 	if (Ny > 0){
-		temp = (double *)malloc((Ny * Ny * Ny +  1)* sizeof(double));
+		temp = (double *)malloc((Ny * Ny * Ny * Ny +  1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmaede2")));
 		UNPROTECT(1);
 		
 		dSigmaede2 = (double **)malloc((Ny + 1)* sizeof(double *));
-		for(row = 0;row < Ny; row++){
+		for(row = 0;row < Ny * Ny * Ny; row++){
 			for(col = 0;col < Ny; col++){
 				if(col == 0){
 					dSigmaede2[row] = (double *)malloc((Ny + 1)* sizeof(double));
 				}
-				dSigmaede2[row][col] = temp[col * Nb + row];
+				dSigmaede2[row][col] = temp[col * Ny + row];
 			}
 		}
 		
@@ -822,14 +822,15 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	*/
 
 	/*has error ask*/
-	/*
+	
 	double *timeDiscrete;
 	printf("total_time_all_subj %d\n", total_time_all_subj_int);
 	if (total_time_all_subj_int  > 0){
 		
 		timeDiscrete = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
 		printf("timeDiscrete(1):\n");
-		timeDiscrete = REAL(PROTECT(getListElement(model_list, "time_")));
+		//timeDiscrete = REAL(PROTECT(getListElement(model_list, "time_")));
+		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
 		UNPROTECT(1);
 		printf("timeDiscrete(2):\n");
 		
@@ -844,7 +845,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
     }else{
         timeDiscrete = NULL;
     }
-	*/
+	
 	
 	/*Inconsistent variables*/
 	//printf("Nbeta %d NLambda %d\n", Nbeta, NLambda);

@@ -570,15 +570,19 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#print(b)
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
 		
-		browser()
-		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, list(var_1=log(0.3), var_2=(0.3), var_3=(0.3)))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
-	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, list(var_1=(0.3), var_2=(0.3), var_3=(0.3)))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+		#browser()
+		#as.list(model@xstart[model@noise@params.observed[[1]]]): list(var_1=log(0.3), var_2=log(0.3), var_3=log(0.3)) 
+		#the values in xstart is already reverse transformed
+		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+		print(dSigmaede)
+	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+		dSigmaede2 <- t(dSigmaede2)
+		print(dSigmaede2)
 		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
 		    if(model@freeIC){
               y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
-			  #y0[i, ] <- model$initial$values.inistate[[1]] 
 			}
 			else{
 			  y0[i, ] <- model$initial$values.inistate[[1]]
@@ -586,7 +590,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  }
 		}
 		model$initial@y0 <- list(y0)
-		#print(model$initial@y0)
 
 
         #browser() 
@@ -632,8 +635,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			upper_bound=upper_bound,
 			dmudparMu=model@dmudparMu,
 			dmudparMu2=model@dmudparMu2,
-			dSigmaede=model@dSigmaede,
-			dSigmaede2=model@dSigmaede2,
+			dSigmaede=dSigmaede,
+			dSigmaede2=dSigmaede2,
 			dLambdparLamb=model@dLambdparLamb,
 			dLambdparLamb2=model@dLambdparLamb2,
 			dSigmabdb = model@dSigmabdb,
@@ -974,7 +977,7 @@ combineModelDataInformationSAEM <- function(model, data){
 
 	
     #H & Z 
-	browser()
+	#browser()
     r =formula2design( 
         model$theta.formula,
         covariates=c(data$covariate.names, "1"),
