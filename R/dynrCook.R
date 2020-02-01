@@ -574,10 +574,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#as.list(model@xstart[model@noise@params.observed[[1]]]): list(var_1=log(0.3), var_2=log(0.3), var_3=log(0.3)) 
 		#the values in xstart is already reverse transformed
 		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
-		print(dSigmaede)
-	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+		#print(dSigmaede)
+	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
 		dSigmaede2 <- t(dSigmaede2)
-		print(dSigmaede2)
+		#print(dSigmaede2)
 		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){

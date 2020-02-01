@@ -735,13 +735,13 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmaede2")));
 		UNPROTECT(1);
 		
-		dSigmaede2 = (double **)malloc((Ny + 1)* sizeof(double *));
+		dSigmaede2 = (double **)malloc((Ny * Ny * Ny + 1)* sizeof(double *));
 		for(row = 0;row < Ny * Ny * Ny; row++){
 			for(col = 0;col < Ny; col++){
 				if(col == 0){
 					dSigmaede2[row] = (double *)malloc((Ny + 1)* sizeof(double));
 				}
-				dSigmaede2[row][col] = temp[col * Ny + row];
+				dSigmaede2[row][col] = temp[col * Ny * Ny * Ny + row];
 			}
 		}
 		
