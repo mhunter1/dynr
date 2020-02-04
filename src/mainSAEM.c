@@ -761,7 +761,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	double **dSigmabdb;
-	if (Ny > 0){
+	if (Nbpar > 0 && Nb > 0){
 		temp = (double *)malloc((Nb * Nb * Nbpar +  1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb")));
 		UNPROTECT(1);
@@ -791,7 +791,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	}
 	
 	double **dSigmabdb2;
-	if (Ny > 0){
+	if (Nbpar > 0 && Nb > 0){
 		temp = (double *)malloc((Nb * Nb * Nbpar * Nbpar +  1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb2")));
 		UNPROTECT(1);
@@ -811,6 +811,36 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
  		for(row = 0; row < Nb * Nb * Nbpar; row++){
  			for(col = 0;col < Nbpar; col++){
  				printf(" %lf", dSigmabdb2[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dSigmabdb2 = NULL;
+	}
+	
+	double **dLambdparLamb;
+	if (Ny > 0 && NxState > 0 && NLambda > 0){
+		temp = (double *)malloc((NLambda* Ny * NxState +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dLambdparLamb")));
+		UNPROTECT(1);
+		
+		dLambdparLamb = (double **)malloc((NLambda + 1)* sizeof(double *));
+		for(row = 0;row < NLambda; row++){
+			for(col = 0;col < Ny * NxState; col++){
+				if(col == 0){
+					dLambdparLamb[row] = (double *)malloc((Ny * NxState + 1)* sizeof(double));
+				}
+				dLambdparLamb[row][col] = temp[col * NLambda + row];
+			}
+		}
+		
+		
+ 		printf("dLambdparLamb:\n");
+ 		for(row = 0; row < NLambda; row++){
+ 			for(col = 0;col < Ny * NxState; col++){
+ 				printf(" %lf", dLambdparLamb[row][col]);
  			}
  		printf("\n");
 		}	
