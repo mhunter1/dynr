@@ -581,6 +581,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
   }
 
+  #if SAEM is TRUE but noise@values.latent are not zero matrix, warning
+  if(saem == TRUE && any(noise@values.latent[[1]] != 0)){
+    warning('Currently you can use the SAEM with ordering differential equations (i.e., null matrix for the "values.latent" in dynrNoise)')
+  }
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
   if (!dynamics$isContinuousTime){

@@ -43,7 +43,7 @@ initial <- prep.initial(
 )
 
 mdcov <- prep.noise(
-    values.latent=diag(0, 2), # check If SAEM 0 & non zero, warning
+    values.latent=diag(0, 2), 
     params.latent=diag(c("fixed","fixed"), 2),
     values.observed=diag(rep(0.3,3)),
     params.observed=diag(c("var_1","var_2","var_3"),3)
