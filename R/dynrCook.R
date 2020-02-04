@@ -519,7 +519,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		ub <- c(dynrModel@ub, 'b_zeta'=NA)
 		
 		# organize the lowerbound and upperbound vectors for saem
-		#print('here')
 		param.names <- logical(0)
 		if(length(dynrModel@dynamics@beta.names) > 0)
 		  param.names <- c(param.names, dynrModel@dynamics@beta.names)
@@ -567,17 +566,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 		b_x <-  length(random.names) - num.x
-		#print(b)
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
 		
-		#browser()
-		#as.list(model@xstart[model@noise@params.observed[[1]]]): list(var_1=log(0.3), var_2=log(0.3), var_3=log(0.3)) 
+		 
+		#substitute the values in xstart into the expression 
 		#the values in xstart is already reverse transformed
 		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
-		#print(dSigmaede)
 	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
 		dSigmaede2 <- t(dSigmaede2)
-		#print(dSigmaede2)
+		
+		#[todo] replace par0~par3 with the value of reverse LDL
+		dSigmabdb<-matrix(sapply(model@dSigmabdb, function(x){eval(x, list(par0=.3, par1=.3, par2=.3, par3=.3))}), nrow=nrow(model@dSigmabdb), ncol=ncol(model@dSigmabdb))
+		dSigmabdb2<-matrix(sapply(model@dSigmabdb2, function(x){eval(x, list(par0=.3, par1=.3, par2=.3, par3=.3))}), nrow=nrow(model@dSigmabdb2), ncol=ncol(model@dSigmabdb2))
+		dSigmabdb2 <- t(dSigmabdb2)
+		
 		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
@@ -639,8 +641,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dSigmaede2=dSigmaede2,
 			dLambdparLamb=model@dLambdparLamb,
 			dLambdparLamb2=model@dLambdparLamb2,
-			dSigmabdb = model@dSigmabdb,
-			dSigmabdb2 = model@dSigmabdb2,
+			dSigmabdb = dSigmabdb,
+			dSigmabdb2 = dSigmabdb2,
 			time_=model$data$time,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
@@ -675,6 +677,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         # backendStart <- Sys.time()
         
         print('here')
+		print(class(model$time_[1]))
 		print(model$time_[1:10])
 		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")

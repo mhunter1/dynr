@@ -759,27 +759,27 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		dSigmaede2 = NULL;
 	}
 	
-	/*
+	
 	double **dSigmabdb;
 	if (Ny > 0){
-		temp = (double *)malloc((Ny * Ny +  1)* sizeof(double));
+		temp = (double *)malloc((Nb * Nb * Nbpar +  1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb")));
 		UNPROTECT(1);
 		
-		dSigmabdb = (double **)malloc((Ny + 1)* sizeof(double *));
-		for(row = 0;row < Ny; row++){
-			for(col = 0;col < Ny; col++){
+		dSigmabdb = (double **)malloc((Nbpar + 1)* sizeof(double *));
+		for(row = 0;row < Nbpar; row++){
+			for(col = 0;col < Nb * Nb; col++){
 				if(col == 0){
-					dSigmabdb[row] = (double *)malloc((Ny + 1)* sizeof(double));
+					dSigmabdb[row] = (double *)malloc((Nb * Nb + 1)* sizeof(double));
 				}
-				dSigmabdb[row][col] = temp[col * Nb + row];
+				dSigmabdb[row][col] = temp[col * Nbpar + row];
 			}
 		}
 		
 		
  		printf("dSigmabdb:\n");
- 		for(row = 0; row < Ny; row++){
- 			for(col = 0;col < Ny; col++){
+ 		for(row = 0; row < Nbpar; row++){
+ 			for(col = 0;col < Nb * Nb; col++){
  				printf(" %lf", dSigmabdb[row][col]);
  			}
  		printf("\n");
@@ -792,24 +792,24 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	double **dSigmabdb2;
 	if (Ny > 0){
-		temp = (double *)malloc((Ny * Ny +  1)* sizeof(double));
+		temp = (double *)malloc((Nb * Nb * Nbpar * Nbpar +  1)* sizeof(double));
 		temp = REAL(PROTECT(getListElement(model_list,"dSigmabdb2")));
 		UNPROTECT(1);
 		
-		dSigmabdb2 = (double **)malloc((Ny + 1)* sizeof(double *));
-		for(row = 0;row < Ny; row++){
-			for(col = 0;col < Ny; col++){
+		dSigmabdb2 = (double **)malloc((Nb * Nb * Nbpar + 1)* sizeof(double *));
+		for(row = 0;row < Nb * Nb * Nbpar; row++){
+			for(col = 0;col < Nbpar; col++){
 				if(col == 0){
-					dSigmabdb2[row] = (double *)malloc((Ny + 1)* sizeof(double));
+					dSigmabdb2[row] = (double *)malloc((Nbpar + 1)* sizeof(double));
 				}
-				dSigmabdb2[row][col] = temp[col * Nb + row];
+				dSigmabdb2[row][col] = temp[col * Nb * Nb * Nbpar + row];
 			}
 		}
 		
 		
  		printf("dSigmabdb2:\n");
- 		for(row = 0; row < Ny; row++){
- 			for(col = 0;col < Ny; col++){
+ 		for(row = 0; row < Nb * Nb * Nbpar; row++){
+ 			for(col = 0;col < Nbpar; col++){
  				printf(" %lf", dSigmabdb2[row][col]);
  			}
  		printf("\n");
@@ -819,7 +819,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	else{
 		dSigmabdb2 = NULL;
 	}
-	*/
+	
 
 	/*has error ask*/
 	
@@ -829,8 +829,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		
 		timeDiscrete = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
 		printf("timeDiscrete(1):\n");
-		//timeDiscrete = REAL(PROTECT(getListElement(model_list, "time_")));
-		timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
+		timeDiscrete = REAL(PROTECT(getListElement(model_list, "time_")));
+		//timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
 		UNPROTECT(1);
 		printf("timeDiscrete(2):\n");
 		
