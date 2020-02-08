@@ -574,12 +574,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
 	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
 		dSigmaede2 <- t(dSigmaede2)
-		
-		#[todo] replace par0~par3 with the value of reverse LDL
-		dSigmabdb<-matrix(sapply(model@dSigmabdb, function(x){eval(x, list(par0=.3, par1=.3, par2=.3, par3=.3))}), nrow=nrow(model@dSigmabdb), ncol=ncol(model@dSigmabdb))
-		dSigmabdb2<-matrix(sapply(model@dSigmabdb2, function(x){eval(x, list(par0=.3, par1=.3, par2=.3, par3=.3))}), nrow=nrow(model@dSigmabdb2), ncol=ncol(model@dSigmabdb2))
-		dSigmabdb2 <- t(dSigmabdb2)
-		
+				
 		
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
@@ -641,8 +636,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dSigmaede2=dSigmaede2,
 			dLambdparLamb=model@dLambdparLamb,
 			dLambdparLamb2=model@dLambdparLamb2,
-			dSigmabdb = dSigmabdb,
-			dSigmabdb2 = dSigmabdb2,
+			dSigmabdb = model@dSigmabdb,
+			dSigmabdb2 = model@dSigmabdb2,
 			time_=model$data$time,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
