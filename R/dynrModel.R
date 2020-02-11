@@ -544,6 +544,12 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
+  # Set ground truth for number/name of states and observations
+  nameLatentVars <- measurement$state.names
+  numLatentVars <- length(nameLatentVars)
+  nameObsVars <- measurement$obs.names
+  numObsVars <- length(nameObsVars)
+  # numRegimes is defined and checked later in this function
   #check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
