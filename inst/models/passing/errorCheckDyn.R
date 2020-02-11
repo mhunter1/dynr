@@ -97,5 +97,22 @@ testthat::expect_error(
 	regexp="Mind your teaspoons and tablespoons.  The 'exo.values' argument says there are\n (2) covariates, but the 'covariates' arg says there are (0).",
 	fixed=TRUE)
 
+
+#------------------------------------------------------------------------------
+# Check for friendly error when user hands wrong stuff to prep.formulaDynamics()
+
+testthat::expect_error(
+	prep.formulaDynamics(eta ~ phi*eta),
+	regexp="'formula' argument is a formula but 'formula' should be a list of formulas.\nCan't nobody tell me nothin'",
+	fixed=TRUE
+)
+
+testthat::expect_error(
+	prep.formulaDynamics(matrix(1, 2, 2)),
+	regexp="'formula' argument should be a list of formulas.\nCan't nobody tell me nothin'",
+	fixed=TRUE
+)
+
+
 #------------------------------------------------------------------------------
 # End
