@@ -660,7 +660,7 @@ checkHessian <- function(x, transformation){
 		useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
 	}
 	V1 <- try(solve(useHess))
-	if(class(V1) == "try-error"){
+	if("try-error" %in% class(V1)){
 		failHess <- failHess + 1
 		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.", call.=FALSE)
 		V1 <- MASS::ginv(useHess)
