@@ -2306,7 +2306,11 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   # if the argument formula is not a list 
   if(!is.list(formula)){
-    stop('The first argument needs to be a list of formulas. Please check.')
+    msg <- paste0(ifelse(plyr::is.formula(formula), "'formula' argument is a formula but ", ""),
+      "'formula'",
+      ifelse(plyr::is.formula(formula), " ", " argument "),
+      "should be a list of formulas.\nCan't nobody tell me nothin'")
+    stop(msg)
   }
   
 
