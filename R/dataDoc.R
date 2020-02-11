@@ -608,7 +608,7 @@ NULL
 ##' @keywords datasets
 ##' @name vdpData
 ##' @usage data(vdpData)
-##' @format A data frame with 60,000 rows and 11 variables
+##' @format A data frame with 10,000 rows and 11 variables
 NULL
 
 ##' Another simulated multilevel multi-subject time series of a damped oscillator model
