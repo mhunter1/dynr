@@ -3920,6 +3920,14 @@ solveOneElementEquation <- function(call, b, known.vars){
 reverseLDL <- function(ldl, values.ldl){
   known.vars <- list()
   #browser()
+  
+  if (min(diag(MASS::ginv(values.ldl)))<0){
+    stop("Starting values for entries in random.values.inicov
+        and values.inicov generate a non-positive 
+         definite covariance matrix. Please check
+         the starting values for these entries.")
+  }
+  
   for(i in 1:nrow(ldl)){
     for(j in 1:nrow(ldl)){
        known.vars <- solveOneElementEquation(ldl[i,j][[1]], values.ldl[i,j], known.vars) 
