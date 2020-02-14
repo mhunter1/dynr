@@ -717,7 +717,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		# LDL transformation
 		ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
 		# reverse LDL transformation 
-		known.vars <-reverseLDL(ret$ldl, random.values.inicov)
+		known.vars <-symbolicReverseLDL(ret$ldl, random.values.inicov)
 		
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
 		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
