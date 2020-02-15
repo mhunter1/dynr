@@ -13,7 +13,6 @@ man/autoplot.dynrTaste.Rd
 man/coef.dynrCook.Rd
 man/confint.dynrCook.Rd
 man/diag-character-method.Rd
-man/differentiateMatrixOfVariable.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.flowField.Rd
@@ -64,6 +63,7 @@ man/prep.noise.Rd
 man/prep.regimes.Rd
 man/prep.tfun.Rd
 man/printex.Rd
+man/returnExponentialSymbolicTerm.Rd
 man/RSPPsim.Rd
 man/substituteFormula.Rd
 man/summary.dynrCook.Rd
