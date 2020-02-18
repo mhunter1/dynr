@@ -665,6 +665,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
 
   if(saem==TRUE){
+    #browser()
     # examine whether it is freeIC or fixed IC case
 	inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
 	inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
@@ -688,14 +689,22 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     #num.x <- length(inputs$dynamics@formula[[1]])
 	
 	num.x <- length(inputs$measurement$state.names)
-    num.theta <- length(inputs$dynamics@theta.formula)
-	
-	random.params.inicov = matrix(0L, 
-                            nrow = num.x + num.theta, 
-                            ncol = num.x + num.theta)
-	random.values.inicov = matrix(0L, 
-                            nrow = num.x + num.theta, 
-                            ncol = num.x + num.theta)
+	num.theta <- length(inputs$dynamics@theta.formula)
+	if(freeIC){
+		random.params.inicov = matrix(0L, 
+								nrow = num.x + num.theta, 
+								ncol = num.x + num.theta)
+		random.values.inicov = matrix(0L, 
+								nrow = num.x + num.theta, 
+								ncol = num.x + num.theta)
+	} else {
+		random.params.inicov = matrix(0L, 
+								nrow = num.theta, 
+								ncol = num.theta)
+		random.values.inicov = matrix(0L, 
+								nrow = num.theta, 
+								ncol = num.theta)
+	}
 	
 
 	# setup InfDS.Sigmab
@@ -705,15 +714,15 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
 	
 	if(length(sigmab.names) > 0){
+		#variance/covariance of random.names
+		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
+		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+		
 		if(freeIC){
 			#variance/covariance of states
 			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
 			random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
-			
-			#variance/covariance of random.names
-			random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
-			random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
-		}
+		} 
 		# LDL transformation
 		ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
 		# reverse LDL transformation 
