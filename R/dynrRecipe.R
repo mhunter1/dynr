@@ -3692,6 +3692,9 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 symbolicLDLDecomposition <- function(a){
 	if(!is.matrix(a) || nrow(a) != ncol(a))
 		stop("The variable 'a' must be a square matrix")
+		
+	if(!isSymmetric(a))
+		stop("The variable 'a' must be a symmetric matrix")
 	
 	n <- nrow(a)
 	L <- rep(list(0), n*n)
