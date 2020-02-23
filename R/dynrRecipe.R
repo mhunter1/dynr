@@ -3683,12 +3683,40 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 
 
 
-##' Obtain symbolic expressions for L\%*\%D\%*\%t(L), and unique parameter names for parameters that are on the unconstrained scale (e.g., par0-par9)
+##' Obtain symbolic expressions for \code{L\%*\%D\%*\%t(L)}, and unique parameter names for parameters that are on the unconstrained scale (e.g., par0-par9)
 ##' 
-##' @param a the random effect covariance matrix in model@random.params.inicov
-##' @return a list of ldl and pars, where ldl is a matrix of the symbolic expressions of L\%*\%D\%*\%t(L), and pars is a list of unique parameter names in ldl
-##' @examples symbolicLDLDecomposition(model@random.params.inicov)
-##' @details Exponential constraints are imposed on the diagonal elements of D to ensure the positive definiteness of the product LDL'.
+##' @param a the random effect covariance matrix in \code{dynrModel@random.params.inicov}
+##' @return a list of \code{ldl} and \code{pars}, where \code{ldl} is a matrix of the symbolic expressions of \code{L\%*\%D\%*\%t(L)}, and \code{pars} is a list of unique parameter names in \code{ldl}
+##' @examples 
+##' #dynrModel@random.params.inicov
+##' a = matrix(c(
+##'     "a11","a12",
+##'     "a12","a22"
+##'     ),byrow=TRUE,ncol=2)
+##'
+##' #dynrModel@random.values.inicov
+##' a.values = matrix(c(
+##'            .6, .3,
+##'            .3, .6
+##'           ),byrow=TRUE,ncol=2)
+##'
+##' # Obtain symbolic expressions for L%*%D%*%t(L), and unique parameter names for parameters
+##' # that are on the unconstrained scale (e.g., par0-par2). 
+##' r = symbolicLDLDecomposition(a)
+##'
+##' # Solve for numerical values of par0-par2 (the unconstrained parameters)
+##' # given starting values for the random effect covariance matrix in model@random.params.inicov
+##' par.values <- solveStartLDL(r$ldl, a.values)
+##'
+##' # Evaluate the LDL' expressions in r at the values of par.values and return
+##' # the "reassembled" L%*%D%*%t(L) numerical matrices based on the unconstrained par.values
+##' a.values2 = matrix(sapply(r$ldl, function(x){eval(x, par.values)}), nrow=2)
+##' 
+##' # compare the difference between the original LDL and the reassembled LDL
+##' a.values2 - a.values
+##'
+##' @details Exponential constraints are imposed on the diagonal elements of \code{D} to ensure the positive definiteness of the product LDL'.
+##' @seealso \code{\link{solveStartLDL}}
 symbolicLDLDecomposition <- function(a){
 	if(!is.matrix(a) || nrow(a) != ncol(a))
 		stop("The variable 'a' must be a square matrix")
@@ -3933,6 +3961,7 @@ solveOneElementEquation <- function(call, b, known.vars){
 ##' @param ldl the expression of the random effect covariance matrix (which can be obtained by symbolicLDLDecomposition)
 ##' @param values.ldl the starting values for the random effect covariance matrix in model@random.values.inicov
 ##' @return the list of numerical values of the unconstrained parameters (e.g., list(par0= 1, par1 =2, par2 =3))
+##' @seealso \code{\link{symbolicLDLDecomposition}}
 solveStartLDL <- function(ldl, values.ldl){
   known.vars <- list()
   #browser()
