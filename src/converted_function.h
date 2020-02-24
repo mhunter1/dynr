@@ -205,7 +205,7 @@ arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struc
 }
  
 //----------------
-
+/*This function should not be called*/
 void setParsFreeICwb(C_INFDS &InfDS){
 	int startM, startL, starte, startb;
 	arma::mat D, L;
@@ -232,7 +232,7 @@ void setParsFreeICwb(C_INFDS &InfDS){
 		InfDS.dLambdparLamb = arma::zeros<arma::mat>(InfDS.NLambda, InfDS.Ny*InfDS.Nx);
 		InfDS.dLambdparLamb(0,1) = 1;
 		InfDS.dLambdparLamb(1,2) = 1;
-		InfDS.dLambdaparLambd2 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ny*InfDS.NLambda, InfDS.NLambda);
+		InfDS.dLambdparLamb2 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ny*InfDS.NLambda, InfDS.NLambda);
 	}
 
 	starte = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;
