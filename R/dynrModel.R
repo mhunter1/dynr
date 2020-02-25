@@ -550,7 +550,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   nameObsVars <- measurement$obs.names
   numObsVars <- length(nameObsVars)
   # numRegimes is defined and checked later in this function
-  #check the order of the names 
+  
+  if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
+    stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
+  }
+  # check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
@@ -558,10 +562,31 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }else{
       stop("Formulas should be specified in the same order for different regimes.")
     }
-    if (!all(measurement@state.names == states.dyn)){
-      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+    
+    # Check that prep.formulaDynamics formulas have ne left-hand sides
+    if(length(states.dyn)==numLatentVars){
+    
+      # Check that prep.formulaDynamics formulas use all and only nne in left-hand sides
+      if (!all(nameLatentVars == states.dyn)){
+        stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+      }
+      
+      }else{
+        stop("The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.")
+      }
+    
+  }
+    # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
+    # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
+    # 2. whether values.dyn and params.dyn are of the same matrix dimension
+    # so it should be enough to just check one matrix
+  if(class(dynamics) == "dynrDynamicsMatrix"){
+    state.dimension <- dim(dynamics@values.dyn[[1]])
+    if(state.dimension[1]!=numLatentVars|state.dimension[2]!=numLatentVars){
+      stop("The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.")
     }
   }
+  
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
