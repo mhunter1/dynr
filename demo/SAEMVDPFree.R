@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Author: Hui-Ju Hung
+# Author: Hui-Ju Hung (test)
 # Date: 2019-05-23
 # Filename: SAEMVDPFree.R
 # Purpose: Model script for dynr/SAEM gateway function, Van Der Pol fucntion 
