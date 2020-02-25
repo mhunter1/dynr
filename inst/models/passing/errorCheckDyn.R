@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 # Author: Michael D. Hunter
-# Date: 2017-10-30
+# Date: 2020-02-25
 # Filename: errorCheckDyn.R
 # Purpose: Check that errors are caught and reported properly.
 #------------------------------------------------------------------------------
@@ -113,6 +113,76 @@ testthat::expect_error(
 	fixed=TRUE
 )
 
+
+
+#------------------------------------------------------------------------------
+# Check conformability of dynamics argument and measurement argument
+
+# Check prep.formulaDynamics formulas have ne left-hand sides (ne: number of latent variables)
+data <- dynr.data(data.frame(id=1,time=1:10,obsy=1:10), id="id", time="time", observed="obsy")
+
+measurement <- prep.measurement(
+  values.load=matrix(1,1,1), 
+  params.load=matrix("fixed", 1, 1),
+  state.names=c("x"),
+  obs.names=c("obsy")) 
+
+noise <- prep.noise(
+  values.latent=diag(c(0.1),1), params.latent=diag('noisevar',1), 
+  values.observed=diag(0.1, 1), params.observed=diag('errorvar', 1)) 
+
+initial <- prep.initial(
+  values.inistate=c(-2),
+  params.inistate=c('fixed'), 
+  values.inicov=diag(0, 1),
+  params.inicov=diag('fixed', 1))
+
+
+testthat::expect_error(
+  dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
+  regexp="The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.",
+  fixed=TRUE
+)
+
+# Check that prep.formulaDynamics formulas use all and only nne in left-hand sides (nne: names of latent variables)
+formula1D<-list(
+  y~beta*(mu-y)
+)
+
+dynamics<-prep.formulaDynamics(formula=formula1D,startval=c(beta=0.2),
+                               isContinuousTime=TRUE)
+
+testthat::expect_error(
+  dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
+  regexp="The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.",
+  fixed=TRUE
+)
+
+# Check that prep.matrixDynamics is ne by ne
+dynamics <- prep.matrixDynamics(
+  values.dyn=list(vd),
+  params.dyn=list(pd),
+  isContinuousTime=TRUE) 
+
+testthat::expect_error(
+  dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
+  regexp="The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.",
+  fixed=TRUE
+)
+
+# Check for the correct class of dynamic argument in dynr.model
+
+testthat::expect_error(
+  dynrmodel <- dynr.model(formula1D, measurement, noise, initial, data),
+  regexp="Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.",
+  fixed=TRUE
+)
+
+testthat::expect_error(
+  dynrmodel <- dynr.model(measurement,dynamics, noise, initial, data),
+  regexp="Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.",
+  fixed=TRUE
+)
 
 #------------------------------------------------------------------------------
 # End
