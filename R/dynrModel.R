@@ -588,6 +588,25 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }
   }
   
+  # if class == "dynrNoise" then check that 1. the measurement noise is numObsVars by numObsVars
+  # 2. the dynamic noise is numLatentVars by numLatentVars
+  # Note that prep.noise already checks for 1. whether values.latent, params.latent, values.observed and params.observed are symmetric
+  # 2. whether values.latent and params.latent are of the same matrix dimension
+  # 3. whether values.observed and params.observed are of the same matrix dimension
+  
+  if(class(noise) == "dynrNoise"){
+    observed.dimension <- dim(noise@values.observed[[1]]) 
+    latent.dimension <- dim(noise@values.latent[[1]])
+    if(observed.dimension[1]!=numObsVars){
+      stop("The dimension of the measurement noise convariance matrix in prep.noise should match the number of observed variables in 'dynrMeasurement'.")
+    }
+    if(latent.dimension[1]!=numLatentVars){
+      stop("The dimension of the dynamic noise covariance matrix in prep.noise should match the number of latent states in 'dynrMeasurement'.")
+    }
+  }
+  
+  
+  
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
