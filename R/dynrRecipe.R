@@ -2957,6 +2957,14 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
         }
     }
     
+    # check if values.inicov is positive definite
+    if (min(diag(MASS::ginv(values.inicov[[1]])))<0){
+    stop("Starting values for entries in random.values.inicov
+        and values.inicov generate a non-positive 
+         definite covariance matrix. Please check
+         the starting values for these entries.")
+    }
+  
     values.inicov.inv.ldl <- lapply(values.inicov, replaceDiagZero)
     values.inicov.inv.ldl <- lapply(values.inicov.inv.ldl, reverseldl)
     
@@ -3717,12 +3725,19 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 ##'
 ##' @details Exponential constraints are imposed on the diagonal elements of \code{D} to ensure the positive definiteness of the product LDL'.
 ##' @seealso \code{\link{solveStartLDL}}
-symbolicLDLDecomposition <- function(a){
+symbolicLDLDecomposition <- function(a, a.values){
 	if(!is.matrix(a) || nrow(a) != ncol(a))
 		stop("The variable 'a' must be a square matrix")
 		
 	if(!isSymmetric(a))
 		stop("The variable 'a' must be a symmetric matrix")
+	
+	# repalce elements equal to NA or 'NA' as 0
+	a[ is.na(a) ] = 0
+	a[ a == 'NA'] = 0
+	
+	# repalce elements 'fixed' w/ the corresponding values in a.values
+	a = matrix(mapply(function(a, v){if(a == 'fixed') a = v else a = a}, as.list(a), as.list(a.values)), nrow = nrow(a))
 	
 	n <- nrow(a)
 	L <- rep(list(0), n*n)
@@ -3792,7 +3807,7 @@ symbolicLDLDecomposition <- function(a){
 		
 	}
 	
-	#browser()
+	browser()
 	par_list <- vector()
 	for(i in 1:n){
 		e_t <- evaluateExpression(D[i][[1]]) 
@@ -3806,7 +3821,7 @@ symbolicLDLDecomposition <- function(a){
 	#browser()
 	for(i in 1:n){
 		for(j in 1:n){
-		e_t <- evaluateExpression(L[i+(j-1)*n][[1]]) 
+			e_t <- evaluateExpression(L[i+(j-1)*n][[1]]) 
 			if(i != j && is.na(e_t)){
 				new_par <- paste0('par', length(par_list))
 				L[i+(j-1)*n][[1]] <- new_par
@@ -3879,7 +3894,7 @@ unList <- function(ret){
 
 
 #term in character
-evaluateExpression <- function(a){
+evaluateExpression <- function(a, par.values=list()){
 	if(is.numeric(a) == TRUE)
 		return(a)
 	if(is.character(a) == FALSE)
@@ -3887,7 +3902,7 @@ evaluateExpression <- function(a){
 	
 	value=NA
 	tryCatch(
-		{value=eval(as.list(as.formula(paste0('x ~ ',a)))[[3]])},
+		{value=eval(as.list(as.formula(paste0('x ~ ',a)))[[3]], par.values)},
 		error=function(e){value=NA})
 	
 	return(value)
