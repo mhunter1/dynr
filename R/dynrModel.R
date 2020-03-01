@@ -725,7 +725,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		} 
 		# LDL transformation
 		#ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
-		ret <- symbolicLDLDecomposition(random.params.inicov)
+		ret <- symbolicLDLDecomposition(random.params.inicov, random.values.inicov)
 		#Solve for numerical values of par0-par9 (the unconstrained parameters)
 		#given starting values for the random effect covariance matrix in model@random.params.inicov
 		known.vars <- solveStartLDL(ret$ldl, random.values.inicov)

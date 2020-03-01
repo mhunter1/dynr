@@ -3710,7 +3710,7 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 ##'
 ##' # Obtain symbolic expressions for L%*%D%*%t(L), and unique parameter names for parameters
 ##' # that are on the unconstrained scale (e.g., par0-par2). 
-##' r = symbolicLDLDecomposition(a)
+##' r = symbolicLDLDecomposition(a, a.values)
 ##'
 ##' # Solve for numerical values of par0-par2 (the unconstrained parameters)
 ##' # given starting values for the random effect covariance matrix in model@random.params.inicov
