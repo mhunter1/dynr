@@ -513,12 +513,15 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	
 	arma::mat SIndex, SIndex2, LIndex, dlikdBetaAll, dlikdBetaAll2, dlikdmuAll, dlikdmuAll2, dlikdLambdaAll, dlikdLambdaAll2, dlikdMudLambda, dlikdLambdMu, dlikdMudBeta, dlikdBetadMu, dlikdLambdadBeta, dlikdBetadLambda, dlikdEpsilonAll, dlikdEpsilonAll2, dlikdbAll, dlikdbAll2, ivSigmab, Lambda, Zt, dXtildthetaf, dXtildthetaf2, vvv, aa, b, ivSigmae2, dlik, dlik2, Z, SIndex3, a;
 	arma::cube X(0,0,0);
-	int mulp2, mulp, isPar, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb, Ny;
+	int mulp2, mulp, isPar, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb;
 	
 	
-	unsigned int ui, uj;
+	
 	int	i, j, ii, jj;
 	int count_not_finite, count_finite;
+	unsigned int ui, uj;
+	
+	
 
 	arma::mat indexY, indexYt, dlik_, dlik2_, InfDS_dmudparMu_, ivSigmae2_, Lambda_, Zt_, InfDS_dSigmaede_, InfDS_dSigmaede2_, SIndex2_, indexY2, InfDS_dLambdparLamb_, InfDS_Sigmae_;
 	
@@ -923,10 +926,10 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 
 
 	
-	
+	unsigned int i, j;
 	arma::sp_mat Iy_s(InfDS.Iy.n_rows, InfDS.Iy.n_cols);
-	for(unsigned int i = 0; i < InfDS.Iy.n_rows;i++){
-		for(unsigned int j = 0; j < InfDS.Iy.n_cols;j++)
+	for(i = 0; i < InfDS.Iy.n_rows;i++){
+		for(j = 0; j < InfDS.Iy.n_cols;j++)
 			Iy_s(i, j) = InfDS.Iy(i, j);
 	}
 		
@@ -947,7 +950,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		*/
 		
-		for(unsigned int i = 0; i < dc2.n_elem; i++){
+		for(i = 0; i < dc2.n_elem; i++){
 			if(abs(dc2(i)) < .0001)
 				dc2(i) = 0;
 		}
@@ -965,8 +968,8 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		}
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-		for (unsigned int q = 0; q < InfDS.par.n_elem; q++){
+		unsigned int q;
+		for (q = 0; q < InfDS.par.n_elem; q++){
 			if (!std::isnan(InfDS.lowBound(q))){
 				if (thetam(q) < InfDS.lowBound(q)|| thetam(q) > InfDS.upBound(q)){
 					thetam(q) = InfDS.par(q);
