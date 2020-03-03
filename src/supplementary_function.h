@@ -513,7 +513,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	
 	arma::mat SIndex, SIndex2, LIndex, dlikdBetaAll, dlikdBetaAll2, dlikdmuAll, dlikdmuAll2, dlikdLambdaAll, dlikdLambdaAll2, dlikdMudLambda, dlikdLambdMu, dlikdMudBeta, dlikdBetadMu, dlikdLambdadBeta, dlikdBetadLambda, dlikdEpsilonAll, dlikdEpsilonAll2, dlikdbAll, dlikdbAll2, ivSigmab, Lambda, Zt, dXtildthetaf, dXtildthetaf2, vvv, aa, b, ivSigmae2, dlik, dlik2, Z, SIndex3, a;
 	arma::cube X(0,0,0);
-	int mulp2, mulp, isPar, i, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb, Ny;
+	int mulp2, mulp, isPar, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb, Ny;
 	
 	
 	unsigned int ii, jj, i, j;
@@ -1094,7 +1094,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	arma::ivec tpidx;
 	arma:cube newb1, xtild;;
 	double low1, high1, by1, scaleb;
-	int Nb, i, q, jj, Nkept, j, Ntmp, T, t;
+	int Nb, q, Nkept, Ntmp, T, t;
 	bool r;
 	struct C_INFDS InfDS1;
 	unsigned int i, j, ii, jj;
