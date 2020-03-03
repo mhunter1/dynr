@@ -516,7 +516,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	int mulp2, mulp, isPar, i, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb, Ny;
 	
 	
-	int ii, jj;
+	unsigned int ii, jj, i, j;
 	int count_not_finite, count_finite;
 
 	arma::mat indexY, indexYt, dlik_, dlik2_, InfDS_dmudparMu_, ivSigmae2_, Lambda_, Zt_, InfDS_dSigmaede_, InfDS_dSigmaede2_, SIndex2_, indexY2, InfDS_dLambdparLamb_, InfDS_Sigmae_;
@@ -1097,6 +1097,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	int Nb, i, q, jj, Nkept, j, Ntmp, T, t;
 	bool r;
 	struct C_INFDS InfDS1;
+	unsigned int i, j, ii, jj;
+	
 	arma::field<arma::mat> dXtilddthetafAll, dXtilddthetafAll2;
 	
 	//printf("execution point 0\n");

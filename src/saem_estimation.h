@@ -348,7 +348,3 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	return;
 }
-
-//int main(){
-//	return 0;
-//}
