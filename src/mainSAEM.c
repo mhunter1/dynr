@@ -217,11 +217,11 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*U1: covariate matrix*/ 
 	double **U1;
 	int row, col;
-	int i, j, y, u;
+	int i, u;
 	double *temp, **P0, **Lambda, **Y, **b, **H, **Z, **dmudparMu, **dmudparMu2;
-	double *lower_bound, *upper_bound, *tspan, *mu;
+	double *lower_bound, *upper_bound;
 	double *allT;
-	char str_number[64], str_name[64];
+	char str_name[64];
 	double total_time_all_subj;
 	
 	/*U1: covariate matrix*/ 
@@ -235,7 +235,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		SEXP covariates_sexp = PROTECT(getListElement(data_list, "covariates"));
 		UNPROTECT(1);
 		for(u = 0;u < Nu; u++){
-			sprintf(str_name, "covar%u", (long unsigned int) u+1);
+			sprintf(str_name, "covar%lu", (long unsigned int) u+1);
 			temp = REAL(PROTECT(getListElement(covariates_sexp, str_name)));
 			UNPROTECT(1);
 			for(i = 0; i < Nsubj;i++){
@@ -320,8 +320,9 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		Lambda = NULL;
     }
 	
-	double *bAdaptParams;
-	bAdaptParams = (double *)malloc(4* sizeof(double));
+	//double *bAdaptParams;
+	//bAdaptParams = (double *)malloc(4* sizeof(double));
+	double *bAdaptParams = (double *)malloc(4* sizeof(double));
 	bAdaptParams = REAL(PROTECT(getListElement(model_list,"bAdaptParams")));
 	UNPROTECT(1);
 	//printf("bAdaptParams: %lf %lf %lf\n",bAdaptParams[0], bAdaptParams[1], bAdaptParams[2]);
@@ -438,8 +439,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		printf("total_time_all_subj %d\n", total_time_all_subj_int);
     }
 
-	printf("here %d\n", totalT);
 	/*tspan*/
+	double *tspan;
 	if (totalT > 0){
 		tspan = (double *)malloc((num_time+1)* sizeof(double));
 		tspan = REAL(PROTECT(getListElement(model_list,"tspan")));
@@ -459,6 +460,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	//printf("mu\n");
 	/*mu*/
+	double *mu;
 	if (Nmu > 0){
 		mu = (double *)malloc((Nmu+1)* sizeof(double));
 		mu = REAL(PROTECT(getListElement(model_list,"mu")));
@@ -617,7 +619,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		UNPROTECT(1);
 		for(i = 0; i < Ny; i++){
 			Y[i] = (double *)malloc((total_time_all_subj_int + 1)* sizeof(double));
-			sprintf(str_name, "obs%u", (long unsigned int) i+1);
+			sprintf(str_name, "obs%lu", (long unsigned int) i+1);
 			Y[i] = REAL(PROTECT(getListElement(observed_sexp, str_name)));
 			UNPROTECT(1);
 		}
