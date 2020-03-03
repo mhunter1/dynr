@@ -605,7 +605,33 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }
   }
   
-  
+  # if class == "dynrInitial" then 
+  ## 1. Check that ini.state is ne by 1
+  ## 2. Check that ini.cov is ne by ne
+  ## 3. Check that regimep is nr by 1 <- Q: Do separately after numregimes are set?
+  if(class(initial) == "dynrInitial"){
+    inistate.dim <- dim(initial@values.inistate[[1]])  
+    inicov.dim <- dim(initial@values.inicov[[1]])
+    if(inistate.dim[1]!=numLatentVars){
+      stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
+    }
+    if(inistate.dim[2]!= 1){
+      stop("The initial states should be a column vector.")
+    }
+    if(inicov.dim[1]!=numLatentVars){
+      msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
+      stop(msg, call. = F)
+    }
+    # iniregime.dim <- dim(initial@values.regimep)
+    # if(iniregime.dim[1]!=numRegimes){
+    #   stop("The number of the regimes in 'prep.initial' should match the number of regimes in 'dynrRegimes'.")
+    # }
+    # if(iniregime.dim[2]!= 1){
+    #     stop("The initial regime probabilities should be a column vector.")
+    # }      
+    
+  }  
+
   
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
