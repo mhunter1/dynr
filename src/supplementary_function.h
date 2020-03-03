@@ -517,9 +517,9 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	
 	
 	
-	int	i, j, ii, jj;
+	int	i, ii, jj;
 	int count_not_finite, count_finite;
-	unsigned int ui, uj;
+	//unsigned int ui, uj;
 	
 	
 
@@ -1096,7 +1096,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	arma::mat iSigmae, oldb, s, propden_new, propden_new1, tpNew1, OMEGAb, OMEGAi, R, MUb, normtmp, avgScalingb, cOMEGAb, bTemp, bdtmp, cOMEGAb0, tempi;
 	arma::vec indexKept, cindexKept, filteredAvgScalingb, idx, tp, tp1, propden_old, tpNew;
 	arma::ivec tpidx;
-	arma:cube newb1, xtild;;
+	arma::cube newb1, xtild;;
 	double low1, high1, by1, scaleb;
 	int Nb, q, Nkept, Ntmp, T, t;
 	bool r;
@@ -1427,7 +1427,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			filteredAvgScalingb.set_size(Nkept);
 			i = 0; 
 			j = 0;
-			while(i < Nkept && j < indexKept.n_elem){
+			while(i < Nkept && j < (int)indexKept.n_elem){
 				if(indexKept(i)){
 					filteredAvgScalingb(i) = avgScalingb(j);
 					i++;

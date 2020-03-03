@@ -19,10 +19,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	double bAccept, ss, ttt, ssmin;
 	int prev_stage;
 	time_t timer;
-	int i, j, fitInit;
-	FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
-
-	//printf("hello world");
+	//--for writing output files--
+	//int i, j, fitInit;
+	//FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
+	//----
 	
 	freeIC = 1;
 	timer = time(NULL);
@@ -224,7 +224,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		printf("\nStage = %5d, iteration = %5d\n",stage,k);
 		printf("\nCurrent b acceptance rate = %6f\n",bAccept);
 		//printf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
-		printf("\nRange of bhat = %6f, %6f\n",min(InfDS.b),max(InfDS.b));
+		printf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
 		if(prev_stage != stage){
@@ -251,9 +251,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	ttt = difftime(time(NULL), timer);
 	if( convFlag == 1)
-		printf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ss, ttt);
+		printf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	else
-		printf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ss, ttt);
+		printf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	
 
 	meanb = meanb/STARTGIB;
