@@ -3,7 +3,7 @@
 
 // follow the function of matlab
 double quantile(arma::vec X, double p){
-	double threshold, remainder;
+	double threshold;
 	double devision;
 	int id;
 	if (X.is_sorted("ascend") == false)
@@ -29,7 +29,7 @@ double round2(double x, double y){
 //Reminder: the space needs to be created by caller
 arma::vec randsample(arma::vec &source, int length, int size){
 	int i, rand_id;
-	arma:vec result;
+	arma::vec result;
 	//srand (time(NULL));
 	result.set_size(size);
 	for (i = 0; i < size; i++){
@@ -516,7 +516,8 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	int mulp2, mulp, isPar, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb, Ny;
 	
 	
-	unsigned int ii, jj, i, j;
+	unsigned int ui, uj;
+	int	i, j, ii, jj;
 	int count_not_finite, count_finite;
 
 	arma::mat indexY, indexYt, dlik_, dlik2_, InfDS_dmudparMu_, ivSigmae2_, Lambda_, Zt_, InfDS_dSigmaede_, InfDS_dSigmaede2_, SIndex2_, indexY2, InfDS_dLambdparLamb_, InfDS_Sigmae_;
@@ -714,7 +715,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					
 				dlik2 = .5*kron(reshape(ivSigmae2_*(Zt_*Zt_.t())* ivSigmae2_, 1, InfDS.Ny*InfDS.Ny), eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_ - InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_*(Zt_*Zt_.t())*ivSigmae2_)*InfDS_dSigmaede_.t() - .5*kron(reshape(ivSigmae2_, 1, InfDS.Ny*InfDS.Ny),eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_+ .5*InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_)*InfDS_dSigmaede_.t();
 				
-				for (ii = 0; ii < indexY.n_cols; ii++){
+				for (ii = 0; ii < (int)indexY.n_cols; ii++){
 					dlikdEpsilonAll(indexY(ii)-1) = dlikdEpsilonAll(indexY(ii)-1)+ dlik(indexY(ii)-1)/mulp;
 					dlikdEpsilonAll2(indexY(ii)-1, indexY(ii)-1) = dlikdEpsilonAll2(indexY(ii)-1,indexY(ii)-1) + dlik2(indexY(ii)-1, indexY(ii)-1)/mulp;
 				}
@@ -722,14 +723,14 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 				
 				if(InfDS.NLambda > 0){
 					jj = 0;
-					for(ii = 0; ii < indexY.n_cols; ii++){
+					for(ii = 0; ii < (int)indexY.n_cols; ii++){
 						if(indexY(ii) >1){
 							jj += 1;
 						}
 					}
 					indexY2.set_size(jj);
 					jj = 0;
-					for(ii = 0; ii < indexY.n_cols; ii++){
+					for(ii = 0; ii < (int)indexY.n_cols; ii++){
 						if(indexY(ii) >1){
 							indexY2(jj) = indexY(ii);		
 							jj += 1; 
@@ -748,7 +749,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					//Lambda = length(indexY(indexY>1));
 					//a2 = reshape(LIndex2(indexY2-1,:),1,Ny*InfDS.Nx*NLambda);			//+kron(reshape(ivSigmae2_*Zt_*Xh_ekf(:,i,t)',1,Ny*InfDS.Nx),eye(NLambda))*InfDS.dLambdaparLambd2(a2,indexY2-1)
 					
-					for(ii = 0; ii < indexY2.n_rows; ii ++){
+					for(ii = 0; ii < (int)indexY2.n_rows; ii ++){
 						jj = indexY2(ii);
 						dlikdLambdaAll(jj - 2) =  dlikdLambdaAll(jj-2) + dlik(jj-2)/mulp;
 						dlikdLambdaAll2(jj - 2, jj - 2) =dlikdLambdaAll2(jj - 2, jj - 2)+ dlik2(jj - 2, jj - 2)/mulp;
@@ -924,8 +925,8 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	
 	
 	arma::sp_mat Iy_s(InfDS.Iy.n_rows, InfDS.Iy.n_cols);
-	for(int i = 0; i < InfDS.Iy.n_rows;i++){
-		for(int j = 0; j < InfDS.Iy.n_cols;j++)
+	for(unsigned int i = 0; i < InfDS.Iy.n_rows;i++){
+		for(unsigned int j = 0; j < InfDS.Iy.n_cols;j++)
 			Iy_s(i, j) = InfDS.Iy(i, j);
 	}
 		
@@ -946,7 +947,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		*/
 		
-		for(int i = 0; i < dc2.n_elem; i++){
+		for(unsigned int i = 0; i < dc2.n_elem; i++){
 			if(abs(dc2(i)) < .0001)
 				dc2(i) = 0;
 		}
@@ -965,7 +966,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-		for (int q = 0; q < InfDS.par.n_elem; q++){
+		for (unsigned int q = 0; q < InfDS.par.n_elem; q++){
 			if (!std::isnan(InfDS.lowBound(q))){
 				if (thetam(q) < InfDS.lowBound(q)|| thetam(q) > InfDS.upBound(q)){
 					thetam(q) = InfDS.par(q);
@@ -1097,7 +1098,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	int Nb, q, Nkept, Ntmp, T, t;
 	bool r;
 	struct C_INFDS InfDS1;
-	unsigned int i, j, ii, jj;
+	int i, j, jj;
+	unsigned int ui, uj;
 	
 	arma::field<arma::mat> dXtilddthetafAll, dXtilddthetafAll2;
 	
@@ -1166,9 +1168,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//rand_result.print("rand_result");
 	//printf("var %lf\n", var(rand_result));
 	s(span::all,span::all) = reshape(rand_result, InfDS.Nsubj, InfDS.N); 
-	for(i = 0; i < s.n_rows; i++)
-		for(j = 0; j < s.n_cols; j++)
-			s(i, j) = sqrt(s(i, j));
+	for(ui = 0; ui < s.n_rows; ui++)
+		for(uj = 0; uj < s.n_cols; uj++)
+			s(ui, uj) = sqrt(s(ui, uj));
 
 /////
 	OMEGAb = InfDS.OMEGAb;
@@ -1214,8 +1216,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 			//tempi = (MUb((1+(i-1)*Nb):(i*Nb)) + cOMEGAb*normtmp)';
 			//need to write a function: round2 [done test]
-			for (jj = 0; jj < tempi.n_elem; jj++)
-				tempi(jj) = round2(tempi(jj), 10e-4);
+			for (uj = 0; uj < tempi.n_elem; uj++)
+				tempi(uj) = round2(tempi(uj), 10e-4);
 			//tempi.print("tempi");
 			
 			//tempi.print("tempi");
@@ -1321,25 +1323,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			//dfdbt = InfDS.Z(:,1:Nb)'*InfDS.dXtildthetafAll{i}(:,(1+(t-1)*InfDS.NxState):(t*InfDS.NxState))*InfDS.Lambda';
 			dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
 			temp = temp + dfdbt * iSigmae * dfdbt.t();
-			/*
-			for (int ii = 0; ii < temp.n_rows; ii++){
-				for(int jj = 0; jj < temp.n_cols; jj++){
-					if(temp(ii, jj) <= ERROR)
-						temp(ii, jj) = 0;
-				}
-			}*/
-			
-			/*
-			if(i == 0){
-				mexPrintf("t = %d\n",t);
-				InfDS.Z(span::all,span(0,Nb-1)).t().print("InfDS.Z(:,1:Nb)");
-			    InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1)).print("InfDS.dXtildthetafAll");
-			    InfDS.Lambda.t().print("InfDS.Lambda");
-				temp.print("temp");
-				dfdbt.print("dfdbt");
-				
-			}
-			*/
 					
 		}
 		//mexPrintf("Z %lf dX %lf Lambda %lf\n",InfDS.Z(1,1), InfDS.dXtildthetafAll(1)(1,1),InfDS.Lambda(1,1));
@@ -1391,7 +1374,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
 	//tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
 	tp1.set_size(tp.n_elem);
-	for (i = 0; i < tp1.n_elem; i++)
+	for (i = 0; i < (int)tp1.n_elem; i++)
 		tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));
 	//tp.t().print("tp");
 	//tp1.print("tp1");
@@ -1404,7 +1387,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	cindexKept.set_size(size(tpNew));
 	cindexKept.zeros();
 	Nkept = 0;
-	for (i = 0; i < tp.n_elem; i++){
+	for (i = 0; i < (int)tp.n_elem; i++){
 		//mexPrintf("i %d %lf %lf\n",i, tp(i), tp1(i));
 		//if (tp(i) <= tp1(i)+ERROR && tpNew( span(i, i) ).is_finite()){
 		if (tp(i) <= tp1(i) && tpNew( span(i, i) ).is_finite()){
@@ -1430,7 +1413,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	if (Nkept  > 0){    
 		//tpOld(indexKept) = tpNew(indexKept);
-		for (i = 0; i < indexKept.n_elem; i++){
+		for (i = 0; i < (int)indexKept.n_elem; i++){
 			if(indexKept(i)){
 				//mexPrintf("indexKept %d\n", i + 1);
 				tpOld(i) = tpNew(i);
@@ -1455,7 +1438,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			//%mean(avgScalingb);
 		}
 		//for i = indexKept
-		for (i = 0; i < indexKept.n_elem; i++){
+		for (i = 0; i < (int)indexKept.n_elem; i++){
 			if(indexKept(i)){
 				//i = indexKept(i);
 				InfDS.OMEGAb(span(i*Nb,(i+1)*Nb-1), span(i*Nb,(i+1)*Nb-1)) = OMEGAb(span(i*Nb, (i+1)*Nb-1),span(i*Nb, (i+1)*Nb-1));
@@ -1466,7 +1449,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	if (Nkept < InfDS.Nsubj){
 		//InfDS.b(cindexKept,span(0,Nb-1)) = oldb(cindexKept,span(0,Nb-1));    
 		//InfDS.Xtild(span::all,cindexKept,span::all) = xtild(span::all,cindexKept,span:all);
-		for (i = 0; i < cindexKept.n_elem; i++){
+		for (i = 0; i < (int)cindexKept.n_elem; i++){
 			//i = cindexKept(i);
 			if(cindexKept(i)){
 				InfDS.b(i,span(0,Nb-1)) = oldb(i,span(0,Nb-1));
@@ -1475,7 +1458,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		}
 	
 		//for i = cindexKept
-		for (i = 0; i < cindexKept.n_elem; i++){
+		for (i = 0; i < (int)cindexKept.n_elem; i++){
 			//i = cindexKept(i);
 			if(cindexKept(i)){
 				InfDS.dXtildthetafAll(i) = dXtilddthetafAll(i);
