@@ -554,33 +554,22 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   nameObsVars <- measurement$obs.names
   numObsVars <- length(nameObsVars)
   # numRegimes is defined and checked later in this function
-
+  
   # check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
-    if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
-      states.dyn=states.dyn[[1]]
-    }else{
-      stop("Formulas should be specified in the same order for different regimes.")
+    #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
+    if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
+      #states.dyn=states.dyn[[1]]#}else{
+      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
     }
     
-    # Check that prep.formulaDynamics formulas have ne left-hand sides
-    if(length(states.dyn)==numLatentVars){
-    
-      # Check that prep.formulaDynamics formulas use all and only nne in left-hand sides
-      if (!all(nameLatentVars == states.dyn)){
-        stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
-      }
-      
-      }else{
-        stop("The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.")
-      }
-    
+    #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
   }
-    # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
-    # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
-    # 2. whether values.dyn and params.dyn are of the same matrix dimension
-    # so it should be enough to just check one matrix
+  # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
+  # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
+  # 2. whether values.dyn and params.dyn are of the same matrix dimension
+  # so it should be enough to just check one matrix
   if(class(dynamics) == "dynrDynamicsMatrix"){
     state.dimension <- dim(dynamics@values.dyn[[1]])
     if(state.dimension[1]!=numLatentVars|state.dimension[2]!=numLatentVars){
@@ -631,7 +620,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     # }      
     
   }  
-
+  
   
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
@@ -710,22 +699,29 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     #at this step, the paramnum slot of transform gets populated, which is needed for paramName2Number
   }else{
     inputs$transform <- createRfun(prep.tfun(), param.data, 
-                                 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
-                                 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
-                                 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
+                                   params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
+                                   values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
+                                   values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
   }
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
-  
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
   } else {
     numRegimes <- 1L
   }
   
-  all.regimes <- sapply(inputs, impliedRegimes)
+  #cat('numRegimes = ', numRegimes)
+  
+  #The following lines basically compare the maximum number of regimes implied by each recipe object
+  #against (1 or the maximum regimes across all recipes). Elaborated error messages to be more informative.
+  all.regimes <- sapply(inputs[!names(inputs) %in% "data"], impliedRegimes)
   if(!all(all.regimes %in% c(1, max(all.regimes)))){
-    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), "\nNumber of regimes must be 1 or ", max(all.regimes), "\n", "On Wednesdays we wear pink!"))
+    likelyNum = as.numeric(names(sort(table(all.regimes[all.regimes > 1]),decreasing=TRUE)[1]))
+    deviantR = names(all.regimes[!all.regimes %in% c(likelyNum) & all.regimes > 1])
+    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", 
+                paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), 
+                "\nNumber of regimes in each recipe must be ",numRegimes," according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : ",paste(deviantR,collapse=", ")))
   }
   
   # writeCcode on each recipe
@@ -758,9 +754,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     body <- paste(body, writeCcode(prep.regimes())$c.string, sep="\n\n")
   }
   body<-gsub("NUM_PARAM",length(obj.dynrModel@xstart),body)
-#   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
-#     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
-#   }
+  #   if( length(grep("void function_transform", body)) == 0 ){ # if transformation function isn't provided, fill in identity transformation
+  #     body <- paste(body, writeCcode(prep.tfun())$c.string, sep="\n\n")
+  #   }
   glom <- paste(includes, .cfunctions, body, sep="\n\n")
   if (obj.dynrModel@dynamics@isContinuousTime){
     glom <- paste(glom, dP_dt, sep="\n\n")
@@ -774,7 +770,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 impliedRegimes <- function(recipe){
 	if(inherits(recipe, 'dynrRecipe')){
 		sn <- slotNames(recipe)
-		vs <- grep('^values\\.', sn, value=TRUE)
+		if (class(recipe)=="dynrDynamicsFormula"){
+		  vs=c("formula","jacobian")
+		}
+		else{vs <- grep('^values\\.', sn, value=TRUE)}
 		if(length(vs) > 0){
 			sl <- lapply(vs, FUN=slot, object=recipe)
 			nr <- max(sapply(sl, FUN=function(x){if(is.list(x)){return(length(x))} else {return(1)}}))

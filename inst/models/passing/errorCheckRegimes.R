@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
-# Author: Michael D. Hunter
-# Date: 2018-09-26
+# Authors: Michael D. Hunter, Sy-Miin Chow, & Linying Ji
+# Last updated: 2020-03-06
 # Filename: errorCheckRegimes.R
 # Purpose: Check that errors are caught and reported properly relating to the
 #  number of regimes.
@@ -234,18 +234,103 @@ recDyn3 <- prep.matrixDynamics(
 	isContinuousTime=FALSE)
 
 
-# No Error even though the noise and initial recipes have 1 regime, but the measurement and dynamics have 2 regimes
-rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd)
-
-
 # Model error
 testthat::expect_error(
 	rsmod <- dynr.model(dynamics=recDyn3, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd),
-	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes must be 1 or 3\nOn Wednesdays we wear pink!",
+	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes in each recipe must be 2 according to 
+                prep.regimes, or 1 (same configuration automatically extended to all regimes.\nPlease check : dynamics",
 	fixed=TRUE
 )
 
 
+# ---- RS ODE checking example ----
+data(RSPPsim)
+useIds <- 1:10
+data <- dynr.data(RSPPsim[RSPPsim$id %in% useIds, ], id = "id", time = "time",
+                  observed = c("x", "y"), covariate = "cond")
+
+# ---- Prepare the recipes (i.e., specifies modeling functions) ----
+
+# Measurement (factor loadings)
+meas <- prep.measurement(
+  values.load=diag(1, 2),
+  obs.names = c('x', 'y'),
+  state.names=c('prey', 'predator'))
+
+# alternatively, use prep.loadings
+# meas <- prep.loadings(
+#   map=list(
+#     prey="x",
+#     predator="y"),
+#   params=NULL)
+
+# Initial conditions on the latent state and covariance
+initial <- prep.initial(
+  values.inistate = rep(list(c(3, 1)), 2),
+  params.inistate = rep(list(c("fixed", "fixed")), 2),
+  values.inicov = rep(list(diag(c(0.01, 0.01))), 2),
+  params.inicov = rep(list(diag("fixed", 2)), 2),
+  values.regimep = c(.8473, 0), #initial regime log odds
+  params.regimep = c("fixed", "fixed"))
+
+# Regime-switching function
+# The RS model assumes that each element of the transition probability 
+# matrix (TPM) can be expressed as a linear predictor (lp).
+# LPM = 
+# lp(p11) ~ 1 + x1 + x2 + ... + xn,   lp(p12) ~ 1 + x1 + x2 + ... + xn
+# lp(p21) ~ 1 + x1 + x2 + ... + xn,   lp(p22) ~ 1 + x1 + x2 + ... + xn
+# Here I am specifying lp(p12) and lp(p22); the remaining elements
+# lp(p11) and lp(p21) are fixed at zero.
+# nrow=numRegimes, ncol=numRegimes*(numCovariates+1)
+
+regimes <- prep.regimes(
+  values = matrix(c(0, 0, -1, 1.5,
+                    0, 0, -1, 1.5),
+                  nrow = 2, ncol = 4, byrow = T),
+  params = matrix(c("fixed", "fixed", "int_1", "slp_1",
+                    "fixed", "fixed", "int_2", "slp_2"),
+                  nrow = 2, ncol = 4, byrow = T),
+  covariates = "cond")
+
+#measurement and dynamics covariances
+mdcov <- prep.noise(
+  values.latent = diag(0, 2),
+  params.latent = diag(c("fixed", "fixed"), 2),
+  values.observed = diag(rep(0.5, 2)),
+  params.observed = diag(rep("var_epsilon", 2), 2)
+)
+
+#constraints
+tformList <- list(a ~ exp(a), b ~ exp(b), c ~ exp(c),
+                  d ~ exp(d), e ~ exp(e), f ~ exp(f))
+tformInvList <- list(a ~ log(a), b ~ log(b), c ~ log(c),
+                     d ~ log(d), e ~ log(e), f ~ log(f))
+trans <- prep.tfun(
+  formula.trans = tformList,
+  formula.inv = tformInvList)
+
+preyFormula <- prey ~ a * prey - b * prey * predator
+predFormula <- predator ~ - c * predator + d * prey * predator
+ppFormula <- list(preyFormula, predFormula)
+cPreyFormula <- prey ~ a * prey - e * prey ^ 2 - b * prey * predator
+cPredFormula <- predator ~
+  f * predator - c * predator ^ 2 + d * prey * predator
+cpFormula <- list(cPreyFormula, cPredFormula)
+rsFormula2 <- list(ppFormula, cpFormula,ppFormula)
+
+dynm2 <- prep.formulaDynamics(formula = rsFormula2,
+                             startval = c(a = 2.1, c = 3, b = 1.2, d = 1.2, e = 1, f = 2),
+                             isContinuousTime = TRUE)
+
+#dynm2 contains 3 regimes (ppFormula pasted in twice), other recipes have 1 or 2 regimes.
+testthat::expect_error(
+  rsmod <- dynr.model(dynamics = dynm2, measurement = meas,
+                      noise = mdcov, initial = initial,
+                      regimes = regimes, transform = trans,
+                      data = data),
+  regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (1), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes in each recipe must be 2 according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : dynamics",
+  fixed=TRUE
+)
 
 #------------------------------------------------------------------------------
 
