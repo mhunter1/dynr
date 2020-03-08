@@ -3710,7 +3710,7 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 ##'
 ##' # Obtain symbolic expressions for L%*%D%*%t(L), and unique parameter names for parameters
 ##' # that are on the unconstrained scale (e.g., par0-par2). 
-##' r = symbolicLDLDecomposition(a, a.values)
+##' r = symbolicLDLDecomposition(a.params, a.values)
 ##'
 ##' # Solve for numerical values of par0-par2 (the unconstrained parameters)
 ##' # given starting values for the random effect covariance matrix in model@random.params.inicov
@@ -3732,16 +3732,19 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	if(!isSymmetric(a.params))
 		stop("The variable 'a.params' must be a symmetric matrix")
 	
-	# create a backup of a (storing the 
-	a = a.params
+	
 	
 	# repalce elements equal to NA or 'NA' as 0
-	a[ is.na(a) ] = 0
-	a[ a == 'NA'] = 0
-	a[ a == 'fixed'] = 0
+	a.params[ is.na(a.params) ] = 0
+	a.params[ a.params == 'NA'] = 0
+	a.params[ a.params == 'fixed'] = 0
+	a.params[ a.params == '0'] = 0
+	# a.params stores the input (with severl inputs processing as above)
+	a = a.params
+	
 	
 	# repalce elements 'fixed' w/ the corresponding values in a.values
-	a = matrix(mapply(function(a, v){if(a == 0 || a == "0") a = v else a = a}, as.list(a), as.list(a.values)), nrow = nrow(a))
+	a = matrix(mapply(function(a, v){if(a == 0) a = v else a = a}, as.list(a), as.list(a.values)), nrow = nrow(a))
 	
 	n <- nrow(a)
 	L <- rep(list(0), n*n)
@@ -3823,54 +3826,52 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 		
 	}
 	
-	#browser()
+	
 	# examine whether we need to have a pari to estimate i
-	par_list <- vector()
+	par_list <- list()
 	solved_a <- list() # for each solved element, we assign an arbitrary value (here is its value) for it temporarily
 	for(i in 1:n){
 	
 		e_t <- evaluateExpression(D[i][[1]], solved_a) 
-		if(is.na(e_t) && a.params[i,i] != 0 && a.params[i,i] != "0" && a.params[i,i] != 'fixed'){
+		if(is.na(e_t) && a.params[i,i] != 0){
 			new_par <- paste0('par', length(par_list))
 			D[i][[1]] <- new_par
-			par_list <- c(par_list, new_par)
+			#par_list <- c(par_list, new_par)
+			par_list[new_par] <- a.params[i,i]
 			solved_a[a.params[i,i]] = a.values[i,i]
+		}
+		else if(a.params[i,i] == 0){ # this parameter is fixed
+			D[i][[1]] <- as.character(a.values[i,i])
+		}
+		else{ #this paramter needs to be rewritten in the form of pars
+			for(par_ in names(par_list)){
+				D[i][[1]] <- gsub(par_list[name], par_, D[i][[1]])
+			}
 		}
 		
 		if(i > 1){
 			for(j in 1:(i-1)){
 				e_t <- evaluateExpression(L[i+(j-1)*n][[1]], solved_a) 
-				if(is.na(e_t) && a.params[i,j] != 0 && a.params[i,j] != "0" && a.params[i,j] != 'fixed'){
+				if(is.na(e_t) && a.params[i,j] != 0){
 					new_par <- paste0('par', length(par_list))
 					L[i+(j-1)*n][[1]] <- new_par
-					par_list <- c(par_list, new_par)
+					#par_list <- c(par_list, new_par)
+					par_list[new_par] <- a.params[i,j]
 					solved_a[a.params[i,j]] = a.values[i,j]
+				}
+				else if(a.params[i,j] == 0){ # this parameter is fixed
+					L[i+(j-1)*n][[1]] <- as.character(a.values[i,j])
+				}
+				else{ #this paramter needs to be rewritten in the form of pars
+					for(par_ in names(par_list)){
+						L[i+(j-1)*n][[1]] <- gsub(par_list[name], par_, L[i+(j-1)*n][[1]])
+					}
 				}
 			}
 		}
 	}
 	
-	# old version of parameter checking
-	# for(i in 1:n){
-		# e_t <- evaluateExpression(D[i][[1]]) 
-		# if(is.na(e_t) && a.params[i,i] != 0 && a.params[i,i] != "0" && a.params[i,i] != 'fixed'){
-			# new_par <- paste0('par', length(par_list))
-			# D[i][[1]] <- new_par
-			# par_list <- c(par_list, new_par)
-		# }
-	# }
-	
-	# for(i in 1:n){
-		# for(j in 1:n){
-			# e_t <- evaluateExpression(L[i+(j-1)*n][[1]]) 
-			# if(i != j && is.na(e_t) && a.params[i,j] != 0 && a.params[i,j] != "0" && a.params[i,j] != 'fixed'){
-				# new_par <- paste0('par', length(par_list))
-				# L[i+(j-1)*n][[1]] <- new_par
-				# par_list <- c(par_list, new_par)
-			# }
-		# }
-	# }
-	
+	#browser()
 	#browser()
 	# exponentail tranformation of D
 	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
@@ -3928,7 +3929,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	
 	#
 	ret = matrix(mapply(function(term, ret, value){
-			if(term == 0 || term == "0" || term == 'fixed')
+			if(term == 0)
 				as.list(as.formula(paste0('x ~ ',value)))[[3]]
 			else
 				as.list(as.formula(paste0('x ~ ',ret)))[[3]]}, as.list(a.params), ret, as.list(a.values)), nrow=nrow(a), ncol=ncol(a))
@@ -3939,7 +3940,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	
 	#return(list(L=L, D=D, r=ret))
 	
-	return(list(ldl=ret, pars=par_list))
+	return(list(ldl=ret, pars=names(par_list)))
 
 }
 
