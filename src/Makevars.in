@@ -1,6 +1,6 @@
 # set by configure
 GSL_CFLAGS = @GSL_CFLAGS@
-GSL_LIBS = @GSL_LIBS@ 
+GSL_LIBS = @GSL_LIBS@ -larmadillo  
 
 # combine with standard arguments for R
 PKG_CPPFLAGS = $(GSL_CFLAGS) 
