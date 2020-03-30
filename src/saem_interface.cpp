@@ -45,7 +45,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 	InfDS.omega = 61.685028;
 	
 	
-	printf("check point 1\n");	
+	printf("check point 1 Nb %d Nsubj %d\n", Nb, Nsubj);	
 
 	//Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
 	Npar = Ntheta + NLambda + Ny + Nbpar;
@@ -56,15 +56,15 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 			InfDS.U1(i, j) = U1[i][j];
 		}
 	}
-	//InfDS.U1.print("InfDS.U1");
+	InfDS.U1.print("InfDS.U1");
 
 	InfDS.b.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
-		for(j = 0; j < Nu; j++){
+		for(j = 0; j < Nb; j++){
 			InfDS.b(i, j) = b[i][j];
 		}
 	}
-	//InfDS.b.print("InfDS.b");
+	InfDS.b.print("InfDS.b");
 
 
 	InfDS.H.set_size(Nsubj* Ntheta, InfDS.Nbetax);
@@ -73,7 +73,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 			InfDS.H(i, j) = H[i][j];
 		}
 	}
-	//InfDS.H.print("InfDS.H");
+	InfDS.H.print("InfDS.H");
 
 	InfDS.Z.set_size(Ntheta, Nb);
 	for(i = 0; i < Ntheta; i++){
@@ -81,7 +81,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 			InfDS.Z(i, j) = Z[i][j];
 		}
 	}
-	//InfDS.Z.print("InfDS.Z");
+	InfDS.Z.print("InfDS.Z");
 
 
 	
