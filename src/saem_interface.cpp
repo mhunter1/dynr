@@ -146,7 +146,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 			tobs_pointer++;
 		}	
 	}
-	InfDS.tobs(199).print("InfDS.tobs(199)");
+	InfDS.tobs(49).print("InfDS.tobs(199)");
 	
 	InfDS.Y.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
@@ -290,7 +290,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 		}
 
 	}
-	InfDS.Sigmab.print("sigmae");
+	InfDS.Sigmae.print("sigmae");
 	
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";

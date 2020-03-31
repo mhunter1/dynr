@@ -674,6 +674,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         print('here')
 		print(class(model$time_[1]))
 		print(model$time_[1:10])
+        print(model$sigmae)
+
 		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 
@@ -958,6 +960,7 @@ combineModelDataInformationSAEM <- function(model, data){
 				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
         }
     }
+    print(model$tobs)
 	#print(model$allT) #correct here
 	#print(model$delt) #correct here
 	

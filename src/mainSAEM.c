@@ -603,7 +603,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 		
 		printf("tobs:\n");
-		for(i = 59990; i < total_time_all_subj_int;i++){
+		for(i = 9990; i < total_time_all_subj_int;i++){
 			printf(" %d", tobs[i]);
 		}
 		printf("\n");
@@ -680,9 +680,9 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		for(row = 0;row < Ny; row++){
 			for(col = 0;col < Ny; col++){
 				if(col == 0){
-					Sigmab[row] = (double *)malloc((Ny + 1)* sizeof(double));
+					Sigmae[row] = (double *)malloc((Ny + 1)* sizeof(double));
 				}
-				Sigmab[row][col] = temp[col * Nb + row];
+				Sigmae[row][col] = temp[col * Nb + row];
 			}
 		}
 		
@@ -690,7 +690,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
  		printf("Sigmae:\n");
  		for(row = 0; row < Ny; row++){
  			for(col = 0;col < Ny; col++){
- 				printf(" %lf", Sigmab[row][col]);
+ 				printf(" %lf", Sigmae[row][col]);
  			}
  		printf("\n");
 		}	
