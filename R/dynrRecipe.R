@@ -2213,20 +2213,20 @@ autojacob<-function(formula,n){
 ##' procedure to compute the jacobian functions.
 ##' @param ... further named arguments. Some of these arguments may include:
 ##' 
-##' theta.formula = a list consisting of formula(s) of the form 
-##'  list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
-##'  + 1 * rand_par), where par is a parameter is a unit- (e.g., person-) 
+##' \code{theta.formula} specifies a list consisting of formula(s) of the form 
+##' \code{list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
+##'  + 1 * rand_par)}, where \code{par} is a parameter is a unit- (e.g., person-) 
 ##'  specific that appears in a dynamic formula and is assumed to follow
-##'  a linear mixed effects structure. Here, b_p are fixed effects 
-##'  parameters; covariate_1, ..., covariate_p are known covariates as ??pdeclared in
-##'  dynr.data, and b_p is a random effect component representing unit i's random deviation
-##'  in par value from that predicted by b_0 + covariate_1*b_1 + ... + covariate_p*b_p 
+##'  a linear mixed effects structure. Here, \code{b_p} are fixed effects 
+##'  parameters; \code{covariate_1}, ..., \code{covariate_p} are known covariates as predeclared in
+##'  \code{dynr.data}, and \code{rand_par} is a random effect component representing unit i's random deviation
+##'  in \code{par} value from that predicted by \code{b_0 + covariate_1*b_1 + ... + covariate_p*b_p}. 
 ##'
-##' random.names = names of random effect components in the theta.formula
+##' \code{random.names} specifies names of random effect components in the \code{theta.formula}
 ##'
-##' random.params.inicov = names of elements in the covariance matrix of the random effect components
+##' \code{random.params.inicov} specifies names of elements in the covariance matrix of the random effect components
 ##'
-##' random.values.inicov = starting values of elements in the covariance matrix of the random effect components
+##' \code{random.values.inicov} specifies starting values of elements in the covariance matrix of the random effect components
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -2234,13 +2234,13 @@ autojacob<-function(formula,n){
 ##' covariates, and other mathematical functions that define the dynamics of the latent variables.
 ##' Every latent variable in the model needs to be defined by a differential (for continuous time model), or
 ##' difference (for discrete time model) equation.  The names of the latent variables should match 
-##' the specification in prep.measurement().
+##' the specification in \code{prep.measurement()}.
 ##' For nonlinear models, the estimation algorithm generally needs a Jacobian matrix that contains
 ##' elements of first differentiations of the dynamic functions with respect to the latent variables
 ##' in the model. For most nonlinear models, such differentiations can be handled automatically by
-##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
+##' dynr. However, in some cases, such as when the absolute function (\code{abs}) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
-##' When theta.formula and other accompanying elements in "..." are provided, the program
+##' When \code{theta.formula} and other accompanying elements in "\code{...}" are provided, the program
 ##' automatically inserts the random effect components specified in random.names as additional
 ##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
 ##' that the expanded model satisfies conditions such as observability for the estimation to work.
@@ -2301,6 +2301,19 @@ autojacob<-function(formula,n){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
+##'
+##' #For a full demo example that includes unit-specific random effects in theta.formula see:
+##' #demo(OscWithRand, package="dynr")
+##' formula = list(x ~ dx,
+##'                dx ~ eta_i * x + zeta*dx)
+##' theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
+##' dynm<-prep.formulaDynamics(formula=formula,
+##'                            startval=c(eta0=-1, eta1=.1, eta2=-.1,zeta=-.02),
+##'                            isContinuousTime=TRUE,
+##'                            theta.formula=theta.formula,
+##'                            random.names=c('b_eta'),
+##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
+##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
 
