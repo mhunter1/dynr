@@ -851,8 +851,39 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
  																			
 	}
 	else{
-		dSigmabdb2 = NULL;
+		dLambdparLamb = NULL;
 	}
+	
+	double **dLambdparLamb2;
+	if (Ny > 0 && NxState > 0 && NLambda > 0){
+		temp = (double *)malloc((NLambda* Ny * NxState * NLambda +  1)* sizeof(double));
+		temp = REAL(PROTECT(getListElement(model_list,"dLambdparLamb2")));
+		UNPROTECT(1);
+		
+		dLambdparLamb2 = (double **)malloc((NLambda* Ny * NxState + 1)* sizeof(double *));
+		for(row = 0;row < NLambda* Ny * NxState; row++){
+			for(col = 0;col < NLambda; col++){
+				if(col == 0){
+					dLambdparLamb2[row] = (double *)malloc((NLambda + 1)* sizeof(double));
+				}
+				dLambdparLamb2[row][col] = temp[col * NLambda + row];
+			}
+		}
+		
+		
+ 		printf("dLambdparLamb2:\n");
+ 		for(row = 0; row < NLambda* Ny * NxState; row++){
+ 			for(col = 0;col < NLambda; col++){
+ 				printf(" %lf", dLambdparLamb2[row][col]);
+ 			}
+ 		printf("\n");
+		}	
+ 																			
+	}
+	else{
+		dLambdparLamb2 = NULL;
+	}
+	
 	
 
 	/*has error ask*/
@@ -888,7 +919,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	saem_interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae);
+	saem_interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

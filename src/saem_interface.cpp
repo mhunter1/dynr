@@ -12,9 +12,9 @@ using namespace arma;
 
 
 
-extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **);
+extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **);
 
-void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae){
+void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2){
 
 
 	//printf("check point 0\n");	
@@ -200,11 +200,45 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 	
 	//the following part needs to be generalized 201-211
 	InfDS.Sigmab = zeros(Nb, Nb);
+	for(i = 0; i < Nb; i++){
+		for(j = 0; j < Nb; j++){
+			InfDS.Sigmab(i,j) = Sigmab[i][j];
+		}
+	}
+	InfDS.Sigmab.print("InfDS.Sigmab");
+	
 	InfDS.dSigmabdb = zeros(InfDS.Nbpar, Nb*Nb);
+	for(i = 0; i < InfDS.Nbpar; i++){
+		for(j = 0; j < Nb*Nb; j++){
+			InfDS.dSigmabdb(i,j) = dSigmabdb[i][j];
+		}
+	}
+	InfDS.dSigmabdb.print("InfDS.dSigmabdb");
+	
 	InfDS.dSigmabdb2 = zeros(InfDS.Nbpar*Nb*Nb, InfDS.Nbpar);
+	for(i = 0; i < InfDS.Nbpar*Nb*Nb; i++){
+		for(j = 0; j < InfDS.Nbpar; j++){
+			InfDS.dSigmabdb2(i,j) = dSigmabdb2[i][j];
+		}
+	}
+	InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	
 	InfDS.dLambdparLamb = zeros(NLambda, Ny * InfDS.Nx);
+	for(i = 0; i < NLambda; i++){
+		for(j = 0; j < Ny * InfDS.Nx; j++){
+			InfDS.dLambdparLamb(i,j) = dLambdparLamb[i][j];
+		}
+	}
+	InfDS.dLambdparLamb.print("InfDS.dLambdparLamb");
+	
+	
 	InfDS.dLambdparLamb2 = zeros(NLambda* Ny * InfDS.Nx, NLambda);
+	for(i = 0; i < NLambda* Ny * InfDS.Nx; i++){
+		for(j = 0; j < NLambda; j++){
+			InfDS.dLambdparLamb2(i,j) = dLambdparLamb2[i][j];
+		}
+	}
+	InfDS.dLambdparLamb2.print("InfDS.dLambdparLamb2");
 	
 	InfDS.Sigmae = zeros(Ny, Ny);
 	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	

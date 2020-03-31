@@ -188,7 +188,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			}
 
 			if (k >= 4){        
-				//printf("checkpoint enter drowbGeneral6_opt3\n");	
+				printf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(isPar, InfDS, meanb, yesMean, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept);
 				printf("checkpoint leave drowbGeneral6_opt3\n");	
 	                        //InfDS.par.print("InfDS.par");
@@ -196,7 +196,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
         
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			//printf("checkpoint enter getScoreInfoY_tobs_opt\n");
+			printf("checkpoint enter getScoreInfoY_tobs_opt\n");
 			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);			
 			printf("checkpoint leave getScoreInfoY_tobs_opt\n");	
         
