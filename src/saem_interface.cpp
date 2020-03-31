@@ -31,7 +31,7 @@ void saem_interface(int seed, int Nsubj, int NxState, int Ny, int Nu, int Ntheta
 	InfDS.NLambda = NLambda;
 	InfDS.Nbpar = Nbpar;
 	InfDS.Nu = Nu;
-	InfDS.Nbeta = 0;
+	InfDS.Nbeta = Nbeta;
 	InfDS.Nbetax = Nbeta;
 	InfDS.Nx = NxState; // in the saem process, Nx remains as NxState; it only becaomes NxState + Nbeta during initial value estimation
 	InfDS.Nsubj = Nsubj;

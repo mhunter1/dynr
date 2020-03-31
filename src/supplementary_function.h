@@ -118,28 +118,39 @@ arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, stru
 	
 	thetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);
 	par = InfDS.par;
+
+        //printf("thetaf %d %d\n", thetaf.n_rows, thetaf.n_cols);
     if (isPar==0){
+        //printf("InfDS.Nbeta %d\n", InfDS.Nbeta);
         temp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters
         par = rowProjection(par, temp);
+       // par.print("par");
     }
     
 	b = arma::zeros<arma::mat>(thetaf.n_rows, thetaf.n_cols) ;	
 	betai = arma::zeros<arma::mat>(InfDS.Ntheta, 1);	// beta
+    //printf("i n elem %d\n", i.n_elem);
     for (int ii = 0; ii < int(i.n_elem); ii++){
+        //printf("ii = %d\n", ii);
         int current_i = int(i(ii));   
         
-		Hi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);    
+		Hi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);   
+                //Hi.print("Hi"); 
         
 		if (isPar == 1)            
             betai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);
         else
             betai = reshape(par,InfDS.Nbeta, 1);
   		
+	        //betai.print("betai");
 		if (InfDS.Nb > 0)
 			b.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);
+                //b.col(ii).print("b col i");
 	
 		thetaf.col(ii) = Hi * betai + InfDS.Z * b.col(ii);
     }
+    //printf("loop done");
+    //thetaf.print("thetaf");
 	
 	return thetaf;
 }
@@ -221,10 +232,10 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	arma::vec indext, currentt;
 	arma::vec tindex, dt;
 	
-	static arma::vec empty_vec = span_vec(1,200,1);
+	static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
 	int T, i, Nsubj;
 	
-	//printf("execution 1\n");
+	printf("execution 1\n");
 	//return InfDS;
 	
 	InfDS.Xtild = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.totalT);
@@ -237,20 +248,20 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	
 	tspan = InfDS.tspan;
 	fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
-	//printf("execution 1.1\n");
+	printf("execution 1.1\n");
 	
 	T = InfDS.tspan.n_cols;
 	xk1 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	xk2 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	tindex = InfDS.tspan.t();
-	//printf("execution 1.2\n");
+	printf("execution 1.2\n");
 	
 	delt.set_size(1,1);
 	delt(0,0) = InfDS.delt;
 	dt = repmat(delt, T, 1);
 	Nsubj = InfDS.Nsubj;
 	tcount = arma::ones<arma::mat>(Nsubj,1);
-	//printf("execution 1.3\n");
+	printf("execution 1.3\n");
 
 	for (i = 0; i < InfDS.Nsubj;i++){
 		if (getDxFlag ==1){
@@ -271,25 +282,26 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		isPar = 1;
 	*/
 	
-	//printf("execution 1.4~~~\n");
+	printf("execution 1.4~~~\n");
+
 	
 	//InfDS.par.print("InfDS.par getXtildIC3 275");
 	if (freeIC==1){
-		//printf("execution 1.4.1\n");
-		//trans(InfDS.y0).print("ddd");
+		printf("execution 1.4.1\n");
+		trans(InfDS.y0).print("ddd");
 		XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
-		//InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
+		InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
 
 		dXtildPrev0 =  "0 0; 1 0; 0 1"; 
 		d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta,InfDS.Ntheta);
-		//printf("execution 1.4.1\n");
+		printf("execution 1.4.1\n");
 	}
 	else{
 		//printf("execution 1.4.2\n");
 		XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
 		dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
 		d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
-		//printf("execution 1.4.2\n");
+		printf("execution 1.4.2\n");
 	}
 	//printf("execution 1.5\n");
 	
@@ -351,7 +363,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		xk1.slice(t) = k1;
 		xk2.slice(t) = k2;
 		
-		//printf("execution 4\n");
+		printf("execution 4\n");
 		if (getDxFlag==1 && t > 1){
 			
 			dk1dtheta = dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
@@ -431,7 +443,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			d2XtildPrev = d2Xtild;
 		}
 		
-		//printf("execution 6\n");
+		printf("execution 6\n");
 	
 		XtildPrev = Xtild_t;
 
@@ -472,7 +484,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
 	
-	//printf("execution 7\n");
+	printf("execution 7\n");
 	return InfDS;
 }
 
