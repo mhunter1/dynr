@@ -235,7 +235,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
 	int T, i, Nsubj;
 	
-	//printf("execution 1\n");
+	printf("execution 1\n");
 	//return InfDS;
 	
 	InfDS.Xtild = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.totalT);
@@ -248,20 +248,20 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	
 	tspan = InfDS.tspan;
 	fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
-	//printf("execution 1.1\n");
+	printf("execution 1.1\n");
 	
 	T = InfDS.tspan.n_cols;
 	xk1 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	xk2 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	tindex = InfDS.tspan.t();
-	//printf("execution 1.2\n");
+	printf("execution 1.2\n");
 	
 	delt.set_size(1,1);
 	delt(0,0) = InfDS.delt;
 	dt = repmat(delt, T, 1);
 	Nsubj = InfDS.Nsubj;
 	tcount = arma::ones<arma::mat>(Nsubj,1);
-	//printf("execution 1.3\n");
+	printf("execution 1.3\n");
 
 	for (i = 0; i < InfDS.Nsubj;i++){
 		if (getDxFlag ==1){
@@ -273,7 +273,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
     
 	}
-	//printf("execution 1.4~~~\n");
+	printf("execution 1.4~~~\n");
 	//return InfDS;
 	/*
 	if(InfDS.NxState == InfDS.Nx)
@@ -305,7 +305,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
 		//printf("execution 1.4.2\n");
 	}
-	//printf("execution 1.5\n");
+	printf("execution 1.5\n");
 	
 	//InfDS.par.print("InfDS.par getXtildIC3 293");
 	if (getDxFlag ==1){
@@ -325,7 +325,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	}
 
 	//InfDS.par.print("InfDS.par getXtildIC3 310");
-	//printf("execution 2\n");
+	printf("execution 2\n");
 	
 	InfDS.Xtild.slice(0) = XtildPrev;
 	fullX.slice(0) = XtildPrev;
@@ -339,8 +339,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
     
-	//InfDS.par.print("InfDS.par getXtildIC3 325");
-	//printf("execution 3\n");
+	InfDS.par.print("InfDS.par getXtildIC3 325");
+	printf("execution 3\n");
 	//Do interpolation at small, equal intervals, as opposed to at observed intervals to avoid numerical problems
 	for (int t = 1; t < T; t++){
 
@@ -445,7 +445,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			d2XtildPrev = d2Xtild;
 		}
 		
-		//printf("execution 6\n");
+		printf("execution 6\n");
 	
 		XtildPrev = Xtild_t;
 
@@ -486,7 +486,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
 	
-	//printf("execution 7\n");
+	printf("execution 7\n");
 	return InfDS;
 }
 

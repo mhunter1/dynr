@@ -173,7 +173,13 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int num_time=*INTEGER(num_time_sexp);
 	DYNRPRINT(verbose_flag, "num_time: %lu\n", num_time);
 	
-	UNPROTECT(16);
+	/*isFreeIC: */
+	SEXP isFreeIC_sexp = PROTECT(getListElement(model_list, "freeIC"));
+	bool freeIC_bool=*LOGICAL(isFreeIC_sexp);
+	int freeIC = (freeIC_bool ? 1 : 0);
+	DYNRPRINT(verbose_flag, "isFreeIC_sexp: %d\n", freeIC);
+	
+	UNPROTECT(17);
 	
 	/*----------*/
 	SEXP lb_sexp = PROTECT(getListElement(model_list, "random.lb"));
@@ -886,7 +892,6 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 
-	/*has error ask*/
 	
 	double *timeDiscrete;
 	printf("total_time_all_subj %d\n", total_time_all_subj_int);
@@ -919,7 +924,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	saem_interface(100, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2);
+	saem_interface(100, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

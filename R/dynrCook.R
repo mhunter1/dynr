@@ -639,6 +639,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dSigmabdb = model@dSigmabdb,
 			dSigmabdb2 = model@dSigmabdb2,
 			time_=model$data$time,
+			freeIC=model@freeIC,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )
@@ -675,6 +676,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		print(class(model$time_[1]))
 		print(model$time_[1:10])
         print(model$sigmae)
+		print(model$freeIC)
 
 		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
@@ -960,7 +962,7 @@ combineModelDataInformationSAEM <- function(model, data){
 				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
         }
     }
-    print(model$tobs)
+    #print(model$tobs)
 	#print(model$allT) #correct here
 	#print(model$delt) #correct here
 	

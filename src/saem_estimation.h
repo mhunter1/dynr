@@ -11,11 +11,11 @@
 //#include "converted_function.h"
 
 // Step 3 in the MainUseThins.m
-void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed){
+void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC){
 	printf("in MainUseThis\n");
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
-	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, freeIC, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
+	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
 	double bAccept, ss, ttt, ssmin;
 	int prev_stage;
 	time_t timer;
@@ -24,7 +24,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
 	//----
 	
-	freeIC = 1;
+	//freeIC = 1;
 	timer = time(NULL);
 	
 	//arma_rng::set_seed_random(); 
@@ -104,11 +104,11 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//InfDS.bAdaptParams = ".5, 2.5, .5";
 	ssmin = 100; 
 	noIncrease = 0;
-	freeIC = 1;
+	//freeIC = 1;
 	//InfDS.scaleb = 1; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
 	//InfDS.KKO = 20; //Used in SAEM. Only starts to evaluate whether to transition to stage 2 after KKO iterations.
 	stop = 0;
-        printf("check point 2 MAXITER %d\n", InfDS.MAXITER);
+    printf("check point 2 MAXITER %d freeIC %d\n", InfDS.MAXITER, freeIC);
 	
 	//InfDS.par.print("InfDS.par");
 	//printf("checkpoint M92 entering the k loop\n");	
