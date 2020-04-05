@@ -20,8 +20,10 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		r.zeros();
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
-			for (row = 0; row < InfDS.NxState; row++)
-				r(row, s) = thetaf(row +1, s);
+			for (row = 0; row < InfDS.NxState; row++){
+				if(row+1 < thetaf.n_rows) // ask symiin
+					r(row, s) = thetaf(row +1, s);
+			}
 
 			if (isPar == 1){
 				for (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){
@@ -155,6 +157,7 @@ arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 	y = xin ;  
 	r = arma::zeros<arma::cube>(InfDS.Nx * InfDS.Nx, InfDS.Ntheta, y.n_cols);
  	int s;
+	//printf("y%d %d r %d %d\n", y.n_rows, y.n_cols, r.n_rows, r.n_cols);
 	for (s = 0; s < int(y.n_cols); s++){		
 		r.slice(s)(2,0) = -((2 * y(0,s)) * y(1,s));
 		r.slice(s)(3,0) = (1 - pow(y(0,s), 2)); 
@@ -175,10 +178,11 @@ arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 
 	y = xin ;  
 	r = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Nx, y.n_cols) ;
+	//printf("y%d %d r %d %d\n", y.n_rows, y.n_cols, r.n_rows, r.n_cols);
  	int s;
 	for (s = 0; s < int(y.n_cols); s++){		
-		r.slice(s)(3,0) = -(2 * y(0,s) * y(1,s));
-		r.slice(s)(3,1) = (1 - pow(y(0,s), 2)); 
+		r.slice(s)(1,0) = -(2 * y(0,s) * y(1,s));
+		r.slice(s)(1,1) = (1 - pow(y(0,s), 2)); 
 	}
 	return r;
 }

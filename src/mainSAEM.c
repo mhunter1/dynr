@@ -688,7 +688,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				if(col == 0){
 					Sigmae[row] = (double *)malloc((Ny + 1)* sizeof(double));
 				}
-				Sigmae[row][col] = temp[col * Nb + row];
+				Sigmae[row][col] = temp[col * Ny + row];
 			}
 		}
 		

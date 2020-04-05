@@ -170,6 +170,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 
 
 	iSigmae = inv(Sigmae); 
+	//iSigmae.print("iSigmae");
 
 	for (tt=1; tt<=totalT; tt++){
 		for (i=1; i<=Nsubj; i++){
@@ -181,7 +182,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 					if(std::isnan(Y(i-1, 0)(j-1,tt-1))){
 					//if(std::isnan(Y(i-1,j-1,tt-1))){	
 						indexY(0,j-1) = 0;
-						//mexPrintf("%d %d %d\n",i-1,j -1,tt-1);
+						//printf("%d %d %d\n",i-1,j -1,tt-1);
 					}
 				}
 
@@ -193,7 +194,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 				//mexPrintf("enter vdpmeas %d %d %d\n", Xtild.n_rows, Xtild.n_cols, Xtild.n_slices);
 				//Xtild.slice(tt-1).col(i-1).print("Xtild.slice(tt-1).col(i-1)");
 				VDPMeas(Xtild.slice(tt-1).col(i-1), Ny, Nx, NxState, Lambda, mu, &yPredtmp, &Jytmp);
-				//mexPrintf("exit vdpmeas\n");
+				//printf("exit vdpmeas\n");
 				
 				arma::mat inovtmp, result;
 				//inovtmp = rowProjection(Y.slice(tt-1).row(i-1).t(),indexY)- rowProjection(yPredtmp,indexY);
@@ -205,11 +206,12 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 			}
 		}
 	}
-	//mexPrintf("middle of ekf\n");
+	//printf("middle of ekf\n");
 	
 	if (Nb>0){
 		int i;
 		arma::mat iSigmab;
+		//Sigmab.print("Sigmab");
 		iSigmab = inv(Sigmab);
 
 
@@ -235,7 +237,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
 	int T, i, Nsubj;
 	
-	printf("execution 1\n");
+	//printf("execution 1\n");
 	//return InfDS;
 	
 	InfDS.Xtild = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.totalT);
@@ -248,20 +250,20 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	
 	tspan = InfDS.tspan;
 	fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
-	printf("execution 1.1\n");
+	//printf("execution 1.1\n");
 	
 	T = InfDS.tspan.n_cols;
 	xk1 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	xk2 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	tindex = InfDS.tspan.t();
-	printf("execution 1.2\n");
+	//printf("execution 1.2\n");
 	
 	delt.set_size(1,1);
 	delt(0,0) = InfDS.delt;
 	dt = repmat(delt, T, 1);
 	Nsubj = InfDS.Nsubj;
-	tcount = arma::ones<arma::mat>(Nsubj,1);
-	printf("execution 1.3\n");
+	//tcount = arma::ones<arma::mat>(Nsubj,1);
+	//printf("execution 1.3\n");
 
 	for (i = 0; i < InfDS.Nsubj;i++){
 		if (getDxFlag ==1){
@@ -273,7 +275,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
     
 	}
-	printf("execution 1.4~~~\n");
+	//printf("execution 1.4~~~\n");
 	//return InfDS;
 	/*
 	if(InfDS.NxState == InfDS.Nx)
@@ -290,7 +292,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		//printf("execution 1.4.1\n");
 		trans(InfDS.y0).print("ddd");
 		XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
-		InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
+		//InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
 
 		//****** size of dXtildPrev0 should be determined dynamically
 		//dXtildPrev0 =  "0 0; 1 0; 0 1"; 
@@ -305,7 +307,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
 		//printf("execution 1.4.2\n");
 	}
-	printf("execution 1.5\n");
+	//printf("execution 1.5\n");
 	
 	//InfDS.par.print("InfDS.par getXtildIC3 293");
 	if (getDxFlag ==1){
@@ -325,7 +327,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	}
 
 	//InfDS.par.print("InfDS.par getXtildIC3 310");
-	printf("execution 2\n");
+	//printf("execution 2\n");
 	
 	InfDS.Xtild.slice(0) = XtildPrev;
 	fullX.slice(0) = XtildPrev;
@@ -339,10 +341,11 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
     
-	InfDS.par.print("InfDS.par getXtildIC3 325");
-	printf("execution 3\n");
+	//InfDS.par.print("InfDS.par getXtildIC3 325");
+	//printf("execution 3\n");
 	//Do interpolation at small, equal intervals, as opposed to at observed intervals to avoid numerical problems
 	for (int t = 1; t < T; t++){
+		//printf("t = %d T= %d\n",t,T);
 
 		//ODE solver	
 		/*
@@ -370,6 +373,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			
 			dk1dtheta = dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
 			dk2dtheta = dfdparFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+			//printf("execution 4.1\n");
 			
 			//Note that dfdx has x in rows, f in columns, unlike the Jacobian function
 			//used in ekf, specified in InfDS.Jdyn
@@ -393,12 +397,16 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			
 			dXstar_t = dt(t)/2*(dk1 + dk2);
 			dXtild = dXtildPrev + dXstar_t;
-			
+			//printf("execution 4.2\n");
 			
 			dvecdfdXtilddtheta = dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+			//printf("execution 4.2.1\n");
 			dvecdfdXtilddXtild = dfdx2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+			//printf("execution 4.2.2\n");
 			dveck1dthetadXtild = dfdpdxFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+			//printf("execution 4.2.3\n");
 			dveck1dtheta = dfdpar2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+			//printf("execution 4.2.4\n");
 			
 			d2vecdk1= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
 			first= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -413,18 +421,21 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				dveck1dthetadXtild.slice(i)*trans(dXtildPrev.slice(i));
 				first.slice(i) = (d2XtildPrev.slice(i) + dt(t)*d2vecdk1.slice(i));
 			}
-			
+			//printf("execution 5.1\n");
 
 			dvecdfdxATk21dtheta = dfdxdpFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			dvecdfdxATk21dk21 = dfdx2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			second = arma::zeros<arma::cube>(pow(InfDS.Nx, 2), InfDS.Ntheta, InfDS.Nsubj);
+			//printf("execution 5.2\n");
 			
 			for (i = 0; i < Nsubj; i++){
 				second.slice(i) = dvecdfdxATk21dtheta.slice(i) + dvecdfdxATk21dk21.slice(i)*trans(dk21.slice(i)); //Second term, dvecfxdxatk21_2
 			}
+			//printf("execution 5.3\n");
 			
 			dveck2dtheta = dfdpar2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			dveck2dthetadxATk21 = dfdpdxFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+			//printf("execution 5.4\n");
 			
 			third = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
 			d2vecdk2 = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -438,6 +449,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				kron(eye2.eye(InfDS.Nx, InfDS.Nx), dk21.slice(i))*(second.slice(i)) +
 				third.slice(i);
 			}
+			//printf("execution 5.5\n");
 			
 			d2Xstar_t = dt(t)/2*(d2vecdk1 + d2vecdk2);
 			d2Xtild = d2XtildPrev + d2Xstar_t;
@@ -445,10 +457,11 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			d2XtildPrev = d2Xtild;
 		}
 		
-		printf("execution 6\n");
+		//printf("execution 6\n");
 	
 		XtildPrev = Xtild_t;
 
+		
 		
 		for (i = 0; i < InfDS.Nsubj; i++){
 			
@@ -460,12 +473,16 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			fullX.slice(t).col(i) = Xtild_t.col(i);
 			
 			for(int j = 0;  j < int(currentt.n_elem);j++){
+				//printf("i=%d j=%d currentt.n_elem %d currentt(j) %d getDxFlag %d\n", i, j, currentt.n_elem, currentt(j), getDxFlag);
+				/*
+				printf("dXtildthetafAll %d %d dXtildthetafAll2 %d %d\n", InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1).n_rows, InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1).n_cols,InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_rows, InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_cols);
+				printf("dXtild.slice(i) %d %d\n", dXtild.slice(i).n_rows, dXtild.slice(i).n_cols);
+				printf("d2Xtild.slice(i) %d %d\n", d2Xtild.slice(i).n_rows, d2Xtild.slice(i).n_cols);
+				printf("dXstarAll %d %d dXstarAll2 %d %d\n", InfDS.dXstarAll(i).cols((j)*InfDS.Nx,(j+1)*InfDS.Nx - 1).n_rows, InfDS.dXstarAll(i).cols((j)*InfDS.Nx,(j+1)*InfDS.Nx - 1).n_cols,InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_rows, InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_cols);
+				printf("dXstar_t.slice(i) %d %d\n", dXstar_t.slice(i).n_rows, dXstar_t.slice(i).n_cols);
+				printf("d2Xstar_t.slice(i) %d %d\n", d2Xstar_t.slice(i).n_rows, d2Xstar_t.slice(i).n_cols);
+				*/
 				if( int(currentt(j)) == 1){
-					/*
-					if (i == 0){
-						mexPrintf("i = %d j = %d\n j",i,j);
-					}
-					*/
 					if (getDxFlag ==1){
 						InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1) = dXtild.slice(i);
 						InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1) = d2Xtild.slice(i);
@@ -473,12 +490,15 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 						InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1) = d2Xstar_t.slice(i);
 					}
 				}
+				//printf("end of loop\n");
 			}
-			tcount(i) = tcount(i) + 1;
+			//tcount(i) = tcount(i) + 1;
+			//printf("end of loop2\n");
 		}
+		//printf("end of loop3\n");
 	}
-	
-        	
+	//printf("execution 6.2\n");
+
 	
 	for (i = 0; i < InfDS.Nsubj; i++){
 		for(int j = 0; j < InfDS.allT(i); j++){
@@ -486,7 +506,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
 	
-	printf("execution 7\n");
+	//printf("execution 7\n");
 	return InfDS;
 }
 
