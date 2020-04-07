@@ -225,7 +225,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int row, col;
 	int i, u;
 	double *temp, **P0, **Lambda, **Y, **b, **H, **Z, **dmudparMu, **dmudparMu2;
-	double *lower_bound, *upper_bound;
+	double *lower_bound, *upper_bound, *par_value;
 	double *allT;
 	char str_name[64];
 	double total_time_all_subj;
@@ -495,10 +495,14 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		upper_bound = REAL(PROTECT(getListElement(model_list,"upper_bound")));
 		UNPROTECT(1);
 		
+		par_value = (double *)malloc((Npar+1)* sizeof(double));
+		par_value = REAL(PROTECT(getListElement(model_list,"par_value")));
+		UNPROTECT(1);
 		
-		printf("lower and upper bound:\n");
+		
+		printf("lower and upper bound and par value:\n");
 		for(row = 0; row < Npar; row++)
-			printf("%6lf %6lf\n", lower_bound[row], upper_bound[row]);
+			printf("%6lf %6lf %6lf\n", lower_bound[row], upper_bound[row], par_value[row]);
 		printf("\n");
 	}
 	
@@ -909,9 +913,6 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			
 		}
 		printf("\n");
-		
-		
-
     }else{
         timeDiscrete = NULL;
     }
@@ -924,7 +925,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	saem_interface(100, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2);
+	saem_interface(100, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));

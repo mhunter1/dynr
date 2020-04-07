@@ -530,9 +530,16 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  param.names <- c(param.names, noise.names)
 		if(length(sigmab.names) > 0)
 		  param.names <- c(param.names, sigmab.names)		
+		#print('param.names')
 		#print(param.names)
 		lower_bound <- lb[param.names]
 		upper_bound <- ub[param.names]
+		
+		# temprarily put the values coef(fitted_model) in here
+		if(model@freeIC == FALSE)
+			par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
+		else
+			par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05,0.78, 0.73, 0.09, 0.2)
 		
 		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
 		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
@@ -640,6 +647,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dSigmabdb2 = model@dSigmabdb2,
 			time_=model$data$time,
 			freeIC=model@freeIC,
+			par_value=par_value,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )
@@ -673,10 +681,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         # backendStart <- Sys.time()
         
         print('here')
-		print(class(model$time_[1]))
-		print(model$time_[1:10])
-        print(model$sigmae)
-		print(model$freeIC)
+		print(model$par_value)
+		#print(class(model$time_[1]))
+		#print(model$time_[1:10])
+        #print(model$sigmae)
+		#print(model$freeIC)
 
 		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")

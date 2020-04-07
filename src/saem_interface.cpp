@@ -12,9 +12,9 @@ using namespace arma;
 
 
 
-extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **);
+extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double * );
 
-void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2){
+void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value){
 
 
 	//printf("check point 0\n");	
@@ -47,8 +47,9 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	
 	printf("check point 1 Nb %d Nsubj %d\n", Nb, Nsubj);	
 
-	//Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
-	Npar = Ntheta + NLambda + Ny + Nbpar;
+	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
+	//Npar = NxState + Nmu + NLambda + Ny + Nbpar;
+	//Npar = Ntheta + NLambda + Ny + Nbpar;
 	
 	InfDS.U1.set_size(Nsubj, Nu);
 	for(i = 0; i < Nsubj; i++){
@@ -263,7 +264,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	InfDS.dmudparMu2.print("dmudparMu2");
 	
 	
-	InfDS.par = zeros(Npar, 1);
+
 	InfDS.sy = zeros(Npar, 1);
 	InfDS.EI = zeros(Npar, 1);
 	InfDS.ES = zeros(Npar, 1);
@@ -277,11 +278,13 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 
 	InfDS.lowBound.set_size(Npar, 1);
 	InfDS.upBound.set_size(Npar, 1);
+	InfDS.par.set_size(Npar, 1);
 	for(i = 0; i < Npar; i++){
 		InfDS.lowBound(i) = lower_bound[i];
 		InfDS.upBound(i) =upper_bound[i];
+		InfDS.par(i) = par_value[i];
 	}
-	
+	InfDS.par.print("InfDS.par");
 
 	
 	InfDS.thetatild = zeros(Npar, 1);
