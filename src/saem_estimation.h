@@ -27,8 +27,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//freeIC = 1;
 	timer = time(NULL);
 	
-	//arma_rng::set_seed_random(); 
-	//arma_rng::set_seed(1400);
+	//rma_rng::set_seed_random(); 
+	arma_rng::set_seed(seed);
 
 	isBlock1Only = 0;	
 	switchFlag = 0;

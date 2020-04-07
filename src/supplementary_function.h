@@ -1401,9 +1401,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		}
 		//cOMEGAb.print("cOMEGAb");
 		
-		printf("inv error happens here:");
+		//printf("inv error happens here:");
 		normtmp = reshape(bdtmp(span(i,i),span::all),1,Nb) * inv(cOMEGAb); 
-		printf("exit");
+		//printf("exit");
 		//normtmp.print("normtmp");		
 		// to be check
 		propden_old(i) = -0.5* sum(sum(normtmp % normtmp, 1)) - sum(sum(log(diagvec(cOMEGAb)), 1));

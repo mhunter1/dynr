@@ -45,7 +45,8 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	InfDS.omega = 61.685028;
 	
 	
-	printf("check point 1 Nb %d Nsubj %d KKO %d\n", Nb, Nsubj, KKO);	
+	printf("Seed = %d\n", seed);
+	//printf("check point 1 Nb %d Nsubj %d KKO %d\n", Nb, Nsubj, KKO);	
 
 	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
 	//Npar = NxState + Nmu + NLambda + Ny + Nbpar;

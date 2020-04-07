@@ -568,7 +568,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		else{
 		  x.names <- dynrModel@measurement@state.names
 		  random.names <- c(model$dynamics@random.names, paste0('b_',x.names))
-		  print (random.names)
+		  #print (random.names)
 		}
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
@@ -648,6 +648,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			time_=model$data$time,
 			freeIC=model@freeIC,
 			par_value=par_value,
+			seed=saemp@seed,
 			y0=y0#,
 			#num_time=length(model$tspan) # number of unique time points
         )
@@ -680,8 +681,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         # gc()
         # backendStart <- Sys.time()
         
-        print('here')
+        print('initial par')
 		print(model$par_value)
+		print('seed')
+		print(model$seed)
 		#print(class(model$time_[1]))
 		#print(model$time_[1:10])
         #print(model$sigmae)
