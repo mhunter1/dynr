@@ -290,7 +290,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	//InfDS.par.print("InfDS.par getXtildIC3 275");
 	if (freeIC==1){
 		//printf("execution 1.4.1\n");
-		trans(InfDS.y0).print("ddd");
+		//trans(InfDS.y0).print("ddd");
 		XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
 		//InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
 
@@ -615,7 +615,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 		ivSigmab = inv(InfDS.Sigmab);
 	}
 
-	InfDS.par.print("InfDS.par");
+	//InfDS.par.print("InfDS.par");
 	infoMat = arma::zeros<arma::mat>(InfDS.par.n_rows, InfDS.par.n_rows);
 	ivSigmae2 = inv(diagmat(InfDS.Sigmae));
 
@@ -944,7 +944,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	InfDS.EI = InfDS.EI + gain*(minfoMat - InfDS.EI);
 	t = 1.0;
 	InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
- 
+	//printf("checkpoint 947\n");
 	
 	flag = chol(R, InfDS.Iy);
 	while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
@@ -952,7 +952,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
 		flag = chol(R, InfDS.Iy);
 	}
- 
+	//printf("checkpoint enter 955\n");
  
 	flag = chol(R, InfDS.Iy);
 	if (!flag)
@@ -966,10 +966,17 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		for(j = 0; j < InfDS.Iy.n_cols;j++)
 			Iy_s(i, j) = InfDS.Iy(i, j);
 	}
-		
+	//printf("checkpoint enter 969\n");	
  
-	spsolve(dc2, Iy_s, mscore, "lapack"); 
-	
+	Iy_s.print("Iy_s");
+	mscore.print("mscore");
+	// If spsolve can not find solution, try solve. If solve also doesn't work, set is as zero
+	if(!spsolve(dc2, Iy_s, mscore, "lapack")){
+		if(!solve(dc2, mat(Iy_s), mscore)){
+			dc2= zeros(mscore.n_elem);
+		}
+	}
+	dc2.print("dc2");
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	if (!redFlag){
@@ -983,13 +990,15 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		%Stopping rule for stage 1
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		*/
-		
+		//printf("checkpoint 986\n");
 		for(i = 0; i < dc2.n_elem; i++){
 			if(abs(dc2(i)) < .0001)
 				dc2(i) = 0;
 		}
-		if (stage==1){ 
+		if (stage==1){
+			//printf("sgnTH %d %d dc2 %d\n",sgnTH.n_rows, sgnTH.n_cols, dc2.n_elem);
 			sgnTH(span::all, gmm - 1) = gain * sign(dc2); 
+			//printf("sgnTH %d %d dc2 %d\n",sgnTH.n_rows, sgnTH.n_cols, dc2.n_elem);
 			if (gmm >= InfDS.KKO){    
 				ss = norm(mean(sgnTH(span::all,span(gmm - InfDS.KKO, gmm - 1)),1));
 				printf("\nStage 1 Error tolerance at convergence = %6f\n", ss); 
@@ -1000,6 +1009,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				}
 			}
 		}
+		//printf("checkpoint enter 1003\n");
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 		unsigned int q;
@@ -1023,7 +1033,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				InfDS.Iy(q, q) = Iy(q, q);  
 			}
 		}
-		
+		//printf("checkpoint enter 1027\n");
 
 		//if ((~any(any(any(isnan(InfDS.Xtild))))==0 || redFlag==1) && InfDS.Nbeta > 0)
 		if ((InfDS.Xtild.has_nan() || redFlag==1) && InfDS.Nbeta > 0){
@@ -1038,22 +1048,22 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		if (stage==2){ 
 			//careful
 			if ( max(max(InfDS.thetatild)) == 0 && min(min(InfDS.thetatild)) == 0){
-				//printf("checkpoint enter 1002\n");
+				//printf("checkpoint enter 1042\n");
 				InfDS.sytild = InfDS.sy; 
 				InfDS.EStild = InfDS.ES; 
 				InfDS.EItild = InfDS.EI;
 				InfDS.Iytild = InfDS.Iy;
 				InfDS.thetatild = thetam;
-				//printf("checkpoint leave 1002\n");
+				//printf("checkpoint leave 1042\n");
 			}
 			else{
-				//printf("checkpoint enter 1012\n");
+				//printf("checkpoint enter 1051\n");
 				InfDS.sytild = InfDS.sytild + (InfDS.sy-InfDS.sytild)/gmm;
 				InfDS.EStild = InfDS.EStild + (InfDS.ES-InfDS.EStild)/gmm;
 				InfDS.EItild = InfDS.EItild + (InfDS.EI-InfDS.EItild)/gmm;
 				InfDS.Iytild = InfDS.Iytild + (InfDS.Iy-InfDS.Iytild)/gmm;
 				InfDS.thetatild = InfDS.thetatild + (thetam-InfDS.thetatild)/gmm;
-				//printf("checkpoint enter 1012\n");
+				//printf("checkpoint enter 1051\n");
 				
 				//ss = abs(InfDS.sytild.t()*inv(InfDS.Iytild)*InfDS.sytild + trace(solve(InfDS.Iytild,Covscore))/gmm);
 				arma::mat temp = InfDS.sytild.t()*inv(InfDS.Iytild)*InfDS.sytild;
@@ -1065,7 +1075,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				   ssmin = ss;
 				   noIncrease = 0;
 				}
-				
+				//printf("checkpoint enter 1069\n");
 	   
 				if (ss < InfDS.errtrol || gmm == InfDS.MAXITER || noIncrease > 3){
 					if (gmm == InfDS.MAXITER || noIncrease > 3)
@@ -1079,7 +1089,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		}
 	}
 
-	
+	//printf("checkpoint enter 1083\n");
 
 	gmm = gmm+1;
 	InfDS.par = thetam;
@@ -1140,7 +1150,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	
 	arma::field<arma::mat> dXtilddthetafAll, dXtilddthetafAll2;
 	
-	printf("execution point 0\n");
+	//printf("execution point 0\n");
 	
 	
 	iSigmae = inv(InfDS.Sigmae);
@@ -1189,7 +1199,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	xtild = InfDS.Xtild;
 	dXtilddthetafAll = InfDS.dXtildthetafAll;
 	dXtilddthetafAll2 = InfDS.dXtildthetafAll2;
-	printf("execution point 1\n");
+	//printf("execution point 1\n");
 
 
 	
@@ -1212,7 +1222,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 /////
 	OMEGAb = InfDS.OMEGAb;
 	scaleb = InfDS.scaleb;
-	printf("execution point 2\n");
+	//printf("execution point 2\n");
 
 	for (i = 0; i < InfDS.Nsubj; i++){
 		//mexPrintf("i = %d\n", i);
@@ -1294,7 +1304,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	}
 	//newb1(span(0,2),span(0,2), span(0,0)).print("newb1");
 	//propden_new1(span(0, 9), span(0,0)).t().print("propden_new1");
-	printf("execution point 3\n");
+	//printf("execution point 3\n");
 	
 	//InfDS.dXtildthetafAll(0)(span::all, span(0, 9)).print("zero");
 	//InfDS.dXtildthetafAll(0)(span::all, span(3*InfDS.NxState, (3 + 1)*InfDS.NxState -1)).print("before");
@@ -1315,7 +1325,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//mexPrintf("InfDS1.b = %lf\n",InfDS1.b );
 	//InfDS1.b.submat(0,0,2,2).print("InfDS1.b");
 	//InfDS.dXtildthetafAll(0)(span::all, span(3*InfDS.NxState, (3 + 1)*InfDS.NxState -1)).print("after");
-	printf("execution point 4 %d %d\n", tpNew1.n_rows, tpNew1.n_cols);
+	//printf("execution point 4 %d %d\n", tpNew1.n_rows, tpNew1.n_cols);
 
 	
 	tpNew = max(tpNew1,1);
@@ -1348,7 +1358,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	//Proposal for oldb
-	printf("execution point 5\n");
+	//printf("execution point 5\n");
 
 	for (i = 0; i < InfDS.Nsubj; i++){
 		T = InfDS.timeDiscrete(i).n_elem;
@@ -1369,7 +1379,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		//OMEGAb(span(i*Nb,(i+1)*Nb-1),span(i*Nb,(i+1)*Nb-1)).print("OMEGAb");
 	}
 
-	printf("execution point 6\n");
+	//printf("execution point 6\n");
 	
 	bdtmp = oldb(span::all,span(0,Nb-1))-InfDS.b(span::all,span(0,Nb-1));
 	//bdtmp.print("bdtmp");
@@ -1390,8 +1400,10 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			//cOMEGAb.print("cOMEGAb");
 		}
 		//cOMEGAb.print("cOMEGAb");
-			     
+		
+		printf("inv error happens here:");
 		normtmp = reshape(bdtmp(span(i,i),span::all),1,Nb) * inv(cOMEGAb); 
+		printf("exit");
 		//normtmp.print("normtmp");		
 		// to be check
 		propden_old(i) = -0.5* sum(sum(normtmp % normtmp, 1)) - sum(sum(log(diagvec(cOMEGAb)), 1));
@@ -1402,7 +1414,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	
 	//propden_old(span(0,4)).print("propden_old");
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	printf("execution point 7\n");
+	//printf("execution point 7\n");
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
 	//Evaluate MH ratio and which set to keep%
@@ -1446,7 +1458,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	InfDS.bacc = InfDS.bacc + indexKept;
 	//InfDS.bacc.t().print("bacc");
-	printf("execution point 8 Nkept = %d\n", Nkept);
+	//printf("execution point 8 Nkept = %d\n", Nkept);
 
 	if (Nkept  > 0){    
 		//tpOld(indexKept) = tpNew(indexKept);
@@ -1506,7 +1518,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		//end 
 	}
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	printf("execution point 9\n");
+	//printf("execution point 9\n");
 	
 	//printf("meanb %d*%d, InfDS.b %d*%d\n", meanb.n_rows, meanb.n_cols, InfDS.b.n_rows, InfDS.b.n_cols);
 	
@@ -1522,7 +1534,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//InfDS.b.submat(0,0,2,2).print("InfDS.b");
 	//mexPrintf("low1=%lf high1=%lf by1=%lf\nisBlock1Only=%d InfDS.scaleb=%lf\nbAccept=%lf\n", low1, high1, by1,isBlock1Only, InfDS.scaleb,bAccept);
 	
-	printf("execution point 10 end\n");
+	//printf("execution point 10 end\n");
 
 	return;
 }

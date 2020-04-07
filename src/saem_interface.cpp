@@ -12,9 +12,9 @@ using namespace arma;
 
 
 
-extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double * );
+extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double *, int);
 
-void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value){
+void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value, int KKO){
 
 
 	//printf("check point 0\n");	
@@ -38,14 +38,14 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	InfDS.totalT = totalT;
 	InfDS.delt = delt;
 	InfDS.maxT = maxT;
-        InfDS.N = 1;
+	InfDS.KKO = KKO;
 	
 	/*constant*/
 	InfDS.N = 1;
 	InfDS.omega = 61.685028;
 	
 	
-	printf("check point 1 Nb %d Nsubj %d\n", Nb, Nsubj);	
+	printf("check point 1 Nb %d Nsubj %d KKO %d\n", Nb, Nsubj, KKO);	
 
 	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
 	//Npar = NxState + Nmu + NLambda + Ny + Nbpar;

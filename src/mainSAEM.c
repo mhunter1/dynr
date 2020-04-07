@@ -158,10 +158,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int Nb = (size_t) *INTEGER(num_random_sexp);
 	DYNRPRINT(verbose_flag, "Nb: %lu\n", (long unsigned int) Nb);
 	
-	/*KKO*/ /*not feed*/
+	/*KKO*/ 
 	SEXP kko_sexp = PROTECT(getListElement(model_list, "KKO"));
-	double KKO=*REAL(kko_sexp);
-	DYNRPRINT(verbose_flag, "KKO: %lf\n", KKO);
+	int KKO=(int)(*REAL(kko_sexp)+0.0001);
+	DYNRPRINT(verbose_flag, "KKO: %lu\n", KKO);
 	
 	/*Nbpar*/
 	SEXP num_bpar_sexp = PROTECT(getListElement(model_list, "num_bpar"));
@@ -925,7 +925,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	saem_interface(100, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value);
+	saem_interface(100, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value, KKO);
 	
 	
 	SEXP out = PROTECT(allocVector(REALSXP, 3));
