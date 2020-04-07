@@ -183,7 +183,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	int seed=(size_t) *INTEGER(seed_sexp);
 	DYNRPRINT(verbose_flag, "Seed: %lu\n", (long unsigned int) seed);
 	
-	UNPROTECT(17);
+	UNPROTECT(18);
 	
 	/*----------*/
 	SEXP lb_sexp = PROTECT(getListElement(model_list, "random.lb"));
