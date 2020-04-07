@@ -775,6 +775,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           beta.names = c(beta.names, paste0('init_',state.names[[i]]))
 		}
       }
+	  inputs$dynamics@beta.names <- beta.names
 
 
       #process the theta formula
