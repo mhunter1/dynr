@@ -22,11 +22,11 @@ data <- dynr.data(vdpData, id="id", time="time",
                  covariates=c("u1", "u2"))
 
 meas <- prep.measurement(
-    values.load=matrix(c(1, 1, 1, 0, 0, 0), 3, 2),
+    values.load=matrix(c(1, 0.7, 1.2, 0, 0, 0), 3, 2),
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=c('x1', 'x2'),
-    values.int=matrix(c(3, 1, 0), ncol=1),
+    values.int=matrix(c(0, 0, 0), ncol=1),
     params.int=matrix(c('mu1', 'mu2', 'mu3'), ncol=1))
 
 
@@ -34,8 +34,8 @@ initial <- prep.initial(
     values.inistate=c(3, 1),
     params.inistate=c("mu_x1", "mu_x2"),
     #params.inistate=c("fixed", "fixed"),
-    values.inicov=matrix(c(.5,.2,
-                           .2,.6), ncol=2, byrow=TRUE), 
+    values.inicov=matrix(c(1.14, .26,
+                            .26,1.15), ncol=2, byrow=TRUE), 
     params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
                            'sigma_bx1x2','sigma2_bx2'), ncol=2, byrow=TRUE)
     
@@ -46,7 +46,7 @@ initial <- prep.initial(
 mdcov <- prep.noise(
     values.latent=diag(0, 2), 
     params.latent=diag(c("fixed","fixed"), 2),
-    values.observed=diag(rep(0.3,3)),
+    values.observed=diag(rep(0.5,3)),
     params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
@@ -62,9 +62,9 @@ theta.formula  = list (zeta_i ~ 1 * zeta0  + u1 * zeta1 + u2 * zeta2 + 1 * b_zet
 
 
 dynm<-prep.formulaDynamics(formula=formula,
-                           startval=c(zeta0=-1,
+                           startval=c(zeta0= 3,
                                       zeta1=.5,
-                                      zeta2=.2),
+                                      zeta2=.5),
                            isContinuousTime=TRUE,
                            theta.formula=theta.formula,
                            random.names=c('b_zeta'),
@@ -94,7 +94,7 @@ model$ub[names(model@ub)] = 10
 print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 10, 
-                            MAXITER = 10, 
+                            MAXITER = 100, 
                             maxIterStage1 = 1005, 
                             gainpara = 0.600000, 
                             gainparb = 3.000000, 

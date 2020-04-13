@@ -34,8 +34,8 @@ initial <- prep.initial(
     values.inistate=c(3, 1),
     #params.inistate=c("mu_x1", "mu_x2"),
     params.inistate=c("fixed", "fixed"),
-    values.inicov=matrix(c(.5,.2,
-                           .2,.6), ncol=2, byrow=TRUE), 
+    values.inicov=matrix(c(1.14, .26,
+                            .26,1.15), ncol=2, byrow=TRUE), 
     #params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
     #                       'sigma_bx1x2','sigma2_bx2'), ncol=2, byrow=TRUE)
     
