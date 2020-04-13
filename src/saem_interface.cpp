@@ -243,8 +243,31 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	InfDS.dLambdparLamb2.print("InfDS.dLambdparLamb2");
 	
 	InfDS.Sigmae = zeros(Ny, Ny);
-	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	
+	for(i = 0; i < Ny; i++){
+		for(j = 0; j < Ny; j++){
+			InfDS.Sigmae(i, j) = Sigmae[i][j];
+		}
+	}
+	InfDS.Sigmae.print("InfDS.Sigmae");
+	
+	
 	InfDS.dSigmaede = zeros(Ny, Ny*Ny);
+	for(i = 0; i < Ny; i++){
+		for(j = 0; j < Ny*Ny; j++){
+			InfDS.dSigmaede(i, j) = dSigmaede[i][j];
+		}
+	}
+	InfDS.dSigmaede.print("InfDS.dSigmaede");
+	
+	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	
+	for(i = 0; i < Ny*Ny*Ny; i++){
+		for(j = 0; j < Ny; j++){
+			InfDS.dSigmaede2(i, j) = dSigmaede2[i][j];
+		}
+	}
+	InfDS.dSigmaede2.print("InfDS.dSigmaede2");
+	
+	
 	
 
 	//to be obtained from prep.measurements
@@ -321,14 +344,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	}
 	InfDS.Sigmab.print("sigmab");
 	
-	InfDS.Sigmae.set_size(Ny, Ny);
-	for(i = 0; i < Ny; i++){
-		for(j = 0; j < Ny; j++){
-			InfDS.Sigmae(i,j) = Sigmae[i][j];
-		}
-
-	}
-	InfDS.Sigmae.print("sigmae");
+	
 	
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";

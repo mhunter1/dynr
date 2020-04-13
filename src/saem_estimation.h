@@ -228,7 +228,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//printf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
-		if(prev_stage != stage){
+		//temporarily printing out messages
+		if(1 || prev_stage != stage){
 			InfDS.par(span(0,9), span::all).print("InfDS.par(1:10)");
 			//exp(InfDS.par(span(10,12), span::all)).t().print("InfDS.par(11:13)");
 			InfDS.Sigmab.print("Sigmab");
