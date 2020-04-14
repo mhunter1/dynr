@@ -1,4 +1,7 @@
 arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){
+	
+	if(isPar == 1)
+		printf("[HJ] Should NOT happen! isPar = 1");
 
 	//local parameters
 	arma::mat y, r, thetaf;
@@ -21,8 +24,9 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
 			for (row = 0; row < InfDS.NxState; row++){
-				if(row+1 < thetaf.n_rows) // ask symiin
-					r(row, s) = thetaf(row +1, s);
+				//if(row+1 < thetaf.n_rows) // ask symiin
+				//	r(row, s) = thetaf(row +1, s);
+				r(row, s) = y(row, s);
 			}
 
 			if (isPar == 1){
@@ -55,6 +59,9 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){
 	arma::mat Hi, b, bb, thetaf, rowNum, y;
 	arma::cube r;
+	
+	if(isPar == 1)
+		printf("[HJ] Should NOT happen! isPar = 1");
 
 	// if i is empty, traverse all vectors
 	if(i.is_empty()){
@@ -210,6 +217,7 @@ arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struc
  
 //----------------
 /*This function should not be called*/
+/*
 void setParsFreeICwb(C_INFDS &InfDS){
 	int startM, startL, starte, startb;
 	arma::mat D, L;
@@ -305,3 +313,4 @@ void setParsFreeICwb(C_INFDS &InfDS){
 	
 	return;
 }
+*/
