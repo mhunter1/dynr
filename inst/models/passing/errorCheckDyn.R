@@ -137,12 +137,18 @@ initial <- prep.initial(
   values.inicov=diag(0, 1),
   params.inicov=diag('fixed', 1))
 
+# Note: when using the below, there is no error and there should be
+# dynamics <- prep.formulaDynamics(list(x ~ 1, x ~ 1))
+#
 
 testthat::expect_error(
   dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
   regexp="The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.",
   fixed=TRUE
 )
+
+# Note: wrong error message thrown.  Is there actually a way to trigger the
+#  above error message?
 
 # Check that prep.formulaDynamics formulas use all and only nne in left-hand sides (nne: names of latent variables)
 formula1D<-list(
