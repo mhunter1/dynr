@@ -413,6 +413,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' be weighted by the length of the time series for each individual
 ##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can 
 ##' be used for diagnostic purposes
+##' @param perturb_flag a flag (TRUE/FLASE) indicating whether to perturb the latent states during estimation. Only useful for ensemble forecasting.
 ##' 
 ##' @details
 ##' Free parameter estimation uses the SLSQP routine from NLOPT.
@@ -458,7 +459,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
 	data <- dynrModel$data
@@ -510,9 +511,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model$func_address <- addr$address
 		libname <- addr$libname
 	}
+	seed <- sample(1073741824L, size=1)
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, perturb_flag, seed, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL

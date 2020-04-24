@@ -217,7 +217,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 						innov_v[regime_j][regime_k],
 						residual_cov[regime_j][regime_k], /*inverse*/
 						innov_garbage, // innov_cov
-						isFirstTime, false);
+						isFirstTime, false, false, 0);
 					gsl_vector_free(eta_garbage);
 					gsl_matrix_free(error_garbage);
 					gsl_matrix_free(innov_garbage);
@@ -606,7 +606,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
     gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,
 	gsl_vector **eta_t, gsl_matrix **error_cov_t, 
 	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t,
-	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t){
+	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t,
+	bool perturb, gsl_rng *seed){
 
 	/*MYPRINT("Called EKimFilter()");*/
 
@@ -846,7 +847,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 						config->func_jacob_dynam,
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
-						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime, true); /*inverse*/
+						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime, true, perturb, seed); /*inverse*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
@@ -1275,7 +1276,8 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
 	gsl_vector ****eta_regime_jk_pred, gsl_matrix ****error_cov_regime_jk_pred,
 	gsl_vector ***eta_regime_j_t, gsl_matrix ***error_cov_regime_j_t,
 	gsl_vector **eta_smooth, gsl_matrix **error_cov_smooth,
-	gsl_vector **pr_T, gsl_vector ***transprob_T){
+	gsl_vector **pr_T, gsl_vector ***transprob_T,
+	bool perturb, gsl_rng *seed){
 
     /**initialization**/
     gsl_vector *temp_diff_eta_vec=gsl_vector_alloc(config->dim_latent_var);

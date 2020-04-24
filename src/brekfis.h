@@ -5,6 +5,7 @@
 #include <gsl/gsl_vector.h>
 #include <stdlib.h>
 #include "data_structure.h"
+#include <gsl/gsl_rng.h>
 
 
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config,  ParamInit *init, Param *param);
@@ -66,7 +67,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 	gsl_vector **pr_t, gsl_vector **pr_t_given_t_minus_1,
 	gsl_vector **eta_t, gsl_matrix **error_cov_t, 
 	gsl_vector **eta_pred_t, gsl_matrix **error_cov_pred_t, 
-	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t);
+	gsl_vector **innov_v_t, gsl_matrix **residual_cov_t,
+	bool perturb, gsl_rng *seed);
 
 /****************************Extended Kim Smoother************************/
 /**
@@ -98,6 +100,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *config, const Param *param,
     gsl_vector **pr_t_given_t_minus_1, gsl_vector **pr_t, 
 	gsl_vector ****eta_regime_jk_pred,gsl_matrix ****error_cov_regime_jk_pred,gsl_vector ***eta_regime_j_t,gsl_matrix ***error_cov_regime_j_t,
-    gsl_vector **eta_smooth,gsl_matrix **error_cov_smooth,gsl_vector **pr_T,gsl_vector ***transprob_T);
+    gsl_vector **eta_smooth,gsl_matrix **error_cov_smooth,gsl_vector **pr_T,gsl_vector ***transprob_T,
+	bool perturb, gsl_rng *seed);
 
 #endif
