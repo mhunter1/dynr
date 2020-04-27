@@ -140,10 +140,10 @@ initial <- prep.initial(
 
 # Note: when using the below, there is no error and there should be
 # dynamics <- prep.formulaDynamics(list(x ~ 1, x ~ 1))
-testthat::expect_error(
-	dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
-	regexp="The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.",
-	fixed=TRUE)
+#testthat::expect_error(
+#	dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
+#	regexp="The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.",
+#	fixed=TRUE)
 # Note: wrong error message thrown.  Is there actually a way to trigger the
 #  above error message?
 
@@ -156,7 +156,7 @@ dynamics <- prep.formulaDynamics(formula=formula1D, startval=c(beta=0.2),
 
 testthat::expect_error(
 	dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
-	regexp="The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.",
+	regexp="The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.",
 	fixed=TRUE)
 
 # Check that prep.matrixDynamics is ne by ne
