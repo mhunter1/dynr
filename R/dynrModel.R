@@ -548,6 +548,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
     stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
   }
+  
+  if(!class(noise) %in% c("dynrNoise")){
+    stop("Check to see that noise argument is of the correct class. Hint: it should be 'dynrNoise'.")
+  }
+  
   # Set ground truth for number/name of states and observations
   nameLatentVars <- measurement$state.names
   numLatentVars <- length(nameLatentVars)
