@@ -121,6 +121,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.y0(i, j) = y0[i][j];
 		}
 	} 
+	//InfDS.y0.zeros();
 	InfDS.y0.print("InfDS.y0");
 
 
@@ -134,7 +135,19 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			tobs_pointer++;
 		}
 	}
-	InfDS.timeDiscrete(0).t().print("timeDiscrete(0)");
+	//InfDS.timeDiscrete(0).t().print("timeDiscrete(0)");
+	/*
+	for(i = 0; i < 1; j++){
+		printf("InfDS.timeDiscrete{%d} = [", i);
+		for(j = 0; j < InfDS.allT(i); j++){
+			if(j > 0)
+				printf(";");
+			printf("%lf",InfDS.timeDiscrete(i)(j,0));
+		}
+		printf("]");
+	
+	}
+	*/
 
 
 
@@ -148,7 +161,20 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			tobs_pointer++;
 		}	
 	}
-	InfDS.tobs(49).print("InfDS.tobs(199)");
+	//InfDS.tobs(49).print("InfDS.tobs(199)");
+	
+	/*
+	for(i = 0; i < 1; j++){
+		printf("InfDS.tobs{%d} = [", i);
+		for(j = 0; j < InfDS.allT(i); j++){
+			if(j > 0)
+				printf(";");
+			printf("%d",InfDS.tobs(i)(j,0));
+		}
+		printf("]");
+	
+	}
+	*/
 	
 	InfDS.Y.set_size(Nsubj,1);
 	for(i = 0; i < Nsubj; i++){
@@ -163,7 +189,23 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			}
 		}
 	}
-	InfDS.Y(0).print("InfDS.Y(0)");
+	
+	/*
+	for(i = 0; i < 1; j++){
+		printf("InfDS.Y{%d} = [", i);
+		for(int y = 0; y < Ny; y++){
+			for(j = 0; j < InfDS.allT(i); j++){
+				if(j > 0)
+					printf(",");
+				printf("%d",InfDS.Y(i)(y,j));
+			}
+			if(y != Ny-1)
+				printf(";\n");
+		}
+		printf("];\n");
+	
+	}
+	*/
 	
 	
 
@@ -309,6 +351,8 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 		InfDS.par(i) = par_value[i];
 	}
 	InfDS.par.print("InfDS.par");
+	InfDS.lowBound.print("InfDS.lowBound");
+	InfDS.upBound.print("InfDS.upBound");
 
 	
 	InfDS.thetatild = zeros(Npar, 1);
