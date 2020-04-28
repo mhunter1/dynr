@@ -9,11 +9,11 @@ library('dynr')
 library('plyr')
 
 
-# nPeople = 200
-# nTimes = 300
-# vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
-# colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
-# vdpData$id <- rep(1:nPeople, each=nTimes)
+#nPeople = 200
+#nTimes = 300
+#vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
+#colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+#vdpData$id <- rep(1:nPeople, each=nTimes)
 
 
 data(vdpData)
@@ -31,7 +31,7 @@ meas <- prep.measurement(
 
 
 initial <- prep.initial(
-    values.inistate=c(3, 1),
+    values.inistate=c(1, 1),
     params.inistate=c("mu_x1", "mu_x2"),
     #params.inistate=c("fixed", "fixed"),
     values.inicov=matrix(c(1.14, .26,
@@ -69,7 +69,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                            theta.formula=theta.formula,
                            random.names=c('b_zeta'),
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
-                           random.values.inicov = matrix(c(0.9), ncol=1,byrow=TRUE),
+                           random.values.inicov = matrix(c(0.6), ncol=1,byrow=TRUE),
                            random.lb = -5, 
                            random.ub = 5,
                            saem=TRUE
@@ -90,11 +90,12 @@ print(model@freeIC)
 
 #Using $ with lb and ub assumes that you are adjusting the parameters
 #model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
-model$ub[names(model@ub)] = 10
-print(model@random.params.inicov)
+#model$ub[names(model@ub)] = 10
+#model$ub[names(model@lb)] = -10
+#print(model@random.params.inicov)
 
-saemp <- prep.saemParameter(MAXGIB = 10, 
-                            MAXITER = 100, 
+saemp <- prep.saemParameter(MAXGIB = 1, 
+                            MAXITER = 1, 
                             maxIterStage1 = 1005, 
                             gainpara = 0.600000, 
                             gainparb = 3.000000, 

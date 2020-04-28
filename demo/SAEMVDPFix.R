@@ -31,7 +31,7 @@ meas <- prep.measurement(
 
 
 initial <- prep.initial(
-    values.inistate=c(3, 1),
+    values.inistate=c(1, 1),
     #params.inistate=c("mu_x1", "mu_x2"),
     params.inistate=c("fixed", "fixed"),
     values.inicov=matrix(c(1.14, .26,
@@ -91,6 +91,7 @@ print(model@freeIC)
 #Using $ with lb and ub assumes that you are adjusting the parameters
 #model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
 model$ub[names(model@ub)] = 10
+model$ub[names(model@lb)] = 10
 print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 10, 
