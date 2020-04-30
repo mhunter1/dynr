@@ -2316,7 +2316,7 @@ autojacob<-function(formula,n){
 ##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
   dots <- list(...)
-
+  
   # if the argument formula is not a list 
   if(!is.list(formula)){
     msg <- paste0(ifelse(plyr::is.formula(formula), "'formula' argument is a formula but ", ""),
@@ -2326,12 +2326,12 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     stop(msg)
   }
   
-
+  
   if(length(startval) == 0){
     warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
   }
-
-
+  
+  
   if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
@@ -2348,18 +2348,21 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
 
   }
-  
-  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
+
+  if(length(startval) > 0 & is.null(names(startval))){
+    stop('startval must be a named vector')
+  }
   if(length(startval) > 0){
     beta.names = names(startval)
   }
  	
-  if(length(startval) > 0 & is.null(names(startval))){
-    stop('startval must be a named vector')
-  }
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
     formula <- list(formula)
+  }
+  state.names <- lapply(formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+  if(any(sapply(lapply(state.names, duplicated), any))){
+    stop(paste("Found duplicated latent state names:\n", paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')))
   }
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
   if (missing(jacobian)){
