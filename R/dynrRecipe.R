@@ -2361,8 +2361,15 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     formula <- list(formula)
   }
   state.names <- lapply(formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+  state.regimes <- paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')
   if(any(sapply(lapply(state.names, duplicated), any))){
-    stop(paste("Found duplicated latent state names:\n", paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')))
+    stop(paste0("Found duplicated latent state names:\n", state.regimes))
+  }
+  if(length(unique(sapply(state.names, length))) != 1){
+    stop(paste0("Found different number of latent states for different regimes:\n", state.regimes))
+  }
+  if(!all(sapply(state.names, function(x, y){all(x==y)}, y=state.names[[1]]))){
+    stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
   }
   x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
   if (missing(jacobian)){

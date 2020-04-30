@@ -116,14 +116,25 @@ testthat::expect_error(
 # Check that NAMES are unique
 testthat::expect_error(
 	prep.formulaDynamics(list(x ~ a, x ~ b), startval=c(a=1, b=1)),
-	regexp='Found duplicated latent state names:\n Regime 1: x, x',
+	regexp='Found duplicated latent state names:\nRegime 1: x, x',
 	fixed=TRUE
 )
 
-# TODO Check that multiple regime formulas have lef-hand sides all in the same order
+# Check that multiple regime formulas have lef-hand sides all in the same order
+testthat::expect_error(
+	prep.formulaDynamics(list(list(x2 ~ b, x1 ~ a), list(x1 ~ a, x2 ~ b)), startval=c(a=1, b=1)),
+	regexp="Found different latent states or different ordering of latent states across regimes:\nRegime 1: x2, x1\nRegime 2: x1, x2",
+	fixed=TRUE)
+testthat::expect_error(
+	prep.formulaDynamics(list(list(x1 ~ a, x3 ~ b), list(x1 ~ a, x2 ~ b)), startval=c(a=1, b=1)),
+	regexp="Found different latent states or different ordering of latent states across regimes:\nRegime 1: x1, x3\nRegime 2: x1, x2",
+	fixed=TRUE)
 
-
-# TODO Check that multiple regime formulas have lef-hand sides all the same size
+# Check that multiple regime formulas have lef-hand sides all the same size
+testthat::expect_error(
+	prep.formulaDynamics(list(list(x1 ~ a), list(x1 ~ a, x2 ~ b)), startval=c(a=1, b=1)),
+	regexp="Found different number of latent states for different regimes:\nRegime 1: x1\nRegime 2: x1, x2",
+	fixed=TRUE)
 
 
 #------------------------------------------------------------------------------
@@ -169,17 +180,13 @@ testthat::expect_error(
 	regexp="Latent state names in dynamics (p, x, z) do not match those of measurement(q, x, w).",
 	fixed=TRUE)
 
-# TODO Check that ORDER of formulas match
+# Check that ORDER of formulas match
 #  All the formulas are in the right order
-
-# Note: when using the below, there is no error and there should be
-# dynamics <- prep.formulaDynamics(list(x ~ 1, x ~ 1))
-#testthat::expect_error(
-#	dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
-#	regexp="The number of formulas in each regime in 'prep.formulaDynamics' should match the number of latent states in 'dynrMeasurement'.",
-#	fixed=TRUE)
-# Note: wrong error message thrown.  Is there actually a way to trigger the
-#  above error message?
+dynamics <- prep.formulaDynamics(list(w ~ a, x ~ 1, q ~ a), startval=c(a=-.1), isContinuousTime=TRUE)
+testthat::expect_error(
+	dynr.model(dynamics, measLoad, noise, initial, data),
+	regexp="The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.",
+	fixed=TRUE)
 
 
 # Check that prep.formulaDynamics formulas use all and only nne in left-hand sides (nne: names of latent variables)
