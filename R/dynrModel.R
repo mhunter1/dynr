@@ -563,6 +563,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
+    if(any(sapply(states.dyn, length) != numLatentVars)){
+      statePaste <- paste0('(', paste(sapply(states.dyn, length), collapse=', '), ')')
+      stop(paste0("Found ", statePaste, " latent states in dynamics formula, but expected (", numLatentVars, ") latent states from measurement model."))
+    }
+    if(!all(states.dyn[[1]] %in% nameLatentVars)){
+      stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
+    }
     #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
     if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
       #states.dyn=states.dyn[[1]]#}else{

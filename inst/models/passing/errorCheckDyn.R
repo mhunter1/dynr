@@ -113,6 +113,17 @@ testthat::expect_error(
 	fixed=TRUE
 )
 
+# Check that NAMES are unique
+testthat::expect_error(
+	prep.formulaDynamics(list(x ~ a, x ~ b), startval=c(a=1, b=1)),
+	regexp='Found duplicated latent state names:\n Regime 1: x, x',
+	fixed=TRUE
+)
+
+# TODO Check that multiple regime formulas have lef-hand sides all in the same order
+
+
+# TODO Check that multiple regime formulas have lef-hand sides all the same size
 
 
 #------------------------------------------------------------------------------
@@ -138,6 +149,29 @@ initial <- prep.initial(
 	values.inicov=diag(0, 1),
 	params.inicov=diag('fixed', 1))
 
+# No Error
+dynamics <- prep.formulaDynamics(list(x ~ a), startval=c(a=-.1), isContinuousTime=TRUE)
+mod <- dynr.model(dynamics, measurement, noise, initial, data)
+
+# Check that NUMBER of formulas match
+dynamics <- prep.formulaDynamics(list(x ~ a, z ~ b), startval=c(a=1, b=1))
+testthat::expect_error(
+	mod <- dynr.model(dynamics, measurement, noise, initial, data),
+	regexp="Found (2) latent states in dynamics formula, but expected (1) latent states from measurement model.",
+	fixed=TRUE)
+
+# Check that NAMES of formulas match
+#  All names are there that should be, none that aren't
+dynamics <- prep.formulaDynamics(list(p ~ a, x ~ 1, z ~ a), startval=c(a=-.1), isContinuousTime=TRUE)
+measLoad <- prep.loadings(list(q='y1', x='y2', w='y3'))
+testthat::expect_error(
+	dynr.model(dynamics, measLoad, noise, initial, data),
+	regexp="Latent state names in dynamics (p, x, z) do not match those of measurement(q, x, w).",
+	fixed=TRUE)
+
+# TODO Check that ORDER of formulas match
+#  All the formulas are in the right order
+
 # Note: when using the below, there is no error and there should be
 # dynamics <- prep.formulaDynamics(list(x ~ 1, x ~ 1))
 #testthat::expect_error(
@@ -156,7 +190,7 @@ dynamics <- prep.formulaDynamics(formula=formula1D, startval=c(beta=0.2),
 
 testthat::expect_error(
 	dynrmodel <- dynr.model(dynamics, measurement, noise, initial, data),
-	regexp="The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.",
+	regexp="Latent state names in dynamics (y) do not match those of measurement(x).",
 	fixed=TRUE)
 
 # Check that prep.matrixDynamics is ne by ne
