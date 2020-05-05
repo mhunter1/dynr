@@ -87,71 +87,71 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*number of subjects: Nsubj*/
 	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
 	int Nsubj=(size_t) *INTEGER(num_sbj_sexp);
-	DYNRPRINT(verbose_flag, "Nsubj: %lu\n", (long unsigned int) Nsubj);
+	/*DYNRPRINT(verbose_flag, "Nsubj: %lu\n", (long unsigned int) Nsubj);*/
 		
 	/*number of latent variables: NxState*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
 	int NxState=(size_t) *INTEGER(dim_latent_var_sexp);
-	DYNRPRINT(verbose_flag, "NxState: %lu\n", (long unsigned int) NxState);
+	/*DYNRPRINT(verbose_flag, "NxState: %lu\n", (long unsigned int) NxState);*/
 	
 	
 	/*number of observed variables: Ny*/
 	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
 	int Ny=(size_t) *INTEGER(dim_obs_var_sexp);
-	DYNRPRINT(verbose_flag, "Ny: %lu\n", (long unsigned int) Ny);
+	/*DYNRPRINT(verbose_flag, "Ny: %lu\n", (long unsigned int) Ny);*/
 	
 	
 	/*number of covariates: Nu*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
 	int Nu =(size_t) *INTEGER(dim_co_variate_sexp);
-	DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);
+	/*DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);*/
 	
 	
 	/*number of regimes: always 1 in SAEM*/
 	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
 	int num_regime =(size_t) *INTEGER(num_regime_sexp);
-	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) num_regime);
+	/*DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) num_regime);*/
 	
 	
 	/*Ntheta*/
 	SEXP num_theta_sexp = PROTECT(getListElement(model_list, "num_theta"));
 	int Ntheta=(size_t) *INTEGER(num_theta_sexp);
-	DYNRPRINT(verbose_flag, "Ntheta: %lu\n", (long unsigned int) Ntheta);
+	/*DYNRPRINT(verbose_flag, "Ntheta: %lu\n", (long unsigned int) Ntheta);*/
 	
 	/*Nbeta*/
 	SEXP num_beta_sexp = PROTECT(getListElement(model_list, "num_beta"));
 	int Nbeta =(size_t) *INTEGER(num_beta_sexp);
-	DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);
+	/*DYNRPRINT(verbose_flag, "Nbeta: %lu\n", (long unsigned int) Nbeta);*/
 	/*Nbetax -- seems to be the same as Nbeta here*/
 	int Nbetax = Nbeta;
 	
 	/*totalT*/
 	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
 	int totalT =(size_t) *INTEGER(total_t_sexp);
-	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
+	/*DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);*/
 	
 	
 	/*maxT*/ 
 	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
 	double maxT =*REAL(max_t_sexp);
-	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
+	/*DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);*/
 
 	
 	/*NLambda*/
 	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
 	int NLambda =(size_t) *INTEGER(num_lambda_sexp);
-	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
+	/*DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);*/
 	
 	
 	/*delt*/
 	SEXP delt_sexp = PROTECT(getListElement(model_list, "delt"));
 	double delt=*REAL(delt_sexp);
-	DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
+	/*DYNRPRINT(verbose_flag, "delt: %lf\n", delt);*/
 	
 	/*Nmu*/
 	SEXP num_mu_sexp = PROTECT(getListElement(model_list, "num_mu"));
 	int Nmu = (size_t) *INTEGER(num_mu_sexp);
-	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
+	/*DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);*/
 	
 	/*Nb*/
 	SEXP num_random_sexp = PROTECT(getListElement(model_list, "num_random"));
@@ -161,27 +161,27 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*KKO*/ 
 	SEXP kko_sexp = PROTECT(getListElement(model_list, "KKO"));
 	int KKO=(int)(*REAL(kko_sexp)+0.0001);
-	DYNRPRINT(verbose_flag, "KKO: %lu\n", KKO);
+	/*DYNRPRINT(verbose_flag, "KKO: %lu\n", KKO);*/
 	
 	/*Nbpar*/
 	SEXP num_bpar_sexp = PROTECT(getListElement(model_list, "num_bpar"));
 	int Nbpar = (size_t) *INTEGER(num_bpar_sexp);
-	DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);
+	/*DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);*/
 	
 	/*num_time: length(tspan)*/
 	SEXP num_time_sexp = PROTECT(getListElement(model_list, "num_time"));
 	int num_time=*INTEGER(num_time_sexp);
-	DYNRPRINT(verbose_flag, "num_time: %lu\n", num_time);
+	/*DYNRPRINT(verbose_flag, "num_time: %lu\n", num_time);*/
 	
 	/*isFreeIC: */
 	SEXP isFreeIC_sexp = PROTECT(getListElement(model_list, "freeIC"));
 	bool freeIC_bool=*LOGICAL(isFreeIC_sexp);
 	int freeIC = (freeIC_bool ? 1 : 0);
-	DYNRPRINT(verbose_flag, "isFreeIC_sexp: %d\n", freeIC);
+	/*DYNRPRINT(verbose_flag, "isFreeIC_sexp: %d\n", freeIC);*/
 	
 	SEXP seed_sexp = PROTECT(getListElement(model_list, "seed"));
 	int seed=(size_t) *INTEGER(seed_sexp);
-	DYNRPRINT(verbose_flag, "Seed: %lu\n", (long unsigned int) seed);
+	/*DYNRPRINT(verbose_flag, "Seed: %lu\n", (long unsigned int) seed);*/
 	
 	UNPROTECT(18);
 	
@@ -191,8 +191,10 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	SEXP ub_sexp = PROTECT(getListElement(model_list, "random.ub"));
 	double ub = *REAL(ub_sexp);
 	
+	/*
 	DYNRPRINT(verbose_flag, "lb: %lf\n", lb);
 	DYNRPRINT(verbose_flag, "ub: %lf\n", ub);
+	*/
 	
 	UNPROTECT(2);
 	
@@ -218,7 +220,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	SEXP gainparb1_sexp = PROTECT(getListElement(model_list, "gainparb1"));
 	double gainparb1 = *REAL(gainparb1_sexp);
 	
-	DYNRPRINT(verbose_flag, "[SAEM Parameters] %d %d %d %lf %lf %lf %lf\n", MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1);
+	/*
+	DYNRPRINT(verbose_flag, "[SAEM Parameters] %d %d %d %lf %lf %lf %lf\n", MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1);*/
 	
 	UNPROTECT(7);
 	
@@ -254,6 +257,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		}
 		
 		
+		/*
 		printf("U1=[\n");
 		for(int i = 0; i < Nsubj;i++){
 			for(int u = 0;u < Nu; u++){
@@ -266,6 +270,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				printf(";\n");
 		}
 		printf("];\n");
+		*/
 		
     }else{
         U1 = NULL;
@@ -291,7 +296,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.P0 =[\n");
 		for(row = 0; row < NxState; row++){
 			for(col = 0;col < NxState; col++){
@@ -300,7 +305,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
-		
+		*/
 		
     }
 	else{
@@ -322,7 +327,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.Lambda = [\n");
 		for(row = 0; row < Ny; row++){
 			for(col = 0;col < NxState; col++){
@@ -331,7 +336,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
-		
+		*/
 		
     }
 	else{
@@ -363,7 +368,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("b = [\n");
 		for(int i = 0; i < Nsubj;i++){
 			for(int u = 0;u < Nb; u++){
@@ -375,6 +380,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
 		
 		
     }else{
@@ -397,7 +403,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.H =[\n");
 		for(int i = 0; i < Ntheta * Nsubj;i++){
 			for(int u = 0;u < Nbetax; u++){
@@ -409,7 +415,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
-		
+		*/
 		
 		
     }else{
@@ -432,7 +438,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.Z = [\n");
 		for(int i = 0; i < Ntheta;i++){
 			for(int u = 0;u < Nb; u++){
@@ -444,6 +450,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
 		
     }else{
         Z = NULL;
@@ -457,17 +464,20 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		UNPROTECT(1);
 		
 		
-		printf("InfDS.allT = [\n");
+		//printf("InfDS.allT = [\n");
 		total_time_all_subj = 0;
 		for(row = 0; row < Nsubj; row++){
+			/*
 			if (row == 0)
 				printf("%lf  ", allT[row]);
 			else
 				printf(",%lf  ", allT[row]);
+			*/
 			total_time_all_subj += allT[row];
 			
 		}
-		printf("];\n");
+		//printf("];\n");
+		
 		
 		total_time_all_subj_int = (int)(total_time_all_subj + 0.001);
 		//printf("%total_time_all_subj %d\n", total_time_all_subj_int);
@@ -480,7 +490,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		tspan = REAL(PROTECT(getListElement(model_list,"tspan")));
 		UNPROTECT(1);
 		
-		
+		/*
 		printf("InfDS.tspan=[\n");
 		for(row = 0; row < num_time; row++){
 			if(row == 0)
@@ -489,6 +499,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				printf(",%lf ", tspan[row]);
 		}
 		printf("];\n");
+		*/
 		
 		
     }
@@ -504,7 +515,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		mu = REAL(PROTECT(getListElement(model_list,"mu")));
 		UNPROTECT(1);
 		
-		
+		/*
 		printf("InfDS.mu =[\n");
 		for(row = 0; row < Nmu; row++){
 			if(row == 0)
@@ -513,6 +524,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				printf(",%lf ", mu[row]);
 		}
 		printf("];\n");
+		*/
 		
     }
 	else{
@@ -560,7 +572,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.dmudparMu= [\n");
 		for(row = 0; row < Ny; row++){
 			for(col = 0;col < Ny; col++){
@@ -572,6 +584,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];");
+		*/
 				
 	
     }
@@ -595,7 +608,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("dmudparMu2:\n");
 		for(row = 0;row < Ny * Ny; row++){
 			for(col = 0;col < Ny; col++){
@@ -606,7 +619,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf(";\n");
 		}
-		printf("];");		
+		printf("];");
+		*/
 	
     }
 	else{
@@ -631,7 +645,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
 		printf("InfDS.y0 = [\n");
 		for(i = 0; i < Nsubj;i++){
 			for(u = 0;u < NxState; u++){
@@ -643,6 +657,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
 		
     }else{
         y0 = NULL;
@@ -665,6 +680,18 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		}
 		printf("\n");
 		*/
+		total_time_all_subj_int = 0;
+		for(int s = 0; s < Nsubj; s++){
+			printf("InfDS.tobs{%d} = [\n", s+1);
+			for(i = 0; i < allT[s];i++){
+				if (i!= 0)
+						printf(";");
+				printf(" %d", tobs[total_time_all_subj_int]);
+				total_time_all_subj_int ++;
+				
+			}
+			printf("];\n");
+		}
 		
     }else{
         tobs = NULL;
@@ -693,6 +720,23 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		}
 		*/
 		
+		int count[3];
+		count[0] = count[1] = count[2] = 0;
+		for(int s = 0; s < Nsubj; s++){
+			printf("InfDS.Y{%d} = [\n", s+1);
+			for(int u = 0; u < Ny; u++){
+				for(i = 0; i < allT[s];i++){
+					if (i!= 0)
+							printf(",");
+					printf(" %.4lf", Y[u][count[u]]);
+					count[u]++;
+				}
+				if(u != Ny - 1)
+					printf(";\n");
+			}
+			printf("];\n");
+		}
+		
 		
 	}
 	else{
@@ -716,6 +760,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				Sigmab[row][col] = temp[col * Nb + row];
 			}
 		}
+		
+		/*
  		printf("InfDS.Sigmab = [\n");
  		for(row = 0; row < Nb; row++){
  			for(col = 0;col < Nb; col++){
@@ -726,6 +772,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
 	}
 	else{
 		Sigmab = NULL;
@@ -749,7 +796,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.Sigmae = \n");
  		for(row = 0; row < Ny; row++){
  			for(col = 0;col < Ny; col++){
@@ -761,6 +808,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}	
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -786,7 +834,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dSigmaede = [\n");
  		for(row = 0; row < Ny; row++){
  			for(col = 0;col < Ny * Ny; col++){
@@ -797,6 +845,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}	
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -819,7 +868,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dSigmaede2=[\n");
  		for(row = 0; row < Ny * Ny * Ny; row++){
  			for(col = 0;col < Ny; col++){
@@ -830,6 +879,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}	
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -853,7 +903,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dSigmabdb = [\n");
  		for(row = 0; row < Nbpar; row++){
  			for(col = 0;col < Nb * Nb; col++){
@@ -864,6 +914,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -886,7 +937,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dSigmabdb2 = [\n");
  		for(row = 0; row < Nb * Nb * Nbpar; row++){
  			for(col = 0;col < Nbpar; col++){
@@ -897,7 +948,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
  		printf(";\n");
 		}	
 		printf("];\n");
- 																			
+ 		*/																	
 	}
 	else{
 		dSigmabdb2 = NULL;
@@ -919,7 +970,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dLambdparLamb = [\n");
  		for(row = 0; row < NLambda; row++){
  			for(col = 0;col < Ny * NxState; col++){
@@ -930,6 +981,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -952,7 +1004,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dLambdparLamb2=[\n");
  		for(row = 0; row < NLambda* Ny * NxState; row++){
  			for(col = 0;col < NLambda; col++){
@@ -963,7 +1015,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}	
 		printf("];\n");
- 																			
+ 		*/																	
 	}
 	else{
 		dLambdparLamb2 = NULL;
@@ -982,13 +1034,19 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		UNPROTECT(1);
 		
 		/*
-		printf("timeDiscrete(2):\n");
-		for(i = 0; i < 10;i++){
-			printf(" %lf", timeDiscrete[i]);
-			
-		}
-		printf("\n");
-		*/
+		total_time_all_subj_int = 0;
+		for(int s = 0; s < Nsubj; s++){
+			printf("InfDS.timeDiscrete{%d} = [\n", s+1);
+			for(i = 0; i < allT[s];i++){
+				if (i!= 0)
+						printf(";");
+				printf(" %.2lf", timeDiscrete[total_time_all_subj_int]);
+				total_time_all_subj_int ++;
+				
+			}
+			printf("];\n");
+		}*/
+		
     }else{
         timeDiscrete = NULL;
     }
