@@ -173,7 +173,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 
 
 	iSigmae = inv(Sigmae); 
-	//iSigmae.print("iSigmae");
+	iSigmae.print("iSigmae");
 
 	for (tt=1; tt<=totalT; tt++){
 		for (i=1; i<=Nsubj; i++){
@@ -209,7 +209,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 			}
 		}
 	}
-	//printf("middle of ekf\n");
+	printf("middle of ekf\n");
 	
 	if (Nb>0){
 		int i;
@@ -409,6 +409,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			
 			dXstar_t = dt(t)/2*(dk1 + dk2);
 			dXtild = dXtildPrev + dXstar_t;
+			//printf("t = %d\n", t);
+			//dXtild.slice(0).rows(0, InfDS.Ntheta-1).print("dXtild"); //correct here
 			//printf("execution 4.2\n");
 			
 			dvecdfdXtilddtheta = dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
@@ -467,6 +469,12 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			d2Xtild = d2XtildPrev + d2Xstar_t;
 			dXtildPrev = dXtild;
 			d2XtildPrev = d2Xtild;
+			
+			
+			
+			//printf("t = %d\n", t);
+			//dXtildPrev.slice(0).cols(0, InfDS.Nx-1).print("dXtildPrev"); 
+			//correct here
 		}
 		
 		//printf("execution 6\n");
@@ -483,37 +491,43 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			//This needs to be fixed. No need to sum again in getScoreInfo
 			indext = span_vec(0,InfDS.allT(i)-1,1);
 			currentt = indext(InfDS.timeDiscrete(i)==tspan(t));
-
+			
+			/*
+			if(i== 0 && t == 0){
+				InfDS.timeDiscrete(0).t().print("*timeDiscrete(0)");
+				printf("t = %d tspan(t) = %lf\n", t, tspan(t));
+			}*/
 			
 			fullX.slice(t).col(i) = Xtild_t.col(i);
 			
 			for(int j = 0;  j < int(currentt.n_elem);j++){
-				//printf("i=%d j=%d currentt.n_elem %d currentt(j) %d getDxFlag %d\n", i, j, currentt.n_elem, currentt(j), getDxFlag);
-				/*
-				printf("dXtildthetafAll %d %d dXtildthetafAll2 %d %d\n", InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1).n_rows, InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1).n_cols,InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_rows, InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_cols);
-				printf("dXtild.slice(i) %d %d\n", dXtild.slice(i).n_rows, dXtild.slice(i).n_cols);
-				printf("d2Xtild.slice(i) %d %d\n", d2Xtild.slice(i).n_rows, d2Xtild.slice(i).n_cols);
-				printf("dXstarAll %d %d dXstarAll2 %d %d\n", InfDS.dXstarAll(i).cols((j)*InfDS.Nx,(j+1)*InfDS.Nx - 1).n_rows, InfDS.dXstarAll(i).cols((j)*InfDS.Nx,(j+1)*InfDS.Nx - 1).n_cols,InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_rows, InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1).n_cols);
-				printf("dXstar_t.slice(i) %d %d\n", dXstar_t.slice(i).n_rows, dXstar_t.slice(i).n_cols);
-				printf("d2Xstar_t.slice(i) %d %d\n", d2Xstar_t.slice(i).n_rows, d2Xstar_t.slice(i).n_cols);
-				*/
 				if( int(currentt(j)) == 1){
 					if (getDxFlag ==1){
 						InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1) = dXtild.slice(i);
 						InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1) = d2Xtild.slice(i);
 						InfDS.dXstarAll(i).cols((j)*InfDS.Nx,(j+1)*InfDS.Nx - 1) = dXstar_t.slice(i);
 						InfDS.dXstarAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1) = d2Xstar_t.slice(i);
+						
+						/*// correct here
+						if (i == 49){
+							//currentt.print("currentt");
+							printf("i = %d, j = %d t = %d\n",i,j,t);
+							dXtild.slice(i).print("dXtild.slice(i)");
+						}*/
 					}
 				}
 				//printf("end of loop\n");
 			}
 			//tcount(i) = tcount(i) + 1;
 			//printf("end of loop2\n");
+			
 		}
 		//printf("end of loop3\n");
 	}
 	//printf("execution 6.2\n");
-	//InfDS.dXtildthetafAll(0).cols((2)*InfDS.Nx, (2+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0)");
+	//correct here
+	//InfDS.dXtildthetafAll(49).cols((0)*InfDS.Nx, (0+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(49) time 0");
+	//InfDS.dXtildthetafAll(49).cols((199)*InfDS.Nx, (199+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(49) time 199");
 
 	
 	for (i = 0; i < InfDS.Nsubj; i++){
@@ -1163,12 +1177,17 @@ void PropSigb(struct C_INFDS &InfDS){
 		temp.zeros(size(InfDS.Sigmab));
 		
 		//dt = InfDS.Deltat{i};%InfDS.fulldt{i};
-		for(t = 0; t < T; t++){
+		for(t = 0; t < T-1; t++){
             dfdbt = InfDS.Z.t()* dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1))*InfDS.Lambda.t();
             temp = temp + dfdbt * iSigmae * dfdbt.t(); 
+			if(i == 0){
+				printf("t = %d\n",t);
+				dfdbt.print("dfdbt");
+			}
 		}//end of t loop
         	//inv(inv(InfDS.Sigmab) + temp).print("omegab");
-		//temp.print("temp");
+		printf("i = %d\n",i);
+		temp.print("temp");
 		OMEGAb(span(i*InfDS.Nb,(i+1)*InfDS.Nb-1), span(i*InfDS.Nb,(i+1)*InfDS.Nb-1)) = inv(inv(InfDS.Sigmab) + temp);    
 	}
 
