@@ -34,8 +34,12 @@ initial <- prep.initial(
     values.inistate=c(1, 1),
     #params.inistate=c("mu_x1", "mu_x2"),
     params.inistate=c("fixed", "fixed"),
-    values.inicov=matrix(c(1.14, .26,
-                            .26,1.15), ncol=2, byrow=TRUE), 
+    #values.inicov=matrix(c( 0, -1.204,
+    #                        -1.204,0), ncol=2, byrow=TRUE), #enter values in unconstrainted scale(exp(0) = 1, exp(-1.204)=0.3)
+    values.inicov=matrix(c( 1, 0.3,
+                            0.3,1), ncol=2, byrow=TRUE), #enter values in constrainted scale(exp(0) = 1, exp(-1.204)=0.3)
+    #values.inicov=matrix(c(1.14, .26,
+    #                        .26,1.15), ncol=2, byrow=TRUE), #original setting in SAEM
     #params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
     #                       'sigma_bx1x2','sigma2_bx2'), ncol=2, byrow=TRUE)
     
@@ -46,7 +50,8 @@ initial <- prep.initial(
 mdcov <- prep.noise(
     values.latent=diag(0, 2), 
     params.latent=diag(c("fixed","fixed"), 2),
-    values.observed=diag(rep(0.5,3)),
+    #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
+    values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
     params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
@@ -69,7 +74,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            theta.formula=theta.formula,
                            random.names=c('b_zeta'),
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
-                           random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
+                           #random.values.inicov = matrix(c(-0.693), ncol=1,byrow=TRUE),
+						   random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
                            random.lb = -5, 
                            random.ub = 5,
                            saem=TRUE
@@ -83,6 +89,8 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
 
 print('here')
 print(model@freeIC)
+print(model@xstart)
+print(model$xstart)
 #-10
 #exp(-10) 
 #InfDS.lowBound(11:16) = log(10e-8);
@@ -94,15 +102,16 @@ model$ub[names(model@ub)] = 10
 model$ub[names(model@lb)] = 10
 print(model@random.params.inicov)
 
-saemp <- prep.saemParameter(MAXGIB = 10, 
-                            MAXITER = 10, 
-                            maxIterStage1 = 100, 
-                            gainpara = 0.600000, 
-                            gainparb = 3.000000, 
-                            gainpara1 = 0.900000, 
-                            gainparb1 = 1.000000, 
-                            bAdaptParams = c(0.5, 2.5, 0.5 ,1 ,2, 0.5),
-							KKO=30)
+saemp <- prep.saemParameter(MAXGIB = 1, 
+                            MAXITER = 1, 
+                            #maxIterStage1 = 100, 
+                            #gainpara = 0.600000, 
+                            #gainparb = 3.000000, 
+                            #gainpara1 = 0.900000, 
+                            #gainparb1 = 1.000000, 
+                            #bAdaptParams = c(0.5, 2.5, 0.5 ,1 ,2, 0.5),
+							#KKO=30
+							)
 
 timestart<-Sys.time()
 

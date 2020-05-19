@@ -537,7 +537,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		# temprarily put the values coef(fitted_model) in here
 		if(model@freeIC == FALSE)
-			par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
+			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
+			par_value <- c(3.0,0.5,0.5, 0, 0, 0, 0.7,1.2, -0.6931, -0.6931, -0.6931, -0.6931) #need to be unconstrained scale
 		else
 			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05,0.78, 0.73, 0.09, 0.2)
 			par_value <-c(3.0,0.5,0.50,0,0,0,0,0,0.7,1.2,0.5, 0.5, 0.5, 1,1,0.3, 0.5);
