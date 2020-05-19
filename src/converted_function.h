@@ -252,7 +252,7 @@ arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struc
  
 //----------------
 /*This function should not be called*/
-/*
+
 void setParsFreeICwb(C_INFDS &InfDS){
 	int startM, startL, starte, startb;
 	arma::mat D, L;
@@ -262,6 +262,7 @@ void setParsFreeICwb(C_INFDS &InfDS){
 	//% Model specification: modify based on fitted model
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+	
 	InfDS.mu = arma::zeros<arma::mat> (InfDS.Ny, 1);
 	if (InfDS.Nmu > 0){
 		startM = InfDS.Nbeta+1;
@@ -282,10 +283,8 @@ void setParsFreeICwb(C_INFDS &InfDS){
 		InfDS.dLambdparLamb2 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ny*InfDS.NLambda, InfDS.NLambda);
 	}
 
+	
 	starte = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;
-
-
-
 	InfDS.Sigmae = diagmat(exp(InfDS.par(span(starte-1, starte+1), span::all)));
 	InfDS.dSigmaede = arma::zeros<arma::mat>(3, 9);
 	InfDS.dSigmaede(0, 0) = exp(InfDS.par(starte-1));	
@@ -299,6 +298,11 @@ void setParsFreeICwb(C_INFDS &InfDS){
 	InfDS.dSigmaede2(26, 2) = exp(InfDS.par(starte+1));
 	
 
+	startb = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1; 
+	InfDS.dSigmabdb(0, 0) = exp(InfDS.par(startb-1));
+	InfDS.dSigmabdb2(0, 0) = exp(InfDS.par(startb-1));
+	
+	/*
 	if (InfDS.Nb > 0){        
 		startb = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1;    
 
@@ -345,7 +349,7 @@ void setParsFreeICwb(C_INFDS &InfDS){
 		
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	} //End of Nb > 0
+	*/
 	
 	return;
 }
-*/
