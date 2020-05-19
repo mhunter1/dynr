@@ -63,7 +63,9 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	InfDS.b.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
 		for(j = 0; j < Nb; j++){
-			InfDS.b(i, j) = b[i][j];
+			//InfDS.b(i, j) = b[i][j];
+			InfDS.b(i, j) = .1;
+			//temporarily set it as 0.1
 		}
 	}
 	InfDS.b.print("InfDS.b");
@@ -135,7 +137,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			tobs_pointer++;
 		}
 	}
-	//InfDS.timeDiscrete(0).t().print("timeDiscrete(0)");
+	InfDS.timeDiscrete(0).t().print("timeDiscrete(0)");
 	/*
 	for(i = 0; i < 1; j++){
 		printf("InfDS.timeDiscrete{%d} = [", i);

@@ -593,11 +593,11 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	//span_vec(1, InfDS.Ny*InfDS.Ny, 1).t().print("?");
 	
 	SIndex = reshape(span_vec(1, InfDS.Ny*InfDS.Ny, 1).t(), InfDS.Ny, InfDS.Ny);
-	//SIndex.print("SIndex");
+	SIndex.print("SIndex");
 	SIndex2 = reshape(span_vec(1, InfDS.Ny*InfDS.Ny*InfDS.Ny, 1).t(), InfDS.Ny, InfDS.Ny*InfDS.Ny);
-	//SIndex2.print("SIndex2");
+	SIndex2.print("SIndex2");
 	LIndex = reshape(span_vec(1, InfDS.Nx*InfDS.Ny, 1).t(),InfDS.Ny,InfDS.Nx);
-	//LIndex.print("LIndex");
+	LIndex.print("LIndex");
 
 	if (InfDS.Nbeta > 0){
 		////printf("*1\n");
@@ -722,14 +722,25 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					dXtildthetaf = InfDS.dXtildthetafAll(i);
 					dXtildthetaf2 = InfDS.dXtildthetafAll2(i);
 					
-					//InfDS.H(span((i)*InfDS.Ntheta, ((i+1)*InfDS.Ntheta)-1), span::all).t().print("H 706");
-					//dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
-					//Lambda_.print("Lambda_");
-					//ivSigmae2_.print("ivSigmae2_");
-					//Zt_.print("Zt_");
-					
+					/*
+					if(i == 0 && t == 0){
+						InfDS.H(span((i)*InfDS.Ntheta, ((i+1)*InfDS.Ntheta)-1), span::all).t().print("H 706");
+						dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
+						Lambda_.print("Lambda_");
+						ivSigmae2_.print("ivSigmae2_");
+						Zt_.print("Zt_");
+					}
+					*/
 				   
 					dlik = InfDS.H(span((i)*InfDS.Ntheta, ((i+1)*InfDS.Ntheta)-1), span::all).t() * dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)) * Lambda_.t() * ivSigmae2_ * Zt_;
+					
+					/*
+					if(i == 49){
+						printf("t = %d\n",t);
+						dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
+						dlik.print("dlik");
+					}
+					*/
 					
 					vvv=kron(eye(InfDS.Nx, InfDS.Nx),InfDS.H(span((i)*InfDS.Ntheta,(i+1)*InfDS.Ntheta-1),span::all).t());
 					
@@ -791,8 +802,13 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					
 				dlik2 = .5*kron(reshape(ivSigmae2_*(Zt_*Zt_.t())* ivSigmae2_, 1, InfDS.Ny*InfDS.Ny), eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_ - InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_*(Zt_*Zt_.t())*ivSigmae2_)*InfDS_dSigmaede_.t() - .5*kron(reshape(ivSigmae2_, 1, InfDS.Ny*InfDS.Ny),eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_+ .5*InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_)*InfDS_dSigmaede_.t();
 				
-				//dlik.print("dlik");
-				//dlik2.print("dlik2");
+				/*
+				if(i == 0){
+					printf("t = %d\n",t);
+					dlik.print("dlik");
+					dlik2.print("dlik2");
+				}
+				*/
 				
 				for (ii = 0; ii < (int)indexY.n_cols; ii++){
 					dlikdEpsilonAll(indexY(ii)-1) = dlikdEpsilonAll(indexY(ii)-1)+ dlik(indexY(ii)-1)/mulp;
@@ -996,10 +1012,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	t = 1.0;
 	InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
 	//printf("checkpoint 947\n");
-	InfDS.Iy.print("InfDS.Iy");
-	InfDS.ES.print("InfDS.ES");
-	InfDS.sy.print("InfDS.sy");
-	InfDS.Iy.print("InfDS.EI");
+
 	
 	flag = chol(R, InfDS.Iy);
 	while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
@@ -1025,15 +1038,15 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	}
 	//printf("checkpoint enter 969\n");	
  
-	//Iy_s.print("Iy_s");
-	//mscore.print("mscore");
+	//Iy_s.print("Iy_s"); //the same
+	//mscore.print("mscore"); //the same
 	// If spsolve can not find solution, try solve. If solve also doesn't work, set is as zero
 	if(!spsolve(dc2, Iy_s, mscore, "lapack")){
 		if(!solve(dc2, mat(Iy_s), mscore)){
 			dc2= zeros(mscore.n_elem);
 		}
 	}
-	//dc2.print("dc2");
+	//dc2.print("dc2"); //the same
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	if (!redFlag){
@@ -1180,14 +1193,15 @@ void PropSigb(struct C_INFDS &InfDS){
 		for(t = 0; t < T-1; t++){
             dfdbt = InfDS.Z.t()* dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1))*InfDS.Lambda.t();
             temp = temp + dfdbt * iSigmae * dfdbt.t(); 
+			/*
 			if(i == 0){
 				printf("t = %d\n",t);
 				dfdbt.print("dfdbt");
-			}
+			}*/
 		}//end of t loop
         	//inv(inv(InfDS.Sigmab) + temp).print("omegab");
-		printf("i = %d\n",i);
-		temp.print("temp");
+		//printf("i = %d\n",i);
+		//temp.print("temp");
 		OMEGAb(span(i*InfDS.Nb,(i+1)*InfDS.Nb-1), span(i*InfDS.Nb,(i+1)*InfDS.Nb-1)) = inv(inv(InfDS.Sigmab) + temp);    
 	}
 
@@ -1273,10 +1287,10 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//rand_result(span::all,0) = randsample(range, range.n_elem, InfDS.N*InfDS.Nsubj);
 	rand_result = low1 + randu(InfDS.Nsubj* InfDS.N,1) * (high1-low1);
 	//*****the following loop change the rand_result to be all low1 *****
-	/*
+	
 	for(i = 0; i < rand_result.n_rows; i++)
-		rand_result(i, 0) = low1+ by1;
-	*/
+		rand_result(i, 0) = low1;
+	
 		
 	//rand_result.print("rand_result");
 	//printf("var %lf\n", var(rand_result));
@@ -1323,7 +1337,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			*/
 			normtmp.set_size(Nb,1);
 			normtmp.randn();
-			//normtmp.ones(); // should be removed (not random for testing)*****
+			normtmp.ones(); // should be removed (not random for testing)*****
 			tempi = (MUb(span(i*Nb, (i+1)*Nb - 1), span::all) + cOMEGAb*normtmp).t();
 			//printf("q %d  tempi %d %d \n", q, tempi.n_rows, tempi.n_cols);
 
@@ -1491,7 +1505,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//totalb = totalb+InfDS.Nsubj;
 	arma::vec index = span_vec(1, InfDS.Nsubj, 1);
 	tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
-	//tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
+	tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
 	tp1.set_size(tp.n_elem);
 	for (i = 0; i < (int)tp1.n_elem; i++)
 		tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));
@@ -1532,8 +1546,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	
 
 	InfDS.bacc = InfDS.bacc + indexKept;
-	//InfDS.bacc.t().print("bacc");
-	//printf("execution point 8 Nkept = %d\n", Nkept);
+	InfDS.bacc.t().print("bacc");
+	printf("execution point 8 Nkept = %d\n", Nkept);
 
 	if (Nkept  > 0){    
 		//tpOld(indexKept) = tpNew(indexKept);
