@@ -2384,12 +2384,20 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
 	if(nregs[1] != nregs[2]){
-		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",	nregs[2], " regimes."))
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ", nregs[2], " regimes."))
 	}
 	x$jacobian <- jacobian
 	x$formulaOriginal <- x$formula
 	x$jacobianOriginal <- jacobian
-	x$paramnames <-names(x$startval)
+	x$paramnames <- names(x$startval)
+	
+	# Check for latent states with same name as free parameter
+	if(any(sapply(lapply(state.names, "%in%", x$paramnames), any))){
+		stop(paste0("See no evil, but latent states had the same names as free parameters.",
+			"\nParameters that are both latent states and free parameters: ",
+			paste(unique(c(sapply(state.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
+	}
+	
 	
 	if('theta.formula' %in% names(dots))
 		x$theta.formula <- theta.formula

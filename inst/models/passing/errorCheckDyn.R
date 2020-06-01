@@ -130,10 +130,29 @@ testthat::expect_error(
 	regexp="Found different latent states or different ordering of latent states across regimes:\nRegime 1: x1, x3\nRegime 2: x1, x2",
 	fixed=TRUE)
 
-# Check that multiple regime formulas have lef-hand sides all the same size
+# Check that multiple regime formulas have left-hand sides all the same size
 testthat::expect_error(
 	prep.formulaDynamics(list(list(x1 ~ a), list(x1 ~ a, x2 ~ b)), startval=c(a=1, b=1)),
 	regexp="Found different number of latent states for different regimes:\nRegime 1: x1\nRegime 2: x1, x2",
+	fixed=TRUE)
+
+# Check that free parameters and latent states don't have the same names
+# single parameter case
+testthat::expect_error(
+	prep.formulaDynamics(list(Dummy ~ r_0*Dummy - r_0*Dummy^2, r_0 ~ 0), startval=c(r_0=0.1)),
+	regexp="See no evil, but latent states had the same names as free parameters.\nParameters that are both latent states and free parameters: r_0",
+	fixed=TRUE)
+
+# multi-parameter case
+testthat::expect_error(
+	prep.formulaDynamics(list(Dummy ~ r_0*Dummy - r_0*Dummy^2, r_0 ~ 0), startval=c(r_0=0.1, Dummy=-1)),
+	regexp="See no evil, but latent states had the same names as free parameters.\nParameters that are both latent states and free parameters: r_0, Dummy",
+	fixed=TRUE)
+
+# multi-parameter and multiple regime case
+testthat::expect_error(
+	prep.formulaDynamics(list(list(Dummy ~ r_0*Dummy - r_0*Dummy^2, r_0 ~ 0), list(Dummy ~ c_0, r_0 ~ r_0^2)), startval=c(r_0=0.1, Dummy=-1, c_0=-.5)),
+	regexp="See no evil, but latent states had the same names as free parameters.\nParameters that are both latent states and free parameters: r_0, Dummy",
 	fixed=TRUE)
 
 
