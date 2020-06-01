@@ -2336,26 +2336,24 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
-	
-	if('theta.formula' %in% names(dots))
+    
+    if('theta.formula' %in% names(dots))
       theta.formula <- dots$theta.formula
-	if('random.names' %in% names(dots))  
+    if('random.names' %in% names(dots))  
       random.names <- dots$random.names
     if('random.params.inicov' %in% names(dots))
       random.params.inicov <- dots$random.params.inicov
-	if('random.values.inicov' %in% names(dots))
-	  random.values.inicov <- dots$random.values.inicov
-
-
+    if('random.values.inicov' %in% names(dots))
+      random.values.inicov <- dots$random.values.inicov
   }
-
+  
   if(length(startval) > 0 & is.null(names(startval))){
     stop('startval must be a named vector')
   }
   if(length(startval) > 0){
     beta.names = names(startval)
   }
- 	
+  
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(formula) && plyr::is.formula(formula[[1]])){
     formula <- list(formula)
@@ -2381,18 +2379,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
       jacobian=lapply(autojcb,"[[","jacob")
     }
   }
-	
-	# Check that all 'values' imply 0, 1, or the same number of regimes.
-	# Note that the 'values' and 'params' have already been checked to imply this.
-	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
-	if(nregs[1] != nregs[2]){
-		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
-	}
+  
+  # Check that all 'values' imply 0, 1, or the same number of regimes.
+  # Note that the 'values' and 'params' have already been checked to imply this.
+  nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+  if(nregs[1] != nregs[2]){
+    stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+  }
   x$jacobian <- jacobian
   x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobian
   x$paramnames <-names(x$startval)
-
+  
   if('theta.formula' %in% names(dots))
     x$theta.formula <- theta.formula
   if('random.names' %in% names(dots))
