@@ -2315,91 +2315,91 @@ autojacob<-function(formula,n){
 ##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
 ##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
-  dots <- list(...)
-  
-  # if the argument formula is not a list 
-  if(!is.list(formula)){
-    msg <- paste0(ifelse(plyr::is.formula(formula), "'formula' argument is a formula but ", ""),
-      "'formula'",
-      ifelse(plyr::is.formula(formula), " ", " argument "),
-      "should be a list of formulas.\nCan't nobody tell me nothin'")
-    stop(msg)
-  }
-  
-  
-  if(length(startval) == 0){
-    warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
-  }
-  
-  
-  if(length(dots) > 0){
-    if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov'))){
-      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
-    }
-    
-    if('theta.formula' %in% names(dots))
-      theta.formula <- dots$theta.formula
-    if('random.names' %in% names(dots))  
-      random.names <- dots$random.names
-    if('random.params.inicov' %in% names(dots))
-      random.params.inicov <- dots$random.params.inicov
-    if('random.values.inicov' %in% names(dots))
-      random.values.inicov <- dots$random.values.inicov
-  }
-  
-  if(length(startval) > 0 & is.null(names(startval))){
-    stop('startval must be a named vector')
-  }
-  if(length(startval) > 0){
-    beta.names = names(startval)
-  }
-  
-  # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
-  if(is.list(formula) && plyr::is.formula(formula[[1]])){
-    formula <- list(formula)
-  }
-  state.names <- lapply(formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
-  state.regimes <- paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')
-  if(any(sapply(lapply(state.names, duplicated), any))){
-    stop(paste0("Found duplicated latent state names:\n", state.regimes))
-  }
-  if(length(unique(sapply(state.names, length))) != 1){
-    stop(paste0("Found different number of latent states for different regimes:\n", state.regimes))
-  }
-  if(!all(sapply(state.names, function(x, y){all(x==y)}, y=state.names[[1]]))){
-    stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
-  }
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
-  if (missing(jacobian)){
-    autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
-    if (class(autojcb) == "try-error") {
-      stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-           Please provide the analytic jacobian functions.")
-    }else{
-      jacobian=lapply(autojcb,"[[","jacob")
-    }
-  }
-  
-  # Check that all 'values' imply 0, 1, or the same number of regimes.
-  # Note that the 'values' and 'params' have already been checked to imply this.
-  nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
-  if(nregs[1] != nregs[2]){
-    stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
-  }
-  x$jacobian <- jacobian
-  x$formulaOriginal <- x$formula
-  x$jacobianOriginal <- jacobian
-  x$paramnames <-names(x$startval)
-  
-  if('theta.formula' %in% names(dots))
-    x$theta.formula <- theta.formula
-  if('random.names' %in% names(dots))
-    x$random.names <- random.names
-  if('random.params.inicov' %in% names(dots))
-    x$random.params.inicov <- random.params.inicov
-  if('random.values.inicov' %in% names(dots))
-    x$random.values.inicov <- random.values.inicov
-  return(new("dynrDynamicsFormula", x))
+	dots <- list(...)
+	
+	# if the argument formula is not a list 
+	if(!is.list(formula)){
+		msg <- paste0(ifelse(plyr::is.formula(formula), "'formula' argument is a formula but ", ""),
+			"'formula'",
+			ifelse(plyr::is.formula(formula), " ", " argument "),
+			"should be a list of formulas.\nCan't nobody tell me nothin'")
+		stop(msg)
+	}
+	
+	
+	if(length(startval) == 0){
+		warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
+	}
+	
+	
+	if(length(dots) > 0){
+		if(!all(names(dots) %in% c('theta.formula', 'random.names',	'random.params.inicov', 'random.values.inicov'))){
+			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+		}
+		
+		if('theta.formula' %in% names(dots))
+			theta.formula <- dots$theta.formula
+		if('random.names' %in% names(dots))
+			random.names <- dots$random.names
+		if('random.params.inicov' %in% names(dots))
+			random.params.inicov <- dots$random.params.inicov
+		if('random.values.inicov' %in% names(dots))
+			random.values.inicov <- dots$random.values.inicov
+	}
+	
+	if(length(startval) > 0 & is.null(names(startval))){
+		stop('startval must be a named vector')
+	}
+	if(length(startval) > 0){
+		beta.names = names(startval)
+	}
+	
+	# e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
+	if(is.list(formula) && plyr::is.formula(formula[[1]])){
+		formula <- list(formula)
+	}
+	state.names <- lapply(formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+	state.regimes <- paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')
+	if(any(sapply(lapply(state.names, duplicated), any))){
+		stop(paste0("Found duplicated latent state names:\n", state.regimes))
+	}
+	if(length(unique(sapply(state.names, length))) != 1){
+		stop(paste0("Found different number of latent states for different regimes:\n", state.regimes))
+	}
+	if(!all(sapply(state.names, function(x, y){all(x==y)}, y=state.names[[1]]))){
+		stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
+	}
+	x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
+	if (missing(jacobian)){
+		autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+		if (class(autojcb) == "try-error") {
+			stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+					 Please provide the analytic jacobian functions.")
+		}else{
+			jacobian=lapply(autojcb,"[[","jacob")
+		}
+	}
+	
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
+	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+	if(nregs[1] != nregs[2]){
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",	nregs[2], " regimes."))
+	}
+	x$jacobian <- jacobian
+	x$formulaOriginal <- x$formula
+	x$jacobianOriginal <- jacobian
+	x$paramnames <-names(x$startval)
+	
+	if('theta.formula' %in% names(dots))
+		x$theta.formula <- theta.formula
+	if('random.names' %in% names(dots))
+		x$random.names <- random.names
+	if('random.params.inicov' %in% names(dots))
+		x$random.params.inicov <- random.params.inicov
+	if('random.values.inicov' %in% names(dots))
+		x$random.values.inicov <- random.values.inicov
+	return(new("dynrDynamicsFormula", x))
 }
 
 ##' Recipe function for creating Linear Dynamcis using matrices
