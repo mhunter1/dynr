@@ -418,7 +418,7 @@ NULL
 ##' # mean_0 <- rep(0, nlat)
 ##' # psi_inf <- diag(1, 2*2) - kronecker(beta, beta)
 ##' # psi_inf_inv <- try(solve(psi_inf), silent=TRUE)
-##' # if(class(psi_inf_inv) == "try-error") {
+##' # if("try-error" %in% class(psi_inf_inv)) {
 ##' #   psi_inf_inv <- MASS::ginv(psi_inf)}
 ##' # psi_0 <- psi_inf_inv %*% as.vector(psi)
 ##' # dim(psi_0) <- c(2, 2)
