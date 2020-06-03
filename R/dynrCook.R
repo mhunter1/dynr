@@ -591,7 +591,7 @@ failedProcessing <- function(x, transformation){
   ##See the pseudo-inverse Hessian described in the following chapter, without importance sampling:
   ##Gill, J., et al. (2003). Numerical Issues Involved in Inverting Hessian Matrices. Numerical Issues in Statistical Computing for the Social Scientist, John Wiley & Sons, Inc.: 143-176.
   #Hinv <- MASS::ginv(x) #Generalized inverse of x
-  #V <- sechol(Hinv)   #V <- ifelse(class(sechol(Hinv)) == "try-error", TRUE, FALSE)
+  #V <- sechol(Hinv)   #V <- ifelse("try-error" %in% class(sechol(Hinv)), TRUE, FALSE)
   #V1 <- t(V) %*% V   
 
 #J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
@@ -717,7 +717,7 @@ is.positive.definite <- function(x){
 }
 
 is.positive.definite2 <- function(x) {
-	class(try(MASS::ginv(x),silent=TRUE))=="matrix"
+	"matrix" %in% class(try(MASS::ginv(x), silent=TRUE))
 }
 
 # From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
@@ -737,7 +737,7 @@ is.positive.definite2 <- function(x) {
 	'-6'='Likelihood function is NaN and could not find a way out. Optimizer gave up but is not at a converged optimum.')
 
 PopBackMatrix <- function(values.matrix, param.matrix, trans.parameters){
-	if (class(values.matrix) == "list"){
+	if ("list" %in% class(values.matrix)){
 		num_regime <- length(values.matrix)
 		if (num_regime > 0){
 			for (i in 1:num_regime){
