@@ -95,9 +95,9 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	#if ( file.exists(libLFile) ) {file.remove( libLFile )}
 	setwd(dirname(libCFile))
 	errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
-	cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
+	cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " ", gsl_libs, " ", " 2> ", errfile, sep="")
 	if (verbose) cat("Compilation argument:\n", cmd, "\n")
-	compiled <- system(cmd, intern=!verbose)
+	compiled <- system2(paste0(R.home(component="bin"), "/R"), args=c("CMD", "SHLIB", basename(libCFile)), stderr=errfile, stdout=verbose)
 	errmsg <- readLines(errfile)
 	unlink(errfile)
 	writeLines(errmsg)
