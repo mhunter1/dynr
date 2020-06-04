@@ -100,16 +100,17 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	compiled <- system2(paste0(R.home(component="bin"), "/R"), args=c("CMD", "SHLIB", basename(libCFile)), stderr=errfile, stdout=verbose)
 	errmsg <- readLines(errfile)
 	unlink(errfile)
+	if(length(errmsg) > 0){cat("May I present to you your error messages?\n")}
 	writeLines(errmsg)
 	setwd(wd)
 	
 	#### Error Messages
-	if ( !file.exists(libLFile) ) {
+	if ( !file.exists(libLFile) | length(errmsg > 0) ) {
 		cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
 		cat("\nProgram source:\n")
-		code <- strsplit(code, "\n")
-		for (i in 1:length(code[[1]])) cat(format(i,width=3), ": ", code[[1]][i], "\n", sep="")
-		stop( paste( "Compilation ERROR, function(s)/method(s) not created!", paste( errmsg , collapse = "\n" ) ) )
+		codeWithLineNums <- paste(sprintf(fmt="%3d: ", 1:length(code)), code, sep="")
+		writeLines(codeWithLineNums)
+		stop("Compilation ERROR, function(s)/method(s) not created!")
 	}
   #return( libLFile )
 }
