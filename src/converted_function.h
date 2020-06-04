@@ -17,7 +17,7 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 	r.clear();
 	r = y;
 	//printf("theta~~~\n");
-	thetaf=calculateTheta(isPar, y, i,InfDS);
+	//thetaf=calculateTheta(isPar, y, i,InfDS);
 	//printf("theta~~~\n");
 	if (isStart==1){
 		r.zeros();

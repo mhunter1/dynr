@@ -538,10 +538,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# temprarily put the values coef(fitted_model) in here
 		if(model@freeIC == FALSE)
 			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
-			par_value <- c(3.0,0.5,0.5, 0, 0, 0, 0.7,1.2, -0.6931, -0.6931, -0.6931, -0.6931) #need to be unconstrained scale
+			#par_value <- c(3.0,0.5,0.5, 0, 0, 0, 0.7,1.2, -0.6931, -0.6931, -0.6931, -0.6931) #need to be unconstrained scale
+			par_value <-c(2.076, 0.1615, 0.2115, 0.1148, -0.0039, 0.0034, -0.0086, -0.0125, 1.0738, -0.1018, 0.5270, 0.0225)
 		else
 			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05,0.78, 0.73, 0.09, 0.2)
 			par_value <-c(3.0,0.5,0.50,0,0,0,0,0,0.7,1.2,0.5, 0.5, 0.5, 1,1,0.3, 0.5);
+			
 		
 		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
 		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
@@ -549,14 +551,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
 		#get the initial values of b and startvars
 		#temporarily commenting out start
-		# fitted_model <- EstimateRandomAsLV(dynrModel)
-		# coefEst <- coef(fitted_model)
-		# estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		# dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		# print('Starting values:')
-		# print(dynrModel@xstart)
-		# if('b_est' %in% names(fitted_model))
-			# b <- fitted_model@b_est
+		fitted_model <- EstimateRandomAsLV(dynrModel)
+		coefEst <- coef(fitted_model)
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		print('Starting values:')
+		print(dynrModel@xstart)
+	    if('b_est' %in% names(fitted_model))
+			b <- fitted_model@b_est
 		#temporarily commenting out end
 		 	
 		

@@ -87,30 +87,30 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*number of subjects: Nsubj*/
 	SEXP num_sbj_sexp = PROTECT(getListElement(model_list, "num_sbj"));
 	int Nsubj=(size_t) *INTEGER(num_sbj_sexp);
-	/*DYNRPRINT(verbose_flag, "Nsubj: %lu\n", (long unsigned int) Nsubj);*/
+	DYNRPRINT(verbose_flag, "Nsubj: %lu\n", (long unsigned int) Nsubj);
 		
 	/*number of latent variables: NxState*/
 	SEXP dim_latent_var_sexp = PROTECT(getListElement(model_list, "dim_latent_var"));
 	int NxState=(size_t) *INTEGER(dim_latent_var_sexp);
-	/*DYNRPRINT(verbose_flag, "NxState: %lu\n", (long unsigned int) NxState);*/
+	DYNRPRINT(verbose_flag, "NxState: %lu\n", (long unsigned int) NxState);
 	
 	
 	/*number of observed variables: Ny*/
 	SEXP dim_obs_var_sexp = PROTECT(getListElement(model_list, "dim_obs_var"));
 	int Ny=(size_t) *INTEGER(dim_obs_var_sexp);
-	/*DYNRPRINT(verbose_flag, "Ny: %lu\n", (long unsigned int) Ny);*/
+	DYNRPRINT(verbose_flag, "Ny: %lu\n", (long unsigned int) Ny);
 	
 	
 	/*number of covariates: Nu*/
 	SEXP dim_co_variate_sexp = PROTECT(getListElement(model_list, "dim_co_variate"));
 	int Nu =(size_t) *INTEGER(dim_co_variate_sexp);
-	/*DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);*/
+	DYNRPRINT(verbose_flag, "Nu: %lu\n", (long unsigned int) Nu);
 	
 	
 	/*number of regimes: always 1 in SAEM*/
 	SEXP num_regime_sexp = PROTECT(getListElement(model_list, "num_regime"));
 	int num_regime =(size_t) *INTEGER(num_regime_sexp);
-	/*DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) num_regime);*/
+	DYNRPRINT(verbose_flag, "num_regime: %lu\n", (long unsigned int) num_regime);
 	
 	
 	/*Ntheta*/
@@ -128,30 +128,30 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*totalT*/
 	SEXP total_t_sexp = PROTECT(getListElement(model_list, "total_t"));
 	int totalT =(size_t) *INTEGER(total_t_sexp);
-	/*DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);*/
+	DYNRPRINT(verbose_flag, "totalT: %lu\n", (long unsigned int) totalT);
 	
 	
 	/*maxT*/ 
 	SEXP max_t_sexp = PROTECT(getListElement(model_list, "max_t"));
 	double maxT =*REAL(max_t_sexp);
-	/*DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);*/
+	DYNRPRINT(verbose_flag, "maxT: %lf\n", maxT);
 
 	
 	/*NLambda*/
 	SEXP num_lambda_sexp = PROTECT(getListElement(model_list, "num_lambda"));
 	int NLambda =(size_t) *INTEGER(num_lambda_sexp);
-	/*DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);*/
+	DYNRPRINT(verbose_flag, "NLambda: %lu\n", (long unsigned int) NLambda);
 	
 	
 	/*delt*/
 	SEXP delt_sexp = PROTECT(getListElement(model_list, "delt"));
 	double delt=*REAL(delt_sexp);
-	/*DYNRPRINT(verbose_flag, "delt: %lf\n", delt);*/
+	DYNRPRINT(verbose_flag, "delt: %lf\n", delt);
 	
 	/*Nmu*/
 	SEXP num_mu_sexp = PROTECT(getListElement(model_list, "num_mu"));
 	int Nmu = (size_t) *INTEGER(num_mu_sexp);
-	/*DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);*/
+	DYNRPRINT(verbose_flag, "Nmu: %lu\n", (long unsigned int) Nmu);
 	
 	/*Nb*/
 	SEXP num_random_sexp = PROTECT(getListElement(model_list, "num_random"));
@@ -161,27 +161,27 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	/*KKO*/ 
 	SEXP kko_sexp = PROTECT(getListElement(model_list, "KKO"));
 	int KKO=(int)(*REAL(kko_sexp)+0.0001);
-	/*DYNRPRINT(verbose_flag, "KKO: %lu\n", KKO);*/
+	DYNRPRINT(verbose_flag, "KKO: %lu\n", KKO);
 	
 	/*Nbpar*/
 	SEXP num_bpar_sexp = PROTECT(getListElement(model_list, "num_bpar"));
 	int Nbpar = (size_t) *INTEGER(num_bpar_sexp);
-	/*DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);*/
+	DYNRPRINT(verbose_flag, "Nbpar: %lu\n", (long unsigned int) Nbpar);
 	
 	/*num_time: length(tspan)*/
 	SEXP num_time_sexp = PROTECT(getListElement(model_list, "num_time"));
 	int num_time=*INTEGER(num_time_sexp);
-	/*DYNRPRINT(verbose_flag, "num_time: %lu\n", num_time);*/
+	DYNRPRINT(verbose_flag, "num_time: %lu\n", num_time);
 	
 	/*isFreeIC: */
 	SEXP isFreeIC_sexp = PROTECT(getListElement(model_list, "freeIC"));
 	bool freeIC_bool=*LOGICAL(isFreeIC_sexp);
 	int freeIC = (freeIC_bool ? 1 : 0);
-	/*DYNRPRINT(verbose_flag, "isFreeIC_sexp: %d\n", freeIC);*/
+	DYNRPRINT(verbose_flag, "isFreeIC_sexp: %d\n", freeIC);
 	
 	SEXP seed_sexp = PROTECT(getListElement(model_list, "seed"));
 	int seed=(size_t) *INTEGER(seed_sexp);
-	/*DYNRPRINT(verbose_flag, "Seed: %lu\n", (long unsigned int) seed);*/
+	DYNRPRINT(verbose_flag, "Seed: %lu\n", (long unsigned int) seed);
 	
 	UNPROTECT(18);
 	
@@ -220,8 +220,8 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	SEXP gainparb1_sexp = PROTECT(getListElement(model_list, "gainparb1"));
 	double gainparb1 = *REAL(gainparb1_sexp);
 	
-	/*
-	DYNRPRINT(verbose_flag, "[SAEM Parameters] %d %d %d %lf %lf %lf %lf\n", MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1);*/
+	
+	DYNRPRINT(verbose_flag, "[SAEM Parameters] %d %d %d %lf %lf %lf %lf\n", MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1);
 	
 	UNPROTECT(7);
 	
@@ -296,7 +296,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		/*
+		
 		printf("InfDS.P0 =[\n");
 		for(row = 0; row < NxState; row++){
 			for(col = 0;col < NxState; col++){
@@ -305,7 +305,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
-		*/
+		
 		
     }
 	else{
