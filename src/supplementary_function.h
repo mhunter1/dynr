@@ -1019,6 +1019,11 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 
 	
 	flag = chol(R, InfDS.Iy);
+	if(!flag){
+		printf('\nIy is not positive definite. ss = %5f\n',ss);
+		printf('Serious error!\n');
+	}
+	
 	while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
 		t = 0.5 * t;
 		InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
@@ -1026,11 +1031,13 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	}
 	//printf("checkpoint enter 955\n");
  
+	/*
 	flag = chol(R, InfDS.Iy);
 	if (!flag){
 		redFlag=1;
 		printf("redFlag = %d @ Line 1112\n", redFlag);
 	}
+	*/
 
 	
 	
