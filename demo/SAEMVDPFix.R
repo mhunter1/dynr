@@ -9,20 +9,20 @@ library('dynr')
 library('plyr')
 
 
-# nPeople = 200
-# nTimes = 300
-# vdpData <- read.csv("../data/TrueInitY1.txt", header=FALSE)
-# colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
-# vdpData$id <- rep(1:nPeople, each=nTimes)
+nPeople = 200
+nTimes = 300
+vdpData <- read.csv("./data/fixedData.txt", header=FALSE)
+colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+vdpData$id <- rep(1:nPeople, each=nTimes)
 
 
-data(vdpData)
+#data(vdpData)
 data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1', 'y2', 'y3'),
                  covariates=c("u1", "u2"))
 
 meas <- prep.measurement(
-    values.load=matrix(c(1, 0.7, 1.2, 0, 0, 0), 3, 2),
+    values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2),
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=c('x1', 'x2'),
@@ -51,7 +51,8 @@ mdcov <- prep.noise(
     values.latent=diag(0, 2), 
     params.latent=diag(c("fixed","fixed"), 2),
     #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
-    values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
+    #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
+	values.observed=diag(c(0.5076, 0.5027, 0.5140)),
     params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
@@ -75,7 +76,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                            random.names=c('b_zeta'),
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
                            #random.values.inicov = matrix(c(-0.693), ncol=1,byrow=TRUE),
-						   random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
+						   random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE),
                            random.lb = -5, 
                            random.ub = 5,
                            saem=TRUE
