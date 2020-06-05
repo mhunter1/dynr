@@ -534,6 +534,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#print(param.names)
 		lower_bound <- lb[param.names]
 		upper_bound <- ub[param.names]
+		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
+		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
+
+		
+
+		 	
+		
+		#substitute the values in xstart into the expression 
+		#the values in xstart is already reverse transformed
+		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
+	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
+		dSigmaede2 <- t(dSigmaede2)
+		
+		
 		
 		# temprarily put the values coef(fitted_model) in here
 		if(model@freeIC == FALSE)
@@ -545,24 +559,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			par_value <-c(3.0,0.5,0.50,0,0,0,0,0,0.7,1.2,0.5, 0.5, 0.5, 1,1,0.3, 0.5);
 			
 		
-		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
-		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
-		
 
-		#get the initial values of b and startvars
-		#temporarily commenting out start
-		fitted_model <- EstimateRandomAsLV(dynrModel)
-		coefEst <- coef(fitted_model)
-		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		print('Starting values:')
-		print(dynrModel@xstart)
-	    if('b_est' %in% names(fitted_model))
-			b <- fitted_model@b_est
-		#temporarily commenting out end
-		 	
-		
-		#b, y0
 		
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
@@ -574,26 +571,32 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  random.names <- c(model$dynamics@random.names, paste0('b_',x.names))
 		  #print (random.names)
 		}
-		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
-		b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
-		b_x <-  length(random.names) - num.x
+
+		#browser()
+		#get the initial values of b and startvars
+		fitted_model <- EstimateRandomAsLV(dynrModel)
+		coefEst <- coef(fitted_model)
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		print('Starting values:')
+		print(dynrModel@xstart)
+	    par_value <- c(dynrModel@xstart, log(model$dynamics@random.values.inicov))
+		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
+		print('initial b')
+		print(b)
 		
 		 
-		#substitute the values in xstart into the expression 
-		#the values in xstart is already reverse transformed
-		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
-	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
-		dSigmaede2 <- t(dSigmaede2)
-				
-		
+		# obtain y0 form eta_smooth_final		
+		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		for(i in 1:num.subj){
 		  if(length(model$initial$values.inistate[[1]]) > 0){
 		    if(model@freeIC){
-              y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+              #y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
 			}
 			else{
-			  y0[i, ] <- model$initial$values.inistate[[1]]
+			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1]
 			}
 		  }
 		}
