@@ -24,15 +24,15 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
 			
-			/*
+			
 			for (row = 0; row < InfDS.NxState; row++){
 				//if(row+1 < thetaf.n_rows) // ask symiin
 				//	r(row, s) = thetaf(row +1, s);
 				r(row, s) = y(row, s);
 			}
-			*/
-			r(0,s) = 1;
-			r(1,s) = 1;
+			
+			//r(0,s) = 1;
+			//r(1,s) = 1;
 
 
 			if (isPar == 1){
@@ -49,11 +49,11 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		r.zeros();
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
-			//r(0, s)= y(1, s);
-			//r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
+			r(0, s)= y(1, s);
+			r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
 			
-			r(0,s) = 1;
-			r(1,s) = 1;
+			//r(0,s) = 1;
+			//r(1,s) = 1;
 			if (isPar == 1){
 				for (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){
 					r(row, s) = 0;
@@ -85,6 +85,15 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 
 	thetaf=calculateTheta(isPar, y, i,InfDS);
 
+	
+	for (s = 0; s < int(y.n_cols); s++){
+		r.slice(s)(1,0) = 1;
+		r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
+		r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
+		
+	}
+	
+	/*
  	if (isStart==1){
 		if (isPar == 0){
 			; //Undefined case in dfdxParIC
@@ -92,12 +101,18 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 				//r.slice(s)(1,0) = 1;
 				//r.slice(s)(0,1) = -((3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9) * (2 * 3) * 1 + 61.68503);
 				//r.slice(s)(1,1) = (3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9) * (1 - pow(3, 2)); 
-				r.slice(s)(1,0) = 1;
+				
+				//r.slice(s)(1,0) = 1;
 				//r.slice(s)(0,1) = -(((3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9)) * (2 * y(0,s)) * y(1,s) + 61.68503);
 				//r.slice(s)(1,1) = ((3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9)) * (1 - pow(y(0,s), 2));
+				
+				r.slice(s)(1,0) = 1;
+				r.slice(s)(0,1) = -(((3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9)) * (2 * y(0,s)) * y(1,s) + 61.68503);
+				r.slice(s)(1,1) = ((3+ InfDS.U1(s,0)*.5+InfDS.U1(s,1)*.5+0.9)) * (1 - pow(y(0,s), 2));
 			}
 		}
 		else{
+			
 			int s;
 			for (s = 0; s < int(y.n_cols); s++){
 				r.slice(s)(1, 0) = 1;
@@ -107,6 +122,7 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 				r.slice(s)(5, 5)=1 ;
 				r.slice(s)(6, 6)=1 ;
 			} 
+			
 		}
 	}
  	else{
@@ -114,16 +130,19 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 
 		for (s = 0; s < int(y.n_cols); s++){
 			r.slice(s)(1,0) = 1;
-			//r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
-			//r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
+			r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
+			r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
+			
 			if(isPar == 1){
 				r.slice(s)(2,1) = (1 - pow(y(0,s), 2)) * y(1,s);
 				r.slice(s)(3,1) = InfDS.U1(s,0) * (1 - pow(y(0,s), 2)) * y(1,s);
 				r.slice(s)(4,1) = InfDS.U1(s,1) * (1 - pow(y(0,s), 2)) * y(1,s); 
 				r.slice(s) = r.slice(s).t();
 			}
+			
 		}
 	}
+	*/
 	return r;
 }
 
