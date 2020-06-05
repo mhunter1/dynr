@@ -209,7 +209,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 			}
 		}
 	}
-	printf("middle of ekf\n");
+	//printf("middle of ekf\n");
 	
 	if (Nb>0){
 		int i;
@@ -256,21 +256,21 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	
 	tspan = InfDS.tspan;
 	fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
-	printf("execution 1.1\n");
+	//printf("execution 1.1\n");
 	
 	T = InfDS.tspan.n_cols;
 	xk1 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	xk2 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
 	tindex = InfDS.tspan.t();
 	//tindex.print("tindex");
-	printf("execution 1.2\n");
+	//printf("execution 1.2\n");
 	
 	delt.set_size(1,1);
 	delt(0,0) = InfDS.delt;
 	dt = repmat(delt, T, 1);
 	Nsubj = InfDS.Nsubj;
 	//tcount = arma::ones<arma::mat>(Nsubj,1);
-	printf("execution 1.3\n");
+	//printf("execution 1.3\n");
 
 	for (i = 0; i < InfDS.Nsubj;i++){
 		if (getDxFlag ==1){
@@ -295,11 +295,11 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 
 	
 	XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
-	printf("XtildPrev \n");
+	//printf("XtildPrev \n");
 	dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
-	printf("dXtildPrev0 \n");
+	//printf("dXtildPrev0 \n");
 	d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
-	printf("d2XtildPrev0 \n");
+	//printf("d2XtildPrev0 \n");
 	
 	
 	/*
@@ -341,7 +341,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		d2Xstar_t = d2Xtild;
 	}
 
-	printf("execution 2\n");
+	//printf("execution 2\n");
 	
 	InfDS.Xtild.slice(0) = XtildPrev;
 	fullX.slice(0) = XtildPrev;
@@ -418,13 +418,13 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			//printf("execution 4.2\n");
 			
 			dvecdfdXtilddtheta = dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
-			printf("execution 4.2.1\n");
+			//printf("execution 4.2.1\n");
 			dvecdfdXtilddXtild = dfdx2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
-			printf("execution 4.2.2\n");
+			//printf("execution 4.2.2\n");
 			dveck1dthetadXtild = dfdpdxFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
-			printf("execution 4.2.3\n");
+			//printf("execution 4.2.3\n");
 			dveck1dtheta = dfdpar2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
-			printf("execution 4.2.4\n");
+			//printf("execution 4.2.4\n");
 			
 			d2vecdk1= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
 			first= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -439,21 +439,21 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				dveck1dthetadXtild.slice(i)*trans(dXtildPrev.slice(i));
 				first.slice(i) = (d2XtildPrev.slice(i) + dt(t)*d2vecdk1.slice(i));
 			}
-			printf("execution 5.1\n");
+			//printf("execution 5.1\n");
 
 			dvecdfdxATk21dtheta = dfdxdpFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			dvecdfdxATk21dk21 = dfdx2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			second = arma::zeros<arma::cube>(pow(InfDS.Nx, 2), InfDS.Ntheta, InfDS.Nsubj);
-			printf("execution 5.2\n");
+			//printf("execution 5.2\n");
 			
 			for (i = 0; i < Nsubj; i++){
 				second.slice(i) = dvecdfdxATk21dtheta.slice(i) + dvecdfdxATk21dk21.slice(i)*trans(dk21.slice(i)); //Second term, dvecfxdxatk21_2
 			}
-			printf("execution 5.3\n");
+			//printf("execution 5.3\n");
 			
 			dveck2dtheta = dfdpar2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			dveck2dthetadxATk21 = dfdpdxFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-			printf("execution 5.4\n");
+			//printf("execution 5.4\n");
 			
 			third = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
 			d2vecdk2 = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -467,7 +467,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				kron(eye2.eye(InfDS.Nx, InfDS.Nx), dk21.slice(i))*(second.slice(i)) +
 				third.slice(i);
 			}
-			printf("execution 5.5\n");
+			//printf("execution 5.5\n");
 			
 			d2Xstar_t = dt(t)/2*(d2vecdk1 + d2vecdk2);
 			d2Xtild = d2XtildPrev + d2Xstar_t;
@@ -481,7 +481,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			//correct here
 		}
 		
-		printf("execution 6\n");
+		//printf("execution 6\n");
 	
 		//printf("t = %d\n", t);
 		
@@ -540,7 +540,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 	}
 	
-	printf("execution 7\n");
+	//printf("execution 7\n");
 	return InfDS;
 }
 
@@ -1020,8 +1020,8 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	
 	flag = chol(R, InfDS.Iy);
 	if(!flag){
-		printf('\nIy is not positive definite. ss = %5f\n',ss);
-		printf('Serious error!\n');
+		printf("\nIy is not positive definite. ss = %5f\n",ss);
+		printf("Serious error!\n");
 	}
 	
 	while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
