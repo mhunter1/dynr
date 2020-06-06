@@ -492,7 +492,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     if(saem==TRUE){
 		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
 		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
-		#print(sigmab.names)
+		print(sigmab.names)
 		#num_bpar <- length(sigmab.names)
 		
 		lambda.names <- unique(as.vector(dynrModel@measurement$params.load[[1]]))
@@ -514,9 +514,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		}
 		
 					
-		# [TODO] to be generalized: bzeta			
-        lb <- c(dynrModel@lb, 'b_zeta'=NA)
-		ub <- c(dynrModel@ub, 'b_zeta'=NA)
+
 		
 		# organize the lowerbound and upperbound vectors for saem
 		param.names <- logical(0)
@@ -528,14 +526,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  param.names <- c(param.names, lambda.names)
 		if(length(noise.names) > 0)
 		  param.names <- c(param.names, noise.names)
-		if(length(sigmab.names) > 0)
-		  param.names <- c(param.names, sigmab.names)		
-		#print('param.names')
-		#print(param.names)
-		lower_bound <- lb[param.names]
-		upper_bound <- ub[param.names]
-		#lower_bound <- as.vector(c(lb[dynrModel@dynamics@beta.names], lb[dynrModel@measurement@params.int[[1]]], lb[lambda.names], lb[noise.names], lb[sigmab.names]))
-		#upper_bound <- as.vector(c(ub[dynrModel@dynamics@beta.names], ub[dynrModel@measurement@params.int[[1]]], ub[lambda.names], ub[noise.names], ub[sigmab.names]))
+		#if(length(sigmab.names) > 0)
+		#  param.names <- c(param.names, sigmab.names)		
+		print('param.names')
+		print(c(param.names, sigmab.names))
+		
 
 		
 
@@ -549,17 +544,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		
-		# temprarily put the values coef(fitted_model) in here
-		if(model@freeIC == FALSE)
-			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
-			#par_value <- c(3.0,0.5,0.5, 0, 0, 0, 0.7,1.2, -0.6931, -0.6931, -0.6931, -0.6931) #need to be unconstrained scale
-			par_value <-c(2.076, 0.1615, 0.2115, 0.1148, -0.0039, 0.0034, -0.0086, -0.0125, 1.0738, -0.1018, 0.5270, 0.0225)
-		else
-			#par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05,0.78, 0.73, 0.09, 0.2)
-			par_value <-c(3.0,0.5,0.50,0,0,0,0,0,0.7,1.2,0.5, 0.5, 0.5, 1,1,0.3, 0.5);
-			
-		
-
 		
 		num.x <- length(model$initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
@@ -573,14 +557,28 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		}
 
 		#browser()
-		#get the initial values of b and startvars
+		#get the initial values of startvars
 		fitted_model <- EstimateRandomAsLV(dynrModel)
 		coefEst <- coef(fitted_model)
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
 		print('Starting values:')
-		print(dynrModel@xstart)
-	    par_value <- c(dynrModel@xstart, log(model$dynamics@random.values.inicov))
+		print(dynrModel@xstart[param.names])
+	    par_value <- c(dynrModel@xstart[param.names], log(model$dynamics@random.values.inicov))
+		
+		#setting lower and upper bounds
+		model$dynamics@random.lb[model$dynamics@random.lb < 0] = NA
+		model$dynamics@random.ub[model$dynamics@random.ub < 0] = NA
+		model$dynamics@random.lb[model$dynamics@random.lb >= 0] = log(model$dynamics@random.lb)
+		model$dynamics@random.ub[model$dynamics@random.ub >= 0] = log(model$dynamics@random.lb)
+		lower_bound <- c(dynrModel@lb[param.names], rep(model$dynamics@random.lb, length(model$dynamics@random.values.inicov)))
+		upper_bound <- c(dynrModel@ub[param.names], rep(model$dynamics@random.ub, length(model$dynamics@random.values.inicov)))
+		print('Lower and Uppder bounds:')
+		print(lower_bound)
+		print(upper_bound)
+		
+		
+		#get the initial values of b
 		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
 		print('initial b')
@@ -596,12 +594,24 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
 			}
 			else{
+			  #y0[i, ] <- model$initial$values.inistate[[1]] 
 			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1]
 			}
 		  }
 		}
 		model$initial@y0 <- list(y0)
 
+		
+		# temprarily put the values coef(fitted_model) in here
+		# if(model@freeIC == FALSE)
+			# #par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05, 0.2)
+			# #par_value <- c(3.0,0.5,0.5, 0, 0, 0, 0.7,1.2, -0.6931, -0.6931, -0.6931, -0.6931) #need to be unconstrained scale
+			# par_value <-c(2.076, 0.1615, 0.2115, 0.1148, -0.0039, 0.0034, -0.0086, -0.0125, 1.0738, -0.1018, 0.5270, 0.0225)
+		# else
+			# #par_value <- c(3.08,0.55,0.50,0.71,1.20,0.49,0.49,0.51,-0.11,-0.05,0.78, 0.73, 0.09, 0.2)
+			# par_value <-c(3.0,0.5,0.50,0,0,0,0,0,0.7,1.2,0.5, 0.5, 0.5, 1,1,0.3, 0.5);
+			
+		# b <- matrix(rnorm((num.subj*length(random.names))), nrow=num.subj, ncol=length(random.names))
 
         #browser() 
         model <- internalModelPrepSAEM(
