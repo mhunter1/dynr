@@ -17,7 +17,7 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 	r.clear();
 	r = y;
 	//printf("theta~~~\n");
-	//thetaf=calculateTheta(isPar, y, i,InfDS);
+	thetaf=calculateTheta(isPar, y, i,InfDS);
 	//printf("theta~~~\n");
 	if (isStart==1){
 		r.zeros();
@@ -85,7 +85,7 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 
 	thetaf=calculateTheta(isPar, y, i,InfDS);
 
-	
+	int s;
 	for (s = 0; s < int(y.n_cols); s++){
 		r.slice(s)(1,0) = 1;
 		r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
