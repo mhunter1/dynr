@@ -46,6 +46,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	
 	
 	printf("Seed = %d\n", seed);
+	arma_rng::set_seed(seed);
 	//printf("check point 1 Nb %d Nsubj %d KKO %d\n", Nb, Nsubj, KKO);	
 
 	Npar = Ntheta + NxState + Nmu + NLambda + Ny + Nbpar;
