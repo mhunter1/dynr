@@ -103,8 +103,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	stage = 1; 
 	gmm = 1;
 	//MAXGIB=1;
-	InfDS.errtrol1 = 1.5; //Stage 1 error tolerance
-	InfDS.errtrol = 1.5; //Stage 2 error tolerance	
+	InfDS.errtrol1 = 1.2; //Stage 1 error tolerance
+	InfDS.errtrol = 1.2; //Stage 2 error tolerance	
 
 
 	
@@ -272,7 +272,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//exp(InfDS.par(span(10,12), span::all)).t().print("InfDS.par(11:13)");
 			///InfDS.Sigmab.print("Sigmab");
 			printf("Averaging:\n");
-			InfDS.thetatild(span(0,9),span::all).print("InfDS.thetatild(1:10)");
+			InfDS.thetatild.print("InfDS.thetatild");
 			//exp(InfDS.thetatild(span(10,12), span::all)).t().print("exp(InfDS.thetatild)");
 			//D = diagmat(exp(InfDS.thetatild(span(12,14), span::all)));
 			L = "1 0 0;	0 1 0;0 0 1";
