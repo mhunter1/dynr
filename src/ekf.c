@@ -179,7 +179,7 @@ double ext_kalmanfilter(size_t t,
 		}
 		func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
 		if(DEBUG_EKF){
-			MYPRINT("Dynamically forecast aheah latent state:\n");
+			MYPRINT("Dynamically forecast ahead latent state:\n");
 			print_vector(eta_t_plus_1);
 			MYPRINT("\n");
 		}
