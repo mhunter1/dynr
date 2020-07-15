@@ -1,7 +1,10 @@
 arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){
 
 	if(isPar == 1)
-		printf("[HJ] Should NOT happen! isPar = 1");
+		printf("[HJ] Should NOT happen! isPar = 1 dynfunICM");
+	
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dynfunICM");
 
 	//local parameters
 	arma::mat y, r, thetaf;
@@ -49,16 +52,18 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		r.zeros();
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
-			r(0, s)= y(1, s);
-			r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
+			//r(0, s)= y(1, s);
+			//r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
 			
-			//r(0,s) = 1;
-			//r(1,s) = 1;
+			r(0,s) = y(0, s);
+			r(1,s) = y(1, s);
+			/*
 			if (isPar == 1){
 				for (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){
 					r(row, s) = 0;
 				}
 			}
+			*/
 		}
 	}
 	return r;
@@ -72,7 +77,10 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 	//isStart = 1;
 	
 	if(isPar == 1)
-		printf("[HJ] Should NOT happen! isPar = 1");
+		printf("[HJ] Should NOT happen! isPar = 1 dfdxFreeICM");
+	
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dfdxFreeICM");
 
 	// if i is empty, traverse all vectors
 	if(i.is_empty()){
@@ -88,8 +96,8 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 	int s;
 	for (s = 0; s < int(y.n_cols); s++){
 		r.slice(s)(1,0) = 1;
-		r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
-		r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
+		//r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
+		//r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
 		
 	}
 	
@@ -152,6 +160,8 @@ arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 	arma::cube r;
 
 	//isStart = 1;
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dfdparFreeIC");
 	
 	// if i is empty, traverse all vectors
 	if(i.is_empty()){
@@ -170,6 +180,8 @@ arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 arma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){
 	
 	//isStart = 1;
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1");
 	
 	// i and t are dummy variables
 	arma::mat thetaf, y;
@@ -199,6 +211,8 @@ arma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct 
 arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){
 	
 	//isStart = 1;
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dfdxdpFreeIC");
 	
 	// i and t are dummy variables
 	arma::mat y;
@@ -224,6 +238,8 @@ arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){
 	
 	//isStart = 1;
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dfdpdxFreeIC");
 	
 	// i and t are dummy variables
 	arma::mat  y;
@@ -249,6 +265,8 @@ arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){
 	
 	//isStart = 1;
+	if(isStart == 1)
+		printf("[HJ] Should NOT happen! isStart = 1 dfdpar2FreeIC");
 	
 	// i and t are dummy variables
 	arma::mat y ;

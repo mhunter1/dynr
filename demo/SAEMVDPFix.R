@@ -22,11 +22,13 @@ data <- dynr.data(vdpData, id="id", time="time",
                  covariates=c("u1", "u2"))
 
 meas <- prep.measurement(
-    values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2),
+    #values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2), #original setting
+    values.load=matrix(c(1, 0.6994, 1.1974, 0, 0, 0), 3, 2), # in SAEMTesting
     params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
     obs.names = c('y1', 'y2', 'y3'),
     state.names=c('x1', 'x2'),
-    values.int=matrix(c(0, 0, 0), ncol=1),
+    #values.int=matrix(c(0, 0, 0), ncol=1), #original setting
+	values.int=matrix(c(-0.0018, -0.0051, -0.0007), ncol=1), #SAEMTesting setting
     params.int=matrix(c('mu1', 'mu2', 'mu3'), ncol=1))
 
 
@@ -75,8 +77,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            theta.formula=theta.formula,
                            random.names=c('b_zeta'),
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
-                           #random.values.inicov = matrix(c(-0.693), ncol=1,byrow=TRUE),
-						   random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE),
+                           random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
+						   #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
                            random.lb = -5, 
                            random.ub = 5,
                            saem=TRUE
@@ -86,7 +88,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    outfile="VanDerPol.cpp")
+                    outfile=paste0(tempfile(),'.cpp'))
 
 print('here')
 print(model@freeIC)
@@ -103,8 +105,8 @@ model$ub[names(model@ub)] = 10
 model$ub[names(model@lb)] = 10
 print(model@random.params.inicov)
 
-saemp <- prep.saemParameter(MAXGIB = 1, 
-                            MAXITER = 1, 
+saemp <- prep.saemParameter(MAXGIB = 3, 
+                            MAXITER = 100, 
                             #maxIterStage1 = 100, 
                             #gainpara = 0.600000, 
                             #gainparb = 3.000000, 

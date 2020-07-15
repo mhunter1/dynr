@@ -934,7 +934,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dSigmabdb2 = [\n");
  		for(row = 0; row < Nb * Nb * Nbpar; row++){
  			for(col = 0;col < Nbpar; col++){
@@ -945,6 +945,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
  		printf(";\n");
 		}	
 		printf("];\n");
+		*/
  																		
 	}
 	else{
@@ -967,7 +968,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dLambdparLamb = [\n");
  		for(row = 0; row < NLambda; row++){
  			for(col = 0;col < Ny * NxState; col++){
@@ -978,7 +979,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}
 		printf("];\n");
-		
+		*/
  																			
 	}
 	else{
@@ -1001,7 +1002,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 		}
 		
-		
+		/*
  		printf("InfDS.dLambdparLamb2=[\n");
  		for(row = 0; row < NLambda* Ny * NxState; row++){
  			for(col = 0;col < NLambda; col++){
@@ -1012,6 +1013,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			printf(";\n");
 		}	
 		printf("];\n");
+		*/
  																			
 	}
 	else{
@@ -1030,7 +1032,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		//timeDiscrete = REAL(PROTECT(getListElement(data_list, "time")));
 		UNPROTECT(1);
 		
-		
+		/*
 		total_time_all_subj_int = 0;
 		for(int s = 0; s < Nsubj; s++){
 			printf("InfDS.timeDiscrete{%d} = [\n", s+1);
@@ -1043,6 +1045,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("];\n");
 		}
+		*/
 		
     }else{
         timeDiscrete = NULL;
