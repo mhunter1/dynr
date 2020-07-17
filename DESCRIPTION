@@ -34,6 +34,7 @@ Collate:
     'dynrVersion.R'
     'dataDoc.R'
     'dynrGetDerivs.R'
+    'dynrPredict.R'
 RdMacros: Rdpack
 Biarch: true
 Version: @VERSION@

@@ -146,6 +146,8 @@ double ext_kalmanfilter(size_t t,
 		MYPRINT("\n");
 	}
 	
+	// dynamic noise = eta_noise_cov
+	// updated/filtered cov = error_cov_t
 	if(isFirstTime){
 		gsl_vector_memcpy(eta_t_plus_1,eta_t);
 	} else{
@@ -154,7 +156,7 @@ double ext_kalmanfilter(size_t t,
 			// Add multivariate Gaussian noise to eta_t with mean 0 and covariance eta_noise_cov
 			gsl_vector* rout = gsl_vector_calloc(nx);
 			gsl_matrix* eta_noise_cov_chol = gsl_matrix_calloc(nx, nx);
-			gsl_matrix_memcpy(eta_noise_cov_chol, error_cov_t); //Uses updated/filtered latent state covariance
+			gsl_matrix_memcpy(eta_noise_cov_chol, eta_noise_cov); //Uses updated/filtered latent state covariance
 			gsl_linalg_cholesky_decomp(eta_noise_cov_chol);
 			for(size_t gi=0; gi < nx; gi++){
 				gsl_vector_set(rout, gi, gsl_ran_gaussian(seed, 1.0)); 
