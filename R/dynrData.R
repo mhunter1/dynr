@@ -54,7 +54,7 @@
 ##' 
 ##' z <- ts(matrix(rnorm(300), 100, 3), start = c(1961, 1), frequency = 12)
 ##' dz <- dynr.data(z)
-dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates){
+dynr.data <- function(dataframe, id = 'id', time = 'time', trueb = 'trueb', observed, covariates){
 	if (is.ts(dataframe)){
 		# ts class
 		# single or multivariate time series
@@ -89,6 +89,10 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates)
 		names(data.object$covariates) <- paste0("covar", 1:length(covariates))
 	}
 	names(data.object$observed) <- paste0("obs", 1:length(observed))
+	
+	if(!missing('trueb')){
+		data.object['trueb'] <- data.frame(apply(dataframe[ , 'trueb', drop=FALSE], 2, as.double))
+	}
 	fid <- as.factor(data.object$id)
 	time.split <- split(data.object$time, fid)
 	diff.npos <- sapply(time.split, function(x){d <- diff(x); any(d <= 0)})

@@ -231,7 +231,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	double **U1;
 	int row, col;
 	int i, u;
-	double *temp, **P0, **Lambda, **Y, **b, **H, **Z, **dmudparMu, **dmudparMu2;
+	double *temp, **P0, **Lambda, **Y, **b, **H, **Z, **dmudparMu, **dmudparMu2, **trueb;
 	double *lower_bound, *upper_bound, *par_value;
 	double *allT;
 	char str_name[64];
@@ -382,7 +382,31 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		printf("];\n");
 		
 		
+		temp = REAL(PROTECT(getListElement(model_list,"trueb")));
+		UNPROTECT(1);
 		
+		trueb = (double **)malloc((Nsubj + 1)* sizeof(double *));
+		for(row = 0;row < Nsubj; row++){
+			for(col = 0;col < Nb; col++){
+				if(col == 0){
+					trueb[row] = (double *)malloc((Nb + 1)* sizeof(double));
+				}
+				trueb[row][col] = temp[col * Nsubj + row];
+			}
+		}
+		
+		printf("trueb = [\n");
+		for(int i = 0; i < Nsubj;i++){
+			for(int u = 0;u < Nb; u++){
+				if(u == 0)
+					printf("%6lf", trueb[i][u]);
+				else
+					printf(", %6lf", trueb[i][u]);
+			}
+			printf(";\n");
+		}
+		printf("];\n");
+
     }else{
         b = NULL;
     }

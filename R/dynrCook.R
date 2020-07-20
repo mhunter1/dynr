@@ -586,6 +586,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		print('initial b')
 		print(b)
 		
+		trueb <- data$trueb[data$tstart[1:num.subj+1]]
+		
 		 
 		# obtain y0 form eta_smooth_final		
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
@@ -642,6 +644,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]), #column-major
             b= b,
+			trueb=trueb,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
 			bAdaptParams=saemp@bAdaptParams,

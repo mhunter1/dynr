@@ -233,6 +233,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			L = "1 0 0;	0 1 0;0 0 1";
 			//L(2,1) = InfDS.thetatild(16);
 			//QQ = L*D*L.t();
+			
+			arma::mat R = cor(InfDS.b,InfDS.trueb);
+			R.print("Correlation between b and trueb:");
 		}
 
 		//%%%%%%%%%%
