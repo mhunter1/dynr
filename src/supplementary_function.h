@@ -122,7 +122,7 @@ arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, stru
 	thetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);
 	par = InfDS.par;
 
-    //printf("thetaf %d %d\n", thetaf.n_rows, thetaf.n_cols);
+        //printf("thetaf %d %d\n", thetaf.n_rows, thetaf.n_cols);
     if (isPar==0){
         //printf("InfDS.Nbeta %d\n", InfDS.Nbeta);
         temp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters
@@ -173,7 +173,7 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 
 
 	iSigmae = inv(Sigmae); 
-	iSigmae.print("iSigmae");
+	//iSigmae.print("iSigmae");
 
 	for (tt=1; tt<=totalT; tt++){
 		for (i=1; i<=Nsubj; i++){
@@ -294,12 +294,15 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	//printf("execution 1.4~~~\n");
 
 	
-	XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
-	//printf("XtildPrev \n");
+	//odd setting
+	//XtildPrev = dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
+	//change according to symiin's testing in July 2020
+	XtildPrev = trans(InfDS.y0);
+
 	dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
-	//printf("dXtildPrev0 \n");
+
 	d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
-	//printf("d2XtildPrev0 \n");
+
 	
 	
 	/*
@@ -597,11 +600,11 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	//span_vec(1, InfDS.Ny*InfDS.Ny, 1).t().print("?");
 	
 	SIndex = reshape(span_vec(1, InfDS.Ny*InfDS.Ny, 1).t(), InfDS.Ny, InfDS.Ny);
-	SIndex.print("SIndex");
+	//SIndex.print("SIndex");
 	SIndex2 = reshape(span_vec(1, InfDS.Ny*InfDS.Ny*InfDS.Ny, 1).t(), InfDS.Ny, InfDS.Ny*InfDS.Ny);
-	SIndex2.print("SIndex2");
+	//SIndex2.print("SIndex2");
 	LIndex = reshape(span_vec(1, InfDS.Nx*InfDS.Ny, 1).t(),InfDS.Ny,InfDS.Nx);
-	LIndex.print("LIndex");
+	//LIndex.print("LIndex");
 
 	if (InfDS.Nbeta > 0){
 		////printf("*1\n");
@@ -970,10 +973,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	stop = 0; 
 
 
-	printf("saem function\n");
-	InfDS.par.print("InfDS.par");
 	thetam = reshape(InfDS.par,InfDS.par.n_elem,1);
-	thetam.print("thetam");
 	convFlag = 0;
 
 	/*
@@ -1012,7 +1012,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	%information matrix is positive definite.
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	*/	
-	printf("Line 1015: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
+	//printf("Line 1015: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
  
 	InfDS.sy = InfDS.sy + gain*(mscore - InfDS.sy);
 	InfDS.ES = InfDS.ES + gain*(mscore2 - InfDS.ES);
@@ -1020,7 +1020,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	t = 1.0;
 	InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
 	//printf("checkpoint 947\n");
-	printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
+	//printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
 
 	
 	flag = chol(R, InfDS.Iy);
@@ -1054,15 +1054,15 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	}
 	//printf("checkpoint enter 969\n");	
  
-	Iy_s.print("Iy_s"); //the same
-	mscore.print("mscore"); //the same
+	//Iy_s.print("Iy_s"); //the same
+	//mscore.print("mscore"); //the same
 	// If spsolve can not find solution, try solve. If solve also doesn't work, set is as zero
 	if(!spsolve(dc2, Iy_s, mscore, "lapack")){
 		if(!solve(dc2, mat(Iy_s), mscore)){
 			dc2= zeros(mscore.n_elem);
 		}
 	}
-	dc2.print("dc2"); //the same
+	//dc2.print("dc2"); //the same
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	if (!redFlag){
@@ -1122,7 +1122,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 			}
 		}
 		//printf("checkpoint enter 1027\n");
-		printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
+		//printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
 
 		//if ((~any(any(any(isnan(InfDS.Xtild))))==0 || redFlag==1) && InfDS.Nbeta > 0)
 		if ((InfDS.Xtild.has_nan() || redFlag==1) && InfDS.Nbeta > 0){
@@ -1230,7 +1230,7 @@ void PropSigb(struct C_INFDS &InfDS){
 
 
 
-// random test 2
+
 void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb, int yesMean, arma::mat upperb, arma::mat lowerb, int useMultN, arma::mat &tpOld, int freeIC, int isBlock1Only, int setScaleb, double &bAccept){
 	arma::mat iSigmae, oldb, s, propden_new, propden_new1, tpNew1, OMEGAb, OMEGAi, R, MUb, normtmp, avgScalingb, cOMEGAb, bTemp, bdtmp, cOMEGAb0, tempi;
 	arma::vec indexKept, cindexKept, filteredAvgScalingb, idx, tp, tp1, propden_old, tpNew;
@@ -1301,11 +1301,11 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	
 	arma::mat rand_result(InfDS.Nsubj* InfDS.N,1);
-	//rand_result(span::all,0) = randsample(range, range.n_elem, InfDS.N*InfDS.Nsubj);
+	//old setting (uniformly random from low1-high1 (continious)
 	rand_result = low1 + randu(InfDS.Nsubj* InfDS.N,1) * (high1-low1);
-	//*****the following loop change the rand_result to be all low1 *****
-	//for(i = 0; i < rand_result.n_rows; i++)
-	//	rand_result(i, 0) = low1;
+	// changed according to Symiin's test in July 2020
+	for(i = 0; i < rand_result.n_rows; i++)
+		rand_result(i, 0) = low1;
 	
 		
 	//rand_result.print("rand_result");
@@ -1353,7 +1353,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			*/
 			normtmp.set_size(Nb,1);
 			normtmp.randn();
-			//normtmp.ones(); // should be removed (not random for testing)*****
+			normtmp.ones(); // changed according to Symiin's test in July 2020
 			tempi = (MUb(span(i*Nb, (i+1)*Nb - 1), span::all) + cOMEGAb*normtmp).t();
 			//printf("q %d  tempi %d %d \n", q, tempi.n_rows, tempi.n_cols);
 
@@ -1520,8 +1520,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//Evaluate MH ratio and which set to keep%
 	//totalb = totalb+InfDS.Nsubj;
 	arma::vec index = span_vec(1, InfDS.Nsubj, 1);
-	tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
-	//tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
+	//tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
+	tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
 	tp1.set_size(tp.n_elem);
 	for (i = 0; i < (int)tp1.n_elem; i++)
 		tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));
@@ -1562,8 +1562,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	
 
 	InfDS.bacc = InfDS.bacc + indexKept;
-	InfDS.bacc.t().print("bacc");
-	printf("execution point 8 Nkept = %d\n", Nkept);
+	//InfDS.bacc.t().print("bacc");
+	//printf("execution point 8 Nkept = %d\n", Nkept);
 
 	if (Nkept  > 0){    
 		//tpOld(indexKept) = tpNew(indexKept);

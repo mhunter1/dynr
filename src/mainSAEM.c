@@ -675,7 +675,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		UNPROTECT(1);
 	
 
-		
+		/*
 		total_time_all_subj_int = 0;
 		for(int s = 0; s < Nsubj; s++){
 			printf("InfDS.tobs{%d} = [\n", s+1);
@@ -687,7 +687,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 				
 			}
 			printf("];\n");
-		}
+		}*/
 		
     }else{
         tobs = NULL;
@@ -706,17 +706,9 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		}
 		
 		
+
+		
 		/*
-		printf("Y:\n");
-		for(u = 0;u < Ny; u++){
-			for(i = 0; i < 10;i++){
-				printf(" %6lf", Y[u][i]);
-			}
-			printf("\n");
-		}
-		*/
-		
-		
 		int count[3];
 		count[0] = count[1] = count[2] = 0;
 		for(int s = 0; s < Nsubj; s++){
@@ -733,7 +725,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 			}
 			printf("];\n");
 		}
-		
+		*/
 		
 	}
 	else{

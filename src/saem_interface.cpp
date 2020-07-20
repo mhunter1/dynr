@@ -59,7 +59,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.U1(i, j) = U1[i][j];
 		}
 	}
-	InfDS.U1.print("InfDS.U1");
+	//InfDS.U1.print("InfDS.U1");
 
 	InfDS.b.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
@@ -69,7 +69,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			//temporarily set it as 0.1
 		}
 	}
-	InfDS.b.print("InfDS.b");
+	//InfDS.b.print("InfDS.b");
 
 
 	InfDS.H.set_size(Nsubj* Ntheta, InfDS.Nbetax);
@@ -78,7 +78,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.H(i, j) = H[i][j];
 		}
 	}
-	InfDS.H.print("InfDS.H");
+	//InfDS.H.print("InfDS.H");
 
 	InfDS.Z.set_size(Ntheta, Nb);
 	for(i = 0; i < Ntheta; i++){
@@ -86,7 +86,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.Z(i, j) = Z[i][j];
 		}
 	}
-	InfDS.Z.print("InfDS.Z");
+	//InfDS.Z.print("InfDS.Z");
 
 
 	
@@ -94,7 +94,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	for(i = 0; i < Nsubj; i++){
 		InfDS.allT(0,i) = allT[i];
 	}
-	InfDS.allT.print("InfDS.allT");
+	//InfDS.allT.print("InfDS.allT");
 
 	InfDS.Tfilter.set_size(Nsubj, totalT);
 	for(i = 0; i < Nsubj; i++){
@@ -108,13 +108,13 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	for(i = 0; i < Nsubj; i++){
 		InfDS.lens(0,i) = num_time;
 	}
-	InfDS.lens.print("InfDS.lens");
+	//InfDS.lens.print("InfDS.lens");
 
 	InfDS.tspan.set_size(1, num_time);
 	for(i = 0; i < num_time; i++){
 		InfDS.tspan(0,i) = tspan[i];
 	}
-	InfDS.tspan.print("tspan");
+	//InfDS.tspan.print("tspan");
 
 
 	// start from here to be modeified
@@ -125,7 +125,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 		}
 	} 
 	//InfDS.y0.zeros();
-	InfDS.y0.print("InfDS.y0");
+	//InfDS.y0.print("InfDS.y0");
 
 
 	InfDS.timeDiscrete.set_size(Nsubj,1);
@@ -216,7 +216,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	for(i = 0; i < Nmu; i++){
 		InfDS.mu(i) = mu[i];
 	}
-	InfDS.mu.print("InfDS.mu");
+	//InfDS.mu.print("InfDS.mu");
 	
 	
 	InfDS.Lambda.set_size(Ny,NxState);
@@ -268,7 +268,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.dSigmabdb2(i,j) = dSigmabdb2[i][j];
 		}
 	}
-	InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
+	//InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	
 	InfDS.dLambdparLamb = zeros(NLambda, Ny * InfDS.Nx);
 	for(i = 0; i < NLambda; i++){
@@ -302,7 +302,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 			InfDS.dSigmaede(i, j) = dSigmaede[i][j];
 		}
 	}
-	InfDS.dSigmaede.print("InfDS.dSigmaede");
+	//InfDS.dSigmaede.print("InfDS.dSigmaede");
 	
 	InfDS.dSigmaede2 = zeros(Ny*Ny*Ny, Ny);	
 	for(i = 0; i < Ny*Ny*Ny; i++){

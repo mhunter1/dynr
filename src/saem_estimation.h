@@ -228,7 +228,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//printf("checkpoint leave getScoreInfoY_tobs_opt\n");
 			//printf("GIB=%d\n", GIB);
 			//score.print("score"); //correct
-			infoMat.print("infoMat");
+			//infoMat.print("infoMat");
         
 			//InfDS.par.print("InfDS.par");
 			
