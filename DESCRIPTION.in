@@ -32,4 +32,4 @@ Collate:
 RdMacros: Rdpack
 Biarch: true
 Version: @VERSION@
-
+Encoding: UTF-8
