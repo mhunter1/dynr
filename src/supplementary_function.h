@@ -1303,9 +1303,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	arma::mat rand_result(InfDS.Nsubj* InfDS.N,1);
 	//old setting (uniformly random from low1-high1 (continious)
 	rand_result = low1 + randu(InfDS.Nsubj* InfDS.N,1) * (high1-low1);
-	// changed according to Symiin's test in July 2020
-	for(i = 0; i < rand_result.n_rows; i++)
-		rand_result(i, 0) = low1;
+	// derandomized
+	//for(i = 0; i < rand_result.n_rows; i++)
+	//	rand_result(i, 0) = low1;
 	
 		
 	//rand_result.print("rand_result");
@@ -1353,7 +1353,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			*/
 			normtmp.set_size(Nb,1);
 			normtmp.randn();
-			normtmp.ones(); // changed according to Symiin's test in July 2020
+			//normtmp.ones(); // de randomized
 			tempi = (MUb(span(i*Nb, (i+1)*Nb - 1), span::all) + cOMEGAb*normtmp).t();
 			//printf("q %d  tempi %d %d \n", q, tempi.n_rows, tempi.n_cols);
 
@@ -1520,8 +1520,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//Evaluate MH ratio and which set to keep%
 	//totalb = totalb+InfDS.Nsubj;
 	arma::vec index = span_vec(1, InfDS.Nsubj, 1);
-	//tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
-	tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
+	tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
+	//tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
 	tp1.set_size(tp.n_elem);
 	for (i = 0; i < (int)tp1.n_elem; i++)
 		tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));

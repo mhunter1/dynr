@@ -96,8 +96,8 @@ arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int
 	int s;
 	for (s = 0; s < int(y.n_cols); s++){
 		r.slice(s)(1,0) = 1;
-		//r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
-		//r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
+		r.slice(s)(0,1) = -((thetaf(0,s)) * (2 * y(0,s)) * y(1,s) + 61.68503);
+		r.slice(s)(1,1) = (thetaf(0,s)) * (1 - pow(y(0,s), 2)); 
 		
 	}
 	
