@@ -123,9 +123,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	while (k <= InfDS.MAXITER && stop == 0){
 
 		//disp 'iteration';
-		//k
 		printf("k = %d\n",k);
-
+		
+		// isPar = 1 is to estimate variables as states. Now this part is handle by dynr
 		isPar = 0;
 		
 		if(k > 1){
@@ -142,21 +142,20 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
 
-    
-		if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
-			//%InfDS.bAdaptParams(1) = .5;% Lu modified, 04-12-13 .1;
-            //%InfDS.bAdaptParams(2) = 2.5;% Lu modified, 04-12-13 10.5;
-            //%InfDS.bAdaptParams(3) = .5;
+		// HJ: on 07/20/2020, change the conditions according to FitFixedIC.m (see comments for the old ones
+		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
+		if (bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
             useMultN = 1; // Lu modified, 04-12-13,5;
 		}
-		else if(stage==1 && k == 3){
+		//else if(stage==1 && k == 3){
+		else if(stage==1 && k <= 5){
             useMultN = 1; 
-			//MAXGIB = 30;
 		}
+		/*
 		else if (stage==1 && k <= 4 && k != 3){
             useMultN = 0; 
 			//MAXGIB = 1;
-		}
+		}*/
 		else {
 			useMultN = 0; 
 			//MAXGIB = 10;
@@ -172,38 +171,17 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//Since beta changes, get Xtild and InfDS.InfDS.dxstardthetafAll and InfDS.dxstardthetafAll2
 	
 		
-		//printf("checkpoint M142\n");	
-		//InfDS.par.print("InfDS.par");
-		isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
+		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
-		//printf("checkpoint M145 getXtildIC3\n");
 		
-		//InfDS.Xtild(span(0,1), span::all, span(0,5)).print("InfDS.Xtild");
-		/*
-		printf("Nx %d NxState %d\n", InfDS.Nx, InfDS.NxState);
-		InfDS.dXtildthetafAll(0)(span::all, span(0,8)).print("InfDS.dXtildthetafAll(1)(span(0,10))");
-		InfDS.dXtildthetafAll(1)(span::all, span(0,8)).print("InfDS.dXtildthetafAll(2)(span(0,10))");
-		InfDS.dXtildthetafAll(2)(span::all, span(0,8)).print("InfDS.dXtildthetafAll(3)(span(0,10))");
-		InfDS.dXtildthetafAll(3)(span::all, span(0,8)).print("InfDS.dXtildthetafAll(4)(span(0,10))");
-		InfDS.dXtildthetafAll(4)(span::all, span(0,8)).print("InfDS.dXtildthetafAll(5)(span(0,10))");
-		*/
 		
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		//printf("checkpoint M147PropSigb\n");
-		//correct
-		//printf("InfDS.OMEGAb %d %d\n", InfDS.OMEGAb.n_rows, InfDS.OMEGAb.n_cols);
-		//InfDS.OMEGAb(span(0,8), span(0,8)).print("InfDS.OMEGAb(1:9)");
-		//InfDS.OMEGAb(span(41,49), span(41,49)).print("InfDS.OMEGAb(42:50)");
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
-		//correct
-		//tpOld.print("tpOld");
 		
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 	
-		//printf("checkpoint M153 enter GIB loop\n");	
-		//MAXGIB = 5;
 		printf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
@@ -212,51 +190,27 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 				STARTGIB = STARTGIB+1;
 			}
 
-			if (k >= 4){        
+			// run drawbGeneral6_opt3 from the first iteration
+			//if (k >= 4){   
+			if (k >= 1){ 
 				//printf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(isPar, InfDS, meanb, yesMean, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept);
-				//printf("checkpoint leave drowbGeneral6_opt3\n");	
-	                        //InfDS.par.print("InfDS.par");
-				//InfDS.dXtildthetafAll(0)(span::all, span::all).print("InfDS.dXtildthetafAll(1)(span(0,10))");
-				//InfDS.b.print("InfDS.b");
 			}
         
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			//printf("checkpoint enter getScoreInfoY_tobs_opt\n");
 			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);			
-			//printf("checkpoint leave getScoreInfoY_tobs_opt\n");
-			//printf("GIB=%d\n", GIB);
-			//score.print("score"); //correct
-			//infoMat.print("infoMat");
-        
-			//InfDS.par.print("InfDS.par");
 			
 			mscore = mscore + (1.0/MAXGIB)*score;
-			//mscore.print("mscore");//correct
 			mscore2 = mscore2 + (1.0/MAXGIB)*(score*score.t());
-			//mscore2.print("mscore2");//correct
 			minfoMat = minfoMat + (1.0/MAXGIB)*infoMat;
-			//minfoMat.print("minfoMat");//correct
-        
 		} //end of Gibbs sampler loop
-  
-			
-		//printf("checkpoint M181 leave GIB loop\n");
-		//InfDS.par.print("InfDS.par");
 	
 		Covscore = mscore2 - mscore*mscore.t();
 	
 	
-		//printf("checkpoint enter saem\n");
 		saem(InfDS, gmm, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore);
-		//InfDS.Iy.print("InfDS.Iy");//correct
-		//InfDS.ES.print("InfDS.ES");//correct
-		//InfDS.sy.print("InfDS.sy");//correct
-		//InfDS.EI.print("InfDS.EI");//correct
-		//printf("checkpoint leave saem\n");
-    
-		//printf("checkpoint M145 saem\n");	
+
 	
     
 		printf("\nStage = %5d, iteration = %5d\n",stage,k);
@@ -284,9 +238,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//%%%%%%%%%%
 		k = k+1;
 		prev_stage = stage;
-
-		/*remove later*/
-		//break;
     
 	} //end of scoring iteration loop
 
