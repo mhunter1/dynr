@@ -90,9 +90,11 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', trueb = 'trueb', obse
 	}
 	names(data.object$observed) <- paste0("obs", 1:length(observed))
 	
-	if(!missing('trueb')){
-		data.object['trueb'] <- data.frame(apply(dataframe[ , 'trueb', drop=FALSE], 2, as.double))
+
+	if('trueb' %in% colnames(dataframe)){
+		data.object$trueb <- data.frame(apply(dataframe[ , trueb, drop=FALSE], 2, as.double))
 	}
+	
 	fid <- as.factor(data.object$id)
 	time.split <- split(data.object$time, fid)
 	diff.npos <- sapply(time.split, function(x){d <- diff(x); any(d <= 0)})

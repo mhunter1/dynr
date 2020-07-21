@@ -12,7 +12,7 @@ library('plyr')
 nPeople = 200
 nTimes = 300
 vdpData <- read.csv("./data/fixedData.txt", header=FALSE)
-colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2', 'trueb')
 vdpData$id <- rep(1:nPeople, each=nTimes)
 
 
