@@ -37,7 +37,7 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 			//r(0,s) = 1;
 			//r(1,s) = 1;
 
-
+			/*
 			if (isPar == 1){
 				for (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){
  					r(row, s) = y(row, s);
@@ -45,6 +45,7 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 				r(5,s) = thetaf(1,s);
 				r(6,s) = thetaf(2,s);
  			}
+			*/
 		}
 
 	}
@@ -52,11 +53,11 @@ arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const i
 		r.zeros();
 		int row, s;
 		for (s = 0; s < int(i.n_elem); s++){
-			//r(0, s)= y(1, s);
-			//r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
+			r(0, s)= y(1, s);
+			r(1, s)= -61.68503 * y(0, s) + thetaf(0,s) * (1 - pow(y(0, s), 2)) * y(1, s);
 			
-			r(0,s) = y(0, s);
-			r(1,s) = y(1, s);
+			//r(0,s) = y(0, s);
+			//r(1,s) = y(1, s);
 			/*
 			if (isPar == 1){
 				for (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){

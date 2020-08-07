@@ -12,9 +12,9 @@ using namespace arma;
 
 
 
-extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double *, int, double **, double **);
+extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double *, int, double **, double **, double **);
 
-void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value, int KKO, double **dSigmaede, double **dSigmaede2){
+void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value, int KKO, double **dSigmaede, double **dSigmaede2, double **trueb){
 
 
 	//printf("check point 0\n");	
@@ -62,11 +62,11 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	//InfDS.U1.print("InfDS.U1");
 
 	InfDS.b.set_size(Nsubj, Nb);
+	InfDS.trueb.set_size(Nsubj, Nb);
 	for(i = 0; i < Nsubj; i++){
 		for(j = 0; j < Nb; j++){
 			InfDS.b(i, j) = b[i][j];
-			//InfDS.b(i, j) = .1;
-			//temporarily set it as 0.1
+			InfDS.trueb(i, j) = trueb[i][j];
 		}
 	}
 	//InfDS.b.print("InfDS.b");
@@ -392,7 +392,9 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	//InfDS.Sigmab.print("sigmab");
 	
 	
-	
+	arma::mat R = cor(InfDS.b,InfDS.trueb);
+	R.print("Correlation between b and trueb:");
+			
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
 	char filenameSE[64] = "./Results/TrueInitSEG1.txt";

@@ -103,8 +103,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	stage = 1; 
 	gmm = 1;
 	//MAXGIB=1;
-	InfDS.errtrol1 = 1.2; //Stage 1 error tolerance
-	InfDS.errtrol = 1.2; //Stage 2 error tolerance	
+	InfDS.errtrol1 = 1.5; //Stage 1 error tolerance
+	InfDS.errtrol = 1;  //Stage 2 error tolerance	
 
 
 	
@@ -177,6 +177,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
+		InfDS.OMEGAb(span(0,11), span(0,11)).print("InfDS.OMEGAb");
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
@@ -236,6 +237,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			
 			arma::mat R = cor(InfDS.b,InfDS.trueb);
 			R.print("Correlation between b and trueb:");
+			printf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
 		}
 
 		//%%%%%%%%%%

@@ -533,8 +533,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	}
 	//printf("execution 6.2\n");
 	//correct here
-	//InfDS.dXtildthetafAll(49).cols((0)*InfDS.Nx, (0+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(49) time 0");
-	//InfDS.dXtildthetafAll(49).cols((199)*InfDS.Nx, (199+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(49) time 199");
+	//InfDS.dXtildthetafAll(0).cols((0)*InfDS.Nx, (0+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 0");
+	//InfDS.dXtildthetafAll(0).cols((199)*InfDS.Nx, (199+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 199");
 
 	
 	for (i = 0; i < InfDS.Nsubj; i++){
@@ -1331,10 +1331,12 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		//chol(R,X) resets R (to be size zero) and returns a bool set to false (exception is not thrown)
 		//[cOMEGAb0,r] = chol(OMEGAi);
 		//OMEGAi.ones();
+		//OMEGAi.print("OMEGAi (1)");
 		r = chol(cOMEGAb0,OMEGAi);
 		if (!r){
 			//OMEGAi.print("OMEGAi");
 			cOMEGAb0 = diagmat(diagvec(sqrt(OMEGAi)));
+			OMEGAi.print("OMEGAi (1)");
 			//mexPrintf("first chol\n");
 			//cOMEGAb0.print("cOMEGAb0");
 		}
@@ -1493,10 +1495,12 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		
 		//[cOMEGAb,r] = chol(OMEGAi);
 		r = chol(cOMEGAb,OMEGAi);
+		//OMEGAi.print("OMEGAi (2)");
 		if (!r){
 			//OMEGAi.print("OMEGAi");
 			cOMEGAb = diagmat(diagvec(sqrt(OMEGAi)));
 			printf("second chol\n");
+			OMEGAi.print("OMEGAi (2)");
 			//cOMEGAb.print("cOMEGAb");
 		}
 		//cOMEGAb.print("cOMEGAb");
