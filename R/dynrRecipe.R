@@ -3668,11 +3668,16 @@ differentiateMatrixOfVariable <- function(inputs, variable.names=character(0)){
 	
 	if(length(variable.names) > 0){
 		variable.names <- unique(as.vector(variable.names))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+		variable.names <- variable.names[!variable.names%in% c("fixed", "0", 0)]
 	} else {
 		variable.names <- unique(as.vector(inputs))
-		variable.names <- variable.names[!variable.names%in% c("fixed", "0")]
+		variable.names <- variable.names[!variable.names%in% c("fixed", "0", 0)]
 	}
+	
+	if(length(variable.names) == 0){
+		return(matrix(list(), nrow= 0, ncol= 0))
+	}
+	
 
 	ret <- matrix(list(), nrow= length(inputs), ncol= length(variable.names))
 	#rownames(ret) <- rep(rownames(inputs), length(inputs)/nrow(inputs))
