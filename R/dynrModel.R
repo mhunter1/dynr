@@ -715,16 +715,21 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	
 	if(length(sigmab.names) > 0){
 		#variance/covariance of random.names
-		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov[[1]]
-		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov[[1]]
+		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov
+		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov
 		
+		#browser()
 		if(freeIC){
 			#variance/covariance of states
-			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = all.params[inputs$initial$params.inicov[[1]]]
+			#random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
+			temp = as.vector(inputs$initial$params.inicov[[1]])
+			temp[temp>0] = all.params[temp]
+			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = temp
 			random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
 		} 
 		# LDL transformation
 		#ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
+		print(random.params.inicov)
 		ret <- symbolicLDLDecomposition(random.params.inicov, random.values.inicov)
 		#Solve for numerical values of par0-par9 (the unconstrained parameters)
 		#given starting values for the random effect covariance matrix in model@random.params.inicov
@@ -740,8 +745,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	}
 	
 	#browser()
-    dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
-    dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
+	if(length(inputs$measurement$params.int) > 0){
+      dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
+      dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
+	}
+	else{
+	  dmudparMu <-matrix(0L, nrow=0, ncol=0)
+	  dmudparMu2 <-matrix(0L, nrow=0, ncol=0)
+	}
 	dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
     dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
 	
@@ -799,8 +810,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs$dynamics@theta.formula <- theta.formula
 	  
 	  #inputs$dynamics@jacobianOriginal <- autojacobTry(list(formula))
-	  inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formula, diff.variables=theta.names)
-	  dfdx <- autojacobTry(inputs$dynamics@formula, diff.variables=state.names)
+	  inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=theta.names)
+	  dfdx <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=state.names)
 	  #inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
 	  inputs$dynamics@dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
 	  inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)

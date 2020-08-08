@@ -58,7 +58,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsMatrix",
 setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	function(object, covariates){
 		#browser()
-		formula <- object$formula
+		formula <- object$formulaOriginal
 		formula2 <- object$formula2
 		jacob <- object$jacobianOriginal
 		dfdtheta<- object$dfdtheta
