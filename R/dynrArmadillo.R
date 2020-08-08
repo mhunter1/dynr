@@ -119,24 +119,27 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		col=lapply(fmlp2,function(x){lapply(x,"[[",2)})
 		rhsp2=lapply(fmlp2,function(x){lapply(x,"[[",4)})
 		
+		#browser()
 		#Parse theta.formula
 		fmlt = processFormula(theta.formula)
-		lhst = fmlt[[1]][1]
-		rhst = fmlt[[1]][2]
+		
+		for (i in 1:length(theta.formula)){
+		lhst = fmlt[[i]][1]
+		rhst = fmlt[[i]][2]
 		
 		
 		# Replace theta_i in formula with thetaf
 		# - thetaf is calculated by calculateTheta()
 		# - the variable name of thetaf is from the LHS of theta.formula
 		# - in jacobian (dfdx), LHS of theta.formula is already replaced by RHS of theta.formula in rhsj (to get correct differentiation), thus, we replace the RHS of theta formula by thetaf
-		rhs <- lapply(rhs, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsj <- lapply(rhsj, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsp <- lapply(rhsp, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsx2 <- lapply(rhsx2, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsxp <- lapply(rhsxp, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhspx <- lapply(rhspx, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		rhsp2 <- lapply(rhsp2, function(x){gsub(paste0(lhst),paste0("thetaf(0,s)"),x, fixed = TRUE)})
-		
+		rhs <- lapply(rhs, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhsj <- lapply(rhsj, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhsp <- lapply(rhsp, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhsx2 <- lapply(rhsx2, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhsxp <- lapply(rhsxp, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhspx <- lapply(rhspx, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		rhsp2 <- lapply(rhsp2, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+		}
 		
 		
 		# Replace the covariate to corresponding variables in SAEM (i.e., InfDS.U1)
