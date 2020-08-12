@@ -12,15 +12,16 @@ using namespace arma;
 
 
 
-extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double *, int, double **, double **, double **);
+extern "C" void saem_interface(int, int, int, int, int, int, int, int, int, int, int, int, double, double **, double **, double **, double **, double, double *, double **, double, double, int, int, int, double, double, double, double, double *, int, double *, double *, double  *,double *, double **, double **, double **, int, double **, int *, double *, double **, double **, double **, double **, double **, double **, double *, int, double **, double **, double **, struct C_OUTPUT *);
 
-void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value, int KKO, double **dSigmaede, double **dSigmaede2, double **trueb){
+void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu, int Ntheta, int Nbeta, int totalT, int NLambda, int Nmu, int Nb, double delt, double **U1, double **b, double **H, double **Z, double maxT, double *allT, double **y0 , double lb, double ub, int MAXGIB, int MAXITER, int maxIterStage1, double gainpara, double gainparb, double gainpara1, double gainparb1, double *bAdaptParams, int Nbpar, double *mu, double *tspan, double *lower_bound, double *upper_bound, double **Lambda, double **dmudparMu, double **dmudparMu2, int num_time, double **Y, int *tobs, double *timeDiscrete, double **Sigmab, double **Sigmae, double **dSigmabdb, double **dSigmabdb2, double **dLambdparLamb, double **dLambdparLamb2, double *par_value, int KKO, double **dSigmaede, double **dSigmaede2, double **trueb, struct C_OUTPUT *output){
 
 
 	//printf("check point 0\n");	
 	int i, j, Npar, tobs_pointer;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
+
 	arma::mat upperb, lowerb, x1;
 
 	InfDS.NxState = NxState;
@@ -395,7 +396,7 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	arma::mat R = cor(InfDS.b,InfDS.trueb);
 	R.print("Correlation between b and trueb:");
 			
-
+	
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
 	char filenameSE[64] = "./Results/TrueInitSEG1.txt";
 	char filenameconv[64] = "./Results/TrueInitconvG1.txt";
@@ -405,7 +406,11 @@ void saem_interface(int seed, int freeIC, int Nsubj, int NxState, int Ny, int Nu
 	int trueInit = 1;
 	int batch = 1;
 	//int seed = 1;
+	
+	
 	printf("calling...\n");
-	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, freeIC);
+	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, freeIC, *output);
+	
+	printf("output: %lf\n", output->ss);
 	return;
 }

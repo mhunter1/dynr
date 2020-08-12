@@ -11,14 +11,17 @@
 //#include "converted_function.h"
 
 // Step 3 in the MainUseThins.m
-void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC){
+void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output){
 	//printf("in MainUseThis\n");
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
-	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag;
+	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag, k2;
 	double bAccept, ss, ttt, ssmin;
 	int prev_stage;
 	time_t timer;
+	int i, j;
+	
+	//C_OUTPUT output;
 	//--for writing output files--
 	//int i, j, fitInit;
 	//FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
@@ -30,6 +33,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//rma_rng::set_seed_random(); 
 	arma_rng::set_seed(seed);
 
+	output.avebAccept = 0;
 	isBlock1Only = 0;	
 	switchFlag = 0;
 	//upperb = "5,5,5"; 
@@ -99,6 +103,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 	//printf("checkpoint M73\n");	
 
+	k2 = 1;
 	k = 1; 
 	stage = 1; 
 	gmm = 1;
@@ -216,6 +221,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
     
 		printf("\nStage = %5d, iteration = %5d\n",stage,k);
 		printf("\nCurrent b acceptance rate = %6f\n",bAccept);
+		output.avebAccept += bAccept;
 		//printf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
 		//printf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
@@ -243,6 +249,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//%%%%%%%%%%
 		k = k+1;
 		prev_stage = stage;
+		if (stage == 2){ 
+			k2 = k2 +1;
+		}
     
 	} //end of scoring iteration loop
 
@@ -341,6 +350,24 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	fprintf(p_filenamebhat2, "\n");
 */
 
+	InfDS.Iytild.print("InfDS.Iytild");
+	InfDS.thetatild.print("InfDS.thetatild");
+
+	/* setting outputs*/
+	output.convFlag = convFlag;
+	output.nIterStage1 = (k - 1) - (k2-1);
+	output.nIterStage2 = k2 - 1;
+	output.ss = ss;
+	output.avebAccept = (output.avebAccept)/(k-1);
+	
+	output.Iytild = (double *)malloc((InfDS.par.n_elem * InfDS.par.n_elem + 1)* sizeof(double));
+	output.thetatild = (double *)malloc((InfDS.par.n_elem + 1)* sizeof(double));
+	for(j = 0; j < InfDS.par.n_elem; j++){
+		output.thetatild[j] = InfDS.thetatild(j);
+		for(i = 0; i < InfDS.par.n_elem;i++){
+			output.Iytild[j*InfDS.par.n_elem + i] = InfDS.Iytild(i, j);
+		}
+	}
 
 
 	return;

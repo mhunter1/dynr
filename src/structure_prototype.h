@@ -39,3 +39,11 @@ arma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct 
 arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+
+//data structure that contains paramters that needs to be returned to dynr/R.
+struct C_OUTPUT{
+//public:
+  int convFlag, nIterStage1, nIterStage2;
+  double ss, avebAccept;
+  double *Iytild, *thetatild; //column-major to keep the matrix InfDS.Iytild
+};
