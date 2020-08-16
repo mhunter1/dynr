@@ -1158,16 +1158,22 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				arma::mat temp = InfDS.sytild.t()*inv(InfDS.Iytild)*InfDS.sytild;
 				ss = abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore))/gmm);
 				
+				/*
 				if (ss > ssmin)
 				   noIncrease = noIncrease + 1;
 				else{
 				   ssmin = ss;
 				   noIncrease = 0;
 				}
+				*/
+				if (ss <= ssmin){
+					ssmin = ss;
+				}
+				
 				//printf("checkpoint enter 1069\n");
 	   
-				if (ss < InfDS.errtrol || gmm == InfDS.MAXITER || noIncrease > 3){
-					if (gmm == InfDS.MAXITER || noIncrease > 3)
+				if (ss < InfDS.errtrol || gmm == InfDS.MAXITER){
+					if (gmm == InfDS.MAXITER)
 						convFlag=0;
 					else 
 						convFlag=1;
