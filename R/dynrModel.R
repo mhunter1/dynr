@@ -635,6 +635,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   unique.numbers <- c() #allow for model with no free parameters
   if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
   
+  
+  
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
   
@@ -646,7 +648,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #TODO write a way to assign param.data to a model object (assigns to recipes within model)
   # populate transform slots
-  if(saem == FALSE || !('theta.formula' %in% names(inputs$dynamics))){
+  if(saem == FALSE || .hasSlot(inputs$dynamics, 'theta.formula') == FALSE){
 	  if(any(sapply(inputs, class) %in% 'dynrTrans')){
 		inputs$transform<-createRfun(inputs$transform, param.data, 
 									 params.observed=inputs$noise$params.observed, params.latent=inputs$noise$params.latent, params.inicov=inputs$initial$params.inicov,
@@ -663,7 +665,33 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   }
 
-
+  #browser()
+  # Examine formula: if there exist variables that are not in all.params and state.names, issue an error
+  legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names)
+  variables <- extractVariablesfromFormula(unlist(dynamics@formula))
+  if(any(variables %in% data$observed.names)){
+    error.variables <- variables[variables %in% data$observed.names == TRUE]
+    stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
+  }
+  
+  if(!all(variables %in% legal.variables)){
+    error.variables <- variables[variables %in% legal.variables == FALSE]
+    stop(paste0("In formula, there is variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+  }
+  
+  # Examine theta.formula: if there exist variables that are not in all.params and state.names, issue an error
+  if(.hasSlot(inputs$dynamics, 'theta.formula')){
+    variables <- extractVariablesfromFormula(theta.formula)
+	if(any(variables %in% data$observed.names)){
+      error.variables <- variables[variables %in% data$observed.names == TRUE]
+      stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
+    }
+    if(!all(variables %in% legal.variables)){
+      error.variables <- variables[variables %in% legal.variables == FALSE]
+      stop(paste0("In theta.formula, there is variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+    }
+  }
+  
   if(saem==TRUE){
     #browser()
     # examine whether it is freeIC or fixed IC case
@@ -682,8 +710,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	}
 	
 	#browser()
-	print("freeIC")
-	print(freeIC)
+	#print("freeIC")
+	#print(freeIC)
 
 
     #num.x <- length(inputs$dynamics@formula[[1]])
@@ -721,11 +749,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#browser()
 		if(freeIC){
 			#variance/covariance of states
-			#random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
-			temp = as.vector(inputs$initial$params.inicov[[1]])
-			temp[temp>0] = all.params[temp]
-			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = temp
-			random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
+			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
+			#temp = as.vector(inputs$initial$params.inicov[[1]])
+			#temp[temp>0] = all.params[temp]
+			#random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = temp
+			#random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
 		} 
 		# LDL transformation
 		#ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
@@ -812,11 +840,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  #inputs$dynamics@jacobianOriginal <- autojacobTry(list(formula))
 	  inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=theta.names)
 	  dfdx <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=state.names)
-	  #inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
+	  inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
 	  inputs$dynamics@dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
 	  inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)
 	  inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
 	}
+	#browser()
   }
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -836,7 +865,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   }
   else if (saem == TRUE){
-    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names)
+    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(param.data$param.name))
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)

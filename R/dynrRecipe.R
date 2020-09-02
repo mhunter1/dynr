@@ -2368,8 +2368,13 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
       stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
     }
 
-    if('theta.formula' %in% names(dots))
+    #browser()
+    if('theta.formula' %in% names(dots)){
       theta.formula <- dots$theta.formula
+	  # retrieve theta.names from theta.formula instead of asking users to give inputs
+	  fml=lapply(theta.formula, as.character)
+	  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
+	}
     if('random.names' %in% names(dots))  
       random.names <- dots$random.names
     if('random.params.inicov' %in% names(dots))
@@ -2399,10 +2404,6 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     startval.names <- names(startval)
     num.state <- length(state.names)
     num.formula <- length(formula)
-    
-    # retrieve theta.names from theta.formula instead of asking users to give inputs
-    fml=lapply(theta.formula, as.character)
-    theta.names=unlist(lapply(fml,function(x){x[[2]]}))
   }
   
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
@@ -2444,8 +2445,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
   # The following is only for saem
   
-  if('theta.formula' %in% names(dots))
+  if('theta.formula' %in% names(dots)){
     x$theta.formula <- theta.formula
+	x$theta.names <- theta.names
+  }
   if('random.names' %in% names(dots))
     x$random.names <- random.names
   if('random.params.inicov' %in% names(dots))
@@ -3205,13 +3208,15 @@ formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, proc
 #formula2matrix(F1 ~ F2 + F3, variables=c("F2", "F3"), strict=FALSE)
 
 
-#formula2design <- function(..., covariates, random.names){
-    #dots <- list(...)
-formula2design <- function(dots, covariates, random.names){
+formula2design <- function(dots, covariates, random.names, beta.names){
     #dots <- list(...)  
-    #print(dots)
-    #print(covariates)
-    #print(random.names)
+    
+    # Extending the theta formula in dots to add variables in beta. names
+	# beta.names include variables without random effects but needs to be estimated.
+    for (i in 1:length(beta.names)){
+        dots = c(dots, as.formula(paste(beta.names[i], '~ 1 *', beta.names[i])))
+    }
+    
     
     pf <- list(dynr:::processFormula(dots))
     lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
@@ -3220,6 +3225,7 @@ formula2design <- function(dots, covariates, random.names){
     rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
     rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
     eleNames <- unique(unlist(sapply(rhs3, function(rlist){ sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
+	
     
     dots <- cbind(lhs, rhs3)
     
@@ -4064,4 +4070,30 @@ solveStartLDL <- function(ldl, values.ldl){
     }
   }
   return(known.vars)
+}
+
+
+# retrieve all variables from RHS of formulas
+# input example:
+# formula = list(x ~ dx,
+#               dx ~ eta_i * x + zeta*dx)
+# output example:
+# [1] "dx"    "eta_i" "x"     "zeta" 
+extractVariablesfromFormula<- function(formula){
+    variables <-c()
+    for (i in 1:length(formula))
+        variables <- c(variables, extractVariablesfromSingleFormula(formula[[i]]))
+    return(unique(variables))
+}
+
+# retrieve all variables from RHS of a single formula
+# variables is the combination of A-Z, a-z, 0-9, and '_' (at least one A-Z/a-z)
+# \\W: all characters excluding A-z, a-z, and '_'
+# \\w: A-z, a-z, and '_'
+extractVariablesfromSingleFormula <- function(formula){
+    #browser()
+    rhs <- as.character(formula)[[3]]
+    a <- unlist(stringr::str_split(rhs, '[^A-z0-9_.]+'))
+    variables <- a[grep('[\\w.]*[a-zA-Z]+[\\w.]*', a)]
+    return(unique(variables))
 }

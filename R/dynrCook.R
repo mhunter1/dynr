@@ -472,6 +472,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     }
     
 	if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0 && dynrModel$dynamics$saem==FALSE){
+	    
 		#get the initial values of b and startvars
 		fitted_model <- EstimateRandomAsLV(dynrModel, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
 		coefEst <- coef(fitted_model)
@@ -513,7 +514,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  mu.values <- logical(0)
 		}
 		
-					
+		#browser()
+		#theta.variables <- extractVariablesfromFormula(dynrModel$dynamics@theta.formula)
+	    #startval.names <- names(dynrModel$dynamics@startval)
+        #r =formula2design( 
+        #dynrModel$dynamics@theta.formula,
+        #covariates=c(data$covariate.names, "1"),
+        #random.names=dynrModel$dynamics$random.names,
+		#beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
+        #r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
+		
+        		
 
 		
 		# organize the lowerbound and upperbound vectors for saem
@@ -1012,14 +1023,18 @@ combineModelDataInformationSAEM <- function(model, data){
 
 	
     #H & Z 
-	#browser()
+	browser()
+	theta.variables <- extractVariablesfromFormula(model$theta.formula)
+	startval.names <- names(inputs$dynamics@startval)
     r =formula2design( 
         model$theta.formula,
         covariates=c(data$covariate.names, "1"),
-        random.names=model$random.names)    
+        random.names=model$random.names,
+		beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
     r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])
 	
-	#print(r)
+	print('H & Z')
+	print(r)
 	#print(nrow(as.matrix(r$fixed)))
 	#print(ncol(as.matrix(r$fixed)))
     
@@ -1259,7 +1274,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
 EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
   # Restructure mixed effects structured via theta.formula into an expanded model with 
   # random effects as additional state variables and cook it.
-  #browser()
+  browser()
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
     	
