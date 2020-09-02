@@ -1087,26 +1087,11 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	printf("SAEM process starts\n");
 	saem_interface(seed, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value, KKO, dSigmaede, dSigmaede2, trueb, &output);
 	
-	/*
-	output.convFlag=1;
-	output.nIterStage1=1;
-	output.nIterStage2=1;
-	output.ss=1;
-	output.avebAccept=1;
-	*/
-	
-	
-	/*
-	//data structure that contains paramters that needs to be returned to dynr/R.
-	struct C_OUTPUT{
-	//public:
-	  int convFlag, nIterStage1, nIterStage1;
-	  double ss, avebAccept;
-	  double *Iytild; //column-major to keep the matrix InfDS.Iytild
-	};
-	*/
+
 	const char *names[] = {"convFlag", "nIterStage1", "nIterStage2", "ss", "avebAccept", "Iytild", "thetatild"}; /* note the null string */
 	SEXP res, res_names, iytild_sexp, thetatild_sexp;
+	
+	/*
 	PROTECT(res_names = allocVector(STRSXP,7));   
 	
 	PROTECT(iytild_sexp = NEW_NUMERIC(Npar * Npar));
@@ -1119,25 +1104,18 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 		SET_STRING_ELT(res_names,i,mkChar(names[i]));
 	
 
-	SET_VECTOR_ELT(res, 0, ScalarInteger(output.convFlag));    /* integer(1) */
-	SET_VECTOR_ELT(res, 1, ScalarInteger(output.nIterStage1));    /* integer(1) */
-	SET_VECTOR_ELT(res, 2, ScalarInteger(output.nIterStage2));    /* integer(1) */
-	SET_VECTOR_ELT(res, 3, ScalarReal(output.ss));       /* numeric(1) */ 
-	SET_VECTOR_ELT(res, 4, ScalarReal(output.avebAccept));       /* numeric(1) */ 
-	SET_VECTOR_ELT(res, 5, iytild_sexp);   /* numeric(<some length>) */
+	SET_VECTOR_ELT(res, 0, ScalarInteger(output.convFlag));   
+	SET_VECTOR_ELT(res, 1, ScalarInteger(output.nIterStage1));    
+	SET_VECTOR_ELT(res, 2, ScalarInteger(output.nIterStage2));    
+	SET_VECTOR_ELT(res, 3, ScalarReal(output.ss));       
+	SET_VECTOR_ELT(res, 4, ScalarReal(output.avebAccept));       
+	SET_VECTOR_ELT(res, 5, iytild_sexp);   
 	SET_VECTOR_ELT(res, 6, thetatild_sexp); 
 	setAttrib(res, R_NamesSymbol, res_names);
 	UNPROTECT(4);
 
-	/*
-	SEXP out = PROTECT(allocVector(REALSXP, 3));
-	for (int i = 0; i < 3; i++) {
-		REAL(out)[i] = 1.5;
-	}
-	UNPROTECT(1);
+
 	*/
-	
-	
 	
 
 	return res;

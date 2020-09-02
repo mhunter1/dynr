@@ -1025,7 +1025,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	
 	flag = chol(R, InfDS.Iy);
 	if(!flag){
-		printf("\nIy is not positive definite. ss = %5f\n",ss);
+		//printf("\nIy is not positive definite. ss = %5f\n",ss);
 		printf("Serious error!\n");
 	}
 	
@@ -1036,13 +1036,13 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	}
 	//printf("checkpoint enter 955\n");
  
-	/*
+	
 	flag = chol(R, InfDS.Iy);
 	if (!flag){
 		redFlag=1;
 		printf("redFlag = %d @ Line 1112\n", redFlag);
 	}
-	*/
+	
 
 	
 	
@@ -1101,7 +1101,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		unsigned int q;
 		for (q = 0; q < InfDS.par.n_elem; q++){
 			if (!std::isnan(InfDS.lowBound(q))){
-				if (thetam(q) < InfDS.lowBound(q)|| thetam(q) > InfDS.upBound(q)){
+				if (thetam(q) < InfDS.lowBound(q)){
 					thetam(q) = InfDS.par(q);
 					redFlag = 1;
 					printf("redFlag = %d @ Line 1064\n", redFlag);
@@ -1111,6 +1111,19 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 					InfDS.Iy (q, q) = Iy(q, q); 
 				}
 			}
+			
+			if (!std::isnan(InfDS.upBound(q))){
+				if (thetam(q) > InfDS.upBound(q)){
+					thetam(q) = InfDS.par(q);
+					redFlag = 1;
+					printf("redFlag = %d @ Line 1064\n", redFlag);
+					InfDS.sy(q) = sy(q);
+					InfDS.ES(q, q) = ES(q, q);
+					InfDS.EI(q, q) = EI(q, q);
+					InfDS.Iy (q, q) = Iy(q, q); 
+				}
+			}
+			
 			if (std::isnan(thetam(q))){
 				thetam(q) = InfDS.par(q);
 				redFlag=1;

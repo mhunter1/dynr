@@ -108,8 +108,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	stage = 1; 
 	gmm = 1;
 	//MAXGIB=1;
-	InfDS.errtrol1 = 1.5; //Stage 1 error tolerance
-	InfDS.errtrol = 1;  //Stage 2 error tolerance	
+	InfDS.errtrol1 = 1; //Stage 1 error tolerance
+	InfDS.errtrol = 1.5;  //Stage 2 error tolerance	
 
 
 	
