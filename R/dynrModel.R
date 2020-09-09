@@ -554,7 +554,6 @@ setMethod("printex", "dynrModel",
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
   #check the order of the names 
-  #browser()
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
 
@@ -568,9 +567,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if (!all(measurement@state.names == states.dyn)){
       stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
     }
-    #else if (saem==TRUE && !all(c(measurement@state.names,dynamics@beta.names) == states.dyn)){
-    #  stop("In writing armadillo mode, the the dynamic formulas specified should be specified in the order of the state.names slot (in 'dynrMeasurement' object) and then the beta.names (in 'dynrDynamicsFormula' object).")
-    #}
   }
 
   if (!all(measurement@obs.names == data$observed.names)){
@@ -608,8 +604,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-        #covariate.names = data$covariate.names
-        #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)), covariates = paste0("covar", 1:length(data$covariate.names)))
         data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
         names(data$observed) <- data$observed.names
@@ -665,8 +659,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   }
 
-  #browser()
-  # Examine formula: if there exist variables that are not in all.params and state.names, issue an error
+  # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
   legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names)
   variables <- extractVariablesfromFormula(unlist(dynamics@formula))
   if(any(variables %in% data$observed.names)){
@@ -679,7 +672,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     stop(paste0("In formula, there is variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
   }
   
-  # Examine theta.formula: if there exist variables that are not in all.params and state.names, issue an error
+  # Examine variables in theta.formula: if there exist variables that are not in all.params and state.names, issue an error
   if(.hasSlot(inputs$dynamics, 'theta.formula')){
     variables <- extractVariablesfromFormula(theta.formula)
 	if(any(variables %in% data$observed.names)){
@@ -693,7 +686,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   
   if(saem==TRUE){
-    #browser()
     # examine whether it is freeIC or fixed IC case
 	inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
 	inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
@@ -750,17 +742,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		if(freeIC){
 			#variance/covariance of states
 			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
-			#temp = as.vector(inputs$initial$params.inicov[[1]])
-			#temp[temp>0] = all.params[temp]
-			#random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = temp
-			#random.values.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$values.inicov[[1]]
 		} 
+		
 		# LDL transformation
-		#ret <- symbolicLDLDecomposition(returnExponentialSymbolicTerm(random.params.inicov))
-		print(random.params.inicov)
 		ret <- symbolicLDLDecomposition(random.params.inicov, random.values.inicov)
 		#Solve for numerical values of par0-par9 (the unconstrained parameters)
-		#given starting values for the random effect covariance matrix in model@random.params.inicov
+		# given starting values for the random effect covariance matrix in model@random.params.inicov
 		known.vars <- solveStartLDL(ret$ldl, random.values.inicov)
 		
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
@@ -784,68 +771,61 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
     dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
 	
-	#browser()
 	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
 	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
 	dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
 	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
-	#browser()
 	
-	# For freeIC ones, extend the equations and redo the corresponding differentiation
-	if(freeIC == TRUE){
-	  formula <- inputs$dynamics@formula[[1]]
-	  theta.formula <- inputs$dynamics@theta.formula
-      #zeta_? to be estimated
-	  startval.names <- names(inputs$dynamics@startval)
-	  beta.names <- c()
-      for (i in 1:length(startval.names)){
-	    if(startval.names[[i]] > 0){
-          formula[[length(formula) + 1]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
-		  beta.names = c(beta.names,startval.names[[i]])
-		}
-      }
+	# [Note] The following part do the formula/theta.formula expansion for freeIC cases to generate the differentiation code, and we are no longer use way. (Instead, we do initial value estimation in dynr.cook). So the following part is commented out on 20/09/09. 
+	# For freeIC ones, extend the equations and redo the corresponding differentiation to generate the differentiation code
+	# if(freeIC == TRUE){
+	  # formula <- inputs$dynamics@formula[[1]]
+	  # theta.formula <- inputs$dynamics@theta.formula
+      # #zeta_? to be estimated
+	  # startval.names <- names(inputs$dynamics@startval)
+	  # beta.names <- c()
+      # for (i in 1:length(startval.names)){
+	    # if(startval.names[[i]] > 0){
+          # formula[[length(formula) + 1]] = as.formula(paste0(startval.names[[i]],' ~ 0'))
+		  # beta.names = c(beta.names,startval.names[[i]])
+		# }
+      # }
     
-      # generate the formula for states
-      # note: the formula should be removed in dynr.model if the state in prep.init is fixed
-	  state.names <- inputs$dynamics$state.names
-      for(i in 1:length(state.names)){
-        if(state.names[[i]] > 0){
-		  formula[[length(formula) + 1]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
-          beta.names = c(beta.names, paste0('init_',state.names[[i]]))
-		}
-      }
-	  inputs$dynamics@beta.names <- beta.names
+      # # generate the formula for states
+      # # note: the formula should be removed in dynr.model if the state in prep.init is fixed
+	  # state.names <- inputs$dynamics$state.names
+      # for(i in 1:length(state.names)){
+        # if(state.names[[i]] > 0){
+		  # formula[[length(formula) + 1]] = as.formula(paste0('init_',state.names[[i]],' ~ 0'))
+          # beta.names = c(beta.names, paste0('init_',state.names[[i]]))
+		# }
+      # }
+	  # inputs$dynamics@beta.names <- beta.names
 
 
-      #process the theta formula
-      #num.theta.formula <- length(theta.formula)
-	  theta.names <- inputs$dynamics$theta.names
-      for (i in 1:length(state.names)){
-        # generate the theta.formula for states
-        # for state x, the corresponding theta.names = x_0
-        #              the corresponding formula is x_0 ~ 0 
-        # (later in dynr.model, the formulas will be modified according to inputs of prep.initial
-		if(state.names[[i]] > 0){
-          theta.formula[[length(theta.formula) + 1]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
-          theta.names[[length(theta.names) + 1]] <- paste0(state.names[[i]],'_0')
-		}
-      }
-	  inputs$dynamics@theta.names <- theta.names
+      # #process the theta formula
+	  # theta.names <- inputs$dynamics$theta.names
+      # for (i in 1:length(state.names)){
+        # # generate the theta.formula for states
+        # # for state x, the corresponding theta.names = x_0
+        # #              the corresponding formula is x_0 ~ 0 
+        # # (later in dynr.model, the formulas will be modified according to inputs of prep.initial
+		# if(state.names[[i]] > 0){
+          # theta.formula[[length(theta.formula) + 1]] <- as.formula(paste0(state.names[[i]],'_0 ~ 1 * 0'))
+          # theta.names[[length(theta.names) + 1]] <- paste0(state.names[[i]],'_0')
+		# }
+      # }
+	  # inputs$dynamics@theta.names <- theta.names
+	  # inputs$dynamics@theta.formula <- theta.formula
 	  
-	  # extended formula here
-	  #browser()
-	  #inputs$dynamics@formula <- list(formula)
-	  inputs$dynamics@theta.formula <- theta.formula
-	  
-	  #inputs$dynamics@jacobianOriginal <- autojacobTry(list(formula))
-	  inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=theta.names)
-	  dfdx <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=state.names)
-	  inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
-	  inputs$dynamics@dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
-	  inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)
-	  inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
-	}
-	#browser()
+	  # inputs$dynamics@jacobianOriginal <- autojacobTry(list(formula))
+	  # inputs$dynamics@dfdtheta <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=theta.names)
+	  # dfdx <- autojacobTry(inputs$dynamics@formulaOriginal, diff.variables=state.names)
+	  # inputs$dynamics@dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
+	  # inputs$dynamics@dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
+	  # inputs$dynamics@dfdthetadx <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=state.names)
+	  # inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
+	# }
   }
 
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
