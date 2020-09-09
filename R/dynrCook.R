@@ -514,6 +514,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  mu.values <- logical(0)
 		}
 		
+		
 		#browser()
 		#theta.variables <- extractVariablesfromFormula(dynrModel$dynamics@theta.formula)
 	    #startval.names <- names(dynrModel$dynamics@startval)
@@ -716,10 +717,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		print(model$par_value)
 		print('seed')
 		print(model$seed)
-		#print(class(model$time_[1]))
-		#print(model$time_[1:10])
-        #print(model$sigmae)
-		#print(model$freeIC)
+
 
 		
         output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
@@ -1274,7 +1272,7 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
 EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
   # Restructure mixed effects structured via theta.formula into an expanded model with 
   # random effects as additional state variables and cook it.
-  browser()
+  #browser()
   if(.hasSlot(dynrModel@dynamics,'random.names')){
     user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
     	
@@ -1294,17 +1292,20 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
   # If there is random effect to be estimated, set up a new model
   mdcov2 <- prep.noise(
     values.latent=diag(0, length(state.names2)),
-    params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
+    #params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
+	params.latent=diag(state.names2, length(state.names2)),
 	values.observed=dynrModel@noise@values.observed[[1]],
-	params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
+	#params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
+	params.observed=dynrModel@noise@params.observed[[1]]
   )
   
 
   num.y = length(dynrModel@measurement@obs.names)
   #lambda matrix
   meas2 <- prep.measurement(
-    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2)),
-    params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2)),
+    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+    #params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+	params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
     obs.names = dynrModel@measurement@obs.names,
     state.names = state.names2)
 
@@ -1321,12 +1322,14 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
   values.inicov[1:num.state,1:num.state] = dynrModel@initial@values.inicov[[1]]
   values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
   params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
-  params.inicov[1:num.state,1:num.state] = matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+  #params.inicov[1:num.state,1:num.state] = matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+  params.inicov[1:num.state,1:num.state] = matrix(dynrModel@initial@params.inicov[[1]], nrow=nrow(dynrModel@initial@params.inicov[[1]]))
   params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
   
   initial2 <- prep.initial(
     values.inistate=c(as.vector(dynrModel@initial@values.inistate[[1]]), rep(0, num.state2 - num.state)),
-    params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.state2 - num.state)),
+    #params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.state2 - num.state)),
+	params.inistate=c(dynrModel@initial@params.inistate[[1]], rep("fixed", num.state2 - num.state)),
     values.inicov=values.inicov, 
     params.inicov=params.inicov)
 
