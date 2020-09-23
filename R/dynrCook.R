@@ -550,21 +550,21 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		#substitute the values in xstart into the expression 
 		#the values in xstart is already reverse transformed
-		dSigmaede<-matrix(sapply(model@dSigmaede, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede), ncol=ncol(model@dSigmaede))
-	    dSigmaede2<-matrix(sapply(model@dSigmaede2, function(x){eval(x, as.list(model@xstart[model@noise@params.observed[[1]]]))}), nrow=nrow(model@dSigmaede2), ncol=ncol(model@dSigmaede2))
+		dSigmaede<-matrix(sapply(dynrModel@dSigmaede, function(x){eval(x, as.list(dynrModel@xstart[dynrModel@noise@params.observed[[1]]]))}), nrow=nrow(dynrModel@dSigmaede), ncol=ncol(dynrModel@dSigmaede))
+	    dSigmaede2<-matrix(sapply(dynrModel@dSigmaede2, function(x){eval(x, as.list(dynrModel@xstart[dynrModel@noise@params.observed[[1]]]))}), nrow=nrow(dynrModel@dSigmaede2), ncol=ncol(dynrModel@dSigmaede2))
 		dSigmaede2 <- t(dSigmaede2)
 		
 		
 		
 		
-		num.x <- length(model$initial$params.inistate[[1]])
+		num.x <- length(dynrModel@initial$params.inistate[[1]])
 		num.subj <- length(unique(data$original.data[['id']]))
 		# ******examined (not extended)
-		if(model@freeIC == FALSE){
-		  random.names <- model$dynamics@random.names}
+		if(dynrModel@freeIC == FALSE){
+		  random.names <- dynrModel@dynamics@random.names}
 		else{
 		  x.names <- dynrModel@measurement@state.names
-		  random.names <- c(model$dynamics@random.names, paste0('b_',x.names))
+		  random.names <- c(dynrModel@dynamics@random.names, paste0('b_',x.names))
 		  #print (random.names)
 		}
 
@@ -578,15 +578,15 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
 		print('Starting values:')
 		print(dynrModel@xstart[param.names])
-	    par_value <- c(dynrModel@xstart[param.names], log(model$dynamics@random.values.inicov))
+	    par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
 		
 		#setting lower and upper bounds
-		model$dynamics@random.lb[model$dynamics@random.lb < 0] = NA
-		model$dynamics@random.ub[model$dynamics@random.ub < 0] = NA
-		model$dynamics@random.lb[model$dynamics@random.lb >= 0] = log(model$dynamics@random.lb)
-		model$dynamics@random.ub[model$dynamics@random.ub >= 0] = log(model$dynamics@random.ub)
-		lower_bound <- c(dynrModel@lb[param.names], rep(model$dynamics@random.lb, length(model$dynamics@random.values.inicov)))
-		upper_bound <- c(dynrModel@ub[param.names], rep(model$dynamics@random.ub, length(model$dynamics@random.values.inicov)))
+		dynrModel@dynamics@random.lb[dynrModel@dynamics@random.lb < 0] = NA
+		dynrModel@dynamics@random.ub[dynrModel@dynamics@random.ub < 0] = NA
+		dynrModel@dynamics@random.lb[dynrModel@dynamics@random.lb >= 0] = log(dynrModel@dynamics@random.lb)
+		dynrModel@dynamics@random.ub[dynrModel@dynamics@random.ub >= 0] = log(dynrModel@dynamics@random.ub)
+		lower_bound <- c(dynrModel@lb[param.names], rep(dynrModel@dynamics@random.lb, length(dynrModel@dynamics@random.values.inicov)))
+		upper_bound <- c(dynrModel@ub[param.names], rep(dynrModel@dynamics@random.ub, length(dynrModel@dynamics@random.values.inicov)))
 		print('Lower and Uppder bounds:')
 		print(lower_bound)
 		print(upper_bound)
@@ -595,7 +595,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#get the initial values of b
 		#temporarily set y0 to be the values from SAEM(see the following)
 		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
-		b[ b < model$dynamics@random.lb | b > model$dynamics@random.ub ] = 0
+		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
 
 		#browser()
 		trueb <- data$trueb[data$tstart[1:num.subj+1], ]
@@ -605,19 +605,19 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		#temporarily set y0 to be the values from SAEM
 		for(i in 1:num.subj){
-		  if(length(model$initial$values.inistate[[1]]) > 0){
-		    if(model@freeIC){
-              #y0[i, ] <- model$initial$values.inistate[[1]] + b[i, (1:num.x)]
+		  if(length(dynrModel@initial$values.inistate[[1]]) > 0){
+		    if(dynrModel@freeIC){
+              #y0[i, ] <- dynrModel@initial$values.inistate[[1]] + b[i, (1:num.x)]
 			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
 			}
 			else{
-			  #y0[i, ] <- model$initial$values.inistate[[1]] 
+			  #y0[i, ] <- dynrModel@initial$values.inistate[[1]] 
 			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1]
 			}
 		  }
 		}
 		# y0<- matrix(c(2.8943, 2.7370, 1.0120, 1.8056, 1.6517, 2.4414, 1.3905   -0.0999, 1.7179, 2.3390, 1.4471, 1.8978, 2.9108, 0.7028, 2.5545, 1.5768, 3.2847, 0.6709, 1.2588, 0.7579, 1.2183, 2.5117, 1.1434, 2.4538, 2.3197, 1.8457, 1.3066, 3.0685, 2.0675, 2.4461, 2.0649, 1.8809, 1.4026, 3.1053   -0.0348   -1.1215, 1.6681, 1.9565, 2.6411, 1.8611, 0.4022, 1.8196, 2.3910, 2.4407, 2.7521, 0.4220, 2.2558, 2.4675, 1.9894, 1.4271, 1.4571, 2.2556, 1.4189, 3.5124, 3.7355, 0.2686, 1.8448, 2.5865, 2.1420, 1.3040, 2.3083, 0.7862, 2.7918, 0.5926, 2.9407, 1.6763, 1.5685, 0.5470, 2.1088 , 1.8713, 0.5298, 3.1700, 1.3991, 1.5801, 1.6109, 2.3327, 2.7215, 2.8108, 3.0780   -0.0760, 2.0749, 2.6799, -0.2947, 2.2974, 2.0846, 3.7754, 2.6616, 1.9206, 2.2201, 1.0827, 2.3168, 1.7449, 2.0020, 1.6479, 2.6502, 2.4951, 1.9619, 1.2890, 0.9410, 1.5389, 3.0821, 1.4035, 1.1950, 0.2468, 0.9075, 3.5126, 2.4237, 0.7293, 2.5594, 1.5843, 2.3243, 1.8114, 2.0866, 2.1080, 2.6914, 2.4199, 2.3911, 2.4123, 0.6661, 1.6337, 1.6988, 1.6348, 0.6006, 2.5466, 2.5683, 2.7618, 1.6805, 3.3926, 1.3844, 1.6340, 1.4094, 2.6897, 1.2832, 1.0769, 2.5619, 2.9300, 1.7991, 1.9967, 2.2336   -1.0434, 3.3407, 3.4599, 2.0019, 2.6400, 2.2386, 1.2927, 3.8334, 2.9341, 2.5831, 2.1816, 3.2356, 1.1322, 1.7038, 3.0659, 1.8767, 0.5955, 2.6554, 1.3435, 2.4426, 2.7236, 1.7719, 1.9509, 3.1603, 2.5185, 2.1783, 2.2093, 1.4967, 1.6336, 0.0459, 3.1868, 0.0687, 2.2556, 3.3849, 2.9790, 2.3975, 0.0534, 1.3006, 3.0543, 3.5471, 2.0166, 1.6686, 2.0387, 3.4958, 2.5447, 0.1896, 1.9407, 2.5985, 2.0634, 2.0356, 2.0175, 2.4723, 1.0182, 1.2379, 1.5167, 1.8446, 1.7766, 0.7159, 2.6900, 2.0392, 2.8739, 0.4624, 0.0706, 0.6249, 0.9172, 0.0421, 0.0793, 0.1179, 0.7781, 0.1407, 0.0826, 0.2892, 0.4860, 0.3644, 0.6703, 0.9860, 0.7820, 1.3539, 1.0307, 1.0159, 0.5982, 0.6500, 0.2560, 0.4808, 0.7606   -0.3351   -0.1885, 0.4104, 0.2887, 0.0800, 1.1323, 0.3694, 0.8045, 0.5759, 0.9073, 0.4047, 0.1989, 0.0260, 0.2530, 0.5172, 0.3613, 0.9084, 0.4301   -0.0026, 0.3471, 1.0066, 0.6358, -0.1921, 0.1958, 0.4531, 0.7984, 0.4938, 0.2504, 0.4097, 0.7020, 0.8752, 0.6686, 0.2209, 0.6495, 0.3543, 1.0411, 0.0954, 0.3475, 0.5533, 0.9810, 0.7804, 0.7344, 0.7817, 0.0859, 0.3810, 0.3284   -0.0828, 0.6099, 0.3803, 1.0668, 0.4722, 0.7875, 0.3675, 0.1021, 0.4357   -0.0533, 0.3793, 0.0354, 0.4712   -0.2189, 0.3164, 0.5974, 0.5500, 0.4033, 0.5692, 0.4681, 1.1319, 0.6142, 0.0010, 0.4135, 0.4866, 0.6566, 0.5413, 0.6134, 1.0547, 0.3003, 0.8044, 0.9241, 0.5420, 0.8155, 1.1716, 0.5340, 0.4557, 0.2982, 0.4690, 0.9057, 0.4100, 1.0455, 0.5135, 0.5274, 0.2402, 0.4637, 0.1206, 0.5328, 0.6013, 0.0912, 0.6672, 0.1116, 0.5839, 0.2063, 0.8864, 0.1042, 0.4523, 0.9145, 0.4296, 0.3689, 0.7752, 0.8477, 0.5880, 0.3177, 0.4780, 0.7139, 0.7702, 0.8109, 0.2058, 0.8134, 0.7243, 0.1311, 0.8030, 0.7413, 0.4636, 0.8412, 0.5593, 0.3297, 0.3947, 0.4607, 0.6301, 0.6924, 1.3025, 0.8481, 0.8351, 0.8834, 0.4811, 0.6937   -0.2270, 0.5713, 0.4597, 0.3622, 0.3677, 0.4871, 0.3591, 0.7494, 0.1330, 0.4007, 0.0113, 0.5606   -0.1537, 0.7687, 0.2914, 0.5620, 0.3941, 0.6841, 0.2825, 0.1608, 0.4387, 0.8990, 0.5343, 0.4610, 0.3212, 0.2341, 0.3733, 0.3787, 1.0213, 0.3553, 0.4321, 0.3016, 0.1585, 0.6842, 0.4024, 0.6357   -0.1361, 0.6505, 0.8996, 0.4596   -0.2569, 0.7014), nrow=num.subj, ncol=2)
-		model$initial@y0 <- list(y0)
+		dynrModel@initial@y0 <- list(y0)
 
 		
 		
@@ -669,27 +669,27 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			mu = mu.values,
 			lower_bound=lower_bound,
 			upper_bound=upper_bound,
-			dmudparMu=model@dmudparMu,
-			dmudparMu2=model@dmudparMu2,
+			dmudparMu=dynrModel@dmudparMu,
+			dmudparMu2=dynrModel@dmudparMu2,
 			dSigmaede=dSigmaede,
 			dSigmaede2=dSigmaede2,
-			dLambdparLamb=model@dLambdparLamb,
-			dLambdparLamb2=model@dLambdparLamb2,
-			dSigmabdb = model@dSigmabdb,
-			dSigmabdb2 = model@dSigmabdb2,
-			time_=model$data$time,
-			freeIC=model@freeIC,
+			dLambdparLamb=dynrModel@dLambdparLamb,
+			dLambdparLamb2=dynrModel@dLambdparLamb2,
+			dSigmabdb = dynrModel@dSigmabdb,
+			dSigmabdb2 = dynrModel@dSigmabdb2,
+			time_=dynrModel@data$time,
+			freeIC=dynrModel@freeIC,
 			par_value=par_value,
 			seed=saemp@seed,
 			y0=y0#,
-			#num_time=length(model$tspan) # number of unique time points
+			#num_time=length(dynrModel@tspan) # number of unique time points
         )
-        #print(model$MAXGIB)
-		#print(model$gainpara)
+        #print(dynrModel@MAXGIB)
+		#print(dynrModel@gainpara)
 		
         
-        libname <- model$libname
-        model$libname <- NULL
+        libname <- model@libname
+        model@libname <- NULL
         
         
         
@@ -700,14 +700,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         
         # the following code compiles the generated file of dynr.model, comment out now for testing
         # some related comments also be commented in dynrModelInternal.R
-        # if(any(sapply(model$func_address, is.null.pointer))){
+        # if(any(sapply(model@func_address, is.null.pointer))){
             # warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
             # if(missing(infile)){
                 # stop("Cannot compile your functions because 'infile' argument is missing.")
             # }
-            # addr <- .C2funcaddressSAEM(isContinuousTime=model$isContinuousTime, infile=infile, verbose=verbose)
+            # addr <- .C2funcaddressSAEM(isContinuousTime=model@isContinuousTime, infile=infile, verbose=verbose)
             # print('C2funcaddressSAEM done')
-            # model$func_address <- addr$address
+            # model@func_address <- addr$address
             # libname <- addr$libname
         # }
         # gc()
