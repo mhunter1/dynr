@@ -2466,7 +2466,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   #dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
   dfdtheta <- autojacobTry(formula, diff.variables=theta.names)
   x$dfdtheta <- dfdtheta
-  x$theta.names<-theta.names
+  #x$theta.names<-theta.names
   
   #dfdx <- autojacobTry(formula_onlystate, diff.variables=state.names)
   dfdx <- autojacobTry(formula, diff.variables=state.names)
