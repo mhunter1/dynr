@@ -659,8 +659,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   }
 
+
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
-  legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names)
+  legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names, 'exp')
   variables <- extractVariablesfromFormula(unlist(dynamics@formula))
   if(any(variables %in% data$observed.names)){
     error.variables <- variables[variables %in% data$observed.names == TRUE]
@@ -668,8 +669,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   
   if(!all(variables %in% legal.variables)){
-    error.variables <- variables[variables %in% legal.variables == FALSE]
-    stop(paste0("In formula, there is variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+
+    error.variables <- variables[variables %in% legal.variables  == FALSE]
+    stop(paste0("In formula, there are variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
   }
   
   # Examine variables in theta.formula: if there exist variables that are not in all.params and state.names, issue an error
@@ -680,8 +682,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
     }
     if(!all(variables %in% legal.variables)){
-      error.variables <- variables[variables %in% legal.variables == FALSE]
-      stop(paste0("In theta.formula, there is variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+      error.variables <- variables[variables %in% legal.variables  == FALSE]
+      stop(paste0("In theta.formula, there are variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
     }
   }
   
