@@ -558,7 +558,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		num.x <- length(dynrModel@initial$params.inistate[[1]])
-		num.subj <- length(unique(data$original.data[['id']]))
+		#num.subj <- length(unique(data$original.data[['id']]))
+		num.subj <- length(unique(data$id))
 		# ******examined (not extended)
 		if(dynrModel@freeIC == FALSE){
 		  random.names <- dynrModel@dynamics@random.names}
@@ -597,8 +598,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
 
-		#browser()
-		trueb <- data$trueb[data$tstart[1:num.subj+1], ]
+		browser()
+		#trueb <- data$trueb[data$tstart[1:num.subj+1], ]
 		
 		 
 		# obtain y0 form eta_smooth_final		
@@ -651,7 +652,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=as.vector(dynrModel@measurement$values.load[[1]]), #column-major
             b= b,
-			trueb=trueb,
+			#trueb=trueb,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
 			bAdaptParams=saemp@bAdaptParams,
