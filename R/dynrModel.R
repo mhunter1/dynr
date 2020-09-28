@@ -616,9 +616,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if(inistate.dim[1]!=numLatentVars){
       stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
     }
-    if(inistate.dim[2]!= 1){
-      stop("The initial states should be a column vector.")
-    }
     if(inicov.dim[1]!=numLatentVars){
       msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
       stop(msg, call. = F)
