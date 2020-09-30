@@ -65,8 +65,11 @@ man/prep.tfun.Rd
 man/printex.Rd
 man/returnExponentialSymbolicTerm.Rd
 man/RSPPsim.Rd
+man/solveOneElementEquation.Rd
+man/solveStartLDL.Rd
 man/substituteFormula.Rd
 man/summary.dynrCook.Rd
+man/symbolicLDLDecomposition.Rd
 man/theta_plot.Rd
 man/TrueInit_Y14.Rd
 man/VARsim.Rd
