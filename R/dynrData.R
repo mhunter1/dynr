@@ -81,7 +81,9 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', trueb = 'trueb', obse
 		time=as.double(dataframe[,time]),
 		observed=data.frame(apply(dataframe[ , observed, drop=FALSE], 2, as.double)),
 		observed.names=observed,
-		original.data=dataframe
+		original.data=dataframe,
+		idVar=id,
+		timeVar=time
 		)
 	if(!missing(covariates)){
 		data.object$covariate.names <- covariates

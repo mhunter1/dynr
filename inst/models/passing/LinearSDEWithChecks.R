@@ -157,5 +157,12 @@ testthat::expect_error(
 
 
 #------------------------------------------------------------------------------
+# Check that number of assigned values from coef<- is the same as number available
+
+testthat::expect_error(
+	coef(model) <- rep(.1, 7),
+	regexp="Number of model coeficients (5) does not match number assigned (7).", fixed=TRUE)
+
+#------------------------------------------------------------------------------
 # End
 #save(model,res,file="LinearSDE.RData")

@@ -4,6 +4,7 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include "adaodesolver.h"
+#include <gsl/gsl_rng.h>
 #include <R.h>
 #include <Rinternals.h>
 /******************************************************************************
@@ -65,7 +66,8 @@ double ext_kalmanfilter(size_t t, size_t regime,
 	gsl_vector *eta_t_plus_1, gsl_matrix *error_cov_t_plus_1, 
 	gsl_vector *innov_v, gsl_matrix *inv_innov_cov,
 	gsl_matrix *innov_cov,
-	bool isFirstTime, bool isForReturn);
+	bool isFirstTime, bool isForReturn,
+	bool perturb, gsl_rng *seed);
 
 size_t find_miss_data(const gsl_vector *y, gsl_vector *non_miss);
 

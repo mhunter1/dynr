@@ -1,9 +1,15 @@
 Package: dynr
 Date: 2020-02-14
 Title: Dynamic Modeling in R
-Authors@R: c(person("Lu", "Ou", role="aut", email="lzo114@psu.edu"),
+Authors@R: c(person("Lu", "Ou", role="aut"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mhunter.ou@gmail.com", comment=c(ORCID = "0000-0002-3651-6709")),
-    person("Sy-Miin", "Chow", role="aut", comment=c(ORCID = "0000-0003-1938-027X")))
+    person("Sy-Miin", "Chow", role="aut", comment=c(ORCID = "0000-0003-1938-027X")),
+	person("Linying", "Ji", role="aut", email=""),
+	person("Meng", "Chen", role="aut", email=""),
+	person("Hui-Ju", "Hung", role="aut", email=""),
+	person("Jungmin", "Lee", role="aut", email="leejapply@gmail.com"),
+	person("Yanling", "Li", role="aut", email=""),
+	person("Jonathan", "Park", role="aut", email=""))
 Maintainer: Michael D. Hunter <mhunter.ou@gmail.com>
 Depends:
     R (>= 3.0.0),
@@ -66,6 +72,7 @@ Collate:
     'dynrVersion.R'
     'dataDoc.R'
     'dynrGetDerivs.R'
+    'dynrPredict.R'
 RdMacros: Rdpack
 Biarch: true
 Version: 0.1.15-336

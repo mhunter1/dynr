@@ -34,6 +34,7 @@ Note
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_rng.h>
 #include "wrappernegloglike.h"
 #include "numeric_derivatives.h"
 #include "estimation.h"
@@ -65,8 +66,10 @@ SEXP getListElement(SEXP list, const char *str)
  * @param optimization_flag_in a flag for running optimization
  * @param hessian_flag_in a flag for calculating hessian matrix
  * @param verbose_flag_in a flag of whether or not to print debugging statements before and during estimation.
+ * @param perturb_flag_in a flag of whether latent states should be perturbed. Used for ensemble forecastig.
+ * @param seed_in the integer seed to use for backend random number generation
  */
-SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in)
+SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_flag_in, SEXP optimization_flag_in, SEXP hessian_flag_in, SEXP verbose_flag_in, SEXP perturb_flag_in, SEXP seed_in)
 {
 	size_t index,index_col,index_row;
 	bool debug_flag = *LOGICAL(PROTECT(debug_flag_in));
@@ -74,6 +77,11 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	bool hessian_flag = *LOGICAL(PROTECT(hessian_flag_in));
 	bool verbose_flag = *LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag = *LOGICAL(PROTECT(weight_flag_in));
+	bool perturb_flag = *LOGICAL(PROTECT(perturb_flag_in));
+	long int seed = *INTEGER(PROTECT(seed_in));
+	gsl_rng * rng_seed = gsl_rng_alloc (gsl_rng_default); //default type of RNG
+	gsl_rng_set(rng_seed, seed);
+	
 	/** =======================Interface : Start to Set up the data and the model========================= **/
 	
 	static Data_and_Model data_model;
@@ -488,7 +496,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    	pr_t, pr_t_given_t_minus_1,
 			eta_t, error_cov_t,
 			eta_pred_t, error_cov_pred_t, 
-			innov_v_t, residual_cov_t);
+			innov_v_t, residual_cov_t,
+			perturb_flag, rng_seed);
 
 	    if (optimization_flag & ( (status < 0) | (!isfinite(neg_log_like)) ) ) {
 			MYPRINT("nlopt failed!\n");
@@ -507,7 +516,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 			pr_t_given_t_minus_1, pr_t, 
 			eta_regime_jk_pred, error_cov_regime_jk_pred, 
 			eta_regime_j_t, error_cov_regime_j_t,
-			eta_smooth, error_cov_smooth, pr_T, transprob_T);
+			eta_smooth, error_cov_smooth, pr_T, transprob_T,
+			perturb_flag, rng_seed);
 
     /** =================Extended Kim Filter and Smoother: done======================**/
 
@@ -523,7 +533,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	    res_list=PROTECT(allocVector(VECSXP,10));
 	    res_names=PROTECT(allocVector(STRSXP, 10));
 	}
-
+	
+	// Free the seed used for ensemble random number generation
+	gsl_rng_free(rng_seed);
 
     SEXP exitflag=PROTECT(allocVector(INTSXP,1));
     *INTEGER(exitflag)=status;
@@ -769,9 +781,9 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
     /** =================Free Allocated space====================== **/
 	DYNRPRINT(verbose_flag, "Freeing objects before return ... \n");
     if (data_model.pc.isContinuousTime){
-			UNPROTECT(18+3+16);
+			UNPROTECT(18+3+16+2);
 	}else{
-			UNPROTECT(18+2+16);
+			UNPROTECT(18+2+16+2);
 	}
 	
     free(str_number);

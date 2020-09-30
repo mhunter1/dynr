@@ -21,6 +21,9 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "print_function.h"
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 
 
 /******************************************************************************
@@ -91,7 +94,8 @@ double ext_kalmanfilter(size_t t,
 		gsl_matrix *inv_innov_cov,
 		gsl_matrix *innov_cov,
 		bool isFirstTime,
-		bool isForReturn){
+		bool isForReturn,
+		bool perturb, gsl_rng *seed){
 	// N.B. eta_pred, error_cov_pred, innov_cov, innov_v, eta_t_plus_1, error_cov_t_plus_1 all must set set and passed back when used for final return
 	
 	int DEBUG_EKF = 0; /*0=false/no; 1=true/yes*/
@@ -142,11 +146,45 @@ double ext_kalmanfilter(size_t t,
 		MYPRINT("\n");
 	}
 	
-	
+	// dynamic noise = eta_noise_cov
+	// updated/filtered cov = error_cov_t
 	if(isFirstTime){
 		gsl_vector_memcpy(eta_t_plus_1,eta_t);
 	} else{
+		if(perturb){
+			// Optionally perturb state here
+			// Add multivariate Gaussian noise to eta_t with mean 0 and covariance eta_noise_cov
+			gsl_vector* rout = gsl_vector_calloc(nx);
+			gsl_matrix* eta_noise_cov_chol = gsl_matrix_calloc(nx, nx);
+			gsl_matrix_memcpy(eta_noise_cov_chol, eta_noise_cov); //Uses updated/filtered latent state covariance
+			gsl_linalg_cholesky_decomp(eta_noise_cov_chol);
+			for(size_t gi=0; gi < nx; gi++){
+				gsl_vector_set(rout, gi, gsl_ran_gaussian(seed, 1.0)); 
+			}
+			if(DEBUG_EKF){
+				MYPRINT("Unperturbed latent state:\n");
+				print_vector(eta_t);
+				MYPRINT("\n");
+			}
+			gsl_blas_dsymv(CblasLower, 1.0, eta_noise_cov_chol, rout, 1.0, eta_t);
+			// eta_t = eta_t + S * rout
+			if(DEBUG_EKF){
+				MYPRINT("Random Vector:\n");
+				print_vector(rout);
+				MYPRINT("\n");
+				MYPRINT("Perturbed latent state:\n");
+				print_vector(eta_t);
+				MYPRINT("\n");
+			}
+			gsl_matrix_free(eta_noise_cov_chol);
+			gsl_vector_free(rout);
+		}
 		func_dynam(y_time[t-1], y_time[t], regime, eta_t, params, num_func_param, co_variate, func_dx_dt, eta_t_plus_1); /** y_time - observed time**/
+		if(DEBUG_EKF){
+			MYPRINT("Dynamically forecast ahead latent state:\n");
+			print_vector(eta_t_plus_1);
+			MYPRINT("\n");
+		}
 	}
 	
 	// copy eta_pred for storage and return when running for return (i.e. "smoothing")
@@ -358,7 +396,7 @@ double ext_kalmanfilter(size_t t,
 	
 	
 	/*------------------------------------------------------*\
-	* Fitered Estimate *
+	* Filtered Estimate *
 	\*------------------------------------------------------*/
 	
 	

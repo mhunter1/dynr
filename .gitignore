@@ -54,6 +54,7 @@ man/plot.dynrCook.Rd
 man/plotFormula.Rd
 man/plotGCV.Rd
 man/PPsim.Rd
+man/predict.dynrModel.Rd
 man/prep.formulaDynamics.Rd
 man/prep.initial.Rd
 man/prep.loadings.Rd

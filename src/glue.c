@@ -20,14 +20,14 @@ static R_NativePrimitiveArgType main_R_t[] = {
 
 
 static R_CMethodDef cMethods[] = {
-   {".BackendC", (DL_FUNC) &main_R, 7, main_R_t},
+   {".BackendC", (DL_FUNC) &main_R, 9, main_R_t},
    {".BackendCS", (DL_FUNC) &main_SAEM, 7, main_R_t},
    {NULL, NULL, 0}
 };
 
 
 static R_CallMethodDef callMethods[] = {
-	{".Backend", (DL_FUNC) main_R, 7},
+	{".Backend", (DL_FUNC) main_R, 9},
 	{".BackendS", (DL_FUNC) main_SAEM, 7},
 	{NULL, NULL, 0}
 };

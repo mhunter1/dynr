@@ -237,7 +237,7 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 		trial <- dynr.cook(modelnew, verbose = verbose)  
 		
 		
-		#getting parameter estimates
+		# getting parameter estimates
 		pmcarqhat[j,] <- coef(trial)[1:k]
 		pmcaru[, ,j] <- vcov(trial)[c(1:k),c(1:k)]
 	}

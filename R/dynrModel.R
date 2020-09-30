@@ -74,65 +74,65 @@ setMethod("show", "dynrModel", function(object){printRecipeOrModel(object)})
 ##' 
 ##' @param x The dynrModel object from which the free parameter names are desired
 setMethod("names", "dynrModel",
-    function(x) {
-        pnames <- x$param.names
-        output <- c(pnames)
-        output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
-        return(output)
-    }
+	function(x) {
+		pnames <- x$param.names
+		output <- c(pnames)
+		output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+		return(output)
+	}
 )
 
 .DollarNames.dynrModel <- function(x, pattern){
-    if(missing(pattern)){
-        pattern <- ''
-    }
-    output <- slotNames(x)
-    output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
-    return(grep(pattern, output, value=TRUE))
+	if(missing(pattern)){
+		pattern <- ''
+	}
+	output <- slotNames(x)
+	output <- gsub("(\\w+\\W+.*)", "'\\1'", output)
+	return(grep(pattern, output, value=TRUE))
 }
 
 setReplaceMethod("$", "dynrModel",
-    function(x, name, value){
-        if(name %in% c('xstart', 'ub', 'lb')){
-            # Check that the length is okay
-            if(length(value) != length(x$param.names)){
-                stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
-                    "but I need", length(x$param.names),
-                    "(the number of free parameters)."))
-            }
-            if(is.null(names(value))){
-                names(value) <- x$param.names
-            }
-            lookup <- match(names(value), x$param.names)
-            lookup <- union(na.omit(lookup), 1L:length(value))
-            value[lookup] <- value
-            names(value) <- x$param.names
-            slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
-            # Check that parameters are within the bounds and the bounds are in order
-            if(any(na.omit(x$ub < x$lb))){
-                warning("Some of the lower bounds are above the upper bounds. Bad, user!")
-            }
-            if(any(na.omit(x$ub < x$xstart))){
-                offenders <- names(which(na.omit(x$ub < x$xstart)))
-                offenders <- paste(offenders, collapse=', ')
-                msg <- paste0("I spy with my little eye an upper bound that is smaller than the starting value.\n",
-                    "Offending parameter(s) named: ", offenders)
-                warning(msg)
-            }
-            if(any(na.omit(x$lb > x$xstart))){
-                offenders <- names(which(na.omit(x$lb > x$xstart)))
-                offenders <- paste(offenders, collapse=', ')
-                msg <- paste0("I spy with my little eye a lower bound that is larger than the starting value.\n",
-                    "Offending parameter(s) named: ", offenders)
-                warning(msg)
-            }
-        } else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
-            slot(object=x, name=name, check = TRUE) <- value
-        } else {
-            stop(paste0("You can't set the ", name, " slot of a dynrModel.", "  You're not allowed to touch me there."))
-        }
-        return(x)
-    }
+	function(x, name, value){
+		if(name %in% c('xstart', 'ub', 'lb')){
+			# Check that the length is okay
+			if(length(value) != length(x$param.names)){
+				stop(paste("I'm going over my borders.", "You gave me", length(value), "things,",
+					"but I need", length(x$param.names),
+					"(the number of free parameters)."))
+			}
+			if(is.null(names(value))){
+				names(value) <- x$param.names
+			}
+			lookup <- match(names(value), x$param.names)
+			lookup <- union(na.omit(lookup), 1L:length(value))
+			value[lookup] <- value
+			names(value) <- x$param.names
+			slot(object=x, name=name, check = TRUE) <- x$transform$inv.tfun.full(value) #suppressWarnings(expr)
+			# Check that parameters are within the bounds and the bounds are in order
+			if(any(na.omit(x$ub < x$lb))){
+				warning("Some of the lower bounds are above the upper bounds. Bad, user!")
+			}
+			if(any(na.omit(x$ub < x$xstart))){
+				offenders <- names(which(na.omit(x$ub < x$xstart)))
+				offenders <- paste(offenders, collapse=', ')
+				msg <- paste0("I spy with my little eye an upper bound that is smaller than the starting value.\n",
+					"Offending parameter(s) named: ", offenders)
+				warning(msg)
+			}
+			if(any(na.omit(x$lb > x$xstart))){
+				offenders <- names(which(na.omit(x$lb > x$xstart)))
+				offenders <- paste(offenders, collapse=', ')
+				msg <- paste0("I spy with my little eye a lower bound that is larger than the starting value.\n",
+					"Offending parameter(s) named: ", offenders)
+				warning(msg)
+			}
+		} else if(name %in% c('dynamics', 'measurement', 'noise', 'initial', 'regimes', 'transform')) {
+			slot(object=x, name=name, check = TRUE) <- value
+		} else {
+			stop(paste0("You can't set the ", name, " slot of a dynrModel.", "  You're not allowed to touch me there."))
+		}
+		return(x)
+	}
 )
 
 ##' Extract the number of observations for a dynrModel object
@@ -150,26 +150,29 @@ setReplaceMethod("$", "dynrModel",
 ##' # Let rawModel be the output from dynr.model
 ##' #nobs(rawModel)
 nobs.dynrModel <- function(object, ...){
-    dim(object$data$observed)[1]
+	dim(object$data$observed)[1]
 }
 
 
 ##' @rdname coef.dynrCook
 coef.dynrModel <- function(object, ...){
-    object$transform$tfun(object$xstart)
+	object$transform$tfun(object$xstart)
 }
 
 ##' @rdname coef.dynrCook
 ##' 
 ##' @param value values for setting
 `coef<-` <- function(object, value){
-    UseMethod("coef<-")
+	UseMethod("coef<-")
 }
 
 ##' @rdname coef.dynrCook
 `coef<-.dynrModel` <- function(object, value){
-    object <- PopBackModel(object, value)
-    return(object)
+	if(length(coef(object)) != length(value)){
+		stop(paste0("Number of model coeficients (", length(coef(object)), ") does not match number assigned (", length(value), ")."))
+	}
+	object <- PopBackModel(object, value)
+	return(object)
 }
 
 
@@ -179,52 +182,52 @@ implode <- function(..., sep='') {
 
 
 vecRegime <- function(object){
-    objValues <- object$values
-    objParams <- object$params
-    numRegimes <- nrow(object$values)
-    covariates <- object$covariates
-    numCovariates <- length(covariates)
-    deviation <- object$deviation
-    refRow <- object$refRow
-    
-    if(deviation){
-        if(nrow(objValues)!=0 && nrow(objParams)!=0){
-            interceptSel <- seq(1, ncol(objValues), by=numCovariates+1)
-            intercept.values <- matrix(objValues[refRow, interceptSel], numRegimes, 1)
-            intercept.params <- matrix(objParams[refRow, interceptSel], numRegimes, 1)
-            objValues[refRow, interceptSel] <- 0
-            objParams[refRow, interceptSel] <- 0
-        }
-    } else {
-        intercept.values <- matrix(0, numRegimes, 1)
-        intercept.params <- matrix(0, numRegimes, 1)
-    }
-    
-    colBeginSeq <- seq(1, ncol(objValues), by=numCovariates+1)
-    colEndSeq <- colBeginSeq + numCovariates
-    Prlist <- list()
-    for (j in 1:numRegimes){
-        for(k in 1:numRegimes){
-            colSel <- colBeginSeq[k]:colEndSeq[k]
-            #namesLO = paste0("&\\frac{Pr(p",j,k,")}{1-Pr(p",j,k,")}")
-            namesLO = paste0("&Log Odds(p", j, k, ")")
-            mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
-            mat2 <- matrix(c(1, covariates), ncol=1)
-            # drop zeros before multiplication
-            mat2 <- mat2[mat1 !=0 ]
-            mat1 <- mat1[mat1 !=0 ]
-            a <- paste(mat1, mat2, sep="*")
-            a <- gsub("*1", "", a, fixed=TRUE)
-            b <- intercept.values[k, 1]
-            b <- b[ b != 0]
-            a <- implode(c(b, a), sep=" + ")
-            if(nchar(a) > 0){
-                a <- paste0(namesLO, " = ", a)
-                Prlist <- paste0(Prlist , a, "\\\\")
-            }
-        }#End of loop through colIndex
-    }#End of loop through regime
-    return(Prlist)
+	objValues <- object$values
+	objParams <- object$params
+	numRegimes <- nrow(object$values)
+	covariates <- object$covariates
+	numCovariates <- length(covariates)
+	deviation <- object$deviation
+	refRow <- object$refRow
+	
+	if(deviation){
+		if(nrow(objValues)!=0 && nrow(objParams)!=0){
+			interceptSel <- seq(1, ncol(objValues), by=numCovariates+1)
+			intercept.values <- matrix(objValues[refRow, interceptSel], numRegimes, 1)
+			intercept.params <- matrix(objParams[refRow, interceptSel], numRegimes, 1)
+			objValues[refRow, interceptSel] <- 0
+			objParams[refRow, interceptSel] <- 0
+		}
+	} else {
+		intercept.values <- matrix(0, numRegimes, 1)
+		intercept.params <- matrix(0, numRegimes, 1)
+	}
+	
+	colBeginSeq <- seq(1, ncol(objValues), by=numCovariates+1)
+	colEndSeq <- colBeginSeq + numCovariates
+	Prlist <- list()
+	for (j in 1:numRegimes){
+		for(k in 1:numRegimes){
+			colSel <- colBeginSeq[k]:colEndSeq[k]
+			#namesLO = paste0("&\\frac{Pr(p",j,k,")}{1-Pr(p",j,k,")}")
+			namesLO = paste0("&Log Odds(p", j, k, ")")
+			mat1 <- matrix(objValues[j, colSel], ncol=numCovariates+1)
+			mat2 <- matrix(c(1, covariates), ncol=1)
+			# drop zeros before multiplication
+			mat2 <- mat2[mat1 !=0 ]
+			mat1 <- mat1[mat1 !=0 ]
+			a <- paste(mat1, mat2, sep="*")
+			a <- gsub("*1", "", a, fixed=TRUE)
+			b <- intercept.values[k, 1]
+			b <- b[ b != 0]
+			a <- implode(c(b, a), sep=" + ")
+			if(nchar(a) > 0){
+				a <- paste0(namesLO, " = ", a)
+				Prlist <- paste0(Prlist , a, "\\\\")
+			}
+		}#End of loop through colIndex
+	}#End of loop through regime
+	return(Prlist)
 }
 
 LaTeXnames<-function(names, decimal = 2, latex = TRUE){
@@ -524,9 +527,9 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' Several \emph{named} arguments can be passed into the \code{...} section of the function.  These include
 ##' \itemize{
-##'     \item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
-##'     \item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
-##'     \item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
+##' 	\item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
+##' 	\item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
+##' 	\item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
 ##' for details. Available options for use with a dynrModel object 
 ##' include xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, and maxtime, 
 ##' all of which control the termination conditions for parameter optimization. The examples below show a case where options were set.
@@ -534,11 +537,11 @@ setMethod("printex", "dynrModel",
 ##' 
 ##' There are several available methods for \code{dynrModel} objects.
 ##' \itemize{
-##'     \item The dollar sign ($) can be used to both get objects out of a model and to set pieces of the model.
-##'     \item \code{names} returns the names of the free parameters in a model.
-##'     \item \code{\link{printex}} prints LaTeX expressions for the equations that compose a model. The output can then be readily typeset for inclusion in presentations and papers.
-##'     \item \code{nobs} gives the total number of observations (e.g. all times across all people)
-##'     \item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
+##' 	\item The dollar sign ($) can be used to both get objects out of a model and to set pieces of the model.
+##' 	\item \code{names} returns the names of the free parameters in a model.
+##' 	\item \code{\link{printex}} prints LaTeX expressions for the equations that compose a model. The output can then be readily typeset for inclusion in presentations and papers.
+##' 	\item \code{nobs} gives the total number of observations (e.g. all times across all people)
+##' 	\item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
 ##' }
 ##' 
 ##' @examples
@@ -553,22 +556,103 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  #check the order of the names 
+  
+  if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
+    stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
+  }
+
+  if(!class(noise) %in% "dynrNoise"){
+    stop("Check to see that noise argument is of the correct class. Hint: it should be 'dynrNoise'.")
+  }
+  
+  # Set ground truth for number/name of states and observations
+  nameLatentVars <- measurement$state.names
+  numLatentVars <- length(nameLatentVars)
+  nameObsVars <- measurement$obs.names
+  numObsVars <- length(nameObsVars)
+  # numRegimes is defined and checked later in this function
+  
+  # check the order of the names 
   if (class(dynamics) == "dynrDynamicsFormula"){
     saem <- dynamics$saem
 
     states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
+    if(any(sapply(states.dyn, length) != numLatentVars)){
+      statePaste <- paste0('(', paste(sapply(states.dyn, length), collapse=', '), ')')
+      stop(paste0("Found ", statePaste, " latent states in dynamics formula, but expected (", numLatentVars, ") latent states from measurement model."))
+    }
     if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
       states.dyn=states.dyn[[1]]
     }else{
       stop("Formulas should be specified in the same order for different regimes.")
     }
-
-    if (!all(measurement@state.names == states.dyn)){
-      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order of the dynamic formulas specified.")
+    if(!all(states.dyn[[1]] %in% nameLatentVars)){
+      stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
+    }
+    #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
+    if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
+      #states.dyn=states.dyn[[1]]#}else{
+      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
+    }
+    
+    #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
+  }
+  # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
+  # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
+  # 2. whether values.dyn and params.dyn are of the same matrix dimension
+  # so it should be enough to just check one matrix
+  if(class(dynamics) == "dynrDynamicsMatrix"){
+    state.dimension <- dim(dynamics@values.dyn[[1]])
+    if(state.dimension[1]!=numLatentVars|state.dimension[2]!=numLatentVars){
+      stop("The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.")
     }
   }
-
+  
+  # if class == "dynrNoise" then check that 1. the measurement noise is numObsVars by numObsVars
+  # 2. the dynamic noise is numLatentVars by numLatentVars
+  # Note that prep.noise already checks for 1. whether values.latent, params.latent, values.observed and params.observed are symmetric
+  # 2. whether values.latent and params.latent are of the same matrix dimension
+  # 3. whether values.observed and params.observed are of the same matrix dimension
+  
+  if(class(noise) == "dynrNoise"){
+    observed.dimension <- dim(noise@values.observed[[1]]) 
+    latent.dimension <- dim(noise@values.latent[[1]])
+    if(observed.dimension[1]!=numObsVars){
+      stop("The dimension of the measurement noise convariance matrix in prep.noise should match the number of observed variables in 'dynrMeasurement'.")
+    }
+    if(latent.dimension[1]!=numLatentVars){
+      stop("The dimension of the dynamic noise covariance matrix in prep.noise should match the number of latent states in 'dynrMeasurement'.")
+    }
+  }
+  
+  # if class == "dynrInitial" then 
+  ## 1. Check that ini.state is ne by 1
+  ## 2. Check that ini.cov is ne by ne
+  ## 3. Check that regimep is nr by 1 <- Q: Do separately after numregimes are set?
+  if(class(initial) == "dynrInitial"){
+    inistate.dim <- dim(initial@values.inistate[[1]])  
+    inicov.dim <- dim(initial@values.inicov[[1]])
+    if(inistate.dim[1]!=numLatentVars){
+      stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
+    }
+    if(inistate.dim[2]!= 1){
+      stop("The initial states should be a column vector.")
+    }
+    if(inicov.dim[1]!=numLatentVars){
+      msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
+      stop(msg, call. = F)
+    }
+    # iniregime.dim <- dim(initial@values.regimep)
+    # if(iniregime.dim[1]!=numRegimes){
+    #   stop("The number of the regimes in 'prep.initial' should match the number of regimes in 'dynrRegimes'.")
+    # }
+    # if(iniregime.dim[2]!= 1){
+    #     stop("The initial regime probabilities should be a column vector.")
+    # }      
+    
+  }  
+  
+  
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
@@ -623,6 +707,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # gather inputs
   inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
 
+  # beginning of new version to actually process the 'options' argument correctly	
+  #  # gather inputs	
+  #  extraArg <- list(...)	
+  #  extraNames <- match.arg(names(extraArg), c('options', 'regimes', 'transform'), several.ok=TRUE)	
+  #  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)	
+  #  if('armadillo' %in% names(inputs)){inputs$armadillo <- NULL}
+  
   # Figure out what the unique parameters are
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))
   unique.params <- extractParams(all.params)
@@ -836,9 +927,17 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     numRegimes <- 1L
   }
   
-  all.regimes <- sapply(inputs, impliedRegimes)
+  #cat('numRegimes = ', numRegimes)
+  
+  #The following lines basically compare the maximum number of regimes implied by each recipe object
+  #against (1 or the maximum regimes across all recipes). Elaborated error messages to be more informative.
+  all.regimes <- sapply(inputs[!names(inputs) %in% "data"], impliedRegimes)
   if(!all(all.regimes %in% c(1, max(all.regimes)))){
-    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), "\nNumber of regimes must be 1 or ", max(all.regimes), "\n", "On Wednesdays we wear pink!"))
+    likelyNum = as.numeric(names(sort(table(all.regimes[all.regimes > 1]),decreasing=TRUE)[1]))
+    deviantR = names(all.regimes[!all.regimes %in% c(likelyNum) & all.regimes > 1])
+    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", 
+                paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), 
+                "\nNumber of regimes in each recipe must be ",numRegimes," according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : ",paste(deviantR,collapse=", ")))
   }
   
 
@@ -857,12 +956,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   param.data$param.value=unique.values
   
-  #browser()
   #initiate a dynrModel object
   if(saem==FALSE){
     # note: random.params.inicov of EstimateRandomAsLV is prepared in dynr.cook. Thus there is no need to attached it here
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
-
+    obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
+    obj.dynrModel@num_regime <- numRegimes
   }
   else if(saem==TRUE){
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC), inputs))
@@ -923,7 +1022,10 @@ addVariableToThetaFormula  <- function(formula, variable.names){
 impliedRegimes <- function(recipe){
 	if(inherits(recipe, 'dynrRecipe')){
 		sn <- slotNames(recipe)
-		vs <- grep('^values\\.', sn, value=TRUE)
+		if (class(recipe)=="dynrDynamicsFormula"){
+		  vs=c("formula","jacobian")
+		}
+		else{vs <- grep('^values\\.', sn, value=TRUE)}
 		if(length(vs) > 0){
 			sl <- lapply(vs, FUN=slot, object=recipe)
 			nr <- max(sapply(sl, FUN=function(x){if(is.list(x)){return(length(x))} else {return(1)}}))
@@ -944,3 +1046,12 @@ impliedRegimes <- function(recipe){
 
 
 
+checkSSMConformable <- function(mat, rows, cols, matname, modname){
+  if( nrow(mat) != rows || ncol(mat) != cols ){
+    msg <- paste("The ", matname, " matrix is not the correct size",
+                 " in the state space expectation of model ", modname,
+                 ".  It is ", nrow(mat), " by ", ncol(mat), " and should be ",
+                 rows, " by ", cols, ".", sep="")
+    stop(msg, call. = FALSE)
+  }
+}

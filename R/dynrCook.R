@@ -413,6 +413,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' be weighted by the length of the time series for each individual
 ##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can 
 ##' be used for diagnostic purposes
+##' @param perturb_flag a flag (TRUE/FLASE) indicating whether to perturb the latent states during estimation. Only useful for ensemble forecasting.
 ##' 
 ##' @details
 ##' Free parameter estimation uses the SLSQP routine from NLOPT.
@@ -458,7 +459,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @examples
 ##' #fitted.model <- dynr.cook(model)
-dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, ...) {
+dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE, ...) {
 
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
@@ -466,7 +467,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     if(xor(dynrModel@verbose, verbose)){ # If model@verbose does not agree with dynr.cook@verbose
 	  if(verbose){
         message("'verbose' argument to dynr.cook() function did not agree with 'verbose' model slot.\nUsing function argument: verbose = TRUE\n")
-      }
+			}
       dynrModel@verbose <- verbose
       # Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
     }
@@ -478,9 +479,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		coefEst <- coef(fitted_model)
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		#print('Starting values:')
+		#print(dynrModel@xstart)
+		#if('b_est' %in% names(fitted_model))
+		#	b <- fitted_model@b_est
 		return(fitted_model)
 	}	#internalModelPrep convert dynrModel to a model list
-
+	
 	dots <- list(...)
 	saem <- dynrModel$dynamics$saem 
 	if(length(dots) > 0){
@@ -766,9 +771,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model$func_address <- addr$address
 		libname <- addr$libname
 	}
+	seed <- sample(1073741824L, size=1)
 	gc()
 	backendStart <- Sys.time()
-	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+	output <- .Call(.Backend, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, perturb_flag, seed, PACKAGE = "dynr")
 	backendStop <- Sys.time()
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL
@@ -845,7 +851,7 @@ failedProcessing <- function(x, transformation){
   ##See the pseudo-inverse Hessian described in the following chapter, without importance sampling:
   ##Gill, J., et al. (2003). Numerical Issues Involved in Inverting Hessian Matrices. Numerical Issues in Statistical Computing for the Social Scientist, John Wiley & Sons, Inc.: 143-176.
   #Hinv <- MASS::ginv(x) #Generalized inverse of x
-  #V <- sechol(Hinv)   #V <- ifelse(class(sechol(Hinv)) == "try-error", TRUE, FALSE)
+  #V <- sechol(Hinv)   #V <- ifelse("try-error" %in% class(sechol(Hinv)), TRUE, FALSE)
   #V1 <- t(V) %*% V   
 
 #J%*%(ginv(x$hessian))t(J) and flag the negative diagonal elements
@@ -859,7 +865,7 @@ endProcessing <- function(x, transformation, conf.level){
 		#Numerical Jacobian
 		J <- numDeriv::jacobian(func=transformation, x=x$fitted.parameters) # N.B. fitted.parameters has the untransformed/uncontrained free parameters (i.e. log variances that can be negative).
 		iHess0 <- J %*% (MASS::ginv(x$hessian.matrix)) %*% t(J)
-		bad.SE <- diag(iHess0) < 0
+		bad.SE <- is.na(diag(iHess0)) | diag(iHess0) < 0
 		
 		iHess <- J %*% x$inv.hessian %*% t(J)
 		tSE <- sqrt(diag(iHess))
@@ -915,8 +921,8 @@ checkHessian <- function(x, transformation){
 		warning(msg, call.=FALSE)
 		useHess <- (Matrix::nearPD(x$hessian.matrix, conv.norm.type = "F"))$mat
 	}
-	V1 <- try(solve(useHess))
-	if(class(V1) == "try-error"){
+	V1 <- try(solve(useHess), silent=TRUE)
+	if("try-error" %in% class(V1)){
 		failHess <- failHess + 1
 		warning("Hessian is not invertible; used pseudo-inverse.\nModel might not be identified or is not at an optimal solution.\nRegard standard errors suspiciously.", call.=FALSE)
 		V1 <- MASS::ginv(useHess)
@@ -943,9 +949,9 @@ combineModelDataInformation <- function(model, data){
 	model$num_sbj <- as.integer(length(unique(data[['id']])))
 	model$dim_obs_var <- as.integer(ncol(data$observed))
 	if ("covariates" %in% names(data)){
-	  model$dim_co_variate <- as.integer(ncol(data$covariates))
+		model$dim_co_variate <- as.integer(ncol(data$covariates))
 	}else{
-	  model$dim_co_variate <- as.integer(0)
+		model$dim_co_variate <- as.integer(0)
 	}
 	return(model)
 }
@@ -1093,7 +1099,7 @@ is.positive.definite <- function(x){
 }
 
 is.positive.definite2 <- function(x) {
-  class(try(MASS::ginv(x),silent=TRUE))=="matrix"
+	"matrix" %in% class(try(MASS::ginv(x), silent=TRUE))
 }
 
 # From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
@@ -1112,257 +1118,258 @@ is.positive.definite2 <- function(x) {
 	'6'='Maximum optimization time reached. Increase maxtime or change starting values.',
 	'-6'='Likelihood function is NaN and could not find a way out. Optimizer gave up but is not at a converged optimum.')
 
-PopBackMatrix<-function(values.matrix, param.matrix, trans.parameters){
-  if (class(values.matrix)=="list"){
-    num_regime=length(values.matrix)
-    if (num_regime>0){
-      for (i in 1:num_regime){
-         values.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]<-
-        trans.parameters[param.matrix[[i]][which(param.matrix[[i]]!=0,arr.ind = TRUE)]]
-      }
-    }
-  }else{
-    values.matrix[which(param.matrix!=0,arr.ind = TRUE)]<-trans.parameters[param.matrix[which(param.matrix!=0,arr.ind = TRUE)]]
-  }
-  return(values.matrix)
+PopBackMatrix <- function(values.matrix, param.matrix, trans.parameters){
+	if ("list" %in% class(values.matrix)){
+		num_regime <- length(values.matrix)
+		if (num_regime > 0){
+			for (i in 1:num_regime){
+				values.matrix[[i]][which(param.matrix[[i]] !=0 , arr.ind = TRUE)] <- trans.parameters[param.matrix[[i]][which(param.matrix[[i]] !=0 , arr.ind = TRUE)]]
+			}
+		}
+	}else{
+		values.matrix[which(param.matrix !=0 , arr.ind = TRUE)] <- trans.parameters[param.matrix[which(param.matrix != 0, arr.ind = TRUE)]]
+	}
+	return(values.matrix)
 }
 
-PopBackFormula<- function(formula, paramnames, param.names, trans.parameters){
-  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-  for (i in 1:length(paramnames)){
-    string<-gsub(paste0("param\\[", match(paramnames[i], param.names, nomatch=0)-1,"\\]"), trans.parameters[match(paramnames[i], param.names, nomatch=0)], string, perl = TRUE)
-  }
-  eval(parse(text=string))
+PopBackFormula <- function(formula, paramnames, param.names, trans.parameters){
+	string <- paste0(deparse(formula, width.cutoff = 500L), collapse="")
+	for (i in 1:length(paramnames)){
+		string <- gsub(paste0("param\\[", match(paramnames[i], param.names, nomatch=0)-1,"\\]"), trans.parameters[match(paramnames[i], param.names, nomatch=0)], string, perl = TRUE)
+	}
+	eval(parse(text=string))
 }
 
-PopBackModel<-function(dynrModel, trans.parameters){
-  
-  if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
-    if (length(dynrModel@dynamics@paramnames) > 0){
-        dynrModel@dynamics@formula<-PopBackFormula(dynrModel@dynamics@formula,dynrModel@dynamics@paramnames,dynrModel@param.names,trans.parameters) 
-    }
-  }else{
-    dynrModel@dynamics@values.dyn <- PopBackMatrix(dynrModel@dynamics@values.dyn, dynrModel@dynamics@params.dyn, trans.parameters)
-    dynrModel@dynamics@values.exo <- PopBackMatrix(dynrModel@dynamics@values.exo, dynrModel@dynamics@params.exo, trans.parameters)
-    dynrModel@dynamics@values.int <- PopBackMatrix(dynrModel@dynamics@values.int, dynrModel@dynamics@params.int, trans.parameters)
-  }
-  
-    dynrModel@measurement@values.load<-PopBackMatrix(dynrModel@measurement@values.load, dynrModel@measurement@params.load, trans.parameters)
-    dynrModel@measurement@values.exo<-PopBackMatrix(dynrModel@measurement@values.exo, dynrModel@measurement@params.exo, trans.parameters)
-    dynrModel@measurement@values.int<-PopBackMatrix(dynrModel@measurement@values.int, dynrModel@measurement@params.int, trans.parameters)
-  
-  dynrModel@noise@values.latent<-PopBackMatrix(dynrModel@noise@values.latent, dynrModel@noise@params.latent, trans.parameters)
-  dynrModel@noise@values.observed<-PopBackMatrix(dynrModel@noise@values.observed, dynrModel@noise@params.observed, trans.parameters)
-  dynrModel@initial@values.inistate<-PopBackMatrix(dynrModel@initial@values.inistate, dynrModel@initial@params.inistate , trans.parameters) 
-  dynrModel@initial@values.inicov<-PopBackMatrix(dynrModel@initial@values.inicov, dynrModel@initial@params.inicov, trans.parameters) 
-  dynrModel@initial@values.regimep<-PopBackMatrix(dynrModel@initial@values.regimep, dynrModel@initial@params.regimep, trans.parameters)
-  dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
-  
-  # process model matrices to re-extract start values
-  if(length(dynrModel$transform$inv.tfun.full) > 0 && is.numeric(trans.parameters)){
-    trans.parameters <- dynrModel$transform$inv.tfun.full(trans.parameters)
-    dynrModel@xstart <- trans.parameters
-  }
-  return(dynrModel)
+PopBackModel <- function(dynrModel, trans.parameters){
+	if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
+		if (length(dynrModel@dynamics@paramnames) > 0){
+			dynrModel@dynamics@formula <- PopBackFormula(dynrModel@dynamics@formula, dynrModel@dynamics@paramnames, dynrModel@param.names, trans.parameters)
+		}
+	}else{
+		dynrModel@dynamics@values.dyn <- PopBackMatrix(dynrModel@dynamics@values.dyn, dynrModel@dynamics@params.dyn, trans.parameters)
+		dynrModel@dynamics@values.exo <- PopBackMatrix(dynrModel@dynamics@values.exo, dynrModel@dynamics@params.exo, trans.parameters)
+		dynrModel@dynamics@values.int <- PopBackMatrix(dynrModel@dynamics@values.int, dynrModel@dynamics@params.int, trans.parameters)
+	}
+	
+	dynrModel@measurement@values.load <- PopBackMatrix(dynrModel@measurement@values.load, dynrModel@measurement@params.load, trans.parameters)
+	dynrModel@measurement@values.exo <- PopBackMatrix(dynrModel@measurement@values.exo, dynrModel@measurement@params.exo, trans.parameters)
+	dynrModel@measurement@values.int <- PopBackMatrix(dynrModel@measurement@values.int, dynrModel@measurement@params.int, trans.parameters)
+	
+	dynrModel@noise@values.latent <- PopBackMatrix(dynrModel@noise@values.latent, dynrModel@noise@params.latent, trans.parameters)
+	dynrModel@noise@values.observed <- PopBackMatrix(dynrModel@noise@values.observed, dynrModel@noise@params.observed, trans.parameters)
+	
+	dynrModel@initial@values.inistate <- PopBackMatrix(dynrModel@initial@values.inistate, dynrModel@initial@params.inistate , trans.parameters) 
+	dynrModel@initial@values.inicov <- PopBackMatrix(dynrModel@initial@values.inicov, dynrModel@initial@params.inicov, trans.parameters) 
+	dynrModel@initial@values.regimep <- PopBackMatrix(dynrModel@initial@values.regimep, dynrModel@initial@params.regimep, trans.parameters)
+	
+	dynrModel@regimes@values<-PopBackMatrix(dynrModel@regimes@values, dynrModel@regimes@params, trans.parameters)
+	
+	# process model matrices to re-extract start values
+	if(length(dynrModel$transform$inv.tfun.full) > 0 && is.numeric(trans.parameters)){
+		trans.parameters <- dynrModel$transform$inv.tfun.full(trans.parameters)
+		dynrModel@xstart <- trans.parameters
+	}
+	return(dynrModel)
 }
 
 #Computes the Sechol-Schnabel cholesky factorization
 #See Sechol-Schnabel, R. B. and Eskow, E. 1990. "A New Modified Cholesky Factorization." SIAM Journal of Scientific Statistical Computing 11, 1136-58.
-sechol <- function(A, tol = .Machine$double.eps, silent= TRUE )  {
-  if (is.complex(A))  {
-    warning("complex matrices not permitted at present")
-    return(NULL)
-  } else if (!is.numeric(A))  {
-    warning("non-numeric argument to 'sechol'")
-    return(NULL)
-  }
-  if (is.matrix(A)) {
-    if (nrow(A) != ncol(A)) {
-      warning("non-square matrix in 'sechol'")
-      return(NULL)
-    }
-  } else {
-    if (length(A) != 1) {
-      warning("non-matrix argument to 'sechol'")
-      return(NULL)
-    }
-    if (A>0) {
-      return(as.matrix(sqrt(A)))
-    } 
-    warning("the leading minor of order 1 is not positive definite")
-    return(NULL)
-  }
-  n <- nrow(A)
-  L <- matrix(rep(0,n*n),ncol=ncol(A))
-  tau <- tol ^(1/3)  # made to match gauss
-  gamm <- max(A)
-  deltaprev <- 0
-  Pprod <- diag(n)
-  if (n > 2)  {
-    for (k in 1:(n-2))  {
-      if( (min(diag(A[(k+1):n,(k+1):n]) - A[k,(k+1):n]^2/A[k,k]) < tau*gamm) 
-          && (min(svd(A[(k+1):n,(k+1):n])$d)) < 0) {
-        dmax <- order(diag(A[k:n,k:n]))[(n-(k-1))]
-        if (A[(k+dmax-1),(k+dmax-1)] > A[k,k])  {
-          if (!silent) {
-            print(paste("iteration:",k,"pivot on:",dmax,"with absolute:",(k+dmax-1)))
-          }
-          P <- diag(n)
-          Ptemp <-  P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
-          A <- P%*%A%*%P
-          L <- P%*%L%*%P
-          Pprod <- P%*%Pprod
-        }
-        g <- rep(0,length=(n-(k-1)))
-        for (i in k:n)  {
-          if (i == 1) sum1 <- 0
-          else sum1 <- sum(abs(A[i,k:(i-1)]))
-          if (i == n) sum2 <- 0
-          else sum2 <- sum(abs(A[(i+1):n,i]))
-          g[i-(k-1)] <- A[i,i] - sum1 - sum2
-        }
-        gmax <- order(g)[length(g)]
-        if (gmax != k)  {
-          if (!silent) {
-            print(paste("iteration:",k,
-                        "gerschgorin pivot on:",gmax,"with absolute:",(k+gmax-1)))
-          }
-          P <- diag(ncol(A))
-          Ptemp <-  P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
-          A <- P%*%A%*%P
-          L <- P%*%L%*%P
-          Pprod <- P%*%Pprod
-        }
-        normj <- sum(abs(A[(k+1):n,k]))
-        delta <- max(0,deltaprev,-A[k,k]+max(normj,tau*gamm))
-        if (delta > 0)  {
-          A[k,k] <- A[k,k] + delta
-          deltaprev <- delta
-        }
-      }
-      
-      L[k,k] <- A[k,k] <- sqrt(A[k,k])
-      for (i in (k+1):n)  {
-        L[i,k] <- A[i,k] <- A[i,k]/L[k,k]
-        A[i,(k+1):i] <- A[i,(k+1):i] - L[i,k]*L[(k+1):i,k]
-        if(A[i,i] < 0) A[i,i] <- 0
-      }
-    }
-  }
-  A[(n-1),n] <- A[n,(n-1)]
-  eigvals <- eigen(A[(n-1):n,(n-1):n])$values
-  delta <- max(0,deltaprev,
-               -min(eigvals)+tau*max((1/(1-tau))*(max(eigvals)-min(eigvals)),gamm))
-  if (delta > 0)  {
-    if (!silent) {
-      print(paste("delta:",delta))
-    }
-    A[(n-1),(n-1)] <- A[(n-1),(n-1)] + delta
-    A[n,n] <- A[n,n] + delta
-    deltaprev <- delta
-  }
-  L[(n-1),(n-1)] <- A[(n-1),(n-1)] <- sqrt(A[(n-1),(n-1)])
-  L[n,(n-1)] <- A[n,(n-1)] <- A[n,(n-1)]/L[(n-1),(n-1)]
-  L[n,n] <- A[n,n] <- sqrt(A[n,n] - L[n,(n-1)]^2)
-  
-  r = t(Pprod)%*%t(L)%*%t(Pprod)
-  attr(r,"delta")=delta
-  return(r)
+sechol <- function(A, tol = .Machine$double.eps, silent= TRUE ) {
+	if (is.complex(A)) {
+		warning("complex matrices not permitted at present")
+		return(NULL)
+	} else if (!is.numeric(A)) {
+		warning("non-numeric argument to 'sechol'")
+	return(NULL)
+	}
+	if (is.matrix(A)) {
+		if (nrow(A) != ncol(A)) {
+			warning("non-square matrix in 'sechol'")
+			return(NULL)
+		}
+	} else {
+		if (length(A) != 1) {
+			warning("non-matrix argument to 'sechol'")
+			return(NULL)
+		}
+		if (A>0) {
+			return(as.matrix(sqrt(A)))
+		} 
+		warning("the leading minor of order 1 is not positive definite")
+		return(NULL)
+	}
+	n <- nrow(A)
+	L <- matrix(rep(0,n*n),ncol=ncol(A))
+	tau <- tol ^(1/3) # made to match gauss
+	gamm <- max(A)
+	deltaprev <- 0
+	Pprod <- diag(n)
+	if (n > 2) {
+		for (k in 1:(n-2)) {
+			if( (min(diag(A[(k+1):n,(k+1):n]) - A[k,(k+1):n]^2/A[k,k]) < tau*gamm) 
+					&& (min(svd(A[(k+1):n,(k+1):n])$d)) < 0) {
+				dmax <- order(diag(A[k:n,k:n]))[(n-(k-1))]
+				if (A[(k+dmax-1),(k+dmax-1)] > A[k,k]) {
+					if (!silent) {
+						print(paste("iteration:",k,"pivot on:",dmax,"with absolute:",(k+dmax-1)))
+					}
+					P <- diag(n)
+					Ptemp <- P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
+					A <- P%*%A%*%P
+					L <- P%*%L%*%P
+					Pprod <- P%*%Pprod
+				}
+				g <- rep(0,length=(n-(k-1)))
+				for (i in k:n)	{
+					if (i == 1) sum1 <- 0
+					else sum1 <- sum(abs(A[i,k:(i-1)]))
+					if (i == n) sum2 <- 0
+					else sum2 <- sum(abs(A[(i+1):n,i]))
+					g[i-(k-1)] <- A[i,i] - sum1 - sum2
+				}
+				gmax <- order(g)[length(g)]
+				if (gmax != k)	{
+					if (!silent) {
+						print(paste("iteration:",k,
+									"gerschgorin pivot on:", gmax, "with absolute:", (k+gmax-1)))
+					}
+					P <- diag(ncol(A))
+					Ptemp <-	P[k,]; P[k,] <- P[(k+dmax-1),]; P[(k+dmax-1),] = Ptemp
+					A <- P%*%A%*%P
+					L <- P%*%L%*%P
+					Pprod <- P%*%Pprod
+				}
+				normj <- sum(abs(A[(k+1):n,k]))
+				delta <- max(0,deltaprev,-A[k,k]+max(normj,tau*gamm))
+				if (delta > 0)	{
+					A[k,k] <- A[k,k] + delta
+					deltaprev <- delta
+				}
+			}
+			
+			L[k,k] <- A[k,k] <- sqrt(A[k,k])
+			for (i in (k+1):n)	{
+				L[i,k] <- A[i,k] <- A[i,k]/L[k,k]
+				A[i,(k+1):i] <- A[i,(k+1):i] - L[i,k]*L[(k+1):i,k]
+				if(A[i,i] < 0) A[i,i] <- 0
+			}
+		}
+	}
+	A[(n-1),n] <- A[n,(n-1)]
+	eigvals <- eigen(A[(n-1):n,(n-1):n])$values
+	delta <- max(0,deltaprev,
+							 -min(eigvals)+tau*max((1/(1-tau))*(max(eigvals)-min(eigvals)),gamm))
+	if (delta > 0)	{
+		if (!silent) {
+			print(paste("delta:",delta))
+		}
+		A[(n-1),(n-1)] <- A[(n-1),(n-1)] + delta
+		A[n,n] <- A[n,n] + delta
+		deltaprev <- delta
+	}
+	L[(n-1),(n-1)] <- A[(n-1),(n-1)] <- sqrt(A[(n-1),(n-1)])
+	L[n,(n-1)] <- A[n,(n-1)] <- A[n,(n-1)]/L[(n-1),(n-1)]
+	L[n,n] <- A[n,n] <- sqrt(A[n,n] - L[n,(n-1)]^2)
+	
+	r <- t(Pprod)%*%t(L)%*%t(Pprod)
+	attr(r,"delta")=delta
+	return(r)
 }
 
+# the function to extend the user-specified model to include random varibles
+# currently extend all b at a time
 EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
-  # Restructure mixed effects structured via theta.formula into an expanded model with 
-  # random effects as additional state variables and cook it.
-  #browser()
-  if(.hasSlot(dynrModel@dynamics,'random.names')){
-    user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
-    	
-	# Add the user-specified random effects into states to be estimated
-	# state.names2 = state.names + user.random.names
-	state.names2 = c(dynrModel@measurement@state.names, user.random.names)
-	#print(paste("New state variables to be estimated:", state.names2))
-  }
-  else{
-    stop("There is no random effect variables to be estimated. Initial value estimates are done.")
-	#return(list(coefEst=coefEst))
-	return(list())
-  }
-  
-  
-  
-  # If there is random effect to be estimated, set up a new model
-  mdcov2 <- prep.noise(
-    values.latent=diag(0, length(state.names2)),
-    #params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
-	params.latent=diag(state.names2, length(state.names2)),
-	values.observed=dynrModel@noise@values.observed[[1]],
-	#params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
-	params.observed=dynrModel@noise@params.observed[[1]]
-  )
-  
-
-  num.y = length(dynrModel@measurement@obs.names)
-  #lambda matrix
-  meas2 <- prep.measurement(
-    values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
-    #params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
-	params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
-    obs.names = dynrModel@measurement@obs.names,
-    state.names = state.names2)
-
-  	
-  # Generate the new variance/covariance matrix 
-  # by adding the user-specified random names into states
-  #   - state.names2: c(state.names, random.names)
-  #   - values.inicov: initial values of variance/covariance matrix
-  #       *state.names: from the first fitted model
-  #       *random.names: from user specified in dynrModel@dynamics 
-  num.state = length(dynrModel@measurement@state.names)
-  num.state2 = length(state.names2) 
-  values.inicov = diag(1, length(state.names2))
-  values.inicov[1:num.state,1:num.state] = dynrModel@initial@values.inicov[[1]]
-  values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
-  params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
-  #params.inicov[1:num.state,1:num.state] = matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]]))
-  params.inicov[1:num.state,1:num.state] = matrix(dynrModel@initial@params.inicov[[1]], nrow=nrow(dynrModel@initial@params.inicov[[1]]))
-  params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
-  
-  initial2 <- prep.initial(
-    values.inistate=c(as.vector(dynrModel@initial@values.inistate[[1]]), rep(0, num.state2 - num.state)),
-    #params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.state2 - num.state)),
-	params.inistate=c(dynrModel@initial@params.inistate[[1]], rep("fixed", num.state2 - num.state)),
-    values.inicov=values.inicov, 
-    params.inicov=params.inicov)
-
-	
-  # Formula processing:  
-  # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
-  # only retrieve the formula with state variables as LHS
-  formula <- list(dynrModel@dynamics@formulaOriginal[[1]][1:length(dynrModel@measurement@state.names)])
-  
-  # 2. If theta.formula exists, substitute the content of theta.formula 
-  if(length(dynrModel@dynamics@theta.formula) > 0){
-      formula <- lapply(formula, function(x){substituteFormula(x, dynrModel@dynamics@theta.formula)})  
-  }
-  
-  #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
-  for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
-    formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
-
-  dynm2<-prep.formulaDynamics(formula=unlist(formula),
-                           startval=dynrModel@dynamics@startval,
-                           isContinuousTime=dynrModel@dynamics@isContinuousTime)
-						   
-  model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
-                    noise=mdcov2, initial=initial2, data=dynrModel@data,
-                    outfile=dynrModel@outfile)
-  
-  
-  
-  fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-  
-
-  
-  return(fitted_model2)
-
+    # Restructure mixed effects structured via theta.formula into an expanded model with 
+    # random effects as additional state variables and cook it.
+    #browser()
+    if(.hasSlot(dynrModel@dynamics,'random.names')){
+        user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
+        
+        # Add the user-specified random effects into states to be estimated
+        # state.names2 = state.names + user.random.names
+        state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+        #print(paste("New state variables to be estimated:", state.names2))
+    }
+    else{
+        stop("There is no random effect variables to be estimated. Initial value estimates are done.")
+        #return(list(coefEst=coefEst))
+        return(list())
+    }
+    
+    
+    #browser()
+    # If there is random effect to be estimated, set up a new model
+    mdcov2 <- prep.noise(
+        values.latent=diag(0, length(state.names2)),
+        #params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
+        #params.latent=diag(state.names2, length(state.names2)),
+        params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
+        values.observed=dynrModel@noise@values.observed[[1]],
+        params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
+        #params.observed=dynrModel@noise@params.observed[[1]]
+    )
+    
+    
+    num.y = length(dynrModel@measurement@obs.names)
+    #lambda matrix
+    meas2 <- prep.measurement(
+        values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+        params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+        #params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+        obs.names = dynrModel@measurement@obs.names,
+        state.names = state.names2)
+    
+    
+    # Generate the new variance/covariance matrix 
+    # by adding the user-specified random names into states
+    #   - state.names2: c(state.names, random.names)
+    #   - values.inicov: initial values of variance/covariance matrix
+    #       *state.names: from the first fitted model
+    #       *random.names: from user specified in dynrModel@dynamics 
+    num.state = length(dynrModel@measurement@state.names)
+    num.state2 = length(state.names2) 
+    values.inicov = diag(1, length(state.names2))
+    values.inicov[1:num.state,1:num.state] = dynrModel@initial@values.inicov[[1]]
+    values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
+    params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
+    params.inicov[1:num.state,1:num.state] = matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+    #params.inicov[1:num.state,1:num.state] = matrix(dynrModel@initial@params.inicov[[1]], nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+    params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
+    
+    initial2 <- prep.initial(
+        values.inistate=c(as.vector(dynrModel@initial@values.inistate[[1]]), rep(0, num.state2 - num.state)),
+        params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.state2 - num.state)),
+        #params.inistate=c(dynrModel@initial@params.inistate[[1]], rep("fixed", num.state2 - num.state)),
+        values.inicov=values.inicov, 
+        params.inicov=params.inicov)
+    
+    
+    # Formula processing:  
+    # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
+    # only retrieve the formula with state variables as LHS
+    formula <- list(dynrModel@dynamics@formulaOriginal[[1]][1:length(dynrModel@measurement@state.names)])
+    
+    # 2. If theta.formula exists, substitute the content of theta.formula 
+    if(length(dynrModel@dynamics@theta.formula) > 0){
+        formula <- lapply(formula, function(x){substituteFormula(x, dynrModel@dynamics@theta.formula)})  
+    }
+    
+    #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
+    for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
+        formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
+    
+    dynm2<-prep.formulaDynamics(formula=unlist(formula),
+                                startval=dynrModel@dynamics@startval,
+                                isContinuousTime=dynrModel@dynamics@isContinuousTime)
+    
+    model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
+                         noise=mdcov2, initial=initial2, data=dynrModel@data,
+                         outfile=dynrModel@outfile)
+        
+    fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+    
+    
+    
+    return(fitted_model2)
+    
 }

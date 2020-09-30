@@ -198,7 +198,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
         N[,,i-1] <- Nnew
         Ninv_i <- try(solve(Nnew), silent=TRUE)
-        if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+        if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
         Ninv[,,i-1] <- Ninv_i
         chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
       }
@@ -288,7 +288,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
         N[,,i-1] <- Nnew
         Ninv_i <- try(solve(Nnew), silent=TRUE)
-        if(class(Ninv_i) == "try-error"){Ninv_i <- MASS::ginv(Nnew)}
+        if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
         Ninv[,,i-1] <- Ninv_i
         chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
       }
@@ -336,7 +336,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
         s[,j] <- s_j##
         S_j_inv <- try(solve(S_j), silent=TRUE)
-        if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
+        if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
         delta[,j] <- S_j_inv %*% s_j
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }
@@ -355,7 +355,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
           t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
         s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
         S_j_inv <- try(solve(S_j), silent=TRUE)
-        if(class(S_j_inv) == "try-error"){S_j_inv <- MASS::ginv(S_j)}
+        if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
         delta[,j] <- S_j_inv %*% s_j
         t_value[,j] <- s_j / sqrt(diag(S_j))
       }

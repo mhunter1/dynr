@@ -2269,20 +2269,20 @@ autojacob <- function(formula, n, diff.variables){
 ##' procedure to compute the jacobian functions.
 ##' @param ... further named arguments. Some of these arguments may include:
 ##' 
-##' theta.formula = a list consisting of formula(s) of the form 
-##'  list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
-##'  + 1 * rand_par), where par is a parameter is a unit- (e.g., person-) 
+##' \code{theta.formula} specifies a list consisting of formula(s) of the form 
+##' \code{list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
+##'  + 1 * rand_par)}, where \code{par} is a parameter is a unit- (e.g., person-) 
 ##'  specific that appears in a dynamic formula and is assumed to follow
-##'  a linear mixed effects structure. Here, b_p are fixed effects 
-##'  parameters; covariate_1, ..., covariate_p are known covariates as ??pdeclared in
-##'  dynr.data, and b_p is a random effect component representing unit i's random deviation
-##'  in par value from that predicted by b_0 + covariate_1*b_1 + ... + covariate_p*b_p 
+##'  a linear mixed effects structure. Here, \code{b_p} are fixed effects 
+##'  parameters; \code{covariate_1}, ..., \code{covariate_p} are known covariates as predeclared in
+##'  \code{dynr.data}, and \code{rand_par} is a random effect component representing unit i's random deviation
+##'  in \code{par} value from that predicted by \code{b_0 + covariate_1*b_1 + ... + covariate_p*b_p}. 
 ##'
-##' random.names = names of random effect components in the theta.formula
+##' \code{random.names} specifies names of random effect components in the \code{theta.formula}
 ##'
-##' random.params.inicov = names of elements in the covariance matrix of the random effect components
+##' \code{random.params.inicov} specifies names of elements in the covariance matrix of the random effect components
 ##'
-##' random.values.inicov = starting values of elements in the covariance matrix of the random effect components
+##' \code{random.values.inicov} specifies starting values of elements in the covariance matrix of the random effect components
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -2290,13 +2290,13 @@ autojacob <- function(formula, n, diff.variables){
 ##' covariates, and other mathematical functions that define the dynamics of the latent variables.
 ##' Every latent variable in the model needs to be defined by a differential (for continuous time model), or
 ##' difference (for discrete time model) equation.  The names of the latent variables should match 
-##' the specification in prep.measurement().
+##' the specification in \code{prep.measurement()}.
 ##' For nonlinear models, the estimation algorithm generally needs a Jacobian matrix that contains
 ##' elements of first differentiations of the dynamic functions with respect to the latent variables
 ##' in the model. For most nonlinear models, such differentiations can be handled automatically by
-##' dynr. However, in some cases, such as when the absolute function (abs) is used, the automatic
+##' dynr. However, in some cases, such as when the absolute function (\code{abs}) is used, the automatic
 ##' differentiation would fail and the user may need to provide his/her own Jacobian functions.
-##' When theta.formula and other accompanying elements in "..." are provided, the program
+##' When \code{theta.formula} and other accompanying elements in "\code{...}" are provided, the program
 ##' automatically inserts the random effect components specified in random.names as additional
 ##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
 ##' that the expanded model satisfies conditions such as observability for the estimation to work.
@@ -2357,30 +2357,55 @@ autojacob <- function(formula, n, diff.variables){
 ##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                           startval=c(a = 2.1, c = 0.8, b = 1.9, d = 1.1),
 ##'                           isContinuousTime=TRUE)
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
-  dots <- list(...)
-
-  #browser()
-
-
-  if(length(dots) > 0){
+##'
+##' #For a full demo example that includes unit-specific random effects in theta.formula see:
+##' #demo(OscWithRand, package="dynr")
+##' formula = list(x ~ dx,
+##'                dx ~ eta_i * x + zeta*dx)
+##' theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
+##' dynm<-prep.formulaDynamics(formula=formula,
+##'                            startval=c(eta0=-1, eta1=.1, eta2=-.1,zeta=-.02),
+##'                            isContinuousTime=TRUE,
+##'                            theta.formula=theta.formula,
+##'                            random.names=c('b_eta'),
+##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
+##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
+	dots <- list(...)
+	
+	# if the argument formula is not a list 
+	if(!is.list(formula)){
+		msg <- paste0(ifelse(plyr::is.formula(formula), "'formula' argument is a formula but ", ""),
+			"'formula'",
+			ifelse(plyr::is.formula(formula), " ", " argument "),
+			"should be a list of formulas.\nCan't nobody tell me nothin'")
+		stop(msg)
+	}
+	
+	
+	if(length(startval) == 0){
+		warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
+	}
+	
+	
+	if(length(dots) > 0){
     if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
-      stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
-    }
+			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+		}
 
     #browser()
     if('theta.formula' %in% names(dots)){
-      theta.formula <- dots$theta.formula
+			theta.formula <- dots$theta.formula
 	  # retrieve theta.names from theta.formula instead of asking users to give inputs
 	  fml=lapply(theta.formula, as.character)
 	  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
 	}
-    if('random.names' %in% names(dots))  
-      random.names <- dots$random.names
-    if('random.params.inicov' %in% names(dots))
-      random.params.inicov <- dots$random.params.inicov
-    if('random.values.inicov' %in% names(dots))
-      random.values.inicov <- dots$random.values.inicov
+		if('random.names' %in% names(dots))
+			random.names <- dots$random.names
+		if('random.params.inicov' %in% names(dots))
+			random.params.inicov <- dots$random.params.inicov
+		if('random.values.inicov' %in% names(dots))
+			random.values.inicov <- dots$random.values.inicov
     if('random.ub' %in% names(dots))
       random.ub <- dots$random.ub
     if('random.lb' %in% names(dots))
@@ -2406,24 +2431,36 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
     num.formula <- length(formula)
   }
   
-  # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
-  if(is.list(formula) && plyr::is.formula(formula[[1]])){
-    formula <- list(formula)
-  }
-
-  
-  x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime, saem=saem, formulaOriginal=formula, ...)
-  
-
-  #jacobian = dfdx
-  if (missing(jacobian)){
+	# e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
+	if(is.list(formula) && plyr::is.formula(formula[[1]])){
+		formula <- list(formula)
+	}
+	state.names <- lapply(formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+	state.regimes <- paste(paste0('Regime ', 1:length(state.names), ': ', lapply(state.names, paste, collapse=', ')), collapse='\n')
+	if(any(sapply(lapply(state.names, duplicated), any))){
+		stop(paste0("Found duplicated latent state names:\n", state.regimes))
+	}
+	if(length(unique(sapply(state.names, length))) != 1){
+		stop(paste0("Found different number of latent states for different regimes:\n", state.regimes))
+	}
+	if(!all(sapply(state.names, function(x, y){all(x==y)}, y=state.names[[1]]))){
+		stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
+	}
+	x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
+	if (missing(jacobian)){
     if(saem == TRUE){
       jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
 	  #jacobianOriginal <- autojacobTry(formula)
 	}
-    else
-      jacobian <- autojacobTry(formula) 
-  }
+    else{   
+      jacobian <- autojacobTry(formula)
+      autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+		if (class(autojcb) == "try-error") {
+			stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+					 Please provide the analytic jacobian functions.")
+		}else{
+			jacobian=lapply(autojcb,"[[","jacob") 
+	}}
   
   #if(saem == TRUE){
   jacobianOriginal <- autojacobTry(formula)
@@ -2435,17 +2472,19 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(nregs[1] != nregs[2]){
     stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
   }
-  x$jacobian <- jacobian
-  x$formulaOriginal <- x$formula
+	x$jacobian <- jacobian
+	x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobianOriginal
-  x$paramnames <-names(x$startval)
-  
+	x$paramnames <- names(x$startval)
+
   if(saem == FALSE)
     return(new("dynrDynamicsFormula", x))
 
   # The following is only for saem
   
   if('theta.formula' %in% names(dots)){
+	
+	
     x$theta.formula <- theta.formula
 	x$theta.names <- theta.names
   }
@@ -2655,61 +2694,61 @@ parseFormula <- function(formula, debug=FALSE){
   op<-tuple[[1]]
   left <- tuple[[2]]
   right <- tuple[[3]]
-    if(debug){
-        print("LEFT")
-        print(left)
-        print("RIGHT")
-        print(right)
-    }
-    if(!isSymbolNumberFunction(left)){
-      leftTuple <- as.list(left)
-        if(length(leftTuple)==3){
-            left <- parseFormula(left,debug)
-        } else {
-            left <- parseNested(left,debug)
-        }
-    }
-    if(!isSymbolNumberFunction(right)){
-      rightTuple <- as.list(right)
-        if(length(rightTuple)==3){
-            right <- parseFormula(right,debug)
-        } else{
-            right <- parseNested(right,debug)
-        }
-    }
+	if(debug){
+		print("LEFT")
+		print(left)
+		print("RIGHT")
+		print(right)
+	}
+	if(!isSymbolNumberFunction(left)){
+	  leftTuple <- as.list(left)
+		if(length(leftTuple)==3){
+			left <- parseFormula(left,debug)
+		} else {
+			left <- parseNested(left,debug)
+		}
+	}
+	if(!isSymbolNumberFunction(right)){
+	  rightTuple <- as.list(right)
+		if(length(rightTuple)==3){
+			right <- parseFormula(right,debug)
+		} else{
+			right <- parseNested(right,debug)
+		}
+	}
 
   op <- trans2CFunction(op)
   
   tuple.new <- list(op,left,right)
   outFormula <- as.call(tuple.new)
-    return(outFormula)
+	return(outFormula)
 }
 
 parseNested <- function(formula,debug=FALSE){
-    tuple <- as.list(formula)
-    outer <- tuple[[1]]
-    inner <- tuple[[2]]
-    if(debug){
-      print(tuple)
-      print("OUTER")
-      print(outer)
-      print("INNER")
-      print(inner)
-    }
-    if(!isSymbolNumberFunction(inner)){
-      innerTuple=as.list(inner)
-      if(length(innerTuple)==3){
-        inner <- parseFormula(inner,debug)
-      } else{
-        inner <- parseNested(inner,debug)
-      }
-    }
-    
-    outer <- trans2CFunction(outer)
-    
-    tuple.new <-as.list(c(outer,inner))
-    outFormula <- as.call(tuple.new)
-    return(outFormula)
+	tuple <- as.list(formula)
+	outer <- tuple[[1]]
+	inner <- tuple[[2]]
+	if(debug){
+	  print(tuple)
+	  print("OUTER")
+	  print(outer)
+	  print("INNER")
+	  print(inner)
+	}
+	if(!isSymbolNumberFunction(inner)){
+	  innerTuple=as.list(inner)
+	  if(length(innerTuple)==3){
+	    inner <- parseFormula(inner,debug)
+	  } else{
+	    inner <- parseNested(inner,debug)
+	  }
+	}
+	
+	outer <- trans2CFunction(outer)
+	
+	tuple.new <-as.list(c(outer,inner))
+	outFormula <- as.call(tuple.new)
+	return(outFormula)
 }
 
 #TODO check type casting int->double
@@ -2795,10 +2834,10 @@ processFormula<-function(formula.list){
 ##' # initial slope is fixed at 1
 ##' # initial covariance is fixed to a diagonal matrix of 1s
 ##' initialNoC <- prep.initial(
-##'     values.inistate=c(0, 1),
-##'     params.inistate=c('inipos', 'fixed'),
-##'     values.inicov=diag(1, 2),
-##'     params.inicov=diag('fixed', 2))
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
 ##' 
 ##' #### One covariate
 ##' # Single regime, one covariate on the inital mean
@@ -2809,17 +2848,17 @@ processFormula<-function(formula.list){
 ##' # initial position has free intercept and free u1 effect
 ##' # initial slope is fixed at 1
 ##' initialOneC <- prep.initial(
-##'     values.inistate=matrix(
-##'         c(0, .5,
-##'           1,  0), byrow=TRUE,
-##'         nrow=2, ncol=2),
-##'     params.inistate=matrix(
-##'         c('iniPosInt', 'iniPosSlopeU1',
-##'         'fixed', 'fixed'), byrow=TRUE,
-##'         nrow=2, ncol=2),
-##'     values.inicov=diag(1, 2),
-##'     params.inicov=diag('fixed', 2),
-##'     covariates='u1')
+##' 	values.inistate=matrix(
+##' 		c(0, .5,
+##' 		  1,  0), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	params.inistate=matrix(
+##' 		c('iniPosInt', 'iniPosSlopeU1',
+##' 		'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2),
+##' 	covariates='u1')
 ##' 
 ##' #### Regime-switching, one covariate
 ##' # latent states are position and velocity
@@ -2831,27 +2870,27 @@ processFormula<-function(formula.list){
 ##' # There are 3 regimes but the mean and covariance
 ##' #   are not regime-switching.
 ##' initialRSOneC <- prep.initial(
-##'     values.regimep=matrix(
-##'         c(1, 1,
-##'           0, 1,
-##'           0, 0), byrow=TRUE,
-##'         nrow=3, ncol=2),
-##'     params.regimep=matrix(
-##'         c('r1int', 'r1slopeU1',
-##'           'r2int', 'r2slopeU2',
-##'           'fixed', 'fixed'), byrow=TRUE,
-##'         nrow=3, ncol=2),
-##'     values.inistate=matrix(
-##'         c(0, .5,
-##'           1,  0), byrow=TRUE,
-##'         nrow=2, ncol=2),
-##'     params.inistate=matrix(
-##'         c('iniPosInt', 'iniPosSlopeU1',
-##'         'fixed', 'fixed'), byrow=TRUE,
-##'         nrow=2, ncol=2),
-##'     values.inicov=diag(1, 2),
-##'     params.inicov=diag('fixed', 2),
-##'     covariates='u1')
+##' 	values.regimep=matrix(
+##' 		c(1, 1,
+##' 		  0, 1,
+##' 		  0, 0), byrow=TRUE,
+##' 		nrow=3, ncol=2),
+##' 	params.regimep=matrix(
+##' 		c('r1int', 'r1slopeU1',
+##' 		  'r2int', 'r2slopeU2',
+##' 		  'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=3, ncol=2),
+##' 	values.inistate=matrix(
+##' 		c(0, .5,
+##' 		  1,  0), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	params.inistate=matrix(
+##' 		c('iniPosInt', 'iniPosSlopeU1',
+##' 		'fixed', 'fixed'), byrow=TRUE,
+##' 		nrow=2, ncol=2),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2),
+##' 	covariates='u1')
 ##' 
 prep.initial <- function(values.inistate, params.inistate, values.inicov, params.inicov, values.regimep=1, params.regimep=0, covariates, deviation=FALSE, refRow){
     if(missing(covariates)){
@@ -3039,47 +3078,47 @@ prep.tfun<-function(formula.trans, formula.inv, transCcode = TRUE){
 #------------------------------------------------------------------------------
 
 formula2string <- function(formula.list){
-    tuple <- lapply(formula.list, as.list)
-    lhs <- sapply(tuple, function(x){paste0(deparse(x[[2]], width.cutoff = 500L), collapse="")})
-    rhs <- sapply(tuple, function(x){paste0(deparse(x[[3]], width.cutoff = 500L), collapse="")})
-    return(list(lhs=lhs, rhs=rhs))
+	tuple <- lapply(formula.list, as.list)
+	lhs <- sapply(tuple, function(x){paste0(deparse(x[[2]], width.cutoff = 500L), collapse="")})
+	rhs <- sapply(tuple, function(x){paste0(deparse(x[[3]], width.cutoff = 500L), collapse="")})
+	return(list(lhs=lhs, rhs=rhs))
 }
 
 
 matrix2formula <- function(x, multbyColnames=TRUE){
-    if(!is.matrix(x)){
-        stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
-    }
-    if(is.null(rownames(x))){
-        rownames(x) <- paste0('y', 1:nrow(x))
-    }
-    if(is.null(colnames(x))){
-        colnames(x) <- paste0('x', 1:ncol(x))
-    }
-    preds <- character(nrow(x))
-    for(i in 1:nrow(x)){
-        if (multbyColnames==FALSE){
-            preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
-        }else{
-            preds[i] <- paste(rownames(x)[i], paste(x[i,],
-                              colnames(x), sep='*', collapse=' + '), sep=' ~ ')
-            }
-    }
-    if(is.numeric(x)){
-        preds <- gsub(' 1\\*', ' ', preds)
-        preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
-        preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
-    } else {
-        preds <- gsub(' 1\\*', ' ', preds)
-        preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
-        preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
-    }
-    form <- lapply(preds, formula, env=.GlobalEnv)
-    #eq.char=lapply(form, as.character)
-    #str.left=sapply(eq.char,"[",2)
-    #str.right=sapply(eq.char,"[",3)
-    #if (bothSides) {return(form)}else{return(str.right)}
-    return(form)
+	if(!is.matrix(x)){
+		stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
+	}
+	if(is.null(rownames(x))){
+		rownames(x) <- paste0('y', 1:nrow(x))
+	}
+	if(is.null(colnames(x))){
+		colnames(x) <- paste0('x', 1:ncol(x))
+	}
+	preds <- character(nrow(x))
+	for(i in 1:nrow(x)){
+		if (multbyColnames==FALSE){
+			preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
+		}else{
+			preds[i] <- paste(rownames(x)[i], paste(x[i,],
+		                      colnames(x), sep='*', collapse=' + '), sep=' ~ ')
+			}
+	}
+	if(is.numeric(x)){
+		preds <- gsub(' 1\\*', ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
+		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
+	} else {
+		preds <- gsub(' 1\\*', ' ', preds)
+		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
+		preds <- gsub(paste(" \\+ 0\\*(", paste(colnames(x), collapse = "|"), ")", sep=""), '', preds)
+	}
+	form <- lapply(preds, formula, env=.GlobalEnv)
+	#eq.char=lapply(form, as.character)
+	#str.left=sapply(eq.char,"[",2)
+	#str.right=sapply(eq.char,"[",3)
+	#if (bothSides) {return(form)}else{return(str.right)}
+	return(form)
 }
 
 # # Examples
@@ -3094,16 +3133,16 @@ matrix2formula <- function(x, multbyColnames=TRUE){
 # #TODO check if fixed in formula/tex is substituted by fixed values.
 
 addFormulas <- function(f1, f2){
-    charf1 <- as.character(f1)
-    charf2 <- as.character(f2)
-    if((length(charf1) != 3) || (length(charf2) != 3)){
-        msg <- paste("Formula 1 and/or 2 look(s) strange, and not in a good way.", "A formula used here should only have one tilde (~) in it", "I don't know what to do with them")
-        stop(msg)
-    }
-    if(charf1[2] != charf2[2]){
-        stop('The two formulas do not have the same outcome variable. I simply refuse to add them.')
-    }
-    formula(paste(charf1[2], "~", charf1[3], "+", charf2[3]), env=.GlobalEnv)
+	charf1 <- as.character(f1)
+	charf2 <- as.character(f2)
+	if((length(charf1) != 3) || (length(charf2) != 3)){
+		msg <- paste("Formula 1 and/or 2 look(s) strange, and not in a good way.", "A formula used here should only have one tilde (~) in it", "I don't know what to do with them")
+		stop(msg)
+	}
+	if(charf1[2] != charf2[2]){
+		stop('The two formulas do not have the same outcome variable. I simply refuse to add them.')
+	}
+	formula(paste(charf1[2], "~", charf1[3], "+", charf2[3]), env=.GlobalEnv)
 }
 
 ## Examples
@@ -3114,23 +3153,23 @@ addFormulas <- function(f1, f2){
 #addFormulas(f2, f1)
 
 addLLFormulas <- function(list_list_formulae, VecNamesToAdd){
-    nRegime <- length(list_list_formulae)
-    for (j in 1:nRegime){
-        neq <- length(list_list_formulae[[j]])
-        for (k in 1:neq){
-            AddedFml <- list_list_formulae[[j]][[k]]
-            for (l in 1:length(VecNamesToAdd)){
-                list_list_formulae_add <- get(VecNamesToAdd[l], parent.frame()) #eval(parse(text=VecNamesToAdd[l]),environment())
-                if (length(list_list_formulae_add) > 0){
-                    if (length(list_list_formulae_add[[j]]) > 0){
-                        AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]], AddedFml)
-                    }
-                }
-            }
-            list_list_formulae[[j]][[k]] <- AddedFml
-        }
-    }
-    return(list_list_formulae)
+	nRegime <- length(list_list_formulae)
+	for (j in 1:nRegime){
+		neq <- length(list_list_formulae[[j]])
+		for (k in 1:neq){
+			AddedFml <- list_list_formulae[[j]][[k]]
+			for (l in 1:length(VecNamesToAdd)){
+				list_list_formulae_add <- get(VecNamesToAdd[l], parent.frame()) #eval(parse(text=VecNamesToAdd[l]),environment())
+				if (length(list_list_formulae_add) > 0){
+					if (length(list_list_formulae_add[[j]]) > 0){
+						AddedFml <- addFormulas(list_list_formulae_add[[j]][[k]], AddedFml)
+					}
+				}
+			}
+			list_list_formulae[[j]][[k]] <- AddedFml
+		}
+	}
+	return(list_list_formulae)
 }
 
 
@@ -3281,9 +3320,9 @@ multiformula2matrix <- function(..., variables){
 dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be compiled on the user end\n * but user does not need to modify it or care about it.\n */\nvoid mathfunction_mat_to_vec(const gsl_matrix *mat, gsl_vector *vec){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert matrix to vector*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_vector_set(vec,i,gsl_matrix_get(mat,i,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_vector_set(vec,i+j+nx-1,gsl_matrix_get(mat,i,j));\n\t\t\t/*printf(\"%lu\",i+j+nx-1);}*/\n\t\t}\n\t}\n}\nvoid mathfunction_vec_to_mat(const gsl_vector *vec, gsl_matrix *mat){\n\tsize_t i,j;\n\tsize_t nx=mat->size1;\n\t/*convert vector to matrix*/\n\tfor(i=0; i<nx; i++){\n\t\tgsl_matrix_set(mat,i,i,gsl_vector_get(vec,i));\n\t\tfor (j=i+1;j<nx;j++){\n\t\t\tgsl_matrix_set(mat,i,j,gsl_vector_get(vec,i+j+nx-1));\n\t\t\tgsl_matrix_set(mat,j,i,gsl_vector_get(vec,i+j+nx-1));\n\t\t}\n\t}\n}\nvoid function_dP_dt(double t, size_t regime, const gsl_vector *p, double *param, size_t n_param, const gsl_vector *co_variate, gsl_vector *F_dP_dt){\n\t\n\tsize_t nx;\n\tnx = (size_t) floor(sqrt(2*(double) p->size));\n\tgsl_matrix *P_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(p,P_mat);\n\tgsl_matrix *F_dx_dt_dx=gsl_matrix_calloc(nx,nx);\n\tfunction_dF_dx(t, regime, param, co_variate, F_dx_dt_dx);\n\tgsl_matrix *dFP=gsl_matrix_calloc(nx,nx);\n\tgsl_matrix *dP_dt=gsl_matrix_calloc(nx,nx);\n\tgsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, F_dx_dt_dx, P_mat, 0.0, dFP);\n\tgsl_matrix_transpose_memcpy(dP_dt, dFP);\n\tgsl_matrix_add(dP_dt, dFP);\n\tsize_t n_Q_vec=(1+nx)*nx/2;\n\tgsl_vector *Q_vec=gsl_vector_calloc(n_Q_vec);\n\tsize_t i;\n\tfor(i=1;i<=n_Q_vec;i++){\n\t\t\tgsl_vector_set(Q_vec,n_Q_vec-i,param[n_param-i]);\n\t}\n\tgsl_matrix *Q_mat=gsl_matrix_calloc(nx,nx);\n\tmathfunction_vec_to_mat(Q_vec,Q_mat);\n\tgsl_matrix_add(dP_dt, Q_mat);\n\tmathfunction_mat_to_vec(dP_dt, F_dP_dt);\n\tgsl_matrix_free(P_mat);\n\tgsl_matrix_free(F_dx_dt_dx);\n\tgsl_matrix_free(dFP);\n\tgsl_matrix_free(dP_dt);\n\tgsl_vector_free(Q_vec);\n\tgsl_matrix_free(Q_mat);\n}\n"
 
 #N.B. The formula 
-#   nx = (size_t) floor(sqrt(2*(double) p->size));
+#	nx = (size_t) floor(sqrt(2*(double) p->size));
 # is used instead of the analytic formula
-#   nx = (size_t) sqrt(2*double p->size + .25) - .5
+#	nx = (size_t) sqrt(2*double p->size + .25) - .5
 # due to issues with rounding.
 
 
@@ -3292,23 +3331,23 @@ dP_dt <- "/**\n * The dP/dt function: depend on function_dF_dx, needs to be comp
 # Utility functions for writing GSL code
 
 setGslMatrixElements <- function(values, params, name, depth=1){
-    ret <- ""
-    numRow <- nrow(values)
-    numCol <- ncol(values)
-    for(j in 1:numCol){
-        for(i in 1:numRow){
-            if(params[i, j] > 0){
-                ret <- paste(ret,
-                    paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
-                    ', param[', params[i, j] - 1, ']);\n', sep='')
-            } else if(values[i, j] != 0){
-                ret <- paste(ret,
-                    paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
-                    ', ', values[i, j], ');\n', sep='')
-            }
-        }
-    }
-    return(ret)
+	ret <- ""
+	numRow <- nrow(values)
+	numCol <- ncol(values)
+	for(j in 1:numCol){
+		for(i in 1:numRow){
+			if(params[i, j] > 0){
+				ret <- paste(ret,
+					paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					', param[', params[i, j] - 1, ']);\n', sep='')
+			} else if(values[i, j] != 0){
+				ret <- paste(ret,
+					paste(rep('\t', depth), collapse=""), 'gsl_matrix_set(', name, ', ', i-1, ', ', j-1,
+					', ', values[i, j], ');\n', sep='')
+			}
+		}
+	}
+	return(ret)
 }
 
 setGslVectorElements <- function(values, params, name, fill="", depth=1){
@@ -3330,40 +3369,40 @@ setGslVectorElements <- function(values, params, name, fill="", depth=1){
 
 
 createGslMatrix <- function(nrow, ncol, name){
-    paste0("\tgsl_matrix *", name, " = gsl_matrix_calloc(", nrow, ", ", ncol, ");\n")
+	paste0("\tgsl_matrix *", name, " = gsl_matrix_calloc(", nrow, ", ", ncol, ");\n")
 }
 
 destroyGslMatrix <- function(name){
-    paste0("\tgsl_matrix_free(", name, ");\n")
+	paste0("\tgsl_matrix_free(", name, ");\n")
 }
 
 createGslVector <- function(size, name){
-    paste0("\tgsl_vector *", name, " = gsl_vector_calloc(", size, ");\n")
+	paste0("\tgsl_vector *", name, " = gsl_vector_calloc(", size, ");\n")
 }
 
 destroyGslVector <- function(name){
-    paste0("\tgsl_vector_free(", name, ");\n")
+	paste0("\tgsl_vector_free(", name, ");\n")
 }
 
 #y <- alpha * transA(A) %*% x + beta * y
 blasMV <- function(transA, alpha, A, x, beta, y){
-    transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
-    paste0("\tgsl_blas_dgemv(", paste(transA, alpha, A, x, beta, y, sep=", "), ");\n")
+	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
+	paste0("\tgsl_blas_dgemv(", paste(transA, alpha, A, x, beta, y, sep=", "), ");\n")
 }
 
 # C <- alpha * transA(A) %*% transB(B) + beta * C
 blasMM <- function(transA, transB, alpha, A, B, beta, C){
-    transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
-    transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
-    paste0("\tgsl_blas_dgemm(", paste(transA, transB, alpha, A, B, beta, C, sep=", "), ");\n")
+	transA <- ifelse(transA, "CblasTrans", "CblasNoTrans")
+	transB <- ifelse(transB, "CblasTrans", "CblasNoTrans")
+	paste0("\tgsl_blas_dgemm(", paste(transA, transB, alpha, A, B, beta, C, sep=", "), ");\n")
 }
 
 gslVector2Column <- function(matrix, index, vector, which){
-    if(which=='column'){
-        paste0("\tgsl_matrix_set_col(", paste(matrix, index, vector, sep=", "), ");\n")
-    } else if(which=='row'){
-        paste0("\tgsl_matrix_set_row(", paste(matrix, index, vector, sep=", "), ");\n")
-    }
+	if(which=='column'){
+		paste0("\tgsl_matrix_set_col(", paste(matrix, index, vector, sep=", "), ");\n")
+	} else if(which=='row'){
+		paste0("\tgsl_matrix_set_row(", paste(matrix, index, vector, sep=", "), ");\n")
+	}
 }
 
 # fromName character name of the from vector
@@ -3373,24 +3412,24 @@ gslVector2Column <- function(matrix, index, vector, which){
 # depth number of tabs to indent
 # create logical whether to create the toName before copying.  The vector created will be the length of toLoc
 gslVectorCopy <- function(fromName, toName, fromLoc, toLoc, fromFill="", toFill="", depth=1, create=FALSE){
-    # check lengths match
-    if(length(fromLoc) != length(toLoc)){stop("'fromLoc' and 'toLoc' lengths must match")}
-    tabs <- paste(rep('\t', depth), collapse="")
-    tabsm1 <- paste(rep('\t', depth-1), collapse="")
-    ret <- character(0)
-    if(create){
-        ret <- paste0(ret, tabsm1, createGslVector(length(toLoc), toName))
-    }
-    for(i in 1:length(toLoc)){
-        get <- paste0("gsl_vector_get(", fromName, ", ", fromFill, fromLoc[i]-1, ")")
-        set <- paste0(tabs, "gsl_vector_set(", toName, ", ", toFill, toLoc[i]-1, ", ", get, ");\n")
-        ret <- paste0(ret, set)
-    }
-    return(ret)
+	# check lengths match
+	if(length(fromLoc) != length(toLoc)){stop("'fromLoc' and 'toLoc' lengths must match")}
+	tabs <- paste(rep('\t', depth), collapse="")
+	tabsm1 <- paste(rep('\t', depth-1), collapse="")
+	ret <- character(0)
+	if(create){
+		ret <- paste0(ret, tabsm1, createGslVector(length(toLoc), toName))
+	}
+	for(i in 1:length(toLoc)){
+		get <- paste0("gsl_vector_get(", fromName, ", ", fromFill, fromLoc[i]-1, ")")
+		set <- paste0(tabs, "gsl_vector_set(", toName, ", ", toFill, toLoc[i]-1, ", ", get, ");\n")
+		ret <- paste0(ret, set)
+	}
+	return(ret)
 }
 
 gslcovariate.front <- function(selected, covariates){
-    gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
+	gslVectorCopy("co_variate", "covariate_local", match(selected, covariates), 1:length(selected), create=TRUE)
 }
 
 #------------------------------------------------------------------------------
