@@ -22,14 +22,14 @@ data <- dynr.data(vdpData, id="id", time="time",
                  covariates=c("u1", "u2"))
 
 meas <- prep.measurement(
-	#values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2), #original setting
-	values.load=matrix(c(1, 0.6886, 1.1834, 0, 0, 0), 3, 2), # in SAEMTesting
-	params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
-	obs.names = c('y1', 'y2', 'y3'),
-	state.names=c('x1', 'x2'),
-	#values.int=matrix(c(0, 0, 0), ncol=1), #original setting
-	values.int=matrix(c(0.0036, -0.0014, -0.0059), ncol=1), #SAEMTesting setting
-	params.int=matrix(c('mu1', 'mu2', 'mu3'), ncol=1))
+    #values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2), #original setting
+    values.load=matrix(c(1, 0.6994, 1.1974, 0, 0, 0), 3, 2), # in SAEMTesting
+    params.load=matrix(c('fixed', 'lambda_21', 'lambda_31', 'fixed', 'fixed', 'fixed'), 3, 2),
+    obs.names = c('y1', 'y2', 'y3'),
+    state.names=c('x1', 'x2'),
+    #values.int=matrix(c(0, 0, 0), ncol=1), #original setting
+	values.int=matrix(c(-0.0018, -0.0051, -0.0007), ncol=1), #SAEMTesting setting
+    params.int=matrix(c('mu1', 'mu2', 'mu3'), ncol=1))
 
 
 initial <- prep.initial(
@@ -50,12 +50,12 @@ initial <- prep.initial(
 )
 
 mdcov <- prep.noise(
-	values.latent=diag(0, 2), 
-	params.latent=diag(c("fixed","fixed"), 2),
-	#values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
-	#values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
-	values.observed=diag(c(0.5658, 0.5302, 0.5990)),
-	params.observed=diag(c("var_1","var_2","var_3"),3)
+    values.latent=diag(0, 2), 
+    params.latent=diag(c("fixed","fixed"), 2),
+    #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
+    #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
+	values.observed=diag(c(0.5076, 0.5027, 0.5140)),
+    params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
 formula=
@@ -79,16 +79,16 @@ dynm<-prep.formulaDynamics(formula=formula,
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
                            random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
 						   #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
-						   random.lb = -5, 
-						   random.ub = 3,
-						   saem=TRUE
-						   )
+                           random.lb = -5, 
+                           random.ub = 5,
+                           saem=TRUE
+                           )
 
 
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    outfile='vdp.cpp')
+                    outfile=paste0(tempfile(),'.cpp'))
 
 print('here')
 print(model@freeIC)
@@ -106,21 +106,19 @@ model$ub[names(model@lb)] = 10
 print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
-							MAXITER =  3, 
-							#maxIterStage1 = 100, 
-							#gainpara = 0.600000, 
-							#gainparb = 3.000000, 
-							#gainpara1 = 0.900000, 
-							#gainparb1 = 1.000000, 
-							bAdaptParams = c(1, 2, 0.1),
-							KKO=5
+                            MAXITER = 100, 
+                            #maxIterStage1 = 100, 
+                            #gainpara = 0.600000, 
+                            #gainparb = 3.000000, 
+                            #gainpara1 = 0.900000, 
+                            #gainparb1 = 1.000000, 
+                            #bAdaptParams = c(0.5, 2.5, 0.5 ,1 ,2, 0.5),
+							#KKO=30
 							)
 
 timestart<-Sys.time()
 
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
-print(fitted_model)
-print(matrix(fitted_model$Iytild, nrow=12))
 
 timeend<-Sys.time()
 
