@@ -88,7 +88,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    outfile=paste0(tempfile(),'.cpp'))
+                    outfile='vdp.cpp')
 
 print('here')
 print(model@freeIC)
@@ -106,7 +106,7 @@ model$ub[names(model@lb)] = 10
 print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
-							MAXITER = 10, 
+							MAXITER =  3, 
 							#maxIterStage1 = 100, 
 							#gainpara = 0.600000, 
 							#gainparb = 3.000000, 
@@ -119,6 +119,8 @@ saemp <- prep.saemParameter(MAXGIB = 3,
 timestart<-Sys.time()
 
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+print(fitted_model)
+print(matrix(fitted_model$Iytild, nrow=12))
 
 timeend<-Sys.time()
 
