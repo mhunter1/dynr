@@ -36,7 +36,7 @@
 			f_dP_dt=getNativeSymbolInfo("function_dP_dt", DLL)$address,
 			f_initial_condition=getNativeSymbolInfo("function_initial_condition", DLL)$address,
 			f_regime_switch=getNativeSymbolInfo("function_regime_switch", DLL)$address,
-			f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,f_transform=getNativeSymbolInfo("function_transform", DLL)$address#,
+			f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,f_transform=getNativeSymbolInfo("function_transform", DLL)$address,
 			f_transform=getNativeSymbolInfo("function_transform", DLL)$address#,
 			#f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses
 			)
