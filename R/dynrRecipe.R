@@ -2370,7 +2370,8 @@ autojacob <- function(formula, n, diff.variables){
 ##'                            random.names=c('b_eta'),
 ##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
 ##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
-prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, ...){
+prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
+	#browser()
 	dots <- list(...)
 	
 	# if the argument formula is not a list 
@@ -2400,12 +2401,12 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	  fml=lapply(theta.formula, as.character)
 	  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
 	}
-		if('random.names' %in% names(dots))
-			random.names <- dots$random.names
-		if('random.params.inicov' %in% names(dots))
-			random.params.inicov <- dots$random.params.inicov
-		if('random.values.inicov' %in% names(dots))
-			random.values.inicov <- dots$random.values.inicov
+	if('random.names' %in% names(dots))
+		random.names <- dots$random.names
+	if('random.params.inicov' %in% names(dots))
+		random.params.inicov <- dots$random.params.inicov
+	if('random.values.inicov' %in% names(dots))
+		random.values.inicov <- dots$random.values.inicov
     if('random.ub' %in% names(dots))
       random.ub <- dots$random.ub
     if('random.lb' %in% names(dots))
@@ -2447,12 +2448,13 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
 	}
 	x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
+	#browser()
 	if (missing(jacobian)){
-    if(saem == TRUE){
-      jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
-	  #jacobianOriginal <- autojacobTry(formula)
-	}
-    else{   
+	  if('theta.formula' %in% names(dots)){
+        jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
+	    #jacobianOriginal <- autojacobTry(formula)
+	  }
+	  else{   
       jacobian <- autojacobTry(formula)
       autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
 		if (class(autojcb) == "try-error") {
@@ -2460,7 +2462,10 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 					 Please provide the analytic jacobian functions.")
 		}else{
 			jacobian=lapply(autojcb,"[[","jacob") 
-	}}
+		}
+	  }
+	}
+    
   
   #if(saem == TRUE){
   jacobianOriginal <- autojacobTry(formula)
@@ -2472,16 +2477,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if(nregs[1] != nregs[2]){
     stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
   }
-	x$jacobian <- jacobian
-	x$formulaOriginal <- x$formula
+  x$jacobian <- jacobian
+  x$formulaOriginal <- x$formula
   x$jacobianOriginal <- jacobianOriginal
-	x$paramnames <- names(x$startval)
+  x$paramnames <- names(x$startval)
 
-  if(saem == FALSE)
+  if(saem == FALSE){
+    x$saem <- saem
     return(new("dynrDynamicsFormula", x))
+	
+  }
 
   # The following is only for saem
-  
   if('theta.formula' %in% names(dots)){
 	
 	
@@ -4132,7 +4139,8 @@ extractVariablesfromFormula<- function(formula){
 extractVariablesfromSingleFormula <- function(formula){
     #browser()
     rhs <- as.character(formula)[[3]]
-    a <- unlist(stringr::str_split(rhs, '[^A-z0-9_.]+'))
+    #a <- unlist(stringr::str_split(rhs, '[^A-z0-9_.]+'))
+	a <- unlist(stringr::str_split(rhs, '[^[:alnum:]_.]+'))
     variables <- a[grep('[\\w.]*[a-zA-Z]+[\\w.]*', a)]
     return(unique(variables))
 }
