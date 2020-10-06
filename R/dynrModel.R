@@ -556,7 +556,7 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  
+  browser()
   if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
     stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
   }
@@ -589,7 +589,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if(!all(states.dyn[[1]] %in% nameLatentVars)){
       stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
     }
-    #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
+    if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
+	#the following if seems to have errors
     if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
       #states.dyn=states.dyn[[1]]#}else{
       stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
@@ -765,9 +766,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     stop(paste0("In formula, there are variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
   }
   
+  browser()
   # Examine variables in theta.formula: if there exist variables that are not in all.params and state.names, issue an error
-  if(.hasSlot(inputs$dynamics, 'theta.formula')){
-    variables <- extractVariablesfromFormula(theta.formula)
+  if(.hasSlot(inputs$dynamics, 'theta.formula') && length(inputs$dynamics@theta.formula) > 0){
+    variables <- extractVariablesfromFormula(inputs$dynamics@theta.formula)
 	if(any(variables %in% data$observed.names)){
       error.variables <- variables[variables %in% data$observed.names == TRUE]
       stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
