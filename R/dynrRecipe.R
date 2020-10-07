@@ -2388,49 +2388,43 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		warning("You provided no start values: length(startval)==0. If you have no free parameters, keep calm and carry on.")
 	}
 	
-	
+	# parsing the parameters in ...
 	if(length(dots) > 0){
-    if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
-			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
+				stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
+			}
+
+		#browser()
+		if('theta.formula' %in% names(dots)){
+				theta.formula <- dots$theta.formula
+		  # retrieve theta.names from theta.formula instead of asking users to give inputs
+		  fml=lapply(theta.formula, as.character)
+		  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
 		}
+		if('random.names' %in% names(dots))
+			random.names <- dots$random.names
+		if('random.params.inicov' %in% names(dots))
+			random.params.inicov <- dots$random.params.inicov
+		if('random.values.inicov' %in% names(dots))
+			random.values.inicov <- dots$random.values.inicov
+		if('random.ub' %in% names(dots))
+		  random.ub <- dots$random.ub
+		if('random.lb' %in% names(dots))
+		  random.lb <- dots$random.lb
 
-    #browser()
-    if('theta.formula' %in% names(dots)){
-			theta.formula <- dots$theta.formula
-	  # retrieve theta.names from theta.formula instead of asking users to give inputs
-	  fml=lapply(theta.formula, as.character)
-	  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
+
 	}
-	if('random.names' %in% names(dots))
-		random.names <- dots$random.names
-	if('random.params.inicov' %in% names(dots))
-		random.params.inicov <- dots$random.params.inicov
-	if('random.values.inicov' %in% names(dots))
-		random.values.inicov <- dots$random.values.inicov
-    if('random.ub' %in% names(dots))
-      random.ub <- dots$random.ub
-    if('random.lb' %in% names(dots))
-      random.lb <- dots$random.lb
-
-
-  }
   
-  state.names = unlist(lapply(formula, function(fml){as.character(as.list(fml)[[2]])}))
-  if(length(startval) > 0){
-    beta.names = names(startval)
-  }
+	if(length(startval) > 0){
+		beta.names = names(startval)
+	}
 
-  if(length(startval) > 0 & is.null(names(startval))){
-    stop('startval must be a named vector.')
-  }
+	if(length(startval) > 0 & is.null(names(startval))){
+		stop('startval must be a named vector.')
+	}
 
-  
-  if(saem == TRUE){
-    # processs the formula
-    startval.names <- names(startval)
-    num.state <- length(state.names)
-    num.formula <- length(formula)
-  }
+
+
   
 	# e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
 	if(is.list(formula) && plyr::is.formula(formula[[1]])){
@@ -2467,27 +2461,29 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	}
     
   
-  #if(saem == TRUE){
-  jacobianOriginal <- autojacobTry(formula)
-  #}
+
 
   # Check that all 'values' imply 0, 1, or the same number of regimes.
   # Note that the 'values' and 'params' have already been checked to imply this.
-  nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
-  if(nregs[1] != nregs[2]){
-    stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
-  }
-  x$jacobian <- jacobian
-  x$formulaOriginal <- x$formula
-  x$jacobianOriginal <- jacobianOriginal
-  x$paramnames <- names(x$startval)
+	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
+	if(nregs[1] != nregs[2]){
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+	}
+	x$jacobian <- jacobian
+	x$formulaOriginal <- x$formula
+	x$jacobianOriginal <- jacobian
+	x$paramnames <- names(x$startval)
 
-  if(saem == FALSE){
-    x$saem <- saem
-    return(new("dynrDynamicsFormula", x))
+	if(saem == FALSE){
+		x$saem <- saem
+		return(new("dynrDynamicsFormula", x))
+
+	}
+
+
+  startval.names <- names(startval)
+
 	
-  }
-
   # The following is only for saem
   if('theta.formula' %in% names(dots)){
 	
@@ -2506,15 +2502,15 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if('random.lb' %in% names(dots))
     x$random.lb <- random.lb
   
-
-  #formula_onlystate=retriveStateFormula(formula[[1]], state.names)
+  if(is.list(state.names)){
+    state.names = unlist(state.names)
+  }
   
   #dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
   dfdtheta <- autojacobTry(formula, diff.variables=theta.names)
   x$dfdtheta <- dfdtheta
-  #x$theta.names<-theta.names
+  x$theta.names<-theta.names
   
-  #dfdx <- autojacobTry(formula_onlystate, diff.variables=state.names)
   dfdx <- autojacobTry(formula, diff.variables=state.names)
   dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
   x$dfdx2 <- dfdx2
