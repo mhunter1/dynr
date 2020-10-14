@@ -2473,24 +2473,20 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	x$formulaOriginal <- x$formula
 	x$jacobianOriginal <- jacobian
 	x$paramnames <- names(x$startval)
-
-	if(saem == FALSE){
-		x$saem <- saem
-		return(new("dynrDynamicsFormula", x))
-
+	
+	if('theta.formula' %in% names(dots)){
+		x$theta.formula <- theta.formula
+		x$theta.names <- theta.names
 	}
+
+	
 
 
   startval.names <- names(startval)
 
 	
   # The following is only for saem
-  if('theta.formula' %in% names(dots)){
-	
-	
-    x$theta.formula <- theta.formula
-	x$theta.names <- theta.names
-  }
+  
   if('random.names' %in% names(dots))
     x$random.names <- random.names
   if('random.params.inicov' %in% names(dots))
@@ -2502,9 +2498,16 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   if('random.lb' %in% names(dots))
     x$random.lb <- random.lb
   
+  if(saem == FALSE){
+		x$saem <- saem
+		return(new("dynrDynamicsFormula", x))
+
+  }
+	
   if(is.list(state.names)){
     state.names = unlist(state.names)
   }
+  
   
   #dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
   dfdtheta <- autojacobTry(formula, diff.variables=theta.names)

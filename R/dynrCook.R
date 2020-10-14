@@ -603,7 +603,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
 
-		browser()
+		#browser()
 		#trueb <- data$trueb[data$tstart[1:num.subj+1], ]
 		
 		 
@@ -1028,7 +1028,7 @@ combineModelDataInformationSAEM <- function(model, data){
 
 	
     #H & Z 
-	browser()
+	#browser()
 	theta.variables <- extractVariablesfromFormula(model$theta.formula)
 	startval.names <- names(inputs$dynamics@startval)
     r =formula2design( 
@@ -1315,7 +1315,6 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
     meas2 <- prep.measurement(
         values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
         params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
-        #params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
         obs.names = dynrModel@measurement@obs.names,
         state.names = state.names2)
     
