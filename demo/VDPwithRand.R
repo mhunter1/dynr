@@ -64,7 +64,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 # Put all the recipes together in a Model Specification								
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data, #saem=TRUE,
+                    noise=mdcov, initial=initial, data=data, 
                     outfile="VanDerPol.cpp")
 
 
