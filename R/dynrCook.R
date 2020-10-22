@@ -927,7 +927,7 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
         #params.observed=dynrModel@noise@params.observed[[1]]
     )
     
-    
+
     num.y = length(dynrModel@measurement@obs.names)
     #lambda matrix
     meas2 <- prep.measurement(
@@ -935,9 +935,12 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
         params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
         #params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
         obs.names = dynrModel@measurement@obs.names,
-        state.names = state.names2)
-    
-    
+        state.names = state.names2,
+		values.int=dynrModel@measurement@values.int,
+		#params.int=dynrModel@measurement@params.int
+		params.int=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@measurement@params.int[[1]]), nrow=nrow(dynrModel@measurement@params.int[[1]]))
+		)
+
     # Generate the new variance/covariance matrix 
     # by adding the user-specified random names into states
     #   - state.names2: c(state.names, random.names)
@@ -983,7 +986,7 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
     model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
                          noise=mdcov2, initial=initial2, data=dynrModel@data,
                          outfile=dynrModel@outfile)
-        
+
     fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
     
     
