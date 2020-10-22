@@ -1803,11 +1803,15 @@ prep.measurement <- function(values.load, params.load=NULL, values.exo=NULL, par
 	params.exo <- r$params
 	
 	# Handle int
+	if(missing(values.int) && !missing(params.int)){
+		warning('Intercept parameters are specified in params.int without any initial values. Using 0s as the default starting values. To change, please use values.int.')
+		values.int = matrix(rep(0, times = nrow(params.int)), ncol=1)
+	}
 	r <- coProcessValuesParams(values.int, params.int, missingOK=TRUE)
 	values.int <- r$values
 	params.int <- r$params
 	
-	
+
 	if(missing(obs.names)){
 		obs.names <- paste0('y',1:nrow(values.load[[1]]))
 	}
