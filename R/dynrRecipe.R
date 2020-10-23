@@ -1426,7 +1426,7 @@ reverseldl <- function(values){
 			#  1 not all missing
 			#  2 not missing everywhere except the diagonal
 			#  3 not missing on the diagonal with zero everywhere else
-			warning("Avast ye swarthy dog! NA was passed to LDL in confusing way. Not doing LDL.")
+			warning("Avast ye lowly dog! NA was passed to LDL in confusing way. Not doing LDL.")
 			return(values)
 		}
 	} else{
