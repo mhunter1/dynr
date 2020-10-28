@@ -486,6 +486,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		return(fitted_model)
 	}	#internalModelPrep convert dynrModel to a model list
 	
+	#  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
 	dots <- list(...)
 	saem <- dynrModel$dynamics$saem 
 	if(length(dots) > 0){
@@ -742,6 +743,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			b <- fitted_model@b_est
 		return(fitted_model)
 	}
+	#  ------- The above lines obtain the necessary components of SAEM processs ----------------------------
     
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
