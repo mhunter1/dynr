@@ -581,23 +581,18 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       statePaste <- paste0('(', paste(sapply(states.dyn, length), collapse=', '), ')')
       stop(paste0("Found ", statePaste, " latent states in dynamics formula, but expected (", numLatentVars, ") latent states from measurement model."))
     }
-    if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
-      states.dyn=states.dyn[[1]]
-    }else{
-      stop("Formulas should be specified in the same order for different regimes.")
-    }
     if(!all(states.dyn[[1]] %in% nameLatentVars)){
       stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
     }
     #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
-	#the following if seems to have errors
-    #if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
+    if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
       #states.dyn=states.dyn[[1]]#}else{
-    #  stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
-    #}
+      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
+    }
     
     #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
   }
+  
   # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
   # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
   # 2. whether values.dyn and params.dyn are of the same matrix dimension
@@ -635,9 +630,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inicov.dim <- dim(initial@values.inicov[[1]])
     if(inistate.dim[1]!=numLatentVars){
       stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
-    }
-    if(inistate.dim[2]!= 1){
-      stop("The initial states should be a column vector.")
     }
     if(inicov.dim[1]!=numLatentVars){
       msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
@@ -747,11 +739,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 									 values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
 									 values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
 	  }
-	  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
-	  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   }
+  # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
+  inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
+  
 
-
+  #  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
   legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names, 'exp')
   variables <- extractVariablesfromFormula(unlist(dynamics@formula))
@@ -922,7 +915,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  # inputs$dynamics@dfdtheta2 <- autojacobTry(inputs$dynamics@dfdtheta, diff.variables=theta.names)
 	# }
   }
-
+  #  ------- The above lines obtain the necessary components of SAEM processs ----------------------------
+  
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
   } else {
