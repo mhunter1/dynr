@@ -44,7 +44,7 @@ mdcov <- prep.noise(
     params.observed=diag("var_e", 1))
 	
 dynm<-prep.formulaDynamics(formula=formula, 
-						   startval=c(eta0=-1, eta1=.1, eta2=-.1, zeta=-.02),
+						   startval=c(eta0=-1, eta1=.1, eta2=-.1, zeta=-.01),
                            isContinuousTime=TRUE,
 						   theta.formula=theta.formula,
 						   random.names=c('b_eta'),
@@ -97,7 +97,7 @@ fitted_model <- dynr.cook(model, verbose=FALSE)
 trueParams <- c(eta0 = -.8, eta1 = .1, eta2 = -.3, zeta = -.01 , sigma2_b_eta= .01)
 data.frame(name=c('eta0', 'eta1', 'eta2', 'zeta', 'sigma2_b_eta'), true=trueParams, estim=coef(fitted_model)[c('eta0', 'eta1', 'eta2', 'zeta', 'sigma2_b_eta')])
 
-(CI <- confint(fitted_model)[c('eta0', 'eta1', 'eta2', 'zeta', 'sigma2_b_eta'),])
+(CI <- confint(fitted_model, level = 0.99)[c('eta0', 'eta1', 'eta2', 'zeta', 'sigma2_b_eta'),])
 
 # Check that all true parameters are within the confidence intervals of the estimated params
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
@@ -130,7 +130,7 @@ mdcov <- prep.noise(
     values.latent=diag(0, 2),
     params.latent=diag(c("fixed","fixed"), 2),
     values.observed=diag(rep(0.6,3)),
-    params.observed=diag(c("fixed","fixed","fixed"),3)
+    params.observed=diag(c("var_1","var_2","var_3"),3)
 )
 
 
@@ -154,8 +154,9 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data)
 testthat::expect_error(
     coef(model) <- rep(.1, 7),
-    regexp="Number of model coeficients (5) does not match number assigned (7).", fixed=TRUE)
+    regexp="Number of model coeficients (8) does not match number assigned (7).", fixed=TRUE)
 	
+
 	
 # Examination of dynr.cook: the results
 fitted_model <- dynr.cook(model, verbose=FALSE)
@@ -170,14 +171,14 @@ fitted_model <- dynr.cook(model, verbose=FALSE)
 
 # compare true parameters to estimated ones
 #trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, mu_x1 = 0, mu_x2 = 0, sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5)
-trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, sigma2_b_zeta = .5)
+trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, sigma2_b_zeta = .5)
 
 
 #data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31', 'var_1', 'var_2', 'var_3', 'mu_x1', 'mu_x2','sigma_bx1', 'sigma_bx1x2', 'sigma_bx2','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
-data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
+data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', 'var_2', 'var_3','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
 
 
-(CI <- confint(fitted_model))
+(CI <- confint(fitted_model, level=0.99))
 
 # Check that all true parameters are within the confidence intervals of the estimated params
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
