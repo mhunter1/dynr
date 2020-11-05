@@ -900,7 +900,7 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
     # Restructure mixed effects structured via theta.formula into an expanded model with 
     # random effects as additional state variables and cook it.
     #browser()
-    if(.hasSlot(dynrModel@dynamics,'random.names')){
+    if(.hasSlot(dynrModel@dynamics,'random.names') && length(dynrModel@dynamics@random.names) > 0){
         user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
         
         # Add the user-specified random effects into states to be estimated
