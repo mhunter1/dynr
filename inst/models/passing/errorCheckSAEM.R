@@ -13,6 +13,8 @@ require(dynr)
 #------------------------------------------------------------------------------
 # example model: OSC 
 
+
+
 formula = list(x ~ dx,
                dx ~ eta_i * x + zeta*dx)
 theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
@@ -83,6 +85,8 @@ testthat::expect_error(
     regexp="Number of model coeficients (9) does not match number assigned (5).", fixed=TRUE)
 
 #------------------------------------------------------------------------------
+#fix seed
+set.seed(420)
 	
 # Examination of dynr.cook: the results
 fitted_model <- dynr.cook(model, verbose=FALSE)
@@ -157,6 +161,8 @@ testthat::expect_error(
     regexp="Number of model coeficients (8) does not match number assigned (7).", fixed=TRUE)
 	
 
+#fix seed
+set.seed(1110)
 	
 # Examination of dynr.cook: the results
 fitted_model <- dynr.cook(model, verbose=FALSE)
