@@ -99,8 +99,9 @@ mod <- dynr.model(dynamics, measurement, noise, ini1c, data)
 
 # Error: initial condition dim doesn't match measurement
 # TODO add numbers to this error message
-mod <- dynr.model(dynamics, measurement, noise, ini2, data)
-
+testthat::expect_error(
+    mod <- dynr.model(dynamics, measurement, noise, ini2, data),
+    regexp="The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.", fixed=TRUE)
 
 #------------------------------------------------------------------------------
 
