@@ -105,7 +105,9 @@ dynr.mi <- function(dynrModel, which.aux=NULL,
 	# create a null data frame to store leading variables 
 	datalead <- data.frame(ID, matrix(NA, nrow = length(ID), ncol = length(which.lead)*lead))
 	
-	if(lead > 0){
+	if(lead < 1){
+	  warning("No leading variables in the imputation model.")
+	} else{
 	  for(i in id){
 	    # tmp used to store original variables for each subject 
 	    tmp_lead <- dataforlead[dataforlead$ID == i, which.lead]
