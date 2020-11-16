@@ -12,7 +12,7 @@ Authors@R: c(person("Lu", "Ou", role="aut"),
 	person("Jonathan", "Park", role="aut", email=""))
 Maintainer: Michael D. Hunter <dynr.team@gmail.com>
 URL: https://dynrr.github.io/, https://github.com/mhunter1/dynr
-BugReports: <dynr@googlegroups.com>
+Contact: <dynr@googlegroups.com>
 Depends: R (>= 3.0.0), ggplot2
 Imports: MASS, Matrix, numDeriv, xtable, latex2exp, grid, reshape2, plyr, mice, magrittr, Rdpack, methods, fda, car, stringi, tibble, deSolve
 Suggests: testthat, roxygen2 (>= 3.1), knitr, rmarkdown
