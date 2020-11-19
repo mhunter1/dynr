@@ -110,7 +110,7 @@ testthat::expect_true(all(withinIntervals))
 #------------------------------------------------------------------------------
 # test on VDP model
 data(vdpData)
-vdpData <- vdpData[1:3000, ]
+#vdpData = vdpData[vdpData$id<=30,]
 data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1','y2','y3'),
                  covariates=c("u1","u2"))
@@ -123,11 +123,11 @@ meas <- prep.measurement(
 
 initial <- prep.initial(
     values.inistate=c(0, 0),
-    params.inistate=c("fixed", "fixed"),
+    params.inistate=c("mu_x1", "mu_x2"),
     values.inicov=matrix(c(.8,.3,
                            .3,.7),ncol=2,byrow=TRUE), 
-    params.inicov=matrix(c('fixed','fixed',
-                           'fixed','fixed'),ncol=2,byrow=TRUE))
+    params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
+                           'sigma_bx1x2','sigma2_bx2'),ncol=2,byrow=TRUE))
 
 mdcov <- prep.noise(
     values.latent=diag(0, 2),
@@ -160,8 +160,6 @@ testthat::expect_error(
     regexp="Number of model coeficients (8) does not match number assigned (7).", fixed=TRUE)
 
 
-#fix seed
-set.seed(1110)
 
 # Examination of dynr.cook: the results
 fitted_model <- dynr.cook(model, verbose=FALSE)
@@ -175,12 +173,12 @@ fitted_model <- dynr.cook(model, verbose=FALSE)
 # sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5
 
 # compare true parameters to estimated ones
-#trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, mu_x1 = 0, mu_x2 = 0, sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5)
-trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, sigma2_b_zeta = .5)
+trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, mu_x1 = 0, mu_x2 = 0, sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5)
+#trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, sigma2_b_zeta = .5)
 
 
-#data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31', 'var_1', 'var_2', 'var_3', 'mu_x1', 'mu_x2','sigma_bx1', 'sigma_bx1x2', 'sigma_bx2','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
-data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', 'var_2', 'var_3','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
+data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31', 'var_1', 'var_2', 'var_3', 'mu_x1', 'mu_x2','sigma_bx1', 'sigma_bx1x2', 'sigma_bx2','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
+#data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', 'var_2', 'var_3','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
 
 
 (CI <- confint(fitted_model, level=0.99))

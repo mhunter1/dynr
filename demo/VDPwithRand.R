@@ -1,15 +1,12 @@
 #------------------------------------------------------------------------------
-# Author: Hui-Ju Hung
-# Date: 2019-10-03
+# Author: Hui-Ju Hung & Sy-Miin Chow
+# Last updated: 2020-11-18
 # Filename: VDPwithRand.R
 # Purpose: An illustrative example for using dynr to estimate random effects  
-#          for Van Der Pol model.
+#          for the Van Der Pol model.
 #------------------------------------------------------------------------------
 
 library('dynr')
-
-# ---- Read in the data ----
-
 data(vdpData)
 data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1','y2','y3'),
@@ -26,10 +23,10 @@ meas <- prep.measurement(
 
 # Initial conditions on the latent state and covariance
 initial <- prep.initial(
-    values.inistate=c(3, 1),
+    values.inistate=c(0, 0),
     params.inistate=c("mu_x1", "mu_x2"),
-    values.inicov=matrix(c(.5,.2,
-                           .2,.6),ncol=2,byrow=TRUE), 
+    values.inicov=matrix(c(.8,.3,
+                           .3,.7),ncol=2,byrow=TRUE), 
     params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
                            'sigma_bx1x2','sigma2_bx2'),ncol=2,byrow=TRUE))
 
