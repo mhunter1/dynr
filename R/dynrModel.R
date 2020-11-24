@@ -635,7 +635,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
   # Check all the covariates
-  # TODO Add regime covariate check
   # Check if any submodel piece has any covariates but data do not
   if(.hasSlot(dynamics, 'covariates')){ dynCovar <- dynamics$covariates} else {dynCovar <- character(0)}
   anyCovariateRecipes <- length(c(measurement$exo.names, initial$covariates, dynCovar)) > 0
@@ -733,6 +732,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
+    if (!is.null(data$covariate.names) && !all(inputs$regimes$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrRegimes' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
   } else {
     numRegimes <- 1L
   }
