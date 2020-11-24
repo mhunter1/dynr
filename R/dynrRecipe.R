@@ -89,17 +89,12 @@ setClass(Class = "dynrDynamicsFormula",
            jacobian = "list",
            formulaOriginal = "list",
            jacobianOriginal = "list",
-
-
-		   random.names = "character",
-
-		   theta.formula = "list",
-
+           random.names = "character",
+           theta.formula = "list",
            isContinuousTime = "logical",
-
-		   saem = "logical",
-		   random.params.inicov="matrix",
-		   random.values.inicov="matrix"
+           saem = "logical",
+           random.params.inicov="matrix",
+           random.values.inicov="matrix"
            ),
          contains = "dynrDynamics"
 )
