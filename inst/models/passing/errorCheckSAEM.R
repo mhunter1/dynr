@@ -155,9 +155,11 @@ dynm <- prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data)
+msg <- paste0("Number of model coeficients (", length(coef(model)),
+    ") does not match number assigned (7).")
 testthat::expect_error(
     coef(model) <- rep(.1, 7),
-    regexp="Number of model coeficients (8) does not match number assigned (7).", fixed=TRUE)
+    regexp=msg, fixed=TRUE)
 
 
 
