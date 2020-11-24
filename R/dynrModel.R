@@ -634,8 +634,25 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
-  if (!is.null(data$covariate.names) & !all(measurement@exo.names %in% data$covariate.names)){
-    stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+  # Check all the covariates
+  # TODO Add regime covariate check
+  # Check if any submodel piece has any covariates but data do not
+  if(.hasSlot(dynamics, 'covariates')){ dynCovar <- dynamics$covariates} else {dynCovar <- character(0)}
+  anyCovariateRecipes <- length(c(measurement$exo.names, initial$covariates, dynCovar)) > 0
+  if(anyCovariateRecipes && is.null(data$covariate.names)){
+    stop("I found some covariates in your recipes, but not in your data.")
+  }
+  if (!is.null(data$covariate.names)){
+    if(!all(measurement$exo.names %in% data$covariate.names)){
+      stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    if(!all(initial$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrInitial' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    if(class(dynamics) == "dynrDynamicsMatrix" && !all(dynamics$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrDynamicsMatrix' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    # Note: formula dynamics covariates are inferred from the formula and swapped in based on the data covariates
   }
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 

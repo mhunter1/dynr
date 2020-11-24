@@ -68,7 +68,10 @@ ini2c <- prep.initial(
 #------------------------------------------------------------------------------
 # Model-based checks for initial conditions
 
-data <- dynr.data(data.frame(id=1,time=1:10,obsy=1:10),
+datac <- dynr.data(data.frame(id=1, time=1:10, obsy=1:10, BaselineAge=23),
+	id="id", time="time", observed="obsy", covariates='BaselineAge')
+
+data <- dynr.data(data.frame(id=1, time=1:10, obsy=1:10),
 	id="id", time="time", observed="obsy")
 
 measurement <- prep.measurement(
@@ -93,9 +96,14 @@ dynamics <- prep.formulaDynamics(list(x ~ a), startval=c(a=-.1),
 # No Error
 mod <- dynr.model(dynamics, measurement, noise, initial, data)
 
+# No Error
+mod <- dynr.model(dynamics, measurement, noise, ini1c, datac)
+
 # Error: covariate in initial condition but not in model/data
-# TODO catch error
-mod <- dynr.model(dynamics, measurement, noise, ini1c, data)
+testthat::expect_error(
+    mod <- dynr.model(dynamics, measurement, noise, ini1c, data),
+    regexp="I found some covariates in your recipes, but not in your data.",
+    fixed=TRUE)
 
 # Error: initial condition dim doesn't match measurement
 # TODO add numbers to this error message
