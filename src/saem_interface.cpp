@@ -2,6 +2,8 @@
 #include<math.h>
 
 #include <armadillo>
+#define ARMA_USE_SUPERLU 0
+
 using namespace arma;
 #include "structure_prototype.h"
 #include "supplementary_function.h"
