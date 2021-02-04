@@ -1,12 +1,15 @@
 # set by configure
 GSL_CFLAGS = -I$(LIB_GSL)/include 
+ARMA_CFLAGS = -I$(LIB_ARMADILLO)/include
+
 
 ifeq "$(WIN)" "64"
-GSL_LIBS = -L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas 
+GSL_LIBS = -L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas
+ARMA_LIBS = -L$(LIB_ARMADILLO)/lib_win64 -lblas -llapack 
 else
 GSL_LIBS = -L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas 
 endif
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS)
-PKG_LIBS = $(GSL_LIBS)
+PKG_CPPFLAGS = $(GSL_CFLAGS) $(ARMA_CFLAGS)
+PKG_LIBS = $(GSL_LIBS) $(ARMA_LIBS)
