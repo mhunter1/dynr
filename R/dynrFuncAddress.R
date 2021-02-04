@@ -152,13 +152,29 @@ CompileCode <- function(code, language, verbose, libLFile) {
   
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )
-  # if (isContinuousTime){
-    # res=list(
-		   # f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)
-  # }else{
-    # res=list(
-           # f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses)    
-  # }
+  if (isContinuousTime){
+    res=list(
+		f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+		f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+		f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+		f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+		f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+		f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+		f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+		f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)
+  }else{
+    res=list(
+		f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+		f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+		f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+		f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+		f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+		f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+		f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+		f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
+  }
+  print(res)
+  .Call(res$f_test, as.double(seq(.1, .5, by = 0.1)))
   return(list(address=res, libname=libLFile))
 }
 
@@ -178,7 +194,7 @@ CompileCodeSAEM <- function(code, language, verbose, libLFile) {
 
     ## windows gsl flags
 	LIB_ARMADILLO <- Sys.getenv("LIB_ARMADILLO") 
-	print(LIB_ARMADILLO)
+	#print(LIB_ARMADILLO)
     gsl_cflags <- sprintf( "-I %s/include", LIB_ARMADILLO)
     gsl_libs   <- sprintf( "-L%s/lib_win64 -lblas -llapack ", LIB_ARMADILLO)
   }else {
@@ -192,8 +208,8 @@ CompileCodeSAEM <- function(code, language, verbose, libLFile) {
   }
   if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
   Sys.setenv(PKG_CPPFLAGS=gsl_cflags)
-  #if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
-  #Sys.setenv(PKG_LIBS=gsl_libs)
+  if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
+  Sys.setenv(PKG_LIBS=gsl_libs)
 
   #libCFile  <- paste(outfile, ".EXT", sep="")
   libCFile <-sub(.Platform$dynlib.ext,".EXT",libLFile)

@@ -123,7 +123,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	
 
 	#returns a list of addresses of the compiled model functions
-	#func_address=.C2funcaddressSAEM(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
+	func_address=.C2funcaddressSAEM(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
 	
 	#browser()
 	
@@ -177,9 +177,9 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	par_value=par_value,
 	seed=seed,
 	#num_time = num_time,
-	options=options #,
-	#func_address=func_address[[1]],
-	#libname=func_address[[2]]
+	options=options,
+	func_address=func_address[[1]],
+	libname=func_address[[2]]
 	))
 }
 
