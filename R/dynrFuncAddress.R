@@ -163,15 +163,17 @@ CompileCode <- function(code, language, verbose, libLFile) {
 		f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
 		f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)
   }else{
-    res=list(
-		f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
-		f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
-		f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
-		f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
-		f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
-		f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
-		f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
-		f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
+	# todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
+	warning('SAEM process only supports isContinuousTime = TRUE now.')
+    # res=list(
+		# f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+		# f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+		# f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+		# f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+		# f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+		# f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+		# f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+		# f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
   }
   print(res)
   .Call(res$f_test, as.double(seq(.1, .5, by = 0.1)))
