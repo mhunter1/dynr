@@ -914,14 +914,25 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
         return(list())
     }
     
-    
+	##New cov matrices
+    params.latent <- function(){
+        icol <- dynrModel@noise@params.latent[[1]]
+        ind <- which(icol!=0)
+        icol[ind] <- dynrModel$'param.names'[icol[ind]]
+        for (i in 1:length(user.random.names)){
+        icol <- rbind(icol, 'fixed') 
+        icol <- cbind(icol, 'fixed')
+        }
+        return(icol)
+    }
     #browser()
     # If there is random effect to be estimated, set up a new model
     mdcov2 <- prep.noise(
         values.latent=diag(0, length(state.names2)),
         #params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
         #params.latent=diag(state.names2, length(state.names2)),
-        params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
+        #params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
+	params.latent = params.latent(),
         values.observed=dynrModel@noise@values.observed[[1]],
         params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
         #params.observed=dynrModel@noise@params.observed[[1]]
