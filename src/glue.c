@@ -13,7 +13,7 @@
 
 
 static R_NativePrimitiveArgType main_R_t[] = {
-    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP
+    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, INTSXP
 };
 
 static R_CMethodDef cMethods[] = {
