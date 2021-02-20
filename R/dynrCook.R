@@ -432,7 +432,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' time-varying predicted latent variable mean estimates, predicted error covariance matrix estimates, the error/residual estimates (innovation vector),
 ##' and the error/residual covariance matrix estimates.
 ##' 
-##' The exit flag given after optimization has finished is from the SLSQP optimizer.  Generally, error codes have negative values and successful codes have positive values.  However, codes 5 and 6 do not indicate the model converged, but rather simply ran out of iterations or time, respectively.  A more full description of each code is available at \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values} and is also listed in the table below.
+##' The exit flag given after optimization has finished is from the SLSQP optimizer.  Generally, error codes have negative values and successful codes have positive values.  However, codes 5 and 6 do not indicate the model converged, but rather simply ran out of iterations or time, respectively.  A more full description of each code is available at \url{https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#return-values} and is also listed in the table below.
 ##' 
 ##' \tabular{lcl}{
 ##' NLOPT Term \tab Numeric Code \tab Description \cr
@@ -720,7 +720,7 @@ is.positive.definite2 <- function(x) {
 	"matrix" %in% class(try(MASS::ginv(x), silent=TRUE))
 }
 
-# From http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Return_values
+# From https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#Return_values
 .ExitFlags <- c(
 	'-5'='Optimization halted because of a forced termination.',
 	'-4'='Optimization halted because of roundoff errors.',
