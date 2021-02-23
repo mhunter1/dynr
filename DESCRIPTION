@@ -10,7 +10,7 @@ Authors@R: c(person("Lu", "Ou", role="aut"),
 	person("Jungmin", "Lee", role="aut", email="leejapply@gmail.com"),
 	person("Yanling", "Li", role="aut", email=""),
 	person("Jonathan", "Park", role="aut", email=""))
-Maintainer: Michael D. Hunter <dynr.team@gmail.com>
+Maintainer: Michael D. Hunter <mike.dynr@gmail.com>
 URL: https://dynrr.github.io/, https://github.com/mhunter1/dynr
 Contact: <dynr@googlegroups.com>
 Depends: R (>= 3.0.0), ggplot2
