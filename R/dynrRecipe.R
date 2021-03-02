@@ -3171,9 +3171,12 @@ substituteFormula <- function(formula, term.formula){
 	lhst=lapply(fmlt,function(x){x[[2]]})
 	rhst=lapply(fmlt,function(x){x[[3]]})
 
+    #deciding the substitute order: variables with longer name first (e.g., substitute zeta_i then eta_i
+    sub_order = order(1:length(lhst), key=sapply(1:length(lhst), function(i)nchar(lhst[[i]])), decreasing= TRUE)
+	
 	for(i in 1:length(formula)){
 	    formula[[i]]=as.character(formula[[i]])
-	    for (j in 1:length(lhst)){
+	    for (j in sub_order){
     		# gsub (a, b, c) : in c replace a with b
     		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
 	    }
