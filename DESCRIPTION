@@ -1,6 +1,6 @@
 Package: dynr
 Date: @DATE@
-Title: Dynamic Models with Regime-switching
+Title: Dynamic Models with Regime-Switching
 Authors@R: c(person("Lu", "Ou", role="aut"),
     person(c("Michael", "D."), "Hunter", role=c("aut", "cre"), email="mike.dynr@gmail.com", comment=c(ORCID = "0000-0002-3651-6709")),
     person("Sy-Miin", "Chow", role="aut", comment=c(ORCID = "0000-0003-1938-027X")),
