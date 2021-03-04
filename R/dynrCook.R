@@ -471,18 +471,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# Always use 'verbose' function argument but only say so when they disagree and verbose=TRUE.
 	}
 	
-	if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0){
-		#get the initial values of b and startvars
-		fitted_model <- EstimateRandomAsLV(dynrModel, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
-		coefEst <- coef(fitted_model)
-		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		#print('Starting values:')
-		#print(dynrModel@xstart)
-		#if('b_est' %in% names(fitted_model))
-		#	b <- fitted_model@b_est
-		return(fitted_model)
-	}	#internalModelPrep convert dynrModel to a model list
+	# if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0){
+		# #get the initial values of b and startvars
+		# fitted_model <- EstimateRandomAsLV(dynrModel$extended_model, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
+		# coefEst <- coef(fitted_model)
+		# estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		# dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		# #print('Starting values:')
+		# #print(dynrModel@xstart)
+		# #if('b_est' %in% names(fitted_model))
+		# #	b <- fitted_model@b_est
+		# return(fitted_model)
+	# }	#internalModelPrep convert dynrModel to a model list
 	
 	model <- internalModelPrep(
 		num_regime=dynrModel@num_regime,
@@ -896,7 +896,9 @@ sechol <- function(A, tol = .Machine$double.eps, silent= TRUE ) {
 
 # the function to extend the user-specified model to include random varibles
 # currently extend all b at a time
-EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){  
+# return the extended model but does not cook
+#EstimateRandomAsLVRModel<- function(dynrModel, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE){
+EstimateRandomAsLVModel<- function(dynrModel){  
     # Restructure mixed effects structured via theta.formula into an expanded model with 
     # random effects as additional state variables and cook it.
     #browser()
@@ -1010,10 +1012,11 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
                          noise=mdcov2, initial=initial2, data=dynrModel@data,
                          outfile=dynrModel@outfile)
 
-    fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+    #fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
     
     
     
-    return(fitted_model2)
+    #return(fitted_model2)
+	return(model2)
     
 }

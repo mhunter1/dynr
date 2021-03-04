@@ -791,6 +791,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   cat(glom, file=obj.dynrModel@outfile)
   
+  if (.hasSlot(obj.dynrModel$dynamics, 'theta.formula') && length(obj.dynrModel$dynamics@theta.formula) > 0){
+    #get the extended model and return it (don't keep the original model)
+    extended_model <- EstimateRandomAsLVModel(obj.dynrModel)
+	return(extended_model)
+  }
+
   return(obj.dynrModel)
   #modify the object slot, including starting values, etc.
 }
