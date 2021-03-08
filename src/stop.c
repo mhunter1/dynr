@@ -187,7 +187,7 @@ char *nlopt_vsprintf(char *p, const char *format, va_list ap)
 
     p = (char *) realloc(p, len);
     if (!p)
-        abort();
+        return 0;
 
     /* TODO: check HAVE_VSNPRINTF, and fallback to vsprintf otherwise */
     while ((ret = vsnprintf(p, len, format, ap)) < 0 || (size_t) ret >= len) {
@@ -196,7 +196,7 @@ char *nlopt_vsprintf(char *p, const char *format, va_list ap)
         len = ret >= 0 ? (size_t) (ret + 1) : (len * 3) >> 1;
         p = (char *) realloc(p, len);
         if (!p)
-            abort();
+            return 0;
     }
     return p;
 }
