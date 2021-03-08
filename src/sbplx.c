@@ -157,7 +157,7 @@ nlopt_result sbplx_minimize(int n, nlopt_func f, void *f_data,
 				      xsstep, stop, psi, scratch, &fdiff);
 	       if (fdiff > fdiff_max) fdiff_max = fdiff;
 	       if (sbplx_verbose)
-		    MYPRINT"%d NM iterations for (%d,%d) subspace\n",
+		    MYPRINT("%d NM iterations for (%d,%d) subspace\n",
 			   *(stop->nevals_p) - nevals, sd.is, ns);
 	       for (k = i; k < i+ns; ++k) x[p[k]] = xs[k-i];
 	       if (ret == NLOPT_FAILURE) { ret=NLOPT_XTOL_REACHED; goto done; }
@@ -178,7 +178,7 @@ nlopt_result sbplx_minimize(int n, nlopt_func f, void *f_data,
 				 xsstep, stop, psi, scratch, &fdiff);
 	  if (fdiff > fdiff_max) fdiff_max = fdiff;
 	  if (sbplx_verbose)
-	       MYPRINT"sbplx: %d NM iterations for (%d,%d) subspace\n",
+	       MYPRINT("sbplx: %d NM iterations for (%d,%d) subspace\n",
 		      *(stop->nevals_p) - nevals, sd.is, ns);
 	  for (i = sd.is; i < n; ++i) x[p[i]] = xs[i-sd.is];
 	  if (ret == NLOPT_FAILURE) { ret=NLOPT_XTOL_REACHED; goto done; }
@@ -224,7 +224,7 @@ nlopt_result sbplx_minimize(int n, nlopt_func f, void *f_data,
 		    if (scale > 1/omega) scale = 1/omega;
 	       }
 	       if (sbplx_verbose)
-		    MYPRINT"sbplx: stepsize scale factor = %g\n", scale);
+		    MYPRINT("sbplx: stepsize scale factor = %g\n", scale);
 	       for (i = 0; i < n; ++i) 
 		    xstep[i] = (dx[i] == 0) ? -(xstep[i] * scale)
                          : copysign(xstep[i] * scale, dx[i]);
