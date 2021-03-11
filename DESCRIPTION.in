@@ -9,7 +9,11 @@ Authors@R: c(person("Lu", "Ou", role="aut"),
 	person("Hui-Ju", "Hung", role="aut", email=""),
 	person("Jungmin", "Lee", role="aut", email="leejapply@gmail.com"),
 	person("Yanling", "Li", role="aut", email=""),
-	person("Jonathan", "Park", role="aut", email=""))
+	person("Jonathan", "Park", role="aut", email=""),
+	person("Massachusetts Institute of Technology", role="cph"),
+	person("S. G.", "Johnson", role="cph"),
+	person("Benoit", "Scherrer", role="cph"),
+	person("Dieter", "Kraft", role="cph"))
 Maintainer: Michael D. Hunter <mike.dynr@gmail.com>
 URL: https://dynrr.github.io/, https://github.com/mhunter1/dynr
 Contact: <dynr@googlegroups.com>
