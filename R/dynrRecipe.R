@@ -268,6 +268,9 @@ setMethod("show", "dynrRecipe", function(object){printRecipeOrModel(object)})
 ##' 
 ##' Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
 ##' 
+##' 
+##' @return character text suitable for use fiel LaTeX
+##' 
 ##' @seealso A way to put this in a plot with \code{\link{plotFormula}}
 setGeneric("printex", function(object, ParameterAs, 
 	printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show, ...) { 
@@ -1388,6 +1391,8 @@ transldl <- function(mat){
 ##' This is a wrapper function around the \code{\link{chol}} function.
 ##' The goal is to factor a square, symmetric, positive (semi-)definite matrix into the product of a lower triangular matrix, a diagonal matrix, and the transpose of the lower triangular matrix.
 ##' The value returned is a lower triangular matrix with the elements of D on the diagonal.
+##' 
+##' @return A matrix
 dynr.ldl <- function(x){
 	ret <- t(chol(x))
 	d <- diag(ret)
@@ -1446,6 +1451,8 @@ reverseldl <- function(values){
 ##' The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
 ##' as for the \code{\link{diag}} function in the base package.  Off-diagonal entries
 ##' are filled with "0".
+##' 
+##' @return A matrix
 ##' 
 ##' @examples
 ##' diag(letters[1:3])
@@ -1652,6 +1659,8 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##' zero as the starting value.
 ##' For complete functionality use \code{\link{prep.measurement}}.
 ##' 
+##' @return Object of class 'dynrMeasurement'
+##' 
 ##' @examples
 ##' #Single factor model with one latent variable fixing first loading
 ##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 2:4))
@@ -1772,6 +1781,8 @@ prep.loadings <- function(map, params=NULL, idvar, exo.names=character(0), inter
 ##'
 ##' When a single matrix is given to values.*, that matrix is not regime-switching.
 ##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
+##' 
+##' @return Object of class 'dynrMeasurement'
 ##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
@@ -1905,6 +1916,9 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' Care should be taken that the parameters names for the latent covariances do not overlap with the parameters in the observed covariances.  Likewise, the parameter names for the latent covariances in each regime should either be identical or completely distinct. Because the LDL' transformation is applied to the covariances, sharing a parameter across regimes may cause problems with the parameter estimation.
 ##' 
 ##' Use $ to show specific arguments from a dynrNoise object (see examples).
+##' 
+##' @return Object of class 'dynrNoise'
+##' 
 ##' @seealso 
 ##' \code{\link{printex}} to show the covariance matrices in latex.
 ##'  
@@ -2050,6 +2064,8 @@ checkSymmetric <- function(m, name="matrix"){
 ##' 
 ##' The \code{refRow} argument determines which row is used as the intercept row. It is only
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
+##' 
+##' @return Object of class 'dynrRegimes'
 ##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
@@ -2243,6 +2259,8 @@ autojacob<-function(formula,n){
 ##' automatically inserts the random effect components specified in random.names as additional
 ##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
 ##' that the expanded model satisfies conditions such as observability for the estimation to work.
+##' 
+##' @return Object of class 'dynrDynamicsFormula'
 ##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
@@ -2441,6 +2459,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 ##' vectors/matrices are assumed to hold across regimes.
 ##' 
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
+##' 
+##' @return Object of class 'dynrDynamicsMatrix'
 ##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{show}} 
@@ -2689,8 +2709,10 @@ processFormula<-function(formula.list){
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically based on which parameters are \code{fixed}.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
-##'
+##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}}
+##' 
+##' @return Object of class 'dynrInitial'
+##' 
 ##' @examples
 ##' #### No-covariates
 ##' # Single regime, no covariates
@@ -2907,6 +2929,8 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 ##' are automatically subjected to transformation functions to ensure that
 ##' the resultant covariance matrices are positive-definite. Thus, no additional
 ##' transformation functions are needed for variance-covariance parameters.
+##' 
+##' @return Object of class 'dynrTrans'
 ##' 
 ##' @examples
 ##' #Specifies a transformation recipe, r20, that subjects the parameters

@@ -48,6 +48,8 @@
 ##' @param covariates (optional) a vector of character strings of the names of the covariates in the data,
 ##'  which can be missing.
 ##' 
+##' @return A list with components as needed for \code{dynr.model}
+##' 
 ##' @examples
 ##' data(EMGsim)
 ##' dd <- dynr.data(EMGsim, id = 'id', time = 'time', observed = 'EMG', covariates = 'self')

@@ -181,6 +181,7 @@ coef.summary.dynrCook <- function(object, ...){
 ##' element of the (transformed, inverse) Hessian was negative and an absolute value was taken to make it positive.
 ##' 
 ##' @method summary dynrCook
+##' @return Object of class summary.dynrCook.  Primarily used for showing the results of a fitted model.
 summary.dynrCook <- summaryResults
 
 
@@ -298,6 +299,8 @@ nobs.dynrCook <- function(object, ...){
 ##' 
 ##' @details
 ##' This is the inverse Hessian of the transformed parameters.
+##'
+##' @return matrix.  Asymptotic variance-covariance matrix of the transformed parameters.
 vcov.dynrCook <- function(object, ...){
 	nm <- names(coef(object))
 	rt <- object@transformed.inv.hessian
@@ -450,6 +453,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' NONFINITE_FIT \tab -6 \tab Fit function is not finite (i.e., is NA, NaN, Inf or -Inf). \cr
 ##' }
 ##' The last row of this table corresponding to an exit code of -6, is not from NLOPT, but rather is specific to the \code{dynr} package.
+##' 
+##' @return Object of class dynrCook.
 ##' 
 ##' @seealso 
 ##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},

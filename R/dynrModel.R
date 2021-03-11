@@ -532,6 +532,8 @@ setMethod("printex", "dynrModel",
 ##' 	\item \code{coef} gives the free parameter starting values.  Free parameters can also be assigned with \code{coef(model) <- aNamedVectorOfCoefficients}
 ##' }
 ##' 
+##' @return Object of class 'dynrModel'
+##' 
 ##' @examples
 ##' #rsmod <- dynr.model(dynamics=recDyn, measurement=recMeas, noise=recNoise, 
 ##' #    initial=recIni, regimes=recReg, data=dd, outfile="RSLinearDiscrete.c")
