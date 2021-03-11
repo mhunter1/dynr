@@ -225,8 +225,42 @@ setMethod("show", "dynrCook", function(object) {
 ##' @seealso Other S3 methods \code{\link{logLik.dynrCook}}
 ##' 
 ##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #coef(cookedModel)
+##' # Create a minimal cooked model called 'cook'
+##' require(dynr)
+##' 
+##' meas <- prep.measurement(
+##' 	values.load=matrix(c(1, 0), 1, 2),
+##' 	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+##' 	state.names=c("Position","Velocity"),
+##' 	obs.names=c("y1"))
+##' 
+##' ecov <- prep.noise(
+##' 	values.latent=diag(c(0, 1), 2),
+##' 	params.latent=diag(c('fixed', 'dnoise'), 2),
+##' 	values.observed=diag(1.5, 1),
+##' 	params.observed=diag('mnoise', 1))
+##' 
+##' initial <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' dynamics <- prep.matrixDynamics(
+##' 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' 	isContinuousTime=TRUE)
+##' 
+##' data(Oscillator)
+##' data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+##' 
+##' model <- dynr.model(dynamics=dynamics, measurement=meas,
+##' 	noise=ecov, initial=initial, data=data)
+##' 
+##' cook <- dynr.cook(model,
+##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' 
+##' coef(cook)
 coef.dynrCook <- function(object, ...){
 	object@transformed.parameters
 }
