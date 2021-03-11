@@ -3176,17 +3176,21 @@ gslcovariate.front <- function(selected, covariates){
 
 
 
-##' A internal-use only function for substituting formula. If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}
-##' @param formula a list of original formulas
-##' @param term.formula a list of term formulas
-##'
-##' @return a list of formulas after the replacement
-##' @examples
-##' #substitutedformula <- substituteFormula(formula, term.formula)
-#parseFormulaTheta <- function(formula, theta.formula){
+# A internal-use only function for substituting formula
+# @param formula a list of original formulas
+# @param term.formula a list of term formulas
+# 
+# @details
+# If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}.
+#
+# @return a list of formulas after the replacement
+# @examples
+# #substitutedformula <- substituteFormula(formula, term.formula)
+
 substituteFormula <- function(formula, term.formula){
+	#parseFormulaTheta <- function(formula, theta.formula){
 	#fun
-    fml=lapply(formula, as.character)
+	fml=lapply(formula, as.character)
 	lhs=lapply(fml,function(x){x[[2]]})
 	rhs=lapply(fml,function(x){x[[3]]})
 	
@@ -3194,20 +3198,20 @@ substituteFormula <- function(formula, term.formula){
 	fmlt=lapply(term.formula, as.character)
 	lhst=lapply(fmlt,function(x){x[[2]]})
 	rhst=lapply(fmlt,function(x){x[[3]]})
-
-    #deciding the substitute order: variables with longer name first (e.g., substitute zeta_i then eta_i
-    sub_order = order(1:length(lhst), key=sapply(1:length(lhst), function(i)nchar(lhst[[i]])), decreasing= TRUE)
+	
+	#deciding the substitute order: variables with longer name first (e.g., substitute zeta_i then eta_i
+	sub_order = order(1:length(lhst), key=sapply(1:length(lhst), function(i)nchar(lhst[[i]])), decreasing= TRUE)
 	
 	for(i in 1:length(formula)){
-	    formula[[i]]=as.character(formula[[i]])
-	    for (j in sub_order){
-    		# gsub (a, b, c) : in c replace a with b
-    		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
-	    }
-	    formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+		formula[[i]]=as.character(formula[[i]])
+		for (j in sub_order){
+			# gsub (a, b, c) : in c replace a with b
+			rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
+		}
+		formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
 	}
-    
-
+	
+	
 	return(formula)
 }
 

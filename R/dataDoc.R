@@ -274,13 +274,6 @@ NULL
 ##' @format A data frame with 2,500 rows and 10 variables
 ##' 
 ##' @examples
-##' require(dynr)
-##' # Load the data with
-##' data(PFAsim)
-##' # Create a dynr data object with
-##' dd <- dynr.data(PFAsim, id="ID", time="Time", observed=paste0("V",1:6))
-##' 
-##' #--------------------------------------
 ##' # The following was used to generate the data
 ##' #set.seed(12345678)
 ##' #library(mvtnorm)
