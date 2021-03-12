@@ -22,10 +22,10 @@
 ##' Chow, S-M., *Bendezu, J. J., Cole, P. M., & Ram, N. (2016). A Comparison of Two-
 ##' Stage Approaches for Fitting Nonlinear Ordinary Differential Equation (ODE) 
 ##' Models with Mixed Effects. Multivariate Behavioral Research, 51, 154-184. Doi: 10.1080/00273171.2015.1123138.
+plotGCV = function(theTimes,norder,roughPenaltyMax,dataMatrix,lowLambda,upLambda,lambdaInt,isPlot){
 ##' @examples
 ##' #outMatrix = plotGCV(theTimes,norder,roughPenaltyMax,out2,lambdaLow, 
 ##' #lambdaHi,lambdaBy,isPlot)
-plotGCV = function(theTimes,norder,roughPenaltyMax,dataMatrix,lowLambda,upLambda,lambdaInt,isPlot){
   rng =  range(theTimes)
   nt   =  length(theTimes)
   nbasis =  nt + norder - 2
@@ -89,11 +89,11 @@ plotGCV = function(theTimes,norder,roughPenaltyMax,dataMatrix,lowLambda,upLambda
 ##' Chow, S-M., *Bendezu, J. J., Cole, P. M., & Ram, N. (2016). A Comparison of Two-
 ##' Stage Approaches for Fitting Nonlinear Ordinary Differential Equation (ODE) 
 ##' Models with Mixed Effects. Multivariate Behavioral Research, 51, 154-184. Doi: 10.1080/00273171.2015.1123138.
+getdx <- function(theTimes,norder,roughPenaltyMax,lambda,dataMatrix,derivOrder){
 ##' @examples
 ##' #x = getdx(theTimes,norder,roughPenaltyMax,sp,out2,0)[[1]] #Smoothed level
 ##' #dx = getdx(theTimes,norder,roughPenaltyMax,sp,out2,1)[[1]] #Smoothed 1st derivs
 ##' #d2x = getdx(theTimes,norder,roughPenaltyMax,sp,out2,2)[[1]] #Smoothed 2nd derivs
-getdx <- function(theTimes,norder,roughPenaltyMax,lambda,dataMatrix,derivOrder){
   rng =  range(theTimes)
   nt   =  length(theTimes)
   nbasis =  nt + norder - 2
@@ -158,14 +158,14 @@ jnt <- function(.lm, predictor, moderator, alpha=.05) {
 ##' and produce a plot of simple slopes and region of significance available at:
 ##' https://rpubs.com/bachl/jn-plot
 ##' 
+theta_plot <- function(.lm, predictor, moderator, 
+                       alpha=.05, jn=F,title0,
+                       predictorLab, moderatorLab) {
 ##' @examples
 ##' # g = lm(y~x1:x2,data=data) 
 ##' # theta_plot(g, predictor = "x1", moderator = "x2", 
 ##' #           alpha = .05, jn = T, title0=" ",
 ##' #           predictorLab = "x1", moderatorLab = "x2")
-theta_plot <- function(.lm, predictor, moderator, 
-                       alpha=.05, jn=F,title0,
-                       predictorLab, moderatorLab) {
   theme_set(theme_minimal())
   b1 = NULL; b3 = NULL; Z = NULL; theta = NULL; se_b1 = NULL; COV_b1b3 = NULL
   se_b3 = NULL; se_theta = NULL; ci.lo_theta=NULL; ci.hi_theta = NULL
@@ -262,6 +262,11 @@ theta_plot <- function(.lm, predictor, moderator,
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
 ##' https://doi.org/10.32614/RJ-2014-023
 ##' 
+dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.dim", 
+          points = 21, col = "gray", arrow.type = "equal", arrow.head = 0.05, 
+          frac = 1, add = TRUE, xlab = "x", ylab = "y", state.names = c("x", 
+                                                                        "y"), ...) 
+{
 ##' @examples
 ##' #Osc <- function(t, y, parameters) {
 ##' #  dy <- numeric(2)
@@ -281,11 +286,6 @@ theta_plot <- function(.lm, predictor, moderator,
 ##' # col="blue",
 ##' # arrow.type="proportional",
 ##' # arrow.head=.05)  
-dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.dim", 
-          points = 21, col = "gray", arrow.type = "equal", arrow.head = 0.05, 
-          frac = 1, add = TRUE, xlab = "x", ylab = "y", state.names = c("x", 
-                                                                        "y"), ...) 
-{
   if ((!is.vector(xlim)) | (length(xlim) != 2)) {
     stop("xlim is not a vector of length 2 as required")
   }
@@ -512,6 +512,10 @@ dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
 ##' https://doi.org/10.32614/RJ-2014-023
 ##' 
+dynr.trajectory <- function (deriv, y0 = NULL, n = NULL, tlim, tstep = 0.01, parameters = NULL, 
+          system = "two.dim", col = "black", add = TRUE, state.names = c("x", 
+                                                                         "y"), ...) 
+{
 ##' @examples
 ##' #Osc <- function(t, y, parameters) {
 ##' #  dy <- numeric(2)
@@ -533,10 +537,6 @@ dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.
 ##' # arrow.head=.05)  
 ##' #IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
 ##' # phaseR::trajectory(Osc, y0 = IC, parameters = param,tlim=c(0,10))
-dynr.trajectory <- function (deriv, y0 = NULL, n = NULL, tlim, tstep = 0.01, parameters = NULL, 
-          system = "two.dim", col = "black", add = TRUE, state.names = c("x", 
-                                                                         "y"), ...) 
-{
   if (tstep == 0) {
     stop("tstep is equal to 0")
   }
