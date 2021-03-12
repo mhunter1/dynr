@@ -417,7 +417,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 ##'  	shape.values = c(1),
 ##'  	text = element_text(size = 16),
 ##'  	is.bw = TRUE)
-##'  One can modify the limits on the y axis by using '+'
+##' # One can modify the limits on the y axis by using '+'
 ##' p + ggplot2::ylim(-2, 4)
 ##' 
 ##' autoplot(yum, dynrModel = rsmod, style = 1,
