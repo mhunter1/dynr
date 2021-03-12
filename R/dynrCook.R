@@ -260,6 +260,7 @@ setMethod("show", "dynrCook", function(object) {
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
+##' # Now grab the coef!
 ##' coef(cook)
 coef.dynrCook <- function(object, ...){
 	object@transformed.parameters
@@ -287,8 +288,43 @@ coef.dynrCook <- function(object, ...){
 ##' @seealso Other S3 methods \code{\link{coef.dynrCook}}
 ##' 
 ##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #logLik(cookedModel)
+##' # Minimal model
+##' require(dynr)
+##' 
+##' meas <- prep.measurement(
+##' 	values.load=matrix(c(1, 0), 1, 2),
+##' 	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+##' 	state.names=c("Position","Velocity"),
+##' 	obs.names=c("y1"))
+##' 
+##' ecov <- prep.noise(
+##' 	values.latent=diag(c(0, 1), 2),
+##' 	params.latent=diag(c('fixed', 'dnoise'), 2),
+##' 	values.observed=diag(1.5, 1),
+##' 	params.observed=diag('mnoise', 1))
+##' 
+##' initial <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' dynamics <- prep.matrixDynamics(
+##' 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' 	isContinuousTime=TRUE)
+##' 
+##' data(Oscillator)
+##' data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+##' 
+##' model <- dynr.model(dynamics=dynamics, measurement=meas,
+##' 	noise=ecov, initial=initial, data=data)
+##' 
+##' cook <- dynr.cook(model,
+##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' 
+##' # Now get the log likelihood!
+##' logLik(cook)
 logLik.dynrCook <- function(object, ...){
 	ans <- -object@neg.log.likelihood
 	attr(ans, "df") <- length(object@fitted.parameters)
@@ -317,8 +353,43 @@ deviance.dynrCook <- function(object, ...){
 ##' A single number. The total number of observations across all IDs.
 ##' 
 ##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #nobs(cookedModel)
+##' # Minimal model
+##' require(dynr)
+##' 
+##' meas <- prep.measurement(
+##' 	values.load=matrix(c(1, 0), 1, 2),
+##' 	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+##' 	state.names=c("Position","Velocity"),
+##' 	obs.names=c("y1"))
+##' 
+##' ecov <- prep.noise(
+##' 	values.latent=diag(c(0, 1), 2),
+##' 	params.latent=diag(c('fixed', 'dnoise'), 2),
+##' 	values.observed=diag(1.5, 1),
+##' 	params.observed=diag('mnoise', 1))
+##' 
+##' initial <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' dynamics <- prep.matrixDynamics(
+##' 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' 	isContinuousTime=TRUE)
+##' 
+##' data(Oscillator)
+##' data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+##' 
+##' model <- dynr.model(dynamics=dynamics, measurement=meas,
+##' 	noise=ecov, initial=initial, data=data)
+##' 
+##' cook <- dynr.cook(model,
+##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' 
+##' # Now get the total number of observations
+##' nobs(cook)
 nobs.dynrCook <- function(object, ...){
 	dim(object@eta_smooth_final)[2]
 }
@@ -404,8 +475,44 @@ setMethod("$", "dynrCook",
 ##' Wu, H. & Neale, M. C. (2012). Adjusted confidence intervals for a bounded parameter. Behavior genetics, 42(6), 886-898.
 ##' 
 ##' @examples
-##' # Let cookedModel be the output from dynr.cook
-##' #confint(cookedModel)
+##' # Minimal model
+##' require(dynr)
+##' 
+##' meas <- prep.measurement(
+##' 	values.load=matrix(c(1, 0), 1, 2),
+##' 	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+##' 	state.names=c("Position","Velocity"),
+##' 	obs.names=c("y1"))
+##' 
+##' ecov <- prep.noise(
+##' 	values.latent=diag(c(0, 1), 2),
+##' 	params.latent=diag(c('fixed', 'dnoise'), 2),
+##' 	values.observed=diag(1.5, 1),
+##' 	params.observed=diag('mnoise', 1))
+##' 
+##' initial <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' dynamics <- prep.matrixDynamics(
+##' 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' 	isContinuousTime=TRUE)
+##' 
+##' data(Oscillator)
+##' data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+##' 
+##' model <- dynr.model(dynamics=dynamics, measurement=meas,
+##' 	noise=ecov, initial=initial, data=data)
+##' 
+##' cook <- dynr.cook(model,
+##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' 
+##' # Now get the confidence intervals
+##' # But note that they are nonsense because we set hessian_flag=FALSE !!!!
+##' confint(cook)
 confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
 	type <- match.arg(type)
 	tlev <- (1-level)/2
@@ -497,7 +604,41 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' \code{\link{show}}, \code{\link{summary}}, \code{\link{vcov}}.          
 ##' 
 ##' @examples
-##' #fitted.model <- dynr.cook(model)
+##' # Minimal model
+##' require(dynr)
+##' 
+##' meas <- prep.measurement(
+##' 	values.load=matrix(c(1, 0), 1, 2),
+##' 	params.load=matrix(c('fixed', 'fixed'), 1, 2),
+##' 	state.names=c("Position","Velocity"),
+##' 	obs.names=c("y1"))
+##' 
+##' ecov <- prep.noise(
+##' 	values.latent=diag(c(0, 1), 2),
+##' 	params.latent=diag(c('fixed', 'dnoise'), 2),
+##' 	values.observed=diag(1.5, 1),
+##' 	params.observed=diag('mnoise', 1))
+##' 
+##' initial <- prep.initial(
+##' 	values.inistate=c(0, 1),
+##' 	params.inistate=c('inipos', 'fixed'),
+##' 	values.inicov=diag(1, 2),
+##' 	params.inicov=diag('fixed', 2))
+##' 
+##' dynamics <- prep.matrixDynamics(
+##' 	values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##' 	params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##' 	isContinuousTime=TRUE)
+##' 
+##' data(Oscillator)
+##' data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+##' 
+##' model <- dynr.model(dynamics=dynamics, measurement=meas,
+##' 	noise=ecov, initial=initial, data=data)
+##' 
+##' # Now cook the model!
+##' cook <- dynr.cook(model,
+##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun

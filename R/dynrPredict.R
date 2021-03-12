@@ -49,7 +49,7 @@ predict.dynrModel <- function(object,
 	size <- dots[['size']]
 	# Create model
 	model0 <- dynr.model(dynamics=object$dynamics, measurement=object$measurement,
-		noise=object$noise, initial=object$initial, data=ddat, outfile='forecast.c')
+		noise=object$noise, initial=object$initial, data=ddat)
 	# Run model to get filtered estimates
 	cook0 <- dynr.cook(model0, debug_flag=TRUE, verbose=FALSE,
 		optimization_flag=FALSE, hessian_flag=FALSE)

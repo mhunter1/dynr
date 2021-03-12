@@ -408,23 +408,25 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 ##' @return ggplot object
 ##'
 ##' @examples
-##' # The following code is part of a demo example in dynr 
-##' # One can obtain the yum and rsmod objects needed below by running demo(RSLinearDiscreteYang).
-##' # p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
-##' # 	names.regime = c("Deactivated", "Activated"),
-##' # 	title = "(B) Results from RS-AR model", numSubjDemo = 1,
-##' # 	shape.values = c(1),
-##' # 	text = element_text(size = 16),
-##' # 	is.bw = TRUE)
-##' # One can modify the limits on the y axis by using '+'
-##' # p + ggplot2::ylim(-2, 4)
-##'
-##' # autoplot(yum, dynrModel = rsmod, style = 1,
-##' #	names.regime = c("Deactivated", "Activated"),
-##' #	title = "(B) Results from RS-AR model", numSubjDemo = 1,
-##' #	shape.values = c(1),
-##' #	text = element_text(size = 16),
-##' #	is.bw = TRUE)
+##' # The following code is part of a demo example in dynr
+##' \donttest{
+##' demo(RSLinearDiscreteYang, package='dynr').
+##' p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
+##'  	names.regime = c("Deactivated", "Activated"),
+##'  	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##'  	shape.values = c(1),
+##'  	text = element_text(size = 16),
+##'  	is.bw = TRUE)
+##'  One can modify the limits on the y axis by using '+'
+##' p + ggplot2::ylim(-2, 4)
+##' 
+##' autoplot(yum, dynrModel = rsmod, style = 1,
+##' 	names.regime = c("Deactivated", "Activated"),
+##' 	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##' 	shape.values = c(1),
+##' 	text = element_text(size = 16),
+##' 	is.bw = TRUE)
+##' }
 dynr.ggplot <- function(res, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 

@@ -507,7 +507,15 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
 ##' and a \code{dynrCook} object the new \code{dynrModel} object is cooked.
 ##' 
 ##' @examples
-##' # dynrTaste2 <- dynr.taste2(dynrModel, dynrCook, dynrTaste)
+##' \dontrun{
+##' # See the demo for outlier detection, OutlierDetection.R
+##' dynrCook <- dynr.cook(dynrModel)
+##' dynrTaste <- dynr.taste(dynrModel, dynrCook)
+##' 
+##' # Detect outliers related to 'eta1' out of, say, three latent
+##' # variables c("eta1", "eta2", "eta3"), and all measured variables.
+##' taste2 <- dynr.taste2(dynrModel, dynrCook, dynrTaste)
+##' }
 dynr.taste2 <- function(dynrModel, dynrCook, dynrTaste,
                         delta_inn=c("t", "ind", "jnt", "null"),
                         delta_add=c("t", "ind", "jnt", "null"),

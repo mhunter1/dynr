@@ -1440,6 +1440,7 @@ reverseldl <- function(values){
 # Some usefull helper functions
 #
 
+
 ##' Create a diagonal matrix from a character vector
 ##' @aliases diag.character diag
 ##' 
@@ -1448,7 +1449,7 @@ reverseldl <- function(values){
 ##' @param ncol Numeric. Number of columns for the resulting matrix.
 ##' 
 ##' @details
-##' The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
+##' We create a new method for \code{diag} with character input.  The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
 ##' as for the \code{\link{diag}} function in the base package.  Off-diagonal entries
 ##' are filled with "0".
 ##' 
@@ -1456,8 +1457,7 @@ reverseldl <- function(values){
 ##' 
 ##' @examples
 ##' diag(letters[1:3])
-# a new method for diag with character input
-setMethod("diag", "character", #diag.character <-
+setMethod("diag", "character",
 	function(x=1, nrow, ncol){
 		n <- length(x)
 		if(!missing(nrow)) n <- nrow
@@ -1924,23 +1924,20 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##'  
 ##' @examples 
 ##' # Two latent variables and one observed variable in a one-regime model
-##' Noise<-prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), 
-##' values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
+##' Noise <- prep.noise(values.latent=diag(c(0.8, 1)),
+##'     params.latent=diag(c('fixed', "e_x")), 
+##'     values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
 ##' # For matrices that can be import to latex:
-##' printex(Noise,show=TRUE)
+##' printex(Noise, show=TRUE)
 ##' # If you want to check specific arguments you've specified, for example,
 ##' # values for variance structure of the latent variables
 ##' Noise$values.latent
-##' # [[1]]
-##' #     [,1] [,2]
-##' # [1,]  0.8    0
-##' # [2,]  0.0    1
 ##' 
 ##' # Two latent variables and one observed variable in a two-regime model
-##' Noise<-prep.noise(values.latent=list(diag(c(0.8, 1)),diag(c(0.8, 1))), 
-##' params.latent=list(diag(c('fixed', "e_x1")),diag(c('fixed', "e_x2"))), 
-##' values.observed=list(diag(1.5,1),diag(0.5,1)), 
-##' params.observed=list(diag("e_y1", 1),diag("e_y2",1)))
+##' Noise <- prep.noise(values.latent=list(diag(c(0.8, 1)), diag(c(0.8, 1))),
+##'     params.latent=list(diag(c('fixed', "e_x1")), diag(c('fixed', "e_x2"))),
+##'     values.observed=list(diag(1.5,1), diag(0.5,1)),
+##'     params.observed=list(diag("e_y1", 1), diag("e_y2",1)))
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
@@ -2271,7 +2268,7 @@ autojacob<-function(formula,n){
 ##' # latent variables, which are "readLevel", "readSlope", "mathLevel", and "math Slope".  The right-
 ##' # hand side of each formula gives a function that defines the dynamics.   
 ##'  
-##'  formula =list(
+##'  formula <- list(
 ##'           list(readLevel~ (1+beta.read)*readLevel + readSlope + gamma.read*mathLevel,
 ##'           readSlope~ readSlope,
 ##'           mathLevel~ (1+beta.math)*mathLevel + mathSlope + gamma.math*readLevel, 
@@ -2321,10 +2318,10 @@ autojacob<-function(formula,n){
 ##'
 ##' #For a full demo example that includes unit-specific random effects in theta.formula see:
 ##' #demo(OscWithRand, package="dynr")
-##' formula = list(x ~ dx,
+##' formula <- list(x ~ dx,
 ##'                dx ~ eta_i * x + zeta*dx)
 ##' theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
-##' dynm<-prep.formulaDynamics(formula=formula,
+##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                            startval=c(eta0=-1, eta1=.1, eta2=-.1,zeta=-.02),
 ##'                            isContinuousTime=TRUE,
 ##'                            theta.formula=theta.formula,
@@ -2469,18 +2466,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 ##' #Single-regime, continuous-time model. For further details run: 
 ##' #demo(RSNonlinearDiscrete, package="dynr"))
 ##' dynamics <- prep.matrixDynamics(
-##' values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
-##' params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
-##' isContinuousTime=TRUE)
+##'     values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##'     params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##'     isContinuousTime=TRUE)
 ##' 
 ##' #Two-regime, continuous-time model. For further details run: 
 ##' #demo(RSNonlinearDiscrete, package="dynr"))
 ##' dynamics <- prep.matrixDynamics(
-##' values.dyn=list(matrix(c(0, -0.1, 1, -0.2), 2, 2),
-##'                 matrix(c(0, -0.1, 1, 0), 2, 2)),
-##' params.dyn=list(matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
-##'            matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
-##' isContinuousTime=TRUE) 
+##'     values.dyn=list(matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##'                     matrix(c(0, -0.1, 1, 0), 2, 2)),
+##'     params.dyn=list(matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##'                     matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
+##'     isContinuousTime=TRUE) 
 prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
                                 covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
