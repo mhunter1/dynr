@@ -967,6 +967,13 @@ PopBackModel <- function(dynrModel, trans.parameters){
 		trans.parameters <- dynrModel$transform$inv.tfun.full(trans.parameters)
 		dynrModel@xstart <- trans.parameters
 	}
+	
+	dynrModel@dynamics@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@dynamics@paramnames]
+	dynrModel@measurement@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@measurement@paramnames]
+	dynrModel@noise@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@noise@paramnames]
+	dynrModel@initial@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@initial@paramnames]
+	dynrModel@regimes@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@regimes@paramnames]
+	
 	return(dynrModel)
 }
 
