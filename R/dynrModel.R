@@ -764,9 +764,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
   
-  param.data$ldl.latent<-param.data$param.name%in%extractParams(inputs$noise$params.latent)
-  param.data$ldl.observed<-param.data$param.name%in%extractParams(inputs$noise$params.observed)
-  param.data$ldl.inicov<-param.data$param.name%in%extractParams(inputs$initial$params.inicov)
+  param.data$ldl.latent <- param.data$param.name %in% extractParams(inputs$noise$params.latent)
+  param.data$ldl.observed <- param.data$param.name %in% extractParams(inputs$noise$params.observed)
+  param.data$ldl.inicov <- param.data$param.name %in% extractParams(inputs$initial$params.inicov)
   
   #TODO write a way to extract param.data from a model object (grabs from recipes within model)
   
@@ -813,10 +813,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
-  if(length(inputs$transform$formula.inv)>0){
+  if(length(inputs$transform$formula.inv) > 0){
     unique.values <- inputs$transform$inv.tfun(unique.values)
   }
-  param.data$param.value=unique.values
+  param.data$param.value <- unique.values
   
   #initiate a dynrModel object
   obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
