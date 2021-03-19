@@ -600,91 +600,86 @@ setMethod("printex", "dynrModel",
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  
-  if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
-    stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
-  }
-
-  if(!class(noise) %in% "dynrNoise"){
-    stop("Check to see that noise argument is of the correct class. Hint: it should be 'dynrNoise'.")
-  }
-  
-  # Set ground truth for number/name of states and observations
-  nameLatentVars <- measurement$state.names
-  numLatentVars <- length(nameLatentVars)
-  nameObsVars <- measurement$obs.names
-  numObsVars <- length(nameObsVars)
-  # numRegimes is defined and checked later in this function
-  
-  # check the order of the names 
-  if (class(dynamics) == "dynrDynamicsFormula"){
-    states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
-    if(any(sapply(states.dyn, length) != numLatentVars)){
-      statePaste <- paste0('(', paste(sapply(states.dyn, length), collapse=', '), ')')
-      stop(paste0("Found ", statePaste, " latent states in dynamics formula, but expected (", numLatentVars, ") latent states from measurement model."))
-    }
-    if(!all(states.dyn[[1]] %in% nameLatentVars)){
-      stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
-    }
-    #if (all(sapply(states.dyn, function(x, y){all(x==y)}, y=states.dyn[[1]]))){
-    if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
-      #states.dyn=states.dyn[[1]]#}else{
-      stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
-    }
-    
-    #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
-  }
-  # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
-  # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
-  # 2. whether values.dyn and params.dyn are of the same matrix dimension
-  # so it should be enough to just check one matrix
-  if(class(dynamics) == "dynrDynamicsMatrix"){
-    state.dimension <- dim(dynamics@values.dyn[[1]])
-    if(state.dimension[1]!=numLatentVars|state.dimension[2]!=numLatentVars){
-      stop("The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.")
-    }
-  }
-  
-  # if class == "dynrNoise" then check that 1. the measurement noise is numObsVars by numObsVars
-  # 2. the dynamic noise is numLatentVars by numLatentVars
-  # Note that prep.noise already checks for 1. whether values.latent, params.latent, values.observed and params.observed are symmetric
-  # 2. whether values.latent and params.latent are of the same matrix dimension
-  # 3. whether values.observed and params.observed are of the same matrix dimension
-  
-  if(class(noise) == "dynrNoise"){
-    observed.dimension <- dim(noise@values.observed[[1]]) 
-    latent.dimension <- dim(noise@values.latent[[1]])
-    if(observed.dimension[1]!=numObsVars){
-      stop("The dimension of the measurement noise convariance matrix in prep.noise should match the number of observed variables in 'dynrMeasurement'.")
-    }
-    if(latent.dimension[1]!=numLatentVars){
-      stop("The dimension of the dynamic noise covariance matrix in prep.noise should match the number of latent states in 'dynrMeasurement'.")
-    }
-  }
-  
-  # if class == "dynrInitial" then 
-  ## 1. Check that ini.state is ne by 1
-  ## 2. Check that ini.cov is ne by ne
-  ## 3. Check that regimep is nr by 1 <- Q: Do separately after numregimes are set?
-  if(class(initial) == "dynrInitial"){
-    inistate.dim <- dim(initial@values.inistate[[1]])  
-    inicov.dim <- dim(initial@values.inicov[[1]])
-    if(inistate.dim[1]!=numLatentVars){
-      stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
-    }
-    if(inicov.dim[1]!=numLatentVars){
-      msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
-      stop(msg, call. = F)
-    }
-    # iniregime.dim <- dim(initial@values.regimep)
-    # if(iniregime.dim[1]!=numRegimes){
-    #   stop("The number of the regimes in 'prep.initial' should match the number of regimes in 'dynrRegimes'.")
-    # }
-    # if(iniregime.dim[2]!= 1){
-    #     stop("The initial regime probabilities should be a column vector.")
-    # }      
-    
-  }  
+	
+	# Type check all arguments
+	if(!class(dynamics) %in% c("dynrDynamicsFormula", "dynrDynamicsMatrix")){
+		stop("Check that the 'dynamics' argument is of the correct class.\nHint: it should be either a 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.\nCreate it with prep.formulaDynamics() or prep.matrixDynamics().")
+	}
+	if(!class(measurement) %in% "dynrMeasurement"){
+		stop("Check that the 'measurement' argument is of the correct class.\nHint: it should be a 'dynrMeasurement'.\nCreate it with prep.measurement() or prep.loadings().")
+	}
+	if(!class(noise) %in% "dynrNoise"){
+		stop("Check that the 'noise' argument is of the correct class.\nHint: it should be a 'dynrNoise'.\nCreate it with prep.noise().")
+	}
+	if(!class(initial) %in% "dynrInitial"){
+		stop("Check that the 'initial' argument is of the correct class.\nHint: it should be a 'dynrInitial'.\nCreate it with prep.initial().")
+	}
+	if(!class(data) %in% "list" | class(data) %in% "data.frame"){
+		stop("Check that the 'data' argument is of the correct class.\nHint: it should be a 'list'.\nCreate it with dynr.data().")
+	}
+	
+	# Set ground truth for number/name of states and observations
+	nameLatentVars <- measurement$state.names
+	numLatentVars <- length(nameLatentVars)
+	nameObsVars <- measurement$obs.names
+	numObsVars <- length(nameObsVars)
+	# numRegimes is defined and checked later in this function
+	
+	# Dynamics check
+	# check the order of the names 
+	if (class(dynamics) == "dynrDynamicsFormula"){
+		states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
+		if(any(sapply(states.dyn, length) != numLatentVars)){
+			statePaste <- paste0('(', paste(sapply(states.dyn, length), collapse=', '), ')')
+			stop(paste0("Found ", statePaste, " latent states in dynamics formula, but expected (", numLatentVars, ") latent states from measurement model."))
+		}
+		if(!all(states.dyn[[1]] %in% nameLatentVars)){
+			stop(paste0("Latent state names in dynamics (", paste(states.dyn[[1]], collapse=", "), ") do not match those of measurement(", paste(nameLatentVars, collapse=", "), ")."))
+		}
+		if (!all(sapply(states.dyn, function(x, y){all(x==y)}, y=nameLatentVars))){
+			stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
+		}
+		#Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
+	} else if(class(dynamics) == "dynrDynamicsMatrix"){
+		# if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
+		# since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
+		# 2. whether values.dyn and params.dyn are of the same matrix dimension
+		# so it should be enough to just check one matrix
+		state.dimension <- dim(dynamics@values.dyn[[1]])
+		if(state.dimension[1]!=numLatentVars|state.dimension[2]!=numLatentVars){
+			stop("The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.")
+		}
+	}
+	
+	# Noise check
+	# 1. the measurement noise is numObsVars by numObsVars
+	# 2. the dynamic noise is numLatentVars by numLatentVars
+	# Note that prep.noise already checks for
+	# 1. whether values.latent, params.latent, values.observed and params.observed are symmetric
+	# 2. whether values.latent and params.latent are of the same matrix dimension
+	# 3. whether values.observed and params.observed are of the same matrix dimension
+	observed.dimension <- dim(noise@values.observed[[1]]) 
+	latent.dimension <- dim(noise@values.latent[[1]])
+	if(observed.dimension[1] != numObsVars){
+		stop("The dimension of the measurement noise convariance matrix in prep.noise should match the number of observed variables in 'dynrMeasurement'.")
+	}
+	if(latent.dimension[1] != numLatentVars){
+		stop("The dimension of the dynamic noise covariance matrix in prep.noise should match the number of latent states in 'dynrMeasurement'.")
+	}
+	
+	# Initial check
+	# 1. Check that ini.state is ne by 1
+	# 2. Check that ini.cov is ne by ne
+	# 3. Check that regimep is nr by 1 <- Q: Do separately after numregimes are set?
+	inistate.dim <- dim(initial@values.inistate[[1]])  
+	inicov.dim <- dim(initial@values.inicov[[1]])
+	if(inistate.dim[1] != numLatentVars){
+		stop("The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.")
+	}
+	if(inicov.dim[1] != numLatentVars){
+		msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
+		stop(msg, call. = F)
+	}
   
   
   if (!all(measurement@obs.names == data$observed.names)){
@@ -784,6 +779,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
                                    values.observed=inputs$noise$values.observed.inv.ldl, values.latent=inputs$noise$values.latent.inv.ldl, values.inicov=inputs$initial$values.inicov.inv.ldl,
                                    values.observed.orig=inputs$noise$values.observed, values.latent.orig=inputs$noise$values.latent, values.inicov.orig=inputs$initial$values.inicov)
   }
+  
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
@@ -794,8 +790,17 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   } else {
     numRegimes <- 1L
   }
+	
+	# Check initial regimes
+	iniregime.dim <- dim(initial@values.regimep)
+	if(iniregime.dim[1] != numRegimes){
+		stop("The number of the regimes in 'prep.initial' should match the number of regimes in 'dynrRegimes'.")
+	}
+	if(iniregime.dim[2] != 1){
+		stop("The initial regime probabilities should be a column vector.")
+	}
   
-  #cat('numRegimes = ', numRegimes)
+  
   
   #The following lines basically compare the maximum number of regimes implied by each recipe object
   #against (1 or the maximum regimes across all recipes). Elaborated error messages to be more informative.
@@ -860,10 +865,11 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 impliedRegimes <- function(recipe){
 	if(inherits(recipe, 'dynrRecipe')){
 		sn <- slotNames(recipe)
-		if (class(recipe)=="dynrDynamicsFormula"){
-		  vs=c("formula","jacobian")
+		if (class(recipe) == "dynrDynamicsFormula"){
+			vs <- c("formula", "jacobian")
+		} else{
+			vs <- grep('^values\\.', sn, value=TRUE)
 		}
-		else{vs <- grep('^values\\.', sn, value=TRUE)}
 		if(length(vs) > 0){
 			sl <- lapply(vs, FUN=slot, object=recipe)
 			nr <- max(sapply(sl, FUN=function(x){if(is.list(x)){return(length(x))} else {return(1)}}))
