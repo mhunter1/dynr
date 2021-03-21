@@ -491,7 +491,7 @@ formula2tex<-function(list_formulae,
 #------------------------------------------------------------------------------
 # paramName2Number method definitions
 
-setGeneric("paramName2Number", function(object, names) { 
+setGeneric("paramName2Number", function(object, names, invert=FALSE) { 
 	return(standardGeneric("paramName2Number")) 
 })
 
@@ -499,46 +499,80 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
   return(standardGeneric("paramName2NumericNumber")) 
 })
 
+# params is a matrix with parameter names in it
+# names is a vector of the parameter names
+# returns matrix with the parameters numbers instead of the names
 .exchangeNamesAndNumbers <- function(params, names){
 	matrix(match(params, names, nomatch=0), nrow(params), ncol(params), dimnames=dimnames(params))
 }
 
+# params is a matrix with parameter numbers in it
+# names is a vector of the parameter names
+# returns matrix with the parameters names instead of the numbers
+.exchangeNumbersAndNames <- function(params, names){
+	matrix(c(0, names)[params + 1], nrow(params), ncol(params), dimnames=dimnames(params))
+}
+
+# formula is the list of dynamics formula
+# paramnames is the character vector of names of parameters used in the formula
+# names is the character vector of the names of all the free parameters
+# returns list of formula with e.g. aParamName swapped to param[2]
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
-	string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+	string <- paste0(deparse(formula, width.cutoff = 500L), collapse="")
 	pattern <- paramnames
-	#pattern=gsub("\\{","\\\\\\{",paramnames)
-	#pattern=gsub("\\}","\\\\\\}",pattern)
-	pattern=gsub("\\\\","\\\\\\\\",pattern)
+	pattern <- gsub("\\\\", "\\\\\\\\", pattern)
 	
 	for(i in 1:length(paramnames)){
-		string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string)
+		string <- gsub(paste0("\\<", pattern[i], "\\>"), paste0("param[", match(paramnames[i], names, nomatch=0)-1, "]"), string)
 	}
 	eval(parse(text=string))
 }
 
+# formula is the list of dynamics formula using C-style param[2] in place of character names
+# paramnames is the character vector of names of parameters used in the formula
+# names is the character vector of the names of all the free parameters
+# returns list of formula with e.g. param[2] swapped to aParamName
+.exchangeformulaNumbersAndNames <- function(formula, paramnames, names){
+	string <- paste0(deparse(formula, width.cutoff = 500L), collapse="")
+	pattern <- paramnames
+	pattern <- gsub("\\\\", "\\\\\\\\", pattern)
+	
+	for(i in 1:length(paramnames)){
+		string <- gsub(paste0("param\\[", match(paramnames[i], names, nomatch=0)-1, "\\]"), paste0("", pattern[i], ""), string)
+	}
+	eval(parse(text=string))
+}
+
+# Don't know why this exists
 .replaceNamesbyNumbers <- function(formula, paramtoPlot){
-  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-  names <-   paste0("param\\[",(1:length(paramtoPlot))-1,"\\]")
+  string <- paste0(deparse(formula,width.cutoff = 500L),collapse="")
+  names <- paste0("param\\[",(1:length(paramtoPlot))-1,"\\]")
   #names(paramtoPlot)
   #pattern=gsub("\\{","\\\\\\{",names)
   #pattern=gsub("\\}","\\\\\\}",pattern)
   #pattern=gsub("\\\\","\\\\\\\\",pattern)
   for (i in 1:length(names)){
-  string<-gsub(paste0("\\<",names[i],"\\>"),paramtoPlot[i], string)
+    string <- gsub(paste0("\\<", names[i], "\\>"), paramtoPlot[i], string)
   }
   eval(parse(text=string))
 }
 
 
 setMethod("paramName2Number", "dynrMeasurement",
-	function(object, names){
-		object@params.load <- lapply(object$params.load, .exchangeNamesAndNumbers, names=names)
-		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
-		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.load <- lapply(object$params.load, exchangeFUN, names=names)
+		object@params.exo <- lapply(object$params.exo, exchangeFUN, names=names)
+		object@params.int <- lapply(object$params.int, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
+# Don't know why this exists
 .exchangeNamesInFormula <- function(formula, names){
 	sall <- formula2string(formula)
 	sr <- sall$rhs
@@ -567,13 +601,19 @@ setMethod("paramName2Number", "dynrMeasurement",
 
 
 setMethod("paramName2Number", "dynrDynamicsFormula",
-	function(object, names){
-	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnames, names)
-	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnames, names)
-	  return(object)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeformulaNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeformulaNumbersAndNames
+		}
+		object@formula <- exchangeFUN(object@formula, object@paramnames, names)
+		object@jacobian <- exchangeFUN(object@jacobian, object@paramnames, names)
+		return(object)
 	}
 )
 
+# Don't know why this exists
 setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
           function(object, paramList){
             object@formulaOriginal <- object@formula
@@ -586,48 +626,74 @@ setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
 
 
 setMethod("paramName2Number", "dynrDynamicsMatrix",
-	function(object, names){
-		object@params.dyn <- lapply(object$params.dyn, .exchangeNamesAndNumbers, names=names)
-		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
-		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.dyn <- lapply(object$params.dyn, exchangeFUN, names=names)
+		object@params.exo <- lapply(object$params.exo, exchangeFUN, names=names)
+		object@params.int <- lapply(object$params.int, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrRegimes",
-	function(object, names){
-		object@params <- .exchangeNamesAndNumbers(object$params, names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params <- exchangeFUN(object$params, names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrInitial",
-	function(object, names){
-		object@params.inistate <- lapply(object$params.inistate, .exchangeNamesAndNumbers, names=names)
-		object@params.inicov <- lapply(object$params.inicov, .exchangeNamesAndNumbers, names=names)
-		object@params.regimep <- .exchangeNamesAndNumbers(object$params.regimep, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.inistate <- lapply(object$params.inistate, exchangeFUN, names=names)
+		object@params.inicov <- lapply(object$params.inicov, exchangeFUN, names=names)
+		object@params.regimep <- exchangeFUN(object$params.regimep, names=names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrNoise",
-	function(object, names){
-		object@params.latent <- lapply(object$params.latent, .exchangeNamesAndNumbers, names=names)
-		object@params.observed <- lapply(object$params.observed, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.latent <- lapply(object$params.latent, exchangeFUN, names=names)
+		object@params.observed <- lapply(object$params.observed, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
 setMethod("paramName2Number", "dynrTrans",
-  function(object, names){
-    if (length(object@formula.trans)>0){
-      object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnames, names)
-    }
-    return(object)
-  }
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeformulaNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeformulaNumbersAndNames
+		}
+		if (length(object@formula.trans) > 0){
+			# TODO is this invert behavior correct?
+			object@formula.trans <- exchangeFUN(object@formula.trans, object@paramnames, names)
+		}
+		return(object)
+	}
 )
 
 
