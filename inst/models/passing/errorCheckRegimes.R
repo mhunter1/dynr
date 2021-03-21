@@ -237,7 +237,7 @@ recDyn3 <- prep.matrixDynamics(
 # Model error
 testthat::expect_error(
 	rsmod <- dynr.model(dynamics=recDyn3, measurement=recMeas, noise=recNoise, initial=recIni, regimes=recReg, data=dd),
-	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes in each recipe must be 2 according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : dynamics",
+	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (2), noise (1), initial (2), regimes (2)\nNumber of regimes in each recipe must be 2 according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : dynamics",
 	fixed=TRUE
 )
 
@@ -329,7 +329,7 @@ testthat::expect_error(
 		noise = mdcov, initial = initial,
 		regimes = regimes, transform = trans,
 		data = data),
-	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (1), noise (1), initial (2), regimes (2), transform (1)\nNumber of regimes in each recipe must be 2 according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : dynamics",
+	regexp="Recipes imply differing numbers of regimes. Here they are:\ndynamics (3), measurement (1), noise (1), initial (2), regimes (2)\nNumber of regimes in each recipe must be 2 according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : dynamics",
 	fixed=TRUE)
 
 

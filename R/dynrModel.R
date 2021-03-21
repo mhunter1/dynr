@@ -618,12 +618,24 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		stop("Check that the 'data' argument is of the correct class.\nHint: it should be a 'list'.\nCreate it with dynr.data().")
 	}
 	
+	# gather inputs
+	inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
+	
 	# Set ground truth for number/name of states and observations
 	nameLatentVars <- measurement$state.names
 	numLatentVars <- length(nameLatentVars)
 	nameObsVars <- measurement$obs.names
 	numObsVars <- length(nameObsVars)
 	# numRegimes is defined and checked later in this function
+	if(any(sapply(inputs, class) %in% 'dynrRegimes')){
+		numRegimes <- dim(inputs$regimes$values)[1]
+		if (!is.null(data$covariate.names) && !all(inputs$regimes$covariates %in% data$covariate.names)){
+			stop("The 'covariates' slot of the 'dynrRegimes' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+		}
+	} else {
+		numRegimes <- 1L
+	}
+	
 	
 	# Dynamics check
 	# check the order of the names 
@@ -650,6 +662,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 			stop("The matrix dimensions in prep.matrixDynamics should match the number of latent states in 'dynrMeasurement'.")
 		}
 	}
+	
+	# Measurement check
+	# There is no measurement check because ground truth is set by the measurement.
 	
 	# Noise check
 	# 1. the measurement noise is numObsVars by numObsVars
@@ -680,6 +695,29 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		msg <- paste0("The dimension of the initial covariance matrix for latent states in prep.noise should correspond to the number of latent states in 'dynrMeasurement'.", "\n", "Ideally: ", numLatentVars, " by ", numLatentVars, "\n", "Current: ", inicov.dim[1], " by ", inicov.dim[2])
 		stop(msg, call. = F)
 	}
+	# Check initial regimes
+	iniregime.dim <- dim(initial@values.regimep)
+	if(iniregime.dim[1] != numRegimes){
+		stop(paste0("The number of the regimes in 'prep.initial' should be the number of rows in the 'values.regimep' slot and should match the number of regimes in 'dynrRegimes'.\n",
+			"Found ", iniregime.dim[1], "initial regime probabilities but ", numRegimes, " regimes."))
+	}
+	
+	# Regimes check
+	# Check that number of regimes matches across recipes
+	# Compare the maximum number of regimes implied by each recipe object
+	# against (1 or the maximum regimes across all recipes). Elaborated error messages to be more informative.
+	all.regimes <- sapply(inputs[!(names(inputs) %in% c("data", "transform", "options"))], impliedRegimes)
+	if(!all(all.regimes %in% c(1, max(all.regimes)))){
+		likelyNum <- as.numeric(names(sort(table(all.regimes[all.regimes > 1]), decreasing=TRUE)[1]))
+		deviantR <- names(all.regimes[!all.regimes %in% c(likelyNum) & all.regimes > 1])
+		stop(
+			paste0("Recipes imply differing numbers of regimes. Here they are:\n", 
+				paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), 
+				"\nNumber of regimes in each recipe must be ", numRegimes,
+				" according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : ",
+				paste(deviantR, collapse=", ")))
+	}
+
   
   
   if (!all(measurement@obs.names == data$observed.names)){
@@ -740,8 +778,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }
   }
   
-  # gather inputs
-  inputs <- list(dynamics=dynamics, measurement=measurement, noise=noise, initial=initial, ...)
   
   # beginning of new version to actually process the 'options' argument correctly	
   #  # gather inputs	
@@ -782,34 +818,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   # paramName2Number on each recipe (this changes are the params* matrices to contain parameter numbers instead of names
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
-  if(any(sapply(inputs, class) %in% 'dynrRegimes')){
-    numRegimes <- dim(inputs$regimes$values)[1]
-    if (!is.null(data$covariate.names) && !all(inputs$regimes$covariates %in% data$covariate.names)){
-      stop("The 'covariates' slot of the 'dynrRegimes' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
-    }
-  } else {
-    numRegimes <- 1L
-  }
-	
-	# Check initial regimes
-	iniregime.dim <- dim(initial@values.regimep)
-	if(iniregime.dim[1] != numRegimes){
-		stop(paste0("The number of the regimes in 'prep.initial' should be the number of rows in the 'values.regimep' slot and should match the number of regimes in 'dynrRegimes'.\n",
-			"Found ", iniregime.dim[1], "initial regime probabilities but ", numRegimes, " regimes."))
-	}
   
   
   
-  #The following lines basically compare the maximum number of regimes implied by each recipe object
-  #against (1 or the maximum regimes across all recipes). Elaborated error messages to be more informative.
-  all.regimes <- sapply(inputs[!names(inputs) %in% "data"], impliedRegimes)
-  if(!all(all.regimes %in% c(1, max(all.regimes)))){
-    likelyNum = as.numeric(names(sort(table(all.regimes[all.regimes > 1]),decreasing=TRUE)[1]))
-    deviantR = names(all.regimes[!all.regimes %in% c(likelyNum) & all.regimes > 1])
-    stop(paste0("Recipes imply differing numbers of regimes. Here they are:\n", 
-                paste(paste0(names(all.regimes), " (", all.regimes, ")"), collapse=", "), 
-                "\nNumber of regimes in each recipe must be ",numRegimes," according to prep.regimes, \nor 1 (same configuration automatically extended to all regimes).\nPlease check : ",paste(deviantR,collapse=", ")))
-  }
   
   # writeCcode on each recipe
   inputs <- sapply(inputs, writeCcode, data$covariate.names) 
