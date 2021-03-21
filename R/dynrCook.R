@@ -969,11 +969,19 @@ PopBackModel <- function(dynrModel, trans.parameters){
 	}
 	
 	if(all(is.numeric(trans.parameters))){
+		# Reset startval slots
 		dynrModel@dynamics@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@dynamics@paramnames]
 		dynrModel@measurement@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@measurement@paramnames]
 		dynrModel@noise@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@noise@paramnames]
 		dynrModel@initial@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@initial@paramnames]
 		dynrModel@regimes@startval <- trans.parameters[names(trans.parameters) %in% dynrModel@regimes@paramnames]
+		
+		# Reset parameters numbers back to parameter names
+		dynrModel@dynamics <- paramName2Number(dynrModel@dynamics, names(trans.parameters), invert=TRUE)
+		dynrModel@measurement <- paramName2Number(dynrModel@measurement, names(trans.parameters), invert=TRUE)
+		dynrModel@noise <- paramName2Number(dynrModel@noise, names(trans.parameters), invert=TRUE)
+		dynrModel@initial <- paramName2Number(dynrModel@initial, names(trans.parameters), invert=TRUE)
+		dynrModel@regimes <- paramName2Number(dynrModel@regimes, names(trans.parameters), invert=TRUE)
 	}
 	
 	return(dynrModel)
