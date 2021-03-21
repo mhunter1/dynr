@@ -794,10 +794,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	# Check initial regimes
 	iniregime.dim <- dim(initial@values.regimep)
 	if(iniregime.dim[1] != numRegimes){
-		stop("The number of the regimes in 'prep.initial' should match the number of regimes in 'dynrRegimes'.")
-	}
-	if(iniregime.dim[2] != 1){
-		stop("The initial regime probabilities should be a column vector.")
+		stop(paste0("The number of the regimes in 'prep.initial' should be the number of rows in the 'values.regimep' slot and should match the number of regimes in 'dynrRegimes'.\n",
+			"Found ", iniregime.dim[1], "initial regime probabilities but ", numRegimes, " regimes."))
 	}
   
   

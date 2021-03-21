@@ -2877,7 +2877,9 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 	if(ncol(values.inistate[[1]]) != (length(covariates) + 1)){
 		stop(paste0('Incorrect dimensions for initial state\nFound ', paste0(dim(values.inistate[[1]]), collapse=' by '),
 			' but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
-			'k by (c+1) for k=number of latent variables, c=number of covariates'))
+			'k by (c+1) for k=number of latent variables, c=number of covariates\n',
+			"Maybe you forgot to add your covariates to the 'covariates' argument of prep.initial()\n",
+			"or forgot to add columns for the covariates to inistate"))
 	}
 	
 	if(identical(values.regimep, 1) && identical(params.regimep, 0)){

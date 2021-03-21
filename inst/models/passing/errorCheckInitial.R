@@ -61,6 +61,38 @@ ini2c <- prep.initial(
 	params.inicov=diag(c('useVar', 'midVar'), 2),
 	covariates=c('BaselineAge'))
 
+# 2-dimensional regimes implying covariate but not listed
+testthat::expect_error(
+	prep.initial(
+		values.inistate=matrix(
+			c(.07, 0,
+			  .57, 0),
+			nrow=2, ncol=2, byrow=TRUE),
+		params.inistate=matrix(
+			c('useMean', 'fixed',
+			  'midMean', 'midMeanB1'),
+			nrow=2, ncol=2, byrow=TRUE),
+		values.inicov=diag(c(.25, .1), 2), 
+		params.inicov=diag(c('useVar', 'midVar'), 2)),
+	regexp="Incorrect dimensions for initial state\nFound 2 by 2 but should be 2 by 1\nk by (c+1) for k=number of latent variables, c=number of covariates\nMaybe you forgot to add your covariates to the 'covariates' argument of prep.initial()\nor forgot to add columns for the covariates to inistate",
+	fixed=TRUE)
+
+testthat::expect_error(
+	prep.initial(
+		values.inistate=matrix(
+			c(.07,
+			  .57),
+			nrow=2, ncol=1, byrow=TRUE),
+		params.inistate=matrix(
+			c('useMean',
+			  'midMean'),
+			nrow=2, ncol=1, byrow=TRUE),
+		values.inicov=diag(c(.25, .1), 2), 
+		params.inicov=diag(c('useVar', 'midVar'), 2),
+		covariates=c('BaselineAge')),
+	regexp="Incorrect dimensions for initial state\nFound 2 by 1 but should be 2 by 2\nk by (c+1) for k=number of latent variables, c=number of covariates\nMaybe you forgot to add your covariates to the 'covariates' argument of prep.initial()\nor forgot to add columns for the covariates to inistate",
+	fixed=TRUE)
+
 
 #------------------------------------------------------------------------------
 
@@ -110,6 +142,7 @@ testthat::expect_error(
 testthat::expect_error(
     mod <- dynr.model(dynamics, measurement, noise, ini2, data),
     regexp="The number of the latent states in 'prep.initial' should match the number of latent states in 'dynrMeasurement'.", fixed=TRUE)
+
 
 #------------------------------------------------------------------------------
 
