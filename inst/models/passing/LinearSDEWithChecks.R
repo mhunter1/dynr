@@ -141,6 +141,9 @@ testthat::expect_true(all(withinIntervals))
 sm <- data.frame(t(res@eta_smooth_final))
 cor(sm, Oscillator[,c('x1', 'x2')])
 
+#Check that the smoothed state error covariance matrix is symmetric
+P1=res@error_cov_smooth_final[,,1]
+testthat::expect_true(isSymmetric(P1))
 
 #------------------------------------------------------------------------------
 # Check that free parameters cannot have multiple starts
