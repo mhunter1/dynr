@@ -1,3 +1,17 @@
+dynr 0.1.16-XX
+--------------
+
+2021-04-12
+
+New features include:
+* 
+* 
+
+Bug fixes and performance tweaks include:
+* MAJOR BUG FIX with smoothed latent state covariance
+* 
+
+
 dynr 0.1.15-1
 --------------
 
