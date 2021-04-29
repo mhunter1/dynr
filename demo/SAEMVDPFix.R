@@ -8,6 +8,7 @@
 library('dynr')
 library('plyr')
 
+setwd("C:/Users/Cynthia/Documents/gits/dynr/")
 
 nPeople = 200
 nTimes = 300
@@ -88,8 +89,10 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    outfile=paste0(tempfile(),'.cpp'))
+                    #outfile=paste0(tempfile(),'.cpp'),
+                    outfile="vdp_.cpp")
 
+model@outfile = "vdp.cpp"
 print('here')
 print(model@freeIC)
 print(model@xstart)
@@ -101,9 +104,9 @@ print(model$xstart)
 
 #Using $ with lb and ub assumes that you are adjusting the parameters
 #model@lb[names(model@lb) %in% c("var_1","var_2","var_3")] = log(10e-8)
-model$ub[names(model@ub)] = 10
-model$ub[names(model@lb)] = 10
-print(model@random.params.inicov)
+#model$ub[names(model@ub)] = 10
+#model$ub[names(model@lb)] = 10
+#print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
                             MAXITER = 100, 
@@ -117,7 +120,7 @@ saemp <- prep.saemParameter(MAXGIB = 3,
 							)
 
 timestart<-Sys.time()
-
+setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 
 timeend<-Sys.time()

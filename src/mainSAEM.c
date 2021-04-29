@@ -235,7 +235,38 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	UNPROTECT(7);
 	
+
 	/*----------*/
+	/*
+	if (data_model.pc.isContinuousTime){
+		SEXP f_test_sexp   = PROTECT(getListElement(func_address_list, "f_test"));
+		SEXP f_dyn_sexp    = PROTECT(getListElement(func_address_list, "f_dyn"));
+		SEXP f_dfdx_sexp   = PROTECT(getListElement(func_address_list, "f_dfdx"));
+		SEXP f_dfdp_sexp   = PROTECT(getListElement(func_address_list, "f_dfdp"));
+		SEXP f_dfdx2_sexp  = PROTECT(getListElement(func_address_list, "f_dfdx2"));
+		SEXP f_dfdxdp_sexp = PROTECT(getListElement(func_address_list, "f_dfdxdp"));
+		SEXP f_dfdpdx_sexp = PROTECT(getListElement(func_address_list, "f_dfdpdx"));
+		SEXP f_dfdp2_sexp  = PROTECT(getListElement(func_address_list, "f_dfdp2"));
+		SEXP f_setpars_sexp  = PROTECT(getListElement(func_address_list, "f_setpars"));
+		UNPROTECT(9);
+		
+		*(void **) (&func_test)    = R_ExternalPtrAddr(f_test_sexp);
+		*(void **) (&func_dyn)     = R_ExternalPtrAddr(f_dyn_sexp);
+		*(void **) (&func_dfdx)    = R_ExternalPtrAddr(f_dfdx_sexp);
+		*(void **) (&func_dfdp)    = R_ExternalPtrAddr(f_dfdp_sexp);
+		*(void **) (&func_dfdx2)   = R_ExternalPtrAddr(f_dfdx2_sexp);
+		*(void **) (&func_dfdxdp)  = R_ExternalPtrAddr(f_dfdxdp_sexp);
+		*(void **) (&func_dfdpdx)  = R_ExternalPtrAddr(f_dfdpdx_sexp);
+		*(void **) (&func_dfdp2)   = R_ExternalPtrAddr(f_dfdp2_sexp);
+		*(void **) (&func_setpars) = R_ExternalPtrAddr(f_setpars_sexp);
+		
+
+		
+	} else {
+		//SAEM process only supports isContinuousTime = TRUE now.
+		;
+	}*/
+	
 	
 	/*U1: covariate matrix*/ 
 	double **U1;
@@ -1085,7 +1116,7 @@ SEXP main_SAEM(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_
 	
 	
 	printf("SAEM process starts\n");
-	saem_interface(seed, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value, KKO, dSigmaede, dSigmaede2, trueb, &output);
+	//saem_interface(seed, freeIC, Nsubj, NxState, Ny, Nu, Ntheta, Nbeta, totalT, NLambda, Nmu, Nb, delt, U1, b, H, Z, maxT, allT, y0, lb, ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, bAdaptParams, Nbpar, mu, tspan, lower_bound, upper_bound, Lambda, dmudparMu, dmudparMu2, num_time, Y, tobs, timeDiscrete, Sigmab, Sigmae, dSigmabdb, dSigmabdb2, dLambdparLamb, dLambdparLamb2, par_value, KKO, dSigmaede, dSigmaede2, trueb, &output);
 	
 
 	const char *names[] = {"convFlag", "nIterStage1", "nIterStage2", "ss", "avebAccept", "Iytild", "thetatild"}; /* note the null string */

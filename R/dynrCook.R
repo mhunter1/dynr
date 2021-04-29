@@ -461,6 +461,16 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE, ...) {
 
+    #testing purpose: RCPP functions
+	print('RCPPARMADILLO testing by Hui-Ju')
+	#browser()
+	print(dynr_hello_world())
+	
+	
+	#rcpparma_innerproduct(c(1,2))
+	#rcpparma_hello_world()
+	print('------------------------------')
+	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
     data <- dynrModel$data
@@ -521,18 +531,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		}
 		
 		
-		#browser()
-		#theta.variables <- extractVariablesfromFormula(dynrModel$dynamics@theta.formula)
-	    #startval.names <- names(dynrModel$dynamics@startval)
-        #r =formula2design( 
-        #dynrModel$dynamics@theta.formula,
-        #covariates=c(data$covariate.names, "1"),
-        #random.names=dynrModel$dynamics$random.names,
-		#beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
-        #r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
-		
-        		
 
+		theta.variables <- extractVariablesfromFormula(dynrModel$dynamics@theta.formula)
+	    startval.names <- names(dynrModel$dynamics@startval)
+        r =formula2design( 
+        dynrModel$dynamics@theta.formula,
+        covariates=c(data$covariate.names, "1"),
+        random.names=dynrModel$dynamics$random.names,
+		beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
+        r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
+		
+		
 		
 		# organize the lowerbound and upperbound vectors for saem
 		param.names <- logical(0)
@@ -657,12 +666,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             theta.formula=dynrModel@dynamics@theta.formula,
             random.names=random.names,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
-            lambda=as.vector(dynrModel@measurement$values.load[[1]]), #column-major
+            lambda=dynrModel@measurement$values.load[[1]], #column-major
             b= b,
 			trueb=trueb,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
-			bAdaptParams=saemp@bAdaptParams,
+			bAdaptParams=as.matrix(saemp@bAdaptParams),
             KKO=saemp@KKO,
 			MAXGIB = as.integer(saemp@MAXGIB), 
 			MAXITER = as.integer(saemp@MAXITER), 
@@ -672,11 +681,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			gainpara1 = saemp@gainpara1, 
 			gainparb1 = saemp@gainparb1,
 			num_bpar = length(sigmab.names),
-			sigmab = as.double(dynrModel$random.values.inicov),
-			sigmae = as.double(dynrModel@noise$values.observed[[1]]),
+			sigmab = dynrModel$random.values.inicov,
+			sigmae = dynrModel@noise$values.observed[[1]],
 			mu = mu.values,
-			lower_bound=lower_bound,
-			upper_bound=upper_bound,
+			lower_bound=as.matrix(lower_bound),
+			upper_bound=as.matrix(upper_bound),
 			dmudparMu=dynrModel@dmudparMu,
 			dmudparMu2=dynrModel@dmudparMu2,
 			dSigmaede=dSigmaede,
@@ -687,17 +696,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dSigmabdb2 = dynrModel@dSigmabdb2,
 			time_=dynrModel@data$time,
 			freeIC=dynrModel@freeIC,
-			par_value=par_value,
+			par_value=as.matrix(par_value),
 			seed=saemp@seed,
-			y0=y0#,
-			#num_time=length(dynrModel@tspan) # number of unique time points
+			y0=y0,
+			r=r
         )
         #print(dynrModel@MAXGIB)
 		#print(dynrModel@gainpara)
 		
         
-        libname <- model@libname
-        model@libname <- NULL
+        #libname <- model@libname
+        #model@libname <- NULL
         
         
         
@@ -706,29 +715,44 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         
         #print(model$b)
         
-        # the following code compiles the generated file of dynr.model, comment out now for testing
+		#CompileCodeSAEMRCpp(code_, 'C++', TRUE, 'temp.o')
+		browser()
+		addr <- .C2funcaddressSAEMRcpp(isContinuousTime=model$isContinuousTime, infile=model$infile, outfile=model$outfile, verbose=model$verbose, compileLib = model$compileLib)
+		model$func_address <- addr$address
+		libname <- addr$libname
+		
+        #
+		#the following code compiles the generated file of dynr.model, comment out now for testing
         # some related comments also be commented in dynrModelInternal.R
-        if(any(sapply(model@func_address, is.null.pointer))){
-            warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
-            if(missing(infile)){
-                stop("Cannot compile your functions because 'infile' argument is missing.")
-            }
-            addr <- .C2funcaddressSAEM(isContinuousTime=model@isContinuousTime, infile=infile, verbose=verbose)
-            print('C2funcaddressSAEM done')
-            model@func_address <- addr$address
-            libname <- addr$libname
-        }
-        gc()
-        backendStart <- Sys.time()
+        # if(any(sapply(model@func_address, is.null.pointer))){
+            # warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
+            # if(missing(infile)){
+                # stop("Cannot compile your functions because 'infile' argument is missing.")
+            # }
+			# browser()
+            # addr <- .C2funcaddressSAEM(isContinuousTime=model@isContinuousTime, infile=infile, verbose=verbose)
+            # print('C2funcaddressSAEM done')
+			# a=list(address = res, libname = libLFile)
+			
+            # model@func_address <- addr$address
+            # libname <- addr$libname
+        # }
+        # gc()
+        # backendStart <- Sys.time()
         
-        print('initial par')
-		print(model$par_value)
-		print('seed')
-		print(model$seed)
-
+        # print('initial par')
+		# print(model$par_value)
+		# print('seed')
+		# print(model$seed)
 
 		
-        output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+		
+		#call original interface
+        #output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
+		#call Rcpp_saem_interface
+		
+		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
+		
 
         return(output)
     }
@@ -995,6 +1019,7 @@ combineModelDataInformationSAEM <- function(model, data){
 	for(j in 1:length(data$observed.names)){
       model$Y[j,] <- data$observed[[j]]
     }
+	
 	#print(model$Y[3,11:20])
     for (i in sort(unique(data[['id']]))){
         table_i <- data$original.data[data$original.data[['id']] == i, ]
@@ -1017,35 +1042,10 @@ combineModelDataInformationSAEM <- function(model, data){
 	#print(model$allT) #correct here
 	#print(model$delt) #correct here
 	
-	#InfDS.tobs{i} for all subject i are put in a single array
-	#Use the index InfDS.allT to access it (see the following)
-	#correct here
-	# for(i in c(1:5)){
-		# print(i)
-		# if(i == 1)
-		  # print(model$tobs[1:sum(model$allT[1:i])])
-		# else
-		  # print(model$tobs[(sum(model$allT[1:(i-1)])+1):sum(model$allT[1:i])])
-	# }
-    
 
 	
-    #H & Z 
-	#browser()
-	theta.variables <- extractVariablesfromFormula(model$theta.formula)
-	startval.names <- names(inputs$dynamics@startval)
-    r =formula2design( 
-        model$theta.formula,
-        covariates=c(data$covariate.names, "1"),
-        random.names=model$random.names,
-		beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
-    r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])
-	
-	print('H & Z')
-	print(r)
-	#print(nrow(as.matrix(r$fixed)))
-	#print(ncol(as.matrix(r$fixed)))
-    
+	#print('H & Z')
+	r = model$r
     Z= apply(r$random, 1, as.numeric)
     H = matrix(nrow=0, ncol=0)
     for (line in c(1: model$num_sbj)){
@@ -1074,9 +1074,9 @@ combineModelDataInformationSAEM <- function(model, data){
         }
         r$fixed <- temp
     }
-    model$H <- H
-    model$Z <- Z
-	#print(H)
+    model$H <- as.matrix(H)
+    model$Z <- as.matrix(Z)
+	print(H)
     
 
     return(model)
@@ -1389,4 +1389,169 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
     
     return(fitted_model2)
     
+}
+
+# compileRcppArmaFunctionPointers <- function(infile, verbose = TRUE, isContinuousTime=TRUE){	
+	# if ( .Platform$OS.type == "windows" ) {
+		# ## windows files
+		# #outfile <- gsub("\\\\", "/", outfile)
+		
+		# ## windows gsl flags
+		# LIB_GSL <- Sys.getenv("LIB_GSL")
+		# LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+		# LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
+		# gsl_cflags <- sprintf( "-I\"%s/include\"", LIB_GSL)
+		# gsl_libs   <- sprintf( "-L\"%s/lib/%s\" -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
+	# }else {
+		# ## UNIX-alike build
+		
+		# ## Unix gsl flags
+		# gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
+		# gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+	# }
+	# if (verbose) cat('Setting PKG_CPPFLAGS to', gsl_cflags, '-I"C:/Program Files/R/R-3.6.3/library/Rcpp/include" -I"C:/Program Files/R/R-3.6.3/library/RcppArmadillo/include"')
+	# Sys.setenv(PKG_CPPFLAGS=paste(gsl_cflags, '-I"C:/Program Files/R/R-3.6.3/library/Rcpp/include" -I"C:/Program Files/R/R-3.6.3/library/RcppArmadillo/include"'))
+	# if (verbose) cat("Setting PKG_LIBS to", gsl_libs, "\n")
+	# Sys.setenv(PKG_LIBS=paste(gsl_libs, "-fopenmp"))
+	
+
+	
+	# if (isContinuousTime){
+		# res=list(
+		# f_test  = putFunPtrInXPtr("function_hello3"),
+		# f_dyn   = putFunPtrInXPtr("dynfunICM"),
+		# f_dfdx  = putFunPtrInXPtr("dfdxFreeICM"),
+		# f_dfdp  = putFunPtrInXPtr("dfdparFreeIC"),
+		# f_dfdx2 = putFunPtrInXPtr("dfdx2FreeIC"),
+		# f_dfdxdp= putFunPtrInXPtr("dfdxdpFreeIC"),
+		# f_dfdpdx= putFunPtrInXPtr("dfdpdxFreeIC"),
+		# f_dfdp2 = putFunPtrInXPtr("dfdpar2FreeIC"),
+		# f_setpars = putFunPtrInXPtr("setParsFreeICwb"))
+	# }else{
+		# # todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
+		# warning('SAEM process only supports isContinuousTime = TRUE now.')  
+	# }
+	# #print(res)
+  
+	# return(res)
+	
+# }
+
+
+CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
+  browser()
+  wd = getwd()
+  on.exit(setwd(wd))
+  ## Prepare temp file names
+  if ( .Platform$OS.type == "windows" ) {
+		## windows files
+		#outfile <- gsub("\\\\", "/", outfile)
+		
+		## windows gsl flags
+		LIB_GSL <- Sys.getenv("LIB_GSL")
+		LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+		LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
+		gsl_cflags <- sprintf( "-I\"%s/include\"", LIB_GSL)
+		gsl_libs   <- sprintf( "-L\"%s/lib/%s\" -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
+		
+		
+		arma_libs <- paste(Sys.getenv("SHLIB_OPENMP_CXXFLAGS"), Sys.getenv("LAPACK_LIBS"), Sys.getenv("BLAS_LIBS"), Sys.getenv("FLIBS"))
+	}else {
+		## UNIX-alike build
+		
+		## Unix gsl flags
+		gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
+		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+	}
+	if (verbose) cat('Setting PKG_CPPFLAGS to', gsl_cflags, '-I"C:/Program Files/R/R-3.6.3/library/Rcpp/include" -I"C:/Program Files/R/R-3.6.3/library/RcppArmadillo/include"')
+	Sys.setenv(PKG_CPPFLAGS=paste(gsl_cflags, '-I"C:/Program Files/R/R-3.6.3/library/Rcpp/include" -I"C:/Program Files/R/R-3.6.3/library/RcppArmadillo/include"'))
+	if (verbose) cat("Setting PKG_LIBS to", gsl_libs, arma_libs, "-fopenmp", paste0("-L",Sys.getenv("LIB_ARMADILLO"), "/lib_win64 -lblas -llapack"), "\n")
+	#Sys.setenv(PKG_LIBS=paste(gsl_libs, arma_libs, "-fopenmp"))
+	Sys.setenv(PKG_LIBS = paste(gsl_libs, arma_libs, "-fopenmp", paste0("-L",Sys.getenv("LIB_ARMADILLO"), "/lib_win64 -lblas -llapack")))
+
+  #libCFile  <- paste(outfile, ".EXT", sep="")
+  libCFile <-sub(.Platform$dynlib.ext,".EXT",libLFile)
+  extension <- switch(language, "C++"=".cpp", C=".c", Fortran=".f", F95=".f95",
+                      ObjectiveC=".m", "ObjectiveC++"=".mm")
+  libCFile <- sub(".EXT$", extension, libCFile)
+  #libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
+  
+  ## Write the code to the temp file for compilation
+  write(code, libCFile)
+  
+  ## Compile the code using the running version of R if several available
+  #if ( file.exists(libLFile) ) {file.remove( libLFile )}
+  setwd(dirname(libCFile))
+  errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
+  cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
+  if (verbose) cat("Compilation argument:\n", cmd, "\n")
+  compiled <- system(cmd, intern=!verbose)
+  errmsg <- readLines(errfile)
+  unlink(errfile)
+  writeLines(errmsg)
+  setwd(wd)
+  
+  browser()
+  #### Error Messages
+  if ( !file.exists(libLFile) ) {
+    cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
+    cat("\nProgram source:\n")
+    code <- strsplit(code, "\n")
+    for (i in 1:length(code[[1]])) cat(format(i,width=3), ": ", code[[1]][i], "\n", sep="")
+    stop( paste( "Compilation ERROR, function(s)/method(s) not created!", paste( errmsg , collapse = "\n" ) ) )
+    }
+  #return( libLFile )
+}
+
+.C2funcaddressSAEMRcpp<-function(verbose,isContinuousTime, infile, outfile,compileLib){
+  
+  #-------Set some variables: This function may later be extended----------
+  language="C++"
+  #-------Get the full name of the library----------
+  if ( .Platform$OS.type == "windows" ) outfile <- gsub("\\\\", "/", outfile)
+  libLFile  <- paste(outfile, .Platform$dynlib.ext, sep="")
+  if (compileLib|(!file.exists(libLFile))){#when the compileLib flag is TRUE or when the libLFile does not exist
+    #-------Check the input arguments----------------------------
+    code<-readLines(infile)
+    # ---- Write and compile the code ----
+    
+    #filename<- basename(tempfile())
+    CompileCodeSAEMRCpp(code, language, verbose, libLFile)
+    #---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
+    #cleanup <- function(env) {
+    #    if ( filename %in% names(getLoadedDLLs()) ) dyn.unload(libLFile)
+    #    unlink(libLFile)
+    #  }
+    #reg.finalizer(environment(), cleanup, onexit=TRUE)
+  }
+  
+  #-----dynamically load the library-------
+  browser()
+  DLL <- dyn.load( libLFile )
+  if (isContinuousTime){
+    res=list(
+      f_test  = getNativeSymbolInfo("hello_world", DLL)$address,
+      f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+      f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+      f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+      f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+      f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+      f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+      f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address,
+      f_setpars = getNativeSymbolInfo("setParsFreeICwb", DLL)$address)
+  }else{
+    # todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
+    warning('SAEM process only supports isContinuousTime = TRUE now.')
+    # res=list(
+    # f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+    # f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+    # f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+    # f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+    # f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+    # f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+    # f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+    # f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
+  }
+  
+  return(list(address=res, libname=libLFile))
 }

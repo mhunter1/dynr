@@ -2445,7 +2445,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	#browser()
 	if (missing(jacobian)){
 	  if('theta.formula' %in% names(dots)){
-        jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
+	    # This line has bug.
+        #jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
+		jacobian <- autojacobTry(formula)
 	    #jacobianOriginal <- autojacobTry(formula)
 	  }
 	  else{   
@@ -2543,8 +2545,8 @@ autojacobTry <- function(formula, formula2, ...){
     autojcb <- try( lapply(formula2, autojacob, length(formula[[1]]), ...) )
     if (class(autojcb) == "try-error") {
         # TODO Add more specific feedback about which formula(s) failed automatic differentiation
-        stop("Automatic differentiation is not supported for part of the dynamic functions.\n 
-            Please provide the analytic jacobian functions.")
+        stop("Automatic differentiation is not supported for these specific dynamic functions.\n 
+            You may want to provide the analytic jacobian functions instead.")
     }else{
         return(lapply(autojcb,"[[", "jacob"))
     }
@@ -3258,9 +3260,11 @@ formula2design <- function(dots, covariates, random.names, beta.names){
     
     # Extending the theta formula in dots to add variables in beta. names
 	# beta.names include variables without random effects but needs to be estimated.
-    for (i in 1:length(beta.names)){
-        dots = c(dots, as.formula(paste(beta.names[i], '~ 1 *', beta.names[i])))
-    }
+	if(length(beta.names) > 0){
+		for (i in 1:length(beta.names)){
+			dots = c(dots, as.formula(paste(beta.names[i], '~ 1 *', beta.names[i])))
+		}
+	}
     
     
     pf <- list(dynr:::processFormula(dots))

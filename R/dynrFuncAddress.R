@@ -126,7 +126,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
 .C2funcaddressSAEM<-function(verbose,isContinuousTime, infile, outfile,compileLib){
-
+  
   #-------Set some variables: This function may later be extended----------
   language="C++"
   #-------Get the full name of the library----------
@@ -145,41 +145,41 @@ CompileCode <- function(code, language, verbose, libLFile) {
     #    unlink(libLFile)
     #  }
     #reg.finalizer(environment(), cleanup, onexit=TRUE)
-	print('CompileCodeSAEM done')
-	print(names(getLoadedDLLs()))
-	print('--------------------')
+    print('CompileCodeSAEM done')
+    print(names(getLoadedDLLs()))
+    print('--------------------')
   }
   
   #-----dynamically load the library-------
   DLL <- dyn.load( libLFile )
   if (isContinuousTime){
     res=list(
-		f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
-		f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
-		f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
-		f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
-		f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
-		f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
-		f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
-		f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)
+      f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+      f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+      f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+      f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+      f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+      f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+      f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+      f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address,
+      f_setpars = getNativeSymbolInfo("setParsFreeICwb", DLL)$address)
   }else{
-	# todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
-	warning('SAEM process only supports isContinuousTime = TRUE now.')
+    # todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
+    warning('SAEM process only supports isContinuousTime = TRUE now.')
     # res=list(
-		# f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
-		# f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
-		# f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
-		# f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
-		# f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
-		# f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
-		# f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
-		# f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
+    # f_test  = getNativeSymbolInfo("function_hello3", DLL)$address,
+    # f_dyn   = getNativeSymbolInfo("dynfunICM", DLL)$address,
+    # f_dfdx  = getNativeSymbolInfo("dfdxFreeICM", DLL)$address,
+    # f_dfdp  = getNativeSymbolInfo("dfdparFreeIC", DLL)$address,
+    # f_dfdx2 = getNativeSymbolInfo("dfdx2FreeIC", DLL)$address,
+    # f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
+    # f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
+    # f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address)   
   }
   print(res)
   .Call(res$f_test, as.double(seq(.1, .5, by = 0.1)))
   return(list(address=res, libname=libLFile))
 }
-
 
 #--------------------------------------------------
 # CompileCodeSAEM: A function adapted from the compileCode function in the inline pacakge

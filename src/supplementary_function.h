@@ -42,6 +42,7 @@ arma::vec randsample(arma::vec &source, int length, int size){
 
 //This function return a column vector [start, start + step, start+ step * 2, ..., end]^T
 //use span(...).t() to get the rowvector
+
 arma::vec span_vec(int start, int end, int step){
 	arma::vec x;
 	int i;
@@ -52,6 +53,7 @@ arma::vec span_vec(int start, int end, int step){
 		x[i]= x[i-1] + step;
 	return x;
 }
+
 
 arma::mat rowProjection(arma::mat data, arma::mat index){
 	//index is a row vector
@@ -112,6 +114,7 @@ int maxElement(arma::imat integer_matrix){
 	return max;
 }
 
+
 arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){
 	
 	if(isPar == 1)
@@ -157,6 +160,7 @@ arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, stru
 	
 	return thetaf;
 }
+
 
 arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::mat allT, const arma::cube Xtild, arma::field<arma::mat> Y){
 
@@ -1666,4 +1670,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	return;
 }
+
+
+
 

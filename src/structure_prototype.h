@@ -40,10 +40,33 @@ arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct
 arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 
+
+
+/*
 //data structure that contains paramters that needs to be returned to dynr/R.
 struct C_OUTPUT{
 //public:
   int convFlag, nIterStage1, nIterStage2;
   double ss, avebAccept;
   double *Iytild, *thetatild; //column-major to keep the matrix InfDS.Iytild
+};
+*/
+
+struct C_OUTPUT{
+//public:
+  int convFlag, nIterStage1, nIterStage2;
+  double ss, avebAccept;
+  mat Iytild; 
+  vec thetatild; //column-major to keep the matrix InfDS.Iytild
+};
+
+typedef arma::mat (*dynfunICMPtr)(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
+typedef arma::cube (*dfdxFreeICMPtr)(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+typedef arma::cube (*cubePtr)(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
+typedef arma::mat (*_rcpparma_hello_worldPtr)(void);
+
+struct C_FUNC_POINTER {
+	dynfunICMPtr p_dynfunICM;
+	_rcpparma_hello_worldPtr p_test;
 };

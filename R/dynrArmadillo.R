@@ -193,7 +193,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# Start outputing the functions in converted_function.h
 		#ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\nvoid function_arma_hello_world(void) {\n\t\tarma::mat a(2,2);\n\ta(0, 0) = 1;\n\ta(1, 1) = 2;\n\ta(0, 1) = -3;\n\ta(1, 0) = -2;\n\tprintf(\"hello world!\\n\");\n\ta.print();\n}\n\n"
 		
-		ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\n\n\n"
+		#ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\n\n\n"
+		ret_head = "#// [[Rcpp::depends(RcppArmadillo)]]\n\n#include <RcppArmadillo.h>\nusing namespace std;\nusing namespace arma;\nusing namespace Rcpp;\n\n"
 		#----------------------------------------------------------------------------------------------
 		# output code for function dynfun
 		ret = "arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){\n\n\t//local parameters\n\tarma::mat y, r, thetaf;\n\t\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\t\n\n\t//input parameters\n\ty = xin;\n\tr.set_size(InfDS.Nx, int(i.n_elem));\n\tr.clear();\n\tr = y;\n"
@@ -206,9 +207,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
 		
 		# [todo] replace the initial condition by information from prep.initial
-		ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
+		# ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
 		
-		ret = paste0(ret, "\telse{\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){")
+		ret = paste0(ret, "\t\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){")
         for (i in 1:n){
 			for (j in 1:length(lhs[[1]])){
 			    # gsub (a, b, c) : in c replace a with b
@@ -220,7 +221,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 
         }
 
-	    ret=paste0(ret,"\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n\t\t\t\t\tr(row, s) = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\treturn r;\n}\n")
+	    #ret=paste0(ret,"\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n\t\t\t\t\tr(row, s) = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\treturn r;\n}\n")
+		ret=paste0(ret,"\t\t}\n\n\treturn r;\n}\n")
 	    ret=paste0(ret,"\n//----------------\n")
 
 	    #----------------------------------------------------------------------------------------------
@@ -241,9 +243,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
         }
 
 		# [todo] replace the initial condition by information from prep.initial
-		ret=paste(ret, "\tif (isStart==1){\n\t\tif (isPar == 0)\n\t\t\t; //Undefined case in dfdxParIC\n\t\telse{\n\t\t\tint s;\n\t\t\tfor (s = 0; s < int(y.n_cols); s++){\n\t\t\t\tr.slice(s)(2, 2)=1 ;\n\t\t\t\tr.slice(s)(3, 3)=1 ;\n\t\t\t\tr.slice(s)(4, 4)=1 ;\n\t\t\t\tr.slice(s)(5, 5)=1 ;\n\t\t\t\tr.slice(s)(6, 6)=1 ;\n\t\t\t} \n\t\t}\n\t}\n")
+		#ret=paste(ret, "\tif (isStart==1){\n\t\tif (isPar == 0)\n\t\t\t; //Undefined case in dfdxParIC\n\t\telse{\n\t\t\tint s;\n\t\t\tfor (s = 0; s < int(y.n_cols); s++){\n\t\t\t\tr.slice(s)(2, 2)=1 ;\n\t\t\t\tr.slice(s)(3, 3)=1 ;\n\t\t\t\tr.slice(s)(4, 4)=1 ;\n\t\t\t\tr.slice(s)(5, 5)=1 ;\n\t\t\t\tr.slice(s)(6, 6)=1 ;\n\t\t\t} \n\t\t}\n\t}\n")
 		
-	    ret=paste(ret,"\telse{\n\t\tint s;\n\n\t\tfor (s = 0; s < int(y.n_cols); s++){")
+	    ret=paste(ret,"\t\n\t\tint s;\n\n\t\tfor (s = 0; s < int(y.n_cols); s++){")
 	    for (i in 1:length(jacob[[1]])){
 	        col <- (i-1)%/%n  
 	        row <- (i-1)%%n 
@@ -254,16 +256,17 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	    }
 
 	    # output(isPar)
-	    ret = paste(ret, "\n\t\t\tif(isPar == 1){")
-	    for (i in 1:length(jacob[[1]])){
-	        col <- (i-1)%/%n  
-	        row <- (i-1)%%n 
-	        if(any(isStateVariables[col+1]==FALSE, isStateVariables[row+1]==FALSE)){
-	            if(nchar(rhsj[[1]][[i]]) > 1 || !grepl("0",rhsj[[1]][[i]], useBytes = 1))
-                    ret=paste(ret,paste0("\t\t\t\tr.slice(s)(",row,",",col,") = ",rhsj[[1]][[i]],";"),sep="\n")
-	        }
-	    }
-	    ret = paste(ret, "\n\t\t\t\tr.slice(s) = r.slice(s).t();\n\t\t\t}\n\t\t}\n\t}\n\treturn r;\n}\n")
+	    # ret = paste(ret, "\n\t\t\tif(isPar == 1){")
+	    # for (i in 1:length(jacob[[1]])){
+	        # col <- (i-1)%/%n  
+	        # row <- (i-1)%%n 
+	        # if(any(isStateVariables[col+1]==FALSE, isStateVariables[row+1]==FALSE)){
+	            # if(nchar(rhsj[[1]][[i]]) > 1 || !grepl("0",rhsj[[1]][[i]], useBytes = 1))
+                    # ret=paste(ret,paste0("\t\t\t\tr.slice(s)(",row,",",col,") = ",rhsj[[1]][[i]],";"),sep="\n")
+	        # }
+	    # }
+	    # ret = paste(ret, "\n\t\t\t\tr.slice(s) = r.slice(s).t();\n\t\t\t}\n\t\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t\t}\n\treturn r;\n}\n")
  	    ret=paste0(ret,"\n//----------------\n")
 		
 		#----------------------------------------------------------------------------------------------
