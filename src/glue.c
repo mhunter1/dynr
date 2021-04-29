@@ -18,7 +18,7 @@
 
 
 extern SEXP rcpparma_hello_world();
-extern SEXP _PAX_rcpp_saem_interface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP wrap_rcpp_saem_interface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static R_NativePrimitiveArgType main_R_t[] = {
     VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP
@@ -35,8 +35,7 @@ static R_CMethodDef cMethods[] = {
 static R_CallMethodDef callMethods[] = {
 	{".Backend", (DL_FUNC) main_R, 9},
 	{".BackendS", (DL_FUNC) main_SAEM, 7},
-    {"rcpparma_hello_world",  (DL_FUNC) &rcpparma_hello_world,  0},
-    {"_PAX_rcpp_saem_interface", (DL_FUNC) &_PAX_rcpp_saem_interface, 7},
+    {"wrap_rcpp_saem_interface", (DL_FUNC) &wrap_rcpp_saem_interface, 7},
 	{NULL, NULL, 0}
 };
 
