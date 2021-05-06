@@ -52,5 +52,5 @@ S3method(`coef<-`, dynrModel)
 useDynLib(dynr, .registration=TRUE)
 import(Rcpp)
 import(RcppArmadillo)
-export(dynr_hello_world)
+
 

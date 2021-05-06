@@ -37,7 +37,6 @@ Collate:
     'dynrGetDerivs.R'
     'dynrPredict.R'
 	'dynrRcppFunction.R'
-	'SampleCallHelloWorldfromR.R'
 RdMacros: Rdpack
 Biarch: true
 Version: @VERSION@
