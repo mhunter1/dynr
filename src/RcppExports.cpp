@@ -9,6 +9,7 @@ using namespace Rcpp;
 
 // rcpp_saem_interface
 Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool weight_flag, bool debug_flag, bool optimization_flag, bool hessian_flag, bool verbose);
+arma::mat _rcpparma_hello_world();
 
 RcppExport SEXP wrap_rcpp_saem_interface(SEXP model_sexpSEXP, SEXP data_sexpSEXP, SEXP weight_flagSEXP, SEXP debug_flagSEXP, SEXP optimization_flagSEXP, SEXP hessian_flagSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
@@ -26,4 +27,14 @@ BEGIN_RCPP
 END_RCPP
 }
 
+
+arma::mat _rcpparma_hello_world();
+RcppExport SEXP rcpparma_hello_world() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    //Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(_rcpparma_hello_world());
+    return rcpp_result_gen;
+END_RCPP
+}
 
