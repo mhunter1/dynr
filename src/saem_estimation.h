@@ -12,7 +12,8 @@
 
 // Step 3 in the MainUseThins.m
 void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output){
-	//printf("in MainUseThis\n");
+	//Rprintf("in MainUseThis\n");
+	
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
 	arma::vec mscore;
 	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag, k2;
@@ -49,10 +50,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.G = eye(InfDS.Nx, InfDS.Nx);
 	//InfDS.Nbeta = 5;
 	//InfDS.Ntheta = 3;
-	InfDS.alp=1;
+	InfDS.alp = 1;
 	MAXGIB = InfDS.MAXGIB;
 	
-	//printf("checkpoint M32\n");	
+	//Rprintf("checkpoint M32\n");	
 	//to be checked
 	/*
 	InfDS.odefn    = @dynfunIC;      % Function for ODE solver 
@@ -76,7 +77,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.EItild = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
 	InfDS.Iytild = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
 
-	//printf("InfDS.par.n_elem = %d \n", InfDS.par.n_elem);	
+	//Rprintf("InfDS.par.n_elem = %d \n", InfDS.par.n_elem);	
 
 	/*
 	InfDS.lowBound = arma::ones<arma::mat>(InfDS.par.n_elem,1);
@@ -91,7 +92,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.upBound.print("InfDS.upBound");
 	*/
 	
-	//printf("checkpoint M63\n");	
+	//Rprintf("checkpoint M63\n");	
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	//%self change, with caution and ask
 	//InfDS.lowBound(span(8,9), span::all).fill(10e-8);
@@ -101,7 +102,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//InfDS.upBound(span(8,9), span::all).fill(10);
 	//InfDS.upBound(span(10, 15), span::all).fill(2);
 	
-	//printf("checkpoint M73\n");	
+	//Rprintf("checkpoint M73\n");	
 
 	k2 = 1;
 	k = 1; 
@@ -121,22 +122,22 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.scaleb = 1; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
 	//InfDS.KKO = 20; //Used in SAEM. Only starts to evaluate whether to transition to stage 2 after KKO iterations.
 	stop = 0;
-    //printf("check point 2 MAXITER %d freeIC %d\n", InfDS.MAXITER, freeIC);
+    //Rprintf("check point 2 MAXITER %d freeIC %d\n", InfDS.MAXITER, freeIC);
 	
 	//InfDS.par.print("InfDS.par");
-	//printf("checkpoint M92 entering the k loop\n");	
+	//Rprintf("checkpoint M92 entering the k loop\n");	
 	while (k <= InfDS.MAXITER && stop == 0){
 
 		//disp 'iteration';
-		printf("k = %d\n",k);
+		Rprintf("k = %d\n",k);
 		
 		// isPar = 1 is to estimate variables as states. Now this part is handle by dynr
 		isPar = 0;
 		
 		if(k > 1){
 			// in the first iteration we adopt the parameters from dynr interface
-			setParsFreeICwb(InfDS); //qqqq	
-			//printf("checkpoint M101 setParsFreeICwb\n");
+			InfDS.fp.setParsFreeICwb(InfDS); //qqqq	
+			//Rprintf("checkpoint M101 setParsFreeICwb\n");
 		}		
 		
 		if (stage==2 && switchFlag==0){
@@ -178,19 +179,21 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
+		//Rprintf("end of getXtildIC3");
 		
 		
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		InfDS.OMEGAb(span(0,11), span(0,11)).print("InfDS.OMEGAb");
+		//InfDS.OMEGAb(span(0,11), span(0,5)).print("InfDS.OMEGAb");
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 	
-		printf("[DEBUG] MAXGIB = %d \n", MAXGIB);
+		//Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
+			//Rprintf("GIB = %d\n", GIB);
 			if (stage == 2){
 				yesMean = 1;
 				STARTGIB = STARTGIB+1;
@@ -199,13 +202,16 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			// run drawbGeneral6_opt3 from the first iteration
 			//if (k >= 4){   
 			if (k >= 1){ 
-				//printf("checkpoint enter drowbGeneral6_opt3\n");	
+				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(isPar, InfDS, meanb, yesMean, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept);
+				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
 			}
         
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);			
+			//Rprintf("checkpoint enter getScoreInfoY_tobs_opt\n");	
+			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);
+			//Rprintf("checkpoint leave getScoreInfoY_tobs_opt\n");				
 			
 			mscore = mscore + (1.0/MAXGIB)*score;
 			mscore2 = mscore2 + (1.0/MAXGIB)*(score*score.t());
@@ -214,26 +220,24 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 		Covscore = mscore2 - mscore*mscore.t();
 	
-	
 		saem(InfDS, gmm, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore);
-
 	
     
-		printf("\nStage = %5d, iteration = %5d\n",stage,k);
-		printf("\nCurrent b acceptance rate = %6f\n",bAccept);
+		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);
+		Rprintf("\nCurrent b acceptance rate = %6f\n",bAccept);
 		output.avebAccept += bAccept;
-		//printf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
-		//printf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
+		//Rprintf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
+		//Rprintf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
 		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
 		//temporarily printing out messages
 		if(1 || prev_stage != stage){
-			printf("length of InfDS.par: %d\n", InfDS.par.n_elem);
+			Rprintf("length of InfDS.par: %d\n", InfDS.par.n_elem);
 			InfDS.par.print("InfDS.par (free)");
 			InfDS.par(span(0,7), span::all).print("InfDS.par(1:8)");
 			exp(InfDS.par(span(8,11), span::all)).t().print("InfDS.par(9:12)");
 			///InfDS.Sigmab.print("Sigmab");
-			printf("Averaging:\n");
+			Rprintf("Averaging:\n");
 			InfDS.thetatild(span(0,7), span::all).print("InfDS.thetatild(1:8)");
 			exp(InfDS.thetatild(span(8,11), span::all)).t().print("InfDS.par(9:12)");
 			//D = diagmat(exp(InfDS.thetatild(span(12,14), span::all)));
@@ -241,9 +245,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//L(2,1) = InfDS.thetatild(16);
 			//QQ = L*D*L.t();
 			
-			arma::mat R = cor(InfDS.b,InfDS.trueb);
-			R.print("Correlation between b and trueb:");
-			printf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
+			//remove the trueb part
+			//arma::mat R = cor(InfDS.b,InfDS.trueb);
+			//R.print("Correlation between b and trueb:");
+			Rprintf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
 		}
 
 		//%%%%%%%%%%
@@ -257,16 +262,16 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	ttt = difftime(time(NULL), timer);
 	if( convFlag == 1)
-		printf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
+		Rprintf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	else
-		printf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
+		Rprintf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	
 
 	meanb = meanb/STARTGIB;
 	InfDS.par = InfDS.thetatild;	
 	
 
-	printf("(4) Wrap up estimation and write out results\n");
+	Rprintf("(4) Wrap up estimation and write out results\n");
 
 
 	//arma::mat dgdpar;
@@ -276,7 +281,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
 
 /*
-	printf("(41) Wrap up estimation and write out results\n");
+	Rprintf("(41) Wrap up estimation and write out results\n");
 
 	//Columns -- par, rows --transformation function
 	dgdpar(13, 13) = exp(InfDS.par(13));
@@ -288,7 +293,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	dgdpar(16,15) = exp(InfDS.par(15));//%diff(f2,par3)
 	dgdpar(16,16) = 2*InfDS.par(16)*exp(InfDS.par(14)); //diff(f2,par4)
 	
-	printf("(42) Wrap up estimation and write out results\n");
+	Rprintf("(42) Wrap up estimation and write out results\n");
 	
 	arma::mat SE;
 
@@ -308,7 +313,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//InfDS.convFlag = convFlag;
 	//InfDS.ss = ss;
 
-	printf("(43) Wrap up estimation and write out results\n");
+	Rprintf("(43) Wrap up estimation and write out results\n");
 */
 /*
 	fitInit = 1; //Fit models with freely estimated IC.
@@ -360,6 +365,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	output.ss = ss;
 	output.avebAccept = (output.avebAccept)/(k-1);
 	
+	output.Iytild = InfDS.Iytild;
+	output.thetatild = InfDS.thetatild;
+	
+	/*
 	output.Iytild = (double *)malloc((InfDS.par.n_elem * InfDS.par.n_elem + 1)* sizeof(double));
 	output.thetatild = (double *)malloc((InfDS.par.n_elem + 1)* sizeof(double));
 	for(j = 0; j < InfDS.par.n_elem; j++){
@@ -368,6 +377,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			output.Iytild[j*InfDS.par.n_elem + i] = InfDS.Iytild(i, j);
 		}
 	}
+	*/
 
 
 	return;

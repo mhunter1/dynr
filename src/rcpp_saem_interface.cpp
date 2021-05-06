@@ -10,10 +10,10 @@ using namespace Rcpp;
 
 
 #include "structure_prototype.h"
-//#include "supplementary_function.h"
-//#include "converted_function.h"
+#include "supplementary_function.h"
+#include "converted_function.h"
 
-//#include "saem_estimation.h"
+#include "saem_estimation.h"
 #define ERROR 0.0000001
 
 
@@ -53,6 +53,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	InfDS.KKO = as<int>(model_sexp["KKO"]);
 	InfDS.MAXGIB = as<int>(model_sexp["MAXGIB"]);
 	InfDS.MAXITER = as<int>(model_sexp["MAXITER"]);
+	InfDS.maxIterStage1 = as<int>(model_sexp["maxIterStage1"]);
 	InfDS.KKO = as<int>(model_sexp["KKO"]);
 	//double
 	InfDS.delt = as<double>(model_sexp["delt"]);
@@ -96,8 +97,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	upperb.print("upperb");
 	lowerb.print("lowerb");
 	Rprintf("InfDS.MAXGIB = %d\n", InfDS.MAXGIB);
-	Rprintf("InfDS.MAXITER = %\n", InfDS.MAXITER);
-	Rprintf("InfDS.maxIterStage1 = %\n", InfDS.maxIterStage1);
+	Rprintf("InfDS.MAXITER = %d\n", InfDS.MAXITER);
+	Rprintf("InfDS.maxIterStage1 = %d\n", InfDS.maxIterStage1);
 	
 	Rprintf("[SAEM Parameters] %lf %lf %lf %lf\n", InfDS.gainpara, InfDS.gainparb, InfDS.gainpara1, InfDS.gainparb1);
 	
@@ -289,15 +290,22 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	Rcpp::List func_addr_sexp = model_sexp["func_address"];
 	
-	C_FUNC_POINTER func_addr;
+	//C_FUNC_POINTER func_addr;
 	//func_addr.p_dynfunICM = func_addr_sexp["f_dyn"];
 	//func_addr.p_test = func_addr_sexp["f_test"];
 	
-	*(void **) (&func_addr.p_dynfunICM) = R_ExternalPtrAddr(func_addr_sexp["f_dyn"]);
-	*(void **) (&func_addr.p_test) = R_ExternalPtrAddr(func_addr_sexp["f_test"]);
-	func_addr.p_test();
-	arma::mat x;
-	x = func_addr.p_test();
+	*(void **) (&InfDS.fp.dynfunICM) = R_ExternalPtrAddr(func_addr_sexp["f_dyn"]);
+	*(void **) (&InfDS.fp.dfdxFreeICM) = R_ExternalPtrAddr(func_addr_sexp["f_dfdx"]);
+	*(void **) (&InfDS.fp.dfdparFreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdp"]);
+	*(void **) (&InfDS.fp.dfdx2FreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdx2"]);
+	*(void **) (&InfDS.fp.dfdxdpFreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdxdp"]);
+	*(void **) (&InfDS.fp.dfdpdxFreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdpdx"]);
+	*(void **) (&InfDS.fp.dfdpar2FreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdp2"]);
+	*(void **) (&InfDS.fp.setParsFreeICwb) = R_ExternalPtrAddr(func_addr_sexp["f_setpars"]);
+	*(void **) (&InfDS.fp.test) = R_ExternalPtrAddr(func_addr_sexp["f_test"]);
+
+
+	arma::mat x = InfDS.fp.test();
 	x.print("output of hello world");
 	
 	// assign output arbitrary values and return it back for testing
@@ -310,6 +318,20 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	output.thetatild.fill(0.7);
 	
 
+	char filenamePar[64] = "./Results/TrueInitparG1.txt";
+	char filenameSE[64] = "./Results/TrueInitSEG1.txt";
+	char filenameconv[64] = "./Results/TrueInitconvG1.txt";
+	char filenamebhat[64] = "./Results/TrueInitbhatG1.txt";
+	char filenamebhat2[64] = "./Results/TrueInitbhat2G1.txt";
+	int kk = 1;
+	int trueInit = 1;
+	int batch = 1;
+
+	arma::mat x1;
+	
+	
+	
+	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
 
 	return Rcpp::List::create(Rcpp::Named("convFlag") = output.convFlag, 
 	                          Rcpp::Named("nIterStage1") = output.nIterStage1, 

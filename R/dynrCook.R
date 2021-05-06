@@ -461,16 +461,6 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' #fitted.model <- dynr.cook(model)
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE, ...) {
 
-    #testing purpose: RCPP functions
-	print('RCPPARMADILLO testing by Hui-Ju')
-	#browser()
-	print(dynr_hello_world())
-	
-	
-	#rcpparma_innerproduct(c(1,2))
-	#rcpparma_hello_world()
-	print('------------------------------')
-	
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
     data <- dynrModel$data
@@ -687,7 +677,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			lower_bound=as.matrix(lower_bound),
 			upper_bound=as.matrix(upper_bound),
 			dmudparMu=dynrModel@dmudparMu,
-			dmudparMu2=dynrModel@dmudparMu2,
+			dmudparMu2=t(dynrModel@dmudparMu2), # to fit the input of SAEM
 			dSigmaede=dSigmaede,
 			dSigmaede2=dSigmaede2,
 			dLambdparLamb=dynrModel@dLambdparLamb,
@@ -716,7 +706,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         #print(model$b)
         
 		#CompileCodeSAEMRCpp(code_, 'C++', TRUE, 'temp.o')
-		browser()
+		#browser()
 		addr <- .C2funcaddressSAEMRcpp(isContinuousTime=model$isContinuousTime, infile=model$infile, outfile=model$outfile, verbose=model$verbose, compileLib = model$compileLib)
 		model$func_address <- addr$address
 		libname <- addr$libname
@@ -1439,7 +1429,7 @@ EstimateRandomAsLV<- function(dynrModel, optimization_flag=TRUE, hessian_flag = 
 
 
 CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
-  browser()
+  #browser()
   wd = getwd()
   on.exit(setwd(wd))
   ## Prepare temp file names
@@ -1491,7 +1481,7 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
   writeLines(errmsg)
   setwd(wd)
   
-  browser()
+  #browser()
   #### Error Messages
   if ( !file.exists(libLFile) ) {
     cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
@@ -1526,7 +1516,7 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
   }
   
   #-----dynamically load the library-------
-  browser()
+  #browser()
   DLL <- dyn.load( libLFile )
   if (isContinuousTime){
     res=list(

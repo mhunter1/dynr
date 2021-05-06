@@ -1,3 +1,18 @@
+typedef arma::mat (*dynfunICMPtr)(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
+typedef arma::cube (*dfdxFreeICMPtr)(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+typedef arma::cube (*cubePtr)(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
+typedef arma::mat (*_rcpparma_hello_worldPtr)(void);
+typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
+
+struct C_FUNC_POINTER {
+	dynfunICMPtr dynfunICM;
+	dfdxFreeICMPtr dfdxFreeICM;
+	cubePtr dfdparFreeIC, dfdx2FreeIC, dfdxdpFreeIC, dfdpdxFreeIC, dfdpar2FreeIC;
+	setParsFreeICwbPtr setParsFreeICwb;
+	_rcpparma_hello_worldPtr test;
+};
+
 struct C_INFDS{
 //public:
 	int Nx, NxState, Ny, Nbeta, Ntheta, Nb, Nmu, NLambda, Nbpar, Nu, Npar0, totalT, Nsubj, Neta, Nbetax, N, MAXGIB;
@@ -8,6 +23,7 @@ struct C_INFDS{
 	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;
 	arma::cube Xtild;
 	arma::Mat<double> allT;
+	struct C_FUNC_POINTER fp;
 };
 
 struct C_INFDS0{
@@ -60,13 +76,4 @@ struct C_OUTPUT{
   vec thetatild; //column-major to keep the matrix InfDS.Iytild
 };
 
-typedef arma::mat (*dynfunICMPtr)(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
-typedef arma::cube (*dfdxFreeICMPtr)(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
-typedef arma::cube (*cubePtr)(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
-typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
-typedef arma::mat (*_rcpparma_hello_worldPtr)(void);
 
-struct C_FUNC_POINTER {
-	dynfunICMPtr p_dynfunICM;
-	_rcpparma_hello_worldPtr p_test;
-};
