@@ -20,7 +20,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	double bAccept, ss, ttt, ssmin;
 	int prev_stage;
 	time_t timer;
-	int i, j;
+	//int i, j;
 	
 	//C_OUTPUT output;
 	//--for writing output files--

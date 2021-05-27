@@ -317,7 +317,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		XtildPrev = InfDS.fp.dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
 		//InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
 
-		//****** size of dXtildPrev0 should be determined dynamically
+		// ****** size of dXtildPrev0 should be determined dynamically
 		//dXtildPrev0 =  "0 0; 1 0; 0 1"; 
 		dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx);
 		d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta,InfDS.Ntheta);
