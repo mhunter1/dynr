@@ -4094,9 +4094,9 @@ solveOneElementEquation <- function(call, b, known.vars){
   return (known.vars)
 }
 
-
+# Given the expression and values of L%*%D%*%t(L) in the contrained scale, obtain the numerical values of the parameeters in the unconstrained scale.
 ##' Solve for numerical values of the unconstrained parameters (e.g.,par0-par2),
-##' given starting values for the random effect covariance matrix in model@random.values.inicov
+##' given starting values for the random effect covariance matrix (i.e. model@random.values.inicov)  in the contrained scale
 ##' 
 ##' @param ldl the expression of the random effect covariance matrix (which can be obtained by symbolicLDLDecomposition)
 ##' @param values.ldl the starting values for the random effect covariance matrix in model@random.values.inicov

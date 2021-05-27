@@ -559,6 +559,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	    dSigmaede2<-matrix(sapply(dynrModel@dSigmaede2, function(x){eval(x, as.list(dynrModel@xstart[dynrModel@noise@params.observed[[1]]]))}), nrow=nrow(dynrModel@dSigmaede2), ncol=ncol(dynrModel@dSigmaede2))
 		dSigmaede2 <- t(dSigmaede2)
 		
+		# dSigmabdb<-matrix(sapply(dynrModel@dSigmabdb, function(x){eval(x, as.list(dynrModel@xstart[dynrModel@noise@params.observed[[1]]]))}), nrow=nrow(dynrModel@dSigmabdb), ncol=ncol(dynrModel@dSigmabdb))
+	    # dSigmaede2<-matrix(sapply(dynrModel@dSigmabdb2, function(x){eval(x, as.list(dynrModel@xstart[dynrModel@noise@params.observed[[1]]]))}), nrow=nrow(dynrModel@dSigmabdb2), ncol=ncol(dynrModel@dSigmabdb2))
+		# dSigmaede2 <- t(dSigmaede2)
+		
 		
 		
 		
@@ -684,6 +688,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			dLambdparLamb2=dynrModel@dLambdparLamb2,
 			dSigmabdb = dynrModel@dSigmabdb,
 			dSigmabdb2 = dynrModel@dSigmabdb2,
+			#dSigmabdb = dSigmabdb,
+			#dSigmabdb2 = dSigmabdb2,
 			time_=dynrModel@data$time,
 			freeIC=dynrModel@freeIC,
 			par_value=as.matrix(par_value),

@@ -109,7 +109,8 @@ print(model$xstart)
 #print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
-                            MAXITER = 100, 
+                            MAXITER = 3, 
+                            seed = 4
                             #maxIterStage1 = 100, 
                             #gainpara = 0.600000, 
                             #gainparb = 3.000000, 

@@ -246,8 +246,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//QQ = L*D*L.t();
 			
 			//remove the trueb part
-			//arma::mat R = cor(InfDS.b,InfDS.trueb);
-			//R.print("Correlation between b and trueb:");
+			arma::mat R = cor(InfDS.b,InfDS.trueb);
+			R.print("Correlation between b and trueb:");
 			Rprintf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
 		}
 
@@ -262,9 +262,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	ttt = difftime(time(NULL), timer);
 	if( convFlag == 1)
-		Rprintf("\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
+		Rprintf("\n\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k - 1, ttt);
 	else
-		Rprintf("\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
+		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	
 
 	meanb = meanb/STARTGIB;

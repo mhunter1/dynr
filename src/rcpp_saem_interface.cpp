@@ -75,6 +75,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	upperb.fill(ub);
 	
 	
+	
+	
 	//print out the values
 	Rprintf("flags %d %d %d %d %d", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
 	Rprintf("seed = %d\n", seed);
@@ -305,8 +307,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	*(void **) (&InfDS.fp.test) = R_ExternalPtrAddr(func_addr_sexp["f_test"]);
 
 
-	arma::mat x = InfDS.fp.test();
-	x.print("output of hello world");
+	//arma::mat x = InfDS.fp.test();
+	//x.print("output of hello world");
 	
 	// assign output arbitrary values and return it back for testing
 	output.convFlag =  output.nIterStage1 = output.nIterStage2 = 824;
@@ -329,6 +331,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 
 	arma::mat x1;
 	
+	InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
+	InfDS.trueb.print("InfDS.trueb");
 	
 	
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);

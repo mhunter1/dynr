@@ -42,6 +42,8 @@ setClass(Class =  "dynrModel",
 		   dSigmaede2="matrix",
 		   dSigmabdb="matrix",
 		   dSigmabdb2="matrix",
+		   Sigmab="matrix",
+		   known.vars = "list",
 		   freeIC="logical"
          ),
          prototype = prototype(
@@ -841,10 +843,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
 		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
 		
+		browser()
+		
 		#substitute the values in known.vars in
-		dSigmabdb<-matrix(sapply(dSigmabdb, function(x){eval(x, known.vars)}), nrow=nrow(dSigmabdb), ncol=ncol(dSigmabdb))
-		dSigmabdb2<-matrix(sapply(dSigmabdb2, function(x){eval(x, known.vars)}), nrow=nrow(dSigmabdb2), ncol=ncol(dSigmabdb2))
-		dSigmabdb2 <- t(dSigmabdb2)
+		#comment out [the values should be substituted in dynr.cook]
+		#dSigmabdb<-matrix(sapply(dSigmabdb, function(x){eval(x, known.vars)}), nrow=nrow(dSigmabdb), ncol=ncol(dSigmabdb))
+		#dSigmabdb2<-matrix(sapply(dSigmabdb2, function(x){eval(x, known.vars)}), nrow=nrow(dSigmabdb2), ncol=ncol(dSigmabdb2))
+		#dSigmabdb2 <- t(dSigmabdb2)
+		
 	}
 	
 	#browser()
@@ -863,6 +869,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
 	dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
 	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
+	dSigmaede2 <- t(dSigmaede2)
 	
 	# [Note] The following part do the formula/theta.formula expansion for freeIC cases to generate the differentiation code, and we are no longer use way. (Instead, we do initial value estimation in dynr.cook). So the following part is commented out on 20/09/09. 
 	# For freeIC ones, extend the equations and redo the corresponding differentiation to generate the differentiation code
@@ -942,7 +949,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   }
   else if (saem == TRUE){
-    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(param.data$param.name))
+    browser()
+    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(c(param.data$param.name, sigmab.names)), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb, dLambdparLamb2=dLambdparLamb2,dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, Sigmab=ret$ldl, known.vars=ret$pars)
+	#inputs <- sapply(inputs, writeArmadilloCode, covariates=data$covariate.names, param.names=as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
@@ -960,7 +969,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     obj.dynrModel@num_regime <- numRegimes
   }
   else if(saem==TRUE){
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC), inputs))
+  #browser()
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars), inputs))
   }
   
   
