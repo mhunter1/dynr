@@ -14,7 +14,7 @@ using namespace Rcpp;
 #include "converted_function.h"
 
 #include "saem_estimation.h"
-#define ERROR 0.0000001
+
 
 
 
