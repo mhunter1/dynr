@@ -21,7 +21,7 @@ setGeneric("writeArmadilloCode",
 
 setMethod("writeArmadilloCode", "dynrMeasurement",
 	function(object, covariates, param.names, dmudparMu, dmudparMu2, dLambdparLamb, dLambdparLamb2){
-		browser()
+		#browser()
 		ret <- ""
 		
 		
@@ -513,7 +513,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		#----------------------------------------------------------------------------------------------
 		#Output setParsFreeICwb
 		
-		browser()
+		#browser()
 		
 		
 		# ret = paste(ret, "\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1; \n")
@@ -630,7 +630,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 
 setMethod("writeArmadilloCode", "dynrNoise",
 	function(object, covariates, param.names, dSigmaede, dSigmaede2){
-		browser()
+		#browser()
 		ret <- ""
 		ret = paste(ret, "\n\tstartE = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;\n")
 		Sigmae = object$params.observed[[1]]

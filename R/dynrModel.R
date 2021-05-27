@@ -843,7 +843,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
 		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
 		
-		browser()
+		#browser()
 		
 		#substitute the values in known.vars in
 		#comment out [the values should be substituted in dynr.cook]
@@ -949,7 +949,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   }
   else if (saem == TRUE){
-    browser()
+    #browser()
     inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(c(param.data$param.name, sigmab.names)), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb, dLambdparLamb2=dLambdparLamb2,dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, Sigmab=ret$ldl, known.vars=ret$pars)
 	#inputs <- sapply(inputs, writeArmadilloCode, covariates=data$covariate.names, param.names=as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
