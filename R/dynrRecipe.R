@@ -2531,6 +2531,19 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   x$beta.names <- startval.names
   
   
+  #transfer differentiation into matrix
+  #d(i,j): the differention of i-th matrix to j-th variable
+  #browser()
+  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names)))
+  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names)))
+  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), ncol =length(theta.names)))
+  x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
+  x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= TRUE))
+  x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
+  x$dfdtheta2 <- list(matrix(unlist(x$dfdtheta2), ncol =length(theta.names),byrow= TRUE))
+  
+  
+  
   #x$theta.formula <- theta.formula
   x$theta.names <- theta.names
   x$state.names <- state.names
@@ -4146,4 +4159,20 @@ extractVariablesfromSingleFormula <- function(formula){
 	a <- unlist(stringr::str_split(rhs, '[^[:alnum:]_.]+'))
     variables <- a[grep('[\\w.]*[a-zA-Z]+[\\w.]*', a)]
     return(unique(variables))
+}
+
+# The helper function that vectorize a matrix
+# Input: a matrix in column-major order (byrow=FALSE) or in row-major order (byrow=TRUe)
+# output: The vectorization result
+# Example: x = matrix(c(1:9), nrow=3) 
+# x =   [ 1    4    7
+#         2    5    8
+#         3    6    9]
+# vectorizeMatrix(x, byrow=FALSE) Result: [1] 1 2 3 4 5 6 7 8 9
+# vectorizeMatrix(x, byrow=TRUE)  Result: [1] 1 4 7 2 5 8 3 6 9
+vectorizeMatrix <- function(matrix, byrow= FALSE){
+    if(byrow == FALSE)
+        return(c(matrix))
+    else
+        return(c(t(matrix)))
 }

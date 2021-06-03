@@ -137,12 +137,13 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 
 		formula <- object$formulaOriginal
 		formula2 <- object$formula2
-		jacob <- object$jacobianOriginal
-		dfdtheta<- object$dfdtheta
-		dfdx2<- object$dfdx2
-		dfdxdtheta<- object$dfdxdtheta
-		dfdthetadx<- object$dfdthetadx
-		dfdtheta2<- object$dfdtheta2
+		#transfer them as list
+		jacob <- list(vectorizeMatrix(object$jacobianOriginal[[1]]))
+		dfdtheta<- list(vectorizeMatrix(object$dfdtheta[[1]]))
+		dfdx2<- list(vectorizeMatrix(object$dfdx2[[1]], byrow=TRUE))
+		dfdxdtheta<- list(vectorizeMatrix(object$dfdxdtheta[[1]], byrow=TRUE))
+		dfdthetadx<- list(vectorizeMatrix(object$dfdthetadx[[1]], byrow=TRUE))
+		dfdtheta2<- list(vectorizeMatrix(object$dfdtheta2[[1]], byrow=TRUE))
 		state.names <- object$state.names
 		theta.names <- object$theta.names
 		#intercept.names <- object$intercept.names
@@ -223,7 +224,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# - Need to examine whether it works well for OSC model
 		# - param.names: model@param.names
 		# - replace it with the descreasing order of variable name length
-		print(param.names)
+		#print(param.names)
 		index <- 1:length(param.names)
 		repalce_order <- param.names[order(nchar(param.names), param.names, decreasing= TRUE)]
 		for (i in 1:length(param.names)){
