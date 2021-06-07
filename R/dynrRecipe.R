@@ -2534,8 +2534,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   #transfer differentiation into matrix
   #d(i,j): the differention of i-th matrix to j-th variable
   #browser()
-  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names)))
-  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names)))
+  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= TRUE))
+  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= TRUE))
   x$dfdtheta <- list(matrix(unlist(x$dfdtheta), ncol =length(theta.names)))
   x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
   x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= TRUE))
