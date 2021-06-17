@@ -305,7 +305,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# [todo] replace the initial condition by information from prep.initial
 		# ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
 		
-		ret = paste0(ret, "\t\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){")
+		ret = paste0(ret, "\t\n\tr.zeros();\n\tint row, s;\n\tfor (s = 0; s < int(i.n_elem); s++){")
         for (i in 1:n){
 			for (j in 1:length(lhs[[1]])){
 			    # gsub (a, b, c) : in c replace a with b
@@ -318,7 +318,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
         }
 
 	    #ret=paste0(ret,"\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n\t\t\t\t\tr(row, s) = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\treturn r;\n}\n")
-		ret=paste0(ret,"\t\t}\n\n\treturn r;\n}\n")
+		ret=paste0(ret,"\n\t}\n\treturn r;\n}\n")
 	    ret=paste0(ret,"\n//----------------\n")
 
 	    #----------------------------------------------------------------------------------------------
@@ -341,13 +341,13 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# [todo] replace the initial condition by information from prep.initial
 		#ret=paste(ret, "\tif (isStart==1){\n\t\tif (isPar == 0)\n\t\t\t; //Undefined case in dfdxParIC\n\t\telse{\n\t\t\tint s;\n\t\t\tfor (s = 0; s < int(y.n_cols); s++){\n\t\t\t\tr.slice(s)(2, 2)=1 ;\n\t\t\t\tr.slice(s)(3, 3)=1 ;\n\t\t\t\tr.slice(s)(4, 4)=1 ;\n\t\t\t\tr.slice(s)(5, 5)=1 ;\n\t\t\t\tr.slice(s)(6, 6)=1 ;\n\t\t\t} \n\t\t}\n\t}\n")
 		
-	    ret=paste(ret,"\t\n\t\tint s;\n\n\t\tfor (s = 0; s < int(y.n_cols); s++){")
+	    ret=paste(ret,"\t\n\tint s;\n\n\tfor (s = 0; s < int(y.n_cols); s++){")
 	    for (i in 1:length(jacob[[1]])){
 	        col <- (i-1)%/%n  
 	        row <- (i-1)%%n 
 	        if(all(isStateVariables[col+1]==TRUE,isStateVariables[row+1]==TRUE)){
 	            if(nchar(rhsj[[1]][[i]]) > 1 || !grepl("0",rhsj[[1]][[i]], useBytes = 1))
-	                ret=paste(ret,paste0("\t\t\tr.slice(s)(",row,",",col,") = ",rhsj[[1]][[i]],";"),sep="\n")
+	                ret=paste(ret,paste0("\t\tr.slice(s)(",row,",",col,") = ",rhsj[[1]][[i]],";"),sep="\n")
 	        }
 	    }
 
@@ -362,7 +362,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	        # }
 	    # }
 	    # ret = paste(ret, "\n\t\t\t\tr.slice(s) = r.slice(s).t();\n\t\t\t}\n\t\t}\n\treturn r;\n}\n")
-		ret = paste(ret, "\n\t\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t}\n\treturn r;\n}\n")
  	    ret=paste0(ret,"\n//----------------\n")
 		
 		#----------------------------------------------------------------------------------------------
