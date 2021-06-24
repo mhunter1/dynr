@@ -853,7 +853,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		
 	}
 	
-	browser()
+	#browser()
 	mu.names <- c()
 	if(length(inputs$measurement$params.int) > 0){
 	  mu.names <- all.params[unique(as.vector(inputs$measurement$params.int[[1]]))]

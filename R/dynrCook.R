@@ -581,7 +581,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		}
 
 		#temporarily commented out 
-		browser()
+		#browser()
 		#get the initial values of startvars
 		model <- EstimateRandomAsLVModel(dynrModel)
 		fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
@@ -610,9 +610,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#temporarily commented out 
 		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
+		b <- matrix(b, nrow=num.subj, ncol=length(random.names))
 
 		#browser()
-		trueb <- data$trueb[data$tstart[1:num.subj+1], ]
+		#trueb <- data$trueb[data$tstart[1:num.subj+1], ]
 		
 		 
 		# obtain y0 form eta_smooth_final		
@@ -665,7 +666,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=dynrModel@measurement$values.load[[1]], #column-major
             b= b,
-			trueb=trueb,
+			#trueb=trueb,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
 			bAdaptParams=as.matrix(saemp@bAdaptParams),

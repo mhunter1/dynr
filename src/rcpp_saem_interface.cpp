@@ -331,8 +331,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 
 	arma::mat x1;
 	
-	InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
-	InfDS.trueb.print("InfDS.trueb");
+	//InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
+	//InfDS.trueb.print("InfDS.trueb");
 	
 	
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
