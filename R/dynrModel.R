@@ -658,7 +658,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   #if SAEM is TRUE but noise@values.latent are not zero matrix, warning
   if(saem == TRUE && any(noise@values.latent[[1]] != 0)){
-    warning('Currently you can use the SAEM with ordering differential equations (i.e., null matrix for the "values.latent" in dynrNoise)')
+    warning('Currently you can use the SAEM with ordinary differential equations (i.e., null matrix for the "values.latent" in dynrNoise)')
   }
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
@@ -853,8 +853,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		
 	}
 	
-	#browser()
+	browser()
+	mu.names <- c()
 	if(length(inputs$measurement$params.int) > 0){
+	  mu.names <- all.params[unique(as.vector(inputs$measurement$params.int[[1]]))]
+	  mu.names <- mu.names[!mu.names %in% c("fixed", "0")]
+	}
+	if(length(mu.names) > 0){
       dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
       dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
 	}
@@ -862,14 +867,36 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  dmudparMu <-matrix(0L, nrow=0, ncol=0)
 	  dmudparMu2 <-matrix(0L, nrow=0, ncol=0)
 	}
-	dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
-    dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
 	
-	sigmae.params <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
-	sigmae.params <- sigmae.params[!sigmae.params%in% c("fixed", "0")]
-	dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.params)
-	dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.params)
-	dSigmaede2 <- t(dSigmaede2)
+	lamdba.names <- c()
+	if(length(inputs$measurement$params.load) > 0){
+	  lamdba.names <- all.params[unique(as.vector(inputs$measurement$params.load[[1]]))]
+	  lamdba.names <- lamdba.names[!lamdba.names %in% c("fixed", "0")]
+	}
+	if(length(lamdba.names) > 0){
+	  dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
+      dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
+	}
+	else{
+	  dLambdparLamb <-matrix(0L, nrow=0, ncol=0)
+	  dLambdparLamb2 <-matrix(0L, nrow=0, ncol=0)
+	}
+	
+	sigmae.names<- c()
+	if(length(inputs$noise$params.observed) > 0){
+	  sigmae.names <- all.params[unique(as.vector(inputs$noise$params.observed[[1]]))]
+	  sigmae.names <- sigmae.names[!sigmae.names%in% c("fixed", "0")]
+	} 
+	if(length(sigmae.names) > 0){
+	  dSigmaede <-  differentiateMatrixOfVariable(returnExponentialSymbolicTerm(matrix(sapply(inputs$noise$params.observed[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$noise$params.observed[[1]]))), sigmae.names)
+	  dSigmaede2<- differentiateMatrixOfVariable(dSigmaede, sigmae.names)
+	  dSigmaede2 <- t(dSigmaede2)
+	}
+	else{
+	  dSigmaede <-matrix(0L, nrow=0, ncol=0)
+	  dSigmaede2 <-matrix(0L, nrow=0, ncol=0)
+	}
+	
 	
 	# [Note] The following part do the formula/theta.formula expansion for freeIC cases to generate the differentiation code, and we are no longer use way. (Instead, we do initial value estimation in dynr.cook). So the following part is commented out on 20/09/09. 
 	# For freeIC ones, extend the equations and redo the corresponding differentiation to generate the differentiation code

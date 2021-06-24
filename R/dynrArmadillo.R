@@ -27,76 +27,91 @@ setMethod("writeArmadilloCode", "dynrMeasurement",
 		
 
 		#mu
-		ret = paste0(ret, "\n\tif (InfDS.Nmu > 0){\n\t\tstartM = InfDS.Nbeta+1;\n")
-		index = nrow(object$params.int[[1]]) - 2
-		if(index < 0)
-			ret = paste0(ret, "\t\tInfDS.mu = InfDS.par(span(startM - 1, startM -", -index, "), span::all);\n")
-		else
-			ret = paste0(ret, "\t\tInfDS.mu = InfDS.par(span(startM - 1, startM +", index, "), span::all);\n")
-		ret = paste0(ret, "\t\tInfDS.dmudparMu = arma::zeros<arma::mat>(InfDS.Ny, InfDS.Ny); \n\t\tInfDS.dmudparMu2 = arma::zeros<arma::mat>(InfDS.Ny*InfDS.Ny, InfDS.Ny);\n")
-		
-		for(i in 1: nrow(dmudparMu)){
-			for(j in 1: ncol(dmudparMu)){
-				if(dmudparMu[i,j] != 0)
-					ret = paste0(ret, "\t\tInfDS.dmudparMu(", i-1, ", ", j-1, ") =", dmudparMu[i, j], ';\n')
+		if(length(object$params.int) > 0){
+			ret = paste0(ret, "\n\tif (InfDS.Nmu > 0){\n\t\tstartM = InfDS.Nbeta+1;\n")
+			index = nrow(object$params.int[[1]]) - 2
+			if(index < 0)
+				ret = paste0(ret, "\t\tInfDS.mu = InfDS.par(span(startM - 1, startM -", -index, "), span::all);\n")
+			else
+				ret = paste0(ret, "\t\tInfDS.mu = InfDS.par(span(startM - 1, startM +", index, "), span::all);\n")
+			ret = paste0(ret, "\t\tInfDS.dmudparMu = arma::zeros<arma::mat>(InfDS.Ny, InfDS.Ny); \n\t\tInfDS.dmudparMu2 = arma::zeros<arma::mat>(InfDS.Ny*InfDS.Ny, InfDS.Ny);\n")
+			
+			if(nrow(dmudparMu) > 0 && ncol(dmudparMu) > 0){
+				for(i in 1: nrow(dmudparMu)){
+					for(j in 1: ncol(dmudparMu)){
+						if(dmudparMu[i,j] != 0)
+							ret = paste0(ret, "\t\tInfDS.dmudparMu(", i-1, ", ", j-1, ") =", dmudparMu[i, j], ';\n')
+					}
+				}
 			}
-		}
-		for(i in 1: nrow(dmudparMu2)){
-			for(j in 1: ncol(dmudparMu2)){
-				if(dmudparMu2[i,j] != 0)
-					ret = paste0(ret, "\t\tInfDS.dmudparMu2(", i-1, ", ", j-1, ") =", dmudparMu2[i, j], ';\n')
+			if(nrow(dmudparMu2) > 0 && ncol(dmudparMu2) > 0){
+				for(i in 1: nrow(dmudparMu2)){
+					for(j in 1: ncol(dmudparMu2)){
+						if(dmudparMu2[i,j] != 0)
+							ret = paste0(ret, "\t\tInfDS.dmudparMu2(", i-1, ", ", j-1, ") =", dmudparMu2[i, j], ';\n')
+					}
+				}
 			}
+			ret = paste(ret, "\n\t}\n")
 		}
-		ret = paste(ret, "\n\t}\n")
 		
 		
 		#lambda
-		ret = paste(ret, "\tif (InfDS.NLambda > 0){\n\t\tstartL = InfDS.Nbeta+ InfDS.Nmu+1;\n\t\tInfDS.Lambda=\"")
-		Lambda = object$values.load[[1]]
-		for(i in 1: nrow(Lambda)){
-			for(j in 1: ncol(Lambda)){
-				if(j == 1)
-					ret = paste0(ret, Lambda[i, j])
-				else
-					ret = paste0(ret, ',', Lambda[i, j])
-			}
-			if(i != nrow(Lambda))
-				ret = paste0(ret, ';')
-		}
-		ret = paste0(ret, '\";\n')
-		
-		Lambda = object$params.load[[1]]
-		startL = min(Lambda[Lambda>0]) + 1
-		for(i in 1: nrow(Lambda)){
-			for(j in 1: ncol(Lambda)){
-				if(Lambda[i, j] > 0){
-					#print(param.names[Lambda[i, j]])
-					if(Lambda[i, j] - startL < 0)
-						ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL - ", -(Lambda[i, j] - startL), ');\n')
-					else
-						ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL + ", Lambda[i, j] - startL, ');\n')
+		if(length(object$values.load) > 0){
+			ret = paste(ret, "\tif (InfDS.NLambda > 0){\n\t\tstartL = InfDS.Nbeta+ InfDS.Nmu+1;\n\t\tInfDS.Lambda=\"")
+			Lambda = object$values.load[[1]]
+			if(nrow(Lambda) > 0 && ncol(Lambda) > 0){
+				for(i in 1: nrow(Lambda)){
+					for(j in 1: ncol(Lambda)){
+						if(j == 1)
+							ret = paste0(ret, Lambda[i, j])
+						else
+							ret = paste0(ret, ',', Lambda[i, j])
+					}
+					if(i != nrow(Lambda))
+						ret = paste0(ret, ';')
+				}
+				ret = paste0(ret, '\";\n')
+				
+				Lambda = object$params.load[[1]]
+				startL = min(Lambda[Lambda>0]) + 1
+			
+				for(i in 1: nrow(Lambda)){
+					for(j in 1: ncol(Lambda)){
+						if(Lambda[i, j] > 0){
+							#print(param.names[Lambda[i, j]])
+							if(Lambda[i, j] - startL < 0)
+								ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL - ", -(Lambda[i, j] - startL), ');\n')
+							else
+								ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL + ", Lambda[i, j] - startL, ');\n')
+						}
+					}
+					
 				}
 			}
 			
-		}
-		
-		ret = paste(ret, "\t\tInfDS.dLambdparLamb = arma::zeros<arma::mat>(InfDS.NLambda, InfDS.Ny*InfDS.Nx);\n")
-		for(i in 1: nrow(dLambdparLamb)){
-			for(j in 1: ncol(dLambdparLamb)){
-				if(dLambdparLamb[i,j] != 0)
-					ret = paste0(ret, "\t\tInfDS.dLambdparLamb(", i-1, ", ", j-1, ") =", dLambdparLamb[i, j], ';\n')
+			ret = paste(ret, "\t\tInfDS.dLambdparLamb = arma::zeros<arma::mat>(InfDS.NLambda, InfDS.Ny*InfDS.Nx);\n")
+			if(nrow(dLambdparLamb) > 0 && ncol(dLambdparLamb) > 0){
+				for(i in 1: nrow(dLambdparLamb)){
+					for(j in 1: ncol(dLambdparLamb)){
+						if(dLambdparLamb[i,j] != 0)
+							ret = paste0(ret, "\t\tInfDS.dLambdparLamb(", i-1, ", ", j-1, ") =", dLambdparLamb[i, j], ';\n')
+					}
+				}
 			}
-		}
-		
-		ret = paste(ret, "\t\tInfDS.dLambdparLamb2 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ny*InfDS.NLambda, InfDS.NLambda);\n")
-		for(i in 1: nrow(dLambdparLamb2)){
-			for(j in 1: ncol(dLambdparLamb2)){
-				if(dLambdparLamb2[i,j] != 0)
-					ret = paste0(ret, "\t\tInfDS.dLambdparLamb2(", i-1, ", ", j-1, ") =", dmudparMu2[i, j], ';\n')
+			
+			ret = paste(ret, "\t\tInfDS.dLambdparLamb2 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ny*InfDS.NLambda, InfDS.NLambda);\n")
+			if(nrow(dLambdparLamb2) > 0 && ncol(dLambdparLamb2) > 0){
+				for(i in 1: nrow(dLambdparLamb2)){
+					for(j in 1: ncol(dLambdparLamb2)){
+						if(dLambdparLamb2[i,j] != 0)
+							ret = paste0(ret, "\t\tInfDS.dLambdparLamb2(", i-1, ", ", j-1, ") =", dmudparMu2[i, j], ';\n')
+					}
+				}
 			}
+			
+			ret = paste(ret, "\t}")
 		}
-		
-		ret = paste(ret, "\t}")
 		
 		object@c.string <- ret
 		return(object)
@@ -277,6 +292,10 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		# structure prototype
 		ret= paste0(ret, "\n\nstruct C_INFDS{\n//public:\n\tint Nx, NxState, Ny, Nbeta, Ntheta, Nb, Nmu, NLambda, Nbpar, Nu, Npar0, totalT, Nsubj, Neta, Nbetax, N, MAXGIB;\n\tarma::mat Z, G,  tspan, H, U1, allDelta, thetatild, sytild, EStild, EItild, Iytild, bAdaptParams, OMEGAb, bacc, Sigmae, dSigmaede, dSigmaede2, Sigmab, dSigmabdb, dSigmabdb2, start, startpars, b, sy, ES, EI, Iy, lowBound, upBound, y0, SigmaEta, mu, dmudparMu, dmudparMu2, Lambda, dLambdparLamb, dLambdparLamb2, P0, par, trueb, Tfilter, tidx, lens, ICb;\n\tdouble omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;\n\tint alp, maxIterStage1, MAXITER, KKO, IT, isInfo;\n\tarma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;\n\tarma::cube Xtild;\n\tarma::Mat<double> allT;\n};\n\n")
+		
+		# function C extern
+		ret= paste0(ret, "\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\narma::mat hello_world(SEXP);\n\narma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);\narma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\nvoid VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);\nvoid setParsFreeICwb(C_INFDS &InfDS);\n\narma::mat rowProjection(arma::mat data, arma::mat index);\narma::vec span_vec(int start, int end, int step);\n\n#ifdef __cplusplus\n}\n#endif\n")
+		
 		
 		#hello_world
 		ret = paste0(ret, "\narma::mat hello_world() {\n\tarma::mat m1 = arma::eye<arma::mat>(3, 3);\n\tRprintf(\"Hello!!\\n\");\n\treturn m1;\n}\n\n")
@@ -634,7 +653,11 @@ setMethod("writeArmadilloCode", "dynrNoise",
 		#browser()
 		ret <- ""
 		ret = paste(ret, "\n\tstartE = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;\n")
-		Sigmae = object$params.observed[[1]]
+		#Sigmae = object$params.observed[[1]]
+		if (length(object$params.observed) > 0){ 
+		  Sigmae <- object$params.observed[[1]]
+		} else { Sigmae <- matrix(0L, nrow=0, ncol=0) }
+		
 		startE = min(Sigmae[Sigmae>0]) + 1
 		ret = paste0(ret, "\tInfDS.Sigmae = arma::zeros<arma::mat>(", nrow(Sigmae), ", ", ncol(Sigmae), ");\n")
 		for(i in 1: nrow(Sigmae)){
