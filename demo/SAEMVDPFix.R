@@ -89,10 +89,11 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    #outfile=paste0(tempfile(),'.cpp'),
-                    outfile="vdp_.cpp")
+                    outfile=paste0(tempfile(),'.cpp'))
+                    #outfile="vdp4.cpp")
 
-model@outfile = "vdp.cpp"
+#setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
+#model@outfile = "vdp4.cpp"
 print('here')
 print(model@freeIC)
 print(model@xstart)
@@ -109,19 +110,20 @@ print(model$xstart)
 #print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
-                            MAXITER = 3, 
-                            seed = 4
+                            MAXITER = 50, 
+                            seed = 19,
+                            scaleb = 10
                             #maxIterStage1 = 100, 
                             #gainpara = 0.600000, 
                             #gainparb = 3.000000, 
                             #gainpara1 = 0.900000, 
                             #gainparb1 = 1.000000, 
                             #bAdaptParams = c(0.5, 2.5, 0.5 ,1 ,2, 0.5),
-							#KKO=30
+							              #KKO=30
 							)
 
 timestart<-Sys.time()
-setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
+#setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 
 timeend<-Sys.time()

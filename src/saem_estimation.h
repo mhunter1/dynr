@@ -119,7 +119,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	ssmin = 100; 
 	noIncrease = 0;
 	//freeIC = 1;
-	InfDS.scaleb = 1; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
+	//InfDS.scaleb = 10; //Used in drawbGenera6_opt3.m to determine whether to apply scaling constant on drawb.
 	//InfDS.KKO = 20; //Used in SAEM. Only starts to evaluate whether to transition to stage 2 after KKO iterations.
 	stop = 0;
     //Rprintf("check point 2 MAXITER %d freeIC %d\n", InfDS.MAXITER, freeIC);

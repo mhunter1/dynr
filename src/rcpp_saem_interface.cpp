@@ -55,6 +55,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	InfDS.MAXITER = as<int>(model_sexp["MAXITER"]);
 	InfDS.maxIterStage1 = as<int>(model_sexp["maxIterStage1"]);
 	InfDS.KKO = as<int>(model_sexp["KKO"]);
+	InfDS.scaleb = as<double>(model_sexp["scaleb"]);
 	//double
 	InfDS.delt = as<double>(model_sexp["delt"]);
 	InfDS.maxT = as<double>(model_sexp["max_t"]);
@@ -78,7 +79,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	
 	//print out the values
-	Rprintf("flags %d %d %d %d %d", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
+	Rprintf("flags %d %d %d %d %d\n", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
+	Rprintf("scaleb = %lf\n", InfDS.scaleb);
 	Rprintf("seed = %d\n", seed);
 	Rprintf("num_time = %d\n", num_time);
 	Rprintf("isfreeIC = %d\n", isfreeIC);

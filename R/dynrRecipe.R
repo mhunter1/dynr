@@ -242,6 +242,7 @@ setClass(Class =  "dynrSaemParameter",
            gainparb1 = "numeric",
            bAdaptParams = "vector", 
            KKO = "numeric",
+		   scaleb = "numeric",
 		   seed = "numeric"
          ),
          contains = "dynrRecipe"
@@ -2536,9 +2537,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   #browser()
   x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= TRUE))
   x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= TRUE))
-  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), ncol =length(theta.names)))
+  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), ncol =length(theta.names)), byrow = TRUE)
   x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
-  x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= TRUE))
+  x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= FALSE))
   x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
   x$dfdtheta2 <- list(matrix(unlist(x$dfdtheta2), ncol =length(theta.names),byrow= TRUE))
   
@@ -3565,12 +3566,12 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 # }
 
 
-prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20, seed = NA){
+prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20, scaleb = 1, seed = NA){
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else
 		seed <- as.integer((100000-1) * runif(1) + 1)
-    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO, seed = seed)
+    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO, scaleb=scaleb, seed = seed)
     return(new("dynrSaemParameter", x))
 }
 
