@@ -858,28 +858,40 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	if(length(inputs$measurement$params.int) > 0){
 	  mu.names <- all.params[unique(as.vector(inputs$measurement$params.int[[1]]))]
 	  mu.names <- mu.names[!mu.names %in% c("fixed", "0")]
-	}
-	if(length(mu.names) > 0){
-      #dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
-	  dmudparMu <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.int[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.int[[1]])),all.params[inputs$measurement$params.int[[1]]]))
-      dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
-	  dmudparMu2 <- t(dmudparMu2)
+	  if(length(mu.names) > 0){
+	    #dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
+	    dmudparMu <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.int[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.int[[1]])),all.params[inputs$measurement$params.int[[1]]]))
+	    dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
+        dmudparMu2 <- t(dmudparMu2)
+	  }
+      else{
+	    #when Nmu = 0 (all elements in mu is fixed)
+	    dmudparMu <-matrix(0L, nrow=0, ncol=nrow(inputs$measurement$params.int[[1]]))
+	    dmudparMu2 <-matrix(0L, nrow=0, ncol=nrow(inputs$measurement$params.int[[1]]))
+	  }
 	}
 	else{
-	  dmudparMu <-matrix(0L, nrow=nrow(inputs$measurement$params.int[[1]]), ncol=0)
-	  dmudparMu2 <-matrix(0L, nrow=nrow(inputs$measurement$params.int[[1]]), ncol=0)
+	  # when measurement@prarm.int is absent
+      dmudparMu <-matrix(0L, nrow=0, ncol=0)
+	  dmudparMu2 <-matrix(0L, nrow=0, ncol=0)
 	}
 	
 	lamdba.names <- c()
 	if(length(inputs$measurement$params.load) > 0){
 	  lamdba.names <- all.params[unique(as.vector(inputs$measurement$params.load[[1]]))]
 	  lamdba.names <- lamdba.names[!lamdba.names %in% c("fixed", "0")]
-	}
-	if(length(lamdba.names) > 0){
-	  dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
-      dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
+	  if(length(lamdba.names) > 0){
+	    dLambdparLamb <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.load[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.load[[1]])),all.params[inputs$measurement$params.load[[1]]]))
+        dLambdparLamb2 <- unList(differentiateMatrixOfVariable(dLambdparLamb, all.params[inputs$measurement$params.load[[1]]]))
+	  }
+	  else{
+	    # when NLambda = 0 (all elements are fixed)
+	    dLambdparLamb <-matrix(0L, nrow=0, ncol=length(inputs$measurement$params.load[[1]]))
+	    dLambdparLamb2 <-matrix(0L, nrow=0, ncol=length(inputs$measurement$params.load[[1]]))
+	  }
 	}
 	else{
+	  # when measurement@params.load is absent
 	  dLambdparLamb <-matrix(0L, nrow=0, ncol=0)
 	  dLambdparLamb2 <-matrix(0L, nrow=0, ncol=0)
 	}
