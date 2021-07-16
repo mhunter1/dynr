@@ -686,7 +686,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			lower_bound=as.matrix(lower_bound),
 			upper_bound=as.matrix(upper_bound),
 			dmudparMu=dynrModel@dmudparMu,
-			dmudparMu2=t(dynrModel@dmudparMu2), # to fit the input of SAEM
+			dmudparMu2=dynrModel@dmudparMu2, # to fit the input of SAEM
 			dSigmaede=dSigmaede,
 			dSigmaede2=dSigmaede2,
 			dLambdparLamb=dynrModel@dLambdparLamb,

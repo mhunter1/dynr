@@ -153,8 +153,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		formula <- object$formulaOriginal
 		formula2 <- object$formula2
 		#transfer them as list
-		jacob <- list(vectorizeMatrix(object$jacobianOriginal[[1]], byrow= TRUE))
-		dfdtheta<- list(vectorizeMatrix(object$dfdtheta[[1]]))
+		jacob <- list(vectorizeMatrix(object$jacobianOriginal[[1]], byrow= FALSE))
+		dfdtheta<- list(vectorizeMatrix(object$dfdtheta[[1]],byrow=FALSE))
 		dfdx2<- list(vectorizeMatrix(object$dfdx2[[1]], byrow=TRUE))
 		dfdxdtheta<- list(vectorizeMatrix(object$dfdxdtheta[[1]], byrow=TRUE))
 		dfdthetadx<- list(vectorizeMatrix(object$dfdthetadx[[1]], byrow=TRUE))

@@ -2535,9 +2535,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
   #transfer differentiation into matrix
   #d(i,j): the differention of i-th matrix to j-th variable
   #browser()
-  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= TRUE))
-  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= TRUE))
-  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), ncol =length(theta.names)), byrow = TRUE)
+  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= FALSE))
+  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= FALSE))
+  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), nrow =length(theta.names), byrow = FALSE))
   x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
   x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= FALSE))
   x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
@@ -4146,7 +4146,11 @@ extractVariablesfromFormula<- function(formula){
     variables <-c()
     for (i in 1:length(formula))
         variables <- c(variables, extractVariablesfromSingleFormula(formula[[i]]))
-    return(unique(variables))
+	
+	# exclude the functions cos, sin, log, exp
+	variables <- setdiff(unique(variables), c('exp', 'log', 'sin', 'cos'))
+	
+    return(variables)
 }
 
 # retrieve all variables from RHS of a single formula

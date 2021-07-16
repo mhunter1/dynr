@@ -860,12 +860,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  mu.names <- mu.names[!mu.names %in% c("fixed", "0")]
 	}
 	if(length(mu.names) > 0){
-      dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
+      #dmudparMu <- unList(differentiateMatrixOfVariable(all.params[inputs$measurement$params.int[[1]]]))
+	  dmudparMu <- unList(differentiateMatrixOfVariable(matrix(sapply(inputs$measurement$params.int[[1]], function(x, all.params){if(x>0) all.params[x] else x}, all.params), nrow=nrow(inputs$measurement$params.int[[1]])),all.params[inputs$measurement$params.int[[1]]]))
       dmudparMu2 <- unList(differentiateMatrixOfVariable(dmudparMu, all.params[inputs$measurement$params.int[[1]]]))
+	  dmudparMu2 <- t(dmudparMu2)
 	}
 	else{
-	  dmudparMu <-matrix(0L, nrow=0, ncol=0)
-	  dmudparMu2 <-matrix(0L, nrow=0, ncol=0)
+	  dmudparMu <-matrix(0L, nrow=nrow(inputs$measurement$params.int[[1]]), ncol=0)
+	  dmudparMu2 <-matrix(0L, nrow=nrow(inputs$measurement$params.int[[1]]), ncol=0)
 	}
 	
 	lamdba.names <- c()
