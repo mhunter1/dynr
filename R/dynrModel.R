@@ -889,6 +889,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	    dLambdparLamb <-matrix(0L, nrow=0, ncol=length(inputs$measurement$params.load[[1]]))
 	    dLambdparLamb2 <-matrix(0L, nrow=0, ncol=length(inputs$measurement$params.load[[1]]))
 	  }
+	  dLambdparLamb2 <- t(dLambdparLamb2)
 	}
 	else{
 	  # when measurement@params.load is absent
