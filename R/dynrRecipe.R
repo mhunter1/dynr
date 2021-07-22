@@ -3912,6 +3912,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	for(i in 1:n){
 	
 		e_t <- evaluateExpression(D[i][[1]], solved_a) 
+	
 		if(is.na(e_t) && a.params[i,i] != 0){
 			new_par <- paste0('par', length(par_list))
 			D[i][[1]] <- new_par
@@ -3919,8 +3920,8 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 			par_list[new_par] <- a.params[i,i]
 			solved_a[a.params[i,i]] = a.values[i,i]
 		}
-		else if(a.params[i,i] == 0){ # this parameter is fixed
-			D[i][[1]] <- as.character(a.values[i,i])
+		else if(!is.na(e_t)){
+			D[i][[1]] <- as.character(e_t)
 		}
 		else{ #this paramter needs to be rewritten in the form of pars
 			for(par_ in names(par_list)){
@@ -3931,6 +3932,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 		if(i > 1){
 			for(j in 1:(i-1)){
 				e_t <- evaluateExpression(L[i+(j-1)*n][[1]], solved_a) 
+				
 				if(is.na(e_t) && a.params[i,j] != 0){
 					new_par <- paste0('par', length(par_list))
 					L[i+(j-1)*n][[1]] <- new_par
@@ -3938,8 +3940,8 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 					par_list[new_par] <- a.params[i,j]
 					solved_a[a.params[i,j]] = a.values[i,j]
 				}
-				else if(a.params[i,j] == 0){ # this parameter is fixed
-					L[i+(j-1)*n][[1]] <- as.character(a.values[i,j])
+				else if(!is.na(e_t)){
+					L[i+(j-1)*n][[1]] <- as.character(e_t)
 				}
 				else{ #this paramter needs to be rewritten in the form of pars
 					for(par_ in names(par_list)){
@@ -3953,7 +3955,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	#browser()
 	#browser()
 	# exponentail tranformation of D
-	D <- sapply(D, function(term){term[[1]]<- paste0('exp(', term[[1]], ')')})
+	D <- sapply(D, function(term){ if(is.na(evaluateExpression(term[[1]]))){term[[1]]<- paste0('exp(', term[[1]], ')')} else{ term[[1]]<- paste0('(', term[[1]], ')')}})
 	
 	#L*D
 	for(i in 1:n){
@@ -3996,8 +3998,14 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	}
 	
 	
-	#L = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
-	#D = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	L = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	D = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+	for(i in 1:nrow(D)){
+	  for(j in 1:ncol(D)){
+	    if(i != j)
+	      D[i,j] = expression(0)
+	  }
+	}
 	
 	# examine if there is any discrepancy between a.values and expressions in the multiplication of LDL' 
 	#if(any(mapply(function(x, value){
@@ -4019,7 +4027,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	
 	#return(list(L=L, D=D, r=ret))
 	
-	return(list(ldl=ret, pars=names(par_list)))
+	return(list(ldl=ret, pars=names(par_list), L=L, D=D))
 
 }
 
