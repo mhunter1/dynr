@@ -3925,7 +3925,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 		}
 		else{ #this paramter needs to be rewritten in the form of pars
 			for(par_ in names(par_list)){
-				D[i][[1]] <- gsub(par_list[name], par_, D[i][[1]])
+				D[i][[1]] <- gsub(par_list[par_], par_, D[i][[1]])
 			}
 		}
 		
@@ -3945,7 +3945,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 				}
 				else{ #this paramter needs to be rewritten in the form of pars
 					for(par_ in names(par_list)){
-						L[i+(j-1)*n][[1]] <- gsub(par_list[name], par_, L[i+(j-1)*n][[1]])
+						L[i+(j-1)*n][[1]] <- gsub(par_list[par_], par_, L[i+(j-1)*n][[1]])
 					}
 				}
 			}

@@ -842,6 +842,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
 		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
+		dSigmabdb2 <- t(dSigmabdb2)
 		
 		#browser()
 		
