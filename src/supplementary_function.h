@@ -376,6 +376,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		else
 			k1 = InfDS.fp.dynfunICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS);
 		*/
+		
 		k1 = InfDS.fp.dynfunICM(isPar, XtildPrev, empty_vec, tindex(t), 0, InfDS);
 		k21= XtildPrev+dt(t)*k1;
 		//[to be checked] case 1 goes for isPar = 1, case 2 goes for isPar = 0
@@ -505,11 +506,11 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			indext = span_vec(0,InfDS.allT(i)-1,1);
 			currentt = indext(InfDS.timeDiscrete(i)==tspan(t));
 			
-			/*
+			
 			if(i== 0 && t == 0){
 				InfDS.timeDiscrete(0).t().print("*timeDiscrete(0)");
 				printf("t = %d tspan(t) = %lf\n", t, tspan(t));
-			}*/
+			}
 			
 			fullX.slice(t).col(i) = Xtild_t.col(i);
 			
@@ -1272,7 +1273,7 @@ void PropSigb(struct C_INFDS &InfDS){
 void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb, int yesMean, arma::mat upperb, arma::mat lowerb, int useMultN, arma::mat &tpOld, int freeIC, int isBlock1Only, int setScaleb, double &bAccept){
 	arma::mat iSigmae, oldb, s, propden_new, propden_new1, tpNew1, OMEGAb, OMEGAi, R, MUb, normtmp, avgScalingb, cOMEGAb, bTemp, bdtmp, cOMEGAb0, tempi;
 	arma::vec indexKept, cindexKept, filteredAvgScalingb, idx, tp, tp1, propden_old, tpNew;
-	arma::ivec tpidx;
+	arma::ucolvec tpidx;
 	arma::cube newb1, xtild;;
 	double low1, high1, by1, scaleb;
 	int Nb, q, Nkept, Ntmp, T, t;
@@ -1454,8 +1455,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		InfDS1 = getXtildIC3(0, 0 ,freeIC,InfDS1);
 		//mexPrintf("execution point 3.2\n");
 		//arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::mat allT, const arma::cube Xtild, arma::cube Y)
-		tpNew = ekfContinuous10(InfDS1.Nsubj, InfDS1.N, InfDS1.Ny, InfDS1.Nx, InfDS1.Nb, InfDS1.NxState, InfDS1.Lambda, InfDS1.totalT, InfDS1.Sigmae, InfDS1.Sigmab, InfDS1.mu, InfDS1.b, InfDS1.allT, InfDS1.Xtild, InfDS1.Y);
-		//mexPrintf("execution point 3.3\n");
+		tpNew = ekfContinuous10(InfDS1.Nsubj, InfDS1.N, InfDS1.Ny, InfDS1.Nx, InfDS1.Nb, InfDS1.NxState, InfDS1.Lambda, InfDS1.totalT, InfDS1.Sigmae, InfDS1.Sigmab, InfDS1.mu, InfDS1.b, InfDS1.allT, InfDS1.Xtild, InfDS1.Y);		
 		tpNew1(span::all, q) = tpNew;	
 	}
 	//mexPrintf("InfDS1.b = %lf\n",InfDS1.b );
@@ -1465,9 +1465,14 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 	
 	tpNew = max(tpNew1,1);
+	
+
+	
 	//arma::uvec max_index_temp = index_max(tpNew1,1);
-	tpidx = zeros<arma::ivec>(tpNew.n_elem);
+	//tpidx = ones<arma::mat>(tpNew.n_elem, 1);
+	tpidx = index_max(tpNew1, 1);
 	//tpidx.print("tpidx");
+	
 	
 	for (i = 0; i < InfDS.Nsubj; i++){
 		//mexPrintf("i = %d\n",i);
@@ -1565,14 +1570,12 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	tp = 0 + randu(InfDS.Nsubj, 1) * (1-0); //sample from unif(0,1) (should be recovered)
 	//tp = 0 + ones(InfDS.Nsubj,1) *(1-0);	//de randomized *****
 	tp1.set_size(tp.n_elem);
-	for (i = 0; i < (int)tp1.n_elem; i++)
+	for (i = 0; i < (int)tp1.n_elem; i++){
 		tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));
-	//tp(span(0,5)).t().print("tp");
-	//tp1(span(0,5)).t().print("tp1");
-	//tpNew(span(0,5)).t().print("tpNew");
-	//propden_old(span(0,5)).t().print("propden_old");
-	//tpOld(span(0,5), span(0,0)).t().print("tpOld");
-	//propden_new(span(0,5),span(0,0)).t().print("propden_new");
+	}
+	
+	
+	
 	
 	//to be converted: the following three lines
 	//idx.zeros(size(tp));
@@ -1593,12 +1596,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		else
 			cindexKept(i) = 1;
 	}
-	//indexKept.t().print("indexKept");
-	//cindexKept.t().print("cindexKept");
-	//indexKept = index(idx);
-	//cindexKept = index(~idx);
 
-	//int Nkept = indexKept.n_elem;
 
 	bAccept = double(Nkept)/InfDS.Nsubj;
 	
@@ -1630,7 +1628,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			
 			//to be convert: quantile
 			InfDS.scaleb = InfDS.scaleb*quantile(filteredAvgScalingb, 1 - InfDS.setAccept);
-			//mexPrintf("InfDS.scaleb = %lf\nbAccept = %lf\n", InfDS.scaleb, bAccept);
+			Rprintf("quantile(filteredAvgScalingb, 1 - InfDS.setAccept) = %lf\nbAccept = %lf\n", quantile(filteredAvgScalingb, 1 - InfDS.setAccept), bAccept);
 			//%mean(avgScalingb);
 		}
 		//for i = indexKept

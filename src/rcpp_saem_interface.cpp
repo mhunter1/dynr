@@ -231,7 +231,6 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 			
 			InfDS.U1.col(u)= as<arma::vec>(temp);
 		}
-		
 		//InfDS.U1.print("InfDS.U1");
     }else{
         InfDS.U1.set_size(0, 0);
@@ -307,6 +306,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	*(void **) (&InfDS.fp.dfdpar2FreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdp2"]);
 	*(void **) (&InfDS.fp.setParsFreeICwb) = R_ExternalPtrAddr(func_addr_sexp["f_setpars"]);
 	*(void **) (&InfDS.fp.test) = R_ExternalPtrAddr(func_addr_sexp["f_test"]);
+	InfDS.fp.test();
 
 
 	//arma::mat x = InfDS.fp.test();
@@ -335,7 +335,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	//InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
 	//InfDS.trueb.print("InfDS.trueb");
-	
+	InfDS.setAccept = 0.8;
 	
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
 
