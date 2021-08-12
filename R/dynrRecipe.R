@@ -2285,6 +2285,9 @@ autojacob <- function(formula, n, diff.variables){
 ##'
 ##' \code{random.values.inicov} specifies starting values of elements in the covariance matrix of the random effect components
 ##' 
+##' \code{random.lb}  and \code{random.ub} specify the lower and upper bound of the random effect estimates
+##' 
+##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
 ##' The function can be either linear or nonlinear, with free or fixed parameters, numerical constants, 

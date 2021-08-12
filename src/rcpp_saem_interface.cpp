@@ -68,13 +68,14 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	mat lowerb;
 	lowerb.set_size(1, InfDS.Nb);
 	lowerb.fill(lb);
+	lowerb.print("lowerb");
 	
 	
 	double ub = as<double>(model_sexp["random.ub"]);
 	mat upperb;
 	upperb.set_size(1, InfDS.Nb);
 	upperb.fill(ub);
-	
+	upperb.print("upperb");
 	
 	
 	
