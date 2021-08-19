@@ -2395,28 +2395,14 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	# parsing the parameters in ...
 	if(length(dots) > 0){
 		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
-				stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
-			}
-
-		#browser()
-		if('theta.formula' %in% names(dots)){
-				theta.formula <- dots$theta.formula
-		  # retrieve theta.names from theta.formula instead of asking users to give inputs
-		  fml=lapply(theta.formula, as.character)
-		  theta.names=unlist(lapply(fml,function(x){x[[2]]}))
+			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
 		}
-		if('random.names' %in% names(dots))
-			random.names <- dots$random.names
-		if('random.params.inicov' %in% names(dots))
-			random.params.inicov <- dots$random.params.inicov
-		if('random.values.inicov' %in% names(dots))
-			random.values.inicov <- dots$random.values.inicov
-		if('random.ub' %in% names(dots))
-		  random.ub <- dots$random.ub
-		if('random.lb' %in% names(dots))
-		  random.lb <- dots$random.lb
-
-
+		if('theta.formula' %in% names(dots)){
+			theta.formula <- dots$theta.formula
+			# retrieve theta.names from theta.formula instead of asking users to give inputs
+			fml=lapply(theta.formula, as.character)
+			theta.names=unlist(lapply(fml,function(x){x[[2]]}))
+		}
 	}
   
 	if(length(startval) > 0){
@@ -2446,34 +2432,43 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		stop(paste0("Found different latent states or different ordering of latent states across regimes:\n", state.regimes))
 	}
 	x <- list(formula=formula, startval=startval, paramnames=c(preProcessParams(names(startval))), isContinuousTime=isContinuousTime)
+	
 	#browser()
-	if (missing(jacobian)){
-	  if('theta.formula' %in% names(dots)){
-	    # This line has bug.
-        #jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
-		jacobian <- autojacobTry(formula)
-	    #jacobianOriginal <- autojacobTry(formula)
-	  }
-	  else{   
-      jacobian <- autojacobTry(formula)
-      autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
-		if (class(autojcb) == "try-error") {
-			stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-					 Please provide the analytic jacobian functions.")
-		}else{
-			jacobian=lapply(autojcb,"[[","jacob") 
-		}
-	  }
+	# if (missing(jacobian)){
+	  # if('theta.formula' %in% names(dots)){
+	    # # This line has bug.
+        # #jacobian <- autojacobTry(lapply(formula, function(x){parseFormulaTheta(x, theta.formula)}))
+		# jacobian <- autojacobTry(formula)
+	    # #jacobianOriginal <- autojacobTry(formula)
+	  # }
+	  # else{   
+      # jacobian <- autojacobTry(formula)
+      # autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+		# if (class(autojcb) == "try-error") {
+			# stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+					 # Please provide the analytic jacobian functions.")
+		# }else{
+			# jacobian=lapply(autojcb,"[[","jacob") 
+		# }
+	  # }
+	# }
+	jacobian <- autojacobTry(formula)
+    autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+	if (class(autojcb) == "try-error") {
+		stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+				 Please provide the analytic jacobian functions.")
+	}else{
+		jacobian=lapply(autojcb,"[[","jacob") 
 	}
-    
+  
   
 
 
-  # Check that all 'values' imply 0, 1, or the same number of regimes.
-  # Note that the 'values' and 'params' have already been checked to imply this.
+	# Check that all 'values' imply 0, 1, or the same number of regimes.
+	# Note that the 'values' and 'params' have already been checked to imply this.
 	nregs <- sapply(list(formula=formula, jacobian=jacobian), length)
 	if(nregs[1] != nregs[2]){
-		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",  nregs[2], " regimes."))
+		stop(paste0("Don't bring that trash up in my house!\nDifferent numbers of regimes implied:\n'formula' has ", nregs[1], " but 'jacobian' has ",	nregs[2], " regimes."))
 	}
 	x$jacobian <- jacobian
 	x$formulaOriginal <- x$formula
@@ -2488,72 +2483,88 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	
 
 
-  startval.names <- names(startval)
-
+	startval.names <- names(startval)
+	x$saem <- saem
 	
-  # The following is only for saem
-  
-  if('random.names' %in% names(dots))
-    x$random.names <- random.names
-  if('random.params.inicov' %in% names(dots))
-    x$random.params.inicov <- random.params.inicov
-  if('random.values.inicov' %in% names(dots))
-    x$random.values.inicov <- random.values.inicov
-  if('random.ub' %in% names(dots))
-    x$random.ub <- random.ub
-  if('random.lb' %in% names(dots))
-    x$random.lb <- random.lb
-  
-  if(saem == FALSE){
-		x$saem <- saem
+	if(saem == FALSE){
 		return(new("dynrDynamicsFormula", x))
+	}
 
-  }
 	
-  if(is.list(state.names)){
-    state.names = unlist(state.names)
-  }
-  
-  
-  #dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
-  dfdtheta <- autojacobTry(formula, diff.variables=theta.names)
-  x$dfdtheta <- dfdtheta
-  x$theta.names<-theta.names
-  
-  dfdx <- autojacobTry(formula, diff.variables=state.names)
-  dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
-  x$dfdx2 <- dfdx2
-  
-  dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
-  x$dfdxdtheta <- dfdxdtheta
-  
-  dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
-  x$dfdthetadx <- dfdthetadx
-  
-  dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
-  x$dfdtheta2 <- dfdtheta2
-  x$beta.names <- startval.names
-  
-  
-  #transfer differentiation into matrix
-  #d(i,j): the differention of i-th matrix to j-th variable
-  #browser()
-  x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= FALSE))
-  x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= FALSE))
-  x$dfdtheta <- list(matrix(unlist(x$dfdtheta), nrow =length(theta.names), byrow = FALSE))
-  x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
-  x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= FALSE))
-  x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
-  x$dfdtheta2 <- list(matrix(unlist(x$dfdtheta2), ncol =length(theta.names),byrow= TRUE))
-  
-  
-  
-  #x$theta.formula <- theta.formula
-  x$theta.names <- theta.names
-  x$state.names <- state.names
-  x$saem <- saem
-  
-  return(new("dynrDynamicsFormula", x))
+	# The following is only for saem	
+	# parsing the parameters in ...
+	if(length(dots) > 0){
+		if('random.names' %in% names(dots))
+			x$random.names <- dots$random.names
+		if('random.params.inicov' %in% names(dots))
+			x$random.params.inicov <- dots$random.params.inicov
+		if('random.values.inicov' %in% names(dots))
+			x$random.values.inicov <- dots$random.values.inicov
+		
+		if('random.ub' %in% names(dots))
+			x$random.ub <- dots$random.ub
+		else if ('random.values.inicov' %in% names(dots))
+			x$random.ub <- diag(dots$random.values.inicov)[1] * 10
+		else
+			x$random.ub <- 10
+		
+		 
+		if('random.lb' %in% names(dots))
+			x$random.lb <- dots$random.lb
+		else if ('random.values.inicov' %in% names(dots))
+			x$random.lb <- diag(dots$random.values.inicov)[1] * -10
+		else
+			x$random.lb <- dots$random.lb
+
+
+	}
+		
+
+	
+	if(is.list(state.names)){
+		state.names = unlist(state.names)
+	}
+	
+	
+	#dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
+	dfdtheta <- autojacobTry(formula, diff.variables=theta.names)
+	x$dfdtheta <- dfdtheta
+	x$theta.names<-theta.names
+	
+	dfdx <- autojacobTry(formula, diff.variables=state.names)
+	dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
+	x$dfdx2 <- dfdx2
+	
+	dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
+	x$dfdxdtheta <- dfdxdtheta
+	
+	dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
+	x$dfdthetadx <- dfdthetadx
+	
+	dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
+	x$dfdtheta2 <- dfdtheta2
+	x$beta.names <- startval.names
+	
+	
+	#transfer differentiation into matrix
+	#d(i,j): the differention of i-th matrix to j-th variable
+	#browser()
+	x$jacobian <- list(matrix(unlist(x$jacobian), ncol =length(state.names), byrow= FALSE))
+	x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= FALSE))
+	x$dfdtheta <- list(matrix(unlist(x$dfdtheta), nrow =length(theta.names), byrow = FALSE))
+	x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
+	x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= FALSE))
+	x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
+	x$dfdtheta2 <- list(matrix(unlist(x$dfdtheta2), ncol =length(theta.names),byrow= TRUE))
+	
+	
+	
+	#x$theta.formula <- theta.formula
+	x$theta.names <- theta.names
+	x$state.names <- state.names
+
+	
+	return(new("dynrDynamicsFormula", x))
 }
 
 
