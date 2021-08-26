@@ -473,17 +473,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     }
     
 	if (.hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0 && dynrModel$dynamics$saem==FALSE){
-	    
 		#get the initial values of b and startvars
 		model <- EstimateRandomAsLVModel(dynrModel, optimization_flag, hessian_flag, verbose, weight_flag, debug_flag)
 		fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
 		coefEst <- coef(fitted_model)
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		#print('Starting values:')
-		#print(dynrModel@xstart)
-		#if('b_est' %in% names(fitted_model))
-		#	b <- fitted_model@b_est
+		
 		return(fitted_model)
 	}	#internalModelPrep convert dynrModel to a model list
 	
@@ -500,8 +496,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
     if(saem==TRUE){
 		sigmab.names <- unique(as.vector(dynrModel$random.params.inicov))
 		sigmab.names <- sigmab.names[!sigmab.names %in% c('fixed', '0')]
-		print(sigmab.names)
-		#num_bpar <- length(sigmab.names)
+		
 		
 		lambda.names <- unique(as.vector(dynrModel@measurement$params.load[[1]]))
 		lambda.names <- lambda.names[!lambda.names %in% c('fixed', '0')]
@@ -548,11 +543,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#  param.names <- c(param.names, sigmab.names)		
 		print('param.names')
 		print(c(param.names, sigmab.names))
-		
-
-		
-
-		 	
+			
 		
 		#substitute the values in xstart into the expression 
 		#the values in xstart is already reverse transformed
@@ -582,15 +573,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
 
 		#setting lower and upper bounds
-		#dynrModel@dynamics@random.lb[dynrModel@dynamics@random.lb < 0] = NA
-		#dynrModel@dynamics@random.ub[dynrModel@dynamics@random.ub < 0] = NA
-		#dynrModel@dynamics@random.lb[dynrModel@dynamics@random.lb >= 0] = dynrModel@dynamics@random.lb
-		#dynrModel@dynamics@random.ub[dynrModel@dynamics@random.ub >= 0] = dynrModel@dynamics@random.ub
 		lower_bound <- c(dynrModel@lb[param.names], rep(dynrModel@dynamics@random.lb, length(dynrModel@dynamics@random.values.inicov)))
 		upper_bound <- c(dynrModel@ub[param.names], rep(dynrModel@dynamics@random.ub, length(dynrModel@dynamics@random.values.inicov)))
-		print('Lower and Uppder bounds:')
-		print(lower_bound)
-		print(upper_bound)
+		#print('Lower and Uppder bounds:')
+		#print(lower_bound)
+		#print(upper_bound)
 		
 		
 		# #temporarily commented out 
@@ -703,8 +690,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			y0=y0,
 			r=r
         )
-        #print(dynrModel@MAXGIB)
-		#print(dynrModel@gainpara)
+
 		
         
         #libname <- model@libname
@@ -715,63 +701,19 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         model <- combineModelDataInformationSAEM(model, data)
         model <- preProcessModel(model)
         
-        #print(model$b)
         
-		#CompileCodeSAEMRCpp(code_, 'C++', TRUE, 'temp.o')
-		#browser()
 		addr <- .C2funcaddressSAEMRcpp(isContinuousTime=model$isContinuousTime, infile=model$infile, outfile=model$outfile, verbose=model$verbose, compileLib = model$compileLib)
 		model$func_address <- addr$address
 		libname <- addr$libname
 		
-        #
-		#the following code compiles the generated file of dynr.model, comment out now for testing
-        # some related comments also be commented in dynrModelInternal.R
-        # if(any(sapply(model@func_address, is.null.pointer))){
-            # warning("Found null pointer(s) in 'func_address' list. (Re-)compiling your functions...")
-            # if(missing(infile)){
-                # stop("Cannot compile your functions because 'infile' argument is missing.")
-            # }
-			# browser()
-            # addr <- .C2funcaddressSAEM(isContinuousTime=model@isContinuousTime, infile=infile, verbose=verbose)
-            # print('C2funcaddressSAEM done')
-			# a=list(address = res, libname = libLFile)
-			
-            # model@func_address <- addr$address
-            # libname <- addr$libname
-        # }
-        # gc()
-        # backendStart <- Sys.time()
         
-        # print('initial par')
-		# print(model$par_value)
-		# print('seed')
-		# print(model$seed)
-
-		
-		
-		#call original interface
-        #output <- .Call(.BackendS, model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose, PACKAGE = "dynr")
 		#call Rcpp_saem_interface
-		
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
 		
 
         return(output)
     }
-	# else if (saem == FALSE && .hasSlot(dynrModel$dynamics, 'theta.formula') && length(dynrModel$dynamics@theta.formula) > 0){
-		# #get the initial values of b and startvars
-		# model <- EstimateRandomAsLVModel(dynrModel)
-		# fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-		# coefEst <- coef(fitted_model)
-		# estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		# dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
-		# print('Starting values:')
-		# print(dynrModel@xstart)
-		# if('b_est' %in% names(fitted_model))
-			# b <- fitted_model@b_est
-		# return(fitted_model)
-	# }
-	#  ------- The above lines obtain the necessary components of SAEM processs ----------------------------
+
     
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
