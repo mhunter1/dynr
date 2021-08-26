@@ -100,7 +100,6 @@ model@lb[1:9] = -5
 model@lb[10:12] = -log(5)
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 #model@outfile = "vdp4.cpp"
-print('here')
 print(model@freeIC)
 print(model@xstart)
 print(model$xstart)
@@ -118,7 +117,7 @@ print(model$xstart)
 saemp <- prep.saemParameter(MAXGIB = 3, 
                             MAXITER = 100, 
                             seed = 9,
-                            #setScaleb = 1,
+                            setScaleb = 0
                             #setAccept= 0.7
                             #scaleb = 10,
                             #maxIterStage1 = 100, 

@@ -1375,7 +1375,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		if (!r){
 			//OMEGAi.print("OMEGAi");
 			cOMEGAb0 = diagmat(diagvec(sqrt(OMEGAi)));
-			OMEGAi.print("OMEGAi (1)");
+			//OMEGAi.print("OMEGAi (1)");
 			//mexPrintf("first chol\n");
 			//cOMEGAb0.print("cOMEGAb0");
 		}
