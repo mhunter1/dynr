@@ -36,6 +36,7 @@ man/dynrRegimes-class.Rd
 man/dynrTrans-class.Rd
 man/EMG.Rd
 man/EMGsim.Rd
+man/EstimateRandomAsLVModel.Rd
 man/getdx.Rd
 man/internalModelPrep.Rd
 man/LinearOsc.Rd
