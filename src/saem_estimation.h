@@ -114,7 +114,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 
 	
-	setScaleb = 0;
+	setScaleb = InfDS.setScaleb;
 	//InfDS.bAdaptParams = ".5, 2.5, .5";
 	ssmin = 100; 
 	noIncrease = 0;

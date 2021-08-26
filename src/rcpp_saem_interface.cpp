@@ -64,6 +64,12 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	InfDS.gainpara1 = as<double>(model_sexp["gainpara1"]);
 	InfDS.gainparb1 = as<double>(model_sexp["gainparb1"]);
 	
+	InfDS.setScaleb = as<int>(model_sexp["setScaleb"]);
+	InfDS.setAccept = as<double>(model_sexp["setAccept"]);
+	Rprintf("InfDS.setScaleb = %d\n", InfDS.setScaleb);
+	Rprintf("InfDS.setAccept = %lf\n", InfDS.setAccept);
+	
+	
 	double lb = as<double>(model_sexp["random.lb"]);
 	mat lowerb;
 	lowerb.set_size(1, InfDS.Nb);
@@ -336,7 +342,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	//InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
 	//InfDS.trueb.print("InfDS.trueb");
-	InfDS.setAccept = 0.8;
+	//InfDS.setAccept = 0.8;
 	
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
 

@@ -243,6 +243,8 @@ setClass(Class =  "dynrSaemParameter",
            bAdaptParams = "vector", 
            KKO = "numeric",
 		   scaleb = "numeric",
+		   setScaleb = "numeric",
+		   setAccept = "numeric",
 		   seed = "numeric"
          ),
          contains = "dynrRecipe"
@@ -3580,12 +3582,12 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 # }
 
 
-prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20, scaleb = 1, seed = NA){
+prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20, scaleb = 1, setScaleb = 1, setAccept = 0.8, seed = NA){
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else
 		seed <- as.integer((100000-1) * runif(1) + 1)
-    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO, scaleb=scaleb, seed = seed)
+    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO, scaleb=scaleb, setScaleb = setScaleb, setAccept=setAccept, seed = seed)
     return(new("dynrSaemParameter", x))
 }
 

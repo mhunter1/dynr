@@ -19,7 +19,7 @@ struct C_INFDS{
 	arma::mat Z, G,  tspan, H, U1, allDelta, thetatild, sytild, EStild, EItild, Iytild, bAdaptParams, OMEGAb, bacc, Sigmae, dSigmaede, dSigmaede2, Sigmab, dSigmabdb, dSigmabdb2, start, startpars, b, sy, ES, EI, Iy, lowBound, upBound, y0, SigmaEta, mu, dmudparMu, dmudparMu2, Lambda, dLambdparLamb, dLambdparLamb2, P0, par, trueb, Tfilter, tidx, lens, ICb;
 	//arma::Mat<double> Tfilter, tidx, lens, ICb;
 	double omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;
-	int alp, maxIterStage1, MAXITER, KKO, IT, isInfo;
+	int alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;
 	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;
 	arma::cube Xtild;
 	arma::Mat<double> allT;
