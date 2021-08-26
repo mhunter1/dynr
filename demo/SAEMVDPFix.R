@@ -78,10 +78,10 @@ dynm<-prep.formulaDynamics(formula=formula,
                            theta.formula=theta.formula,
                            random.names=c('b_zeta'),
                            random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
-                           random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
+                           random.values.inicov = matrix(c(0.4), ncol=1,byrow=TRUE),
 						   #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
-                           random.lb = -5, 
-                           random.ub = 5,
+                           #random.lb = -10, 
+                           #random.ub = 10,
                            saem=TRUE
                            )
 
@@ -89,9 +89,15 @@ dynm<-prep.formulaDynamics(formula=formula,
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
-                    outfile=paste0(tempfile(),'.cpp'))
-                    #outfile="vdp4.cpp")
+                    #outfile=paste0(tempfile(),'.cpp'))
+                    outfile="vdp5.cpp"#,
+                    #ub =c(zeta0=10,zeta1=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10)
+                    )
 
+model@ub = c(zeta0=10,zeta1=10,zeta2=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10, sigma2_b_zeta=10)
+model@ub[10:12] = log(5)
+model@lb[1:9] = -5
+model@lb[10:12] = -log(5)
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 #model@outfile = "vdp4.cpp"
 print('here')
@@ -110,16 +116,18 @@ print(model$xstart)
 #print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = 3, 
-                            MAXITER = 50, 
-                            seed = 19,
-                            scaleb = 10
+                            MAXITER = 100, 
+                            seed = 9,
+                            #setScaleb = 1,
+                            #setAccept= 0.7
+                            #scaleb = 10,
                             #maxIterStage1 = 100, 
                             #gainpara = 0.600000, 
                             #gainparb = 3.000000, 
                             #gainpara1 = 0.900000, 
                             #gainparb1 = 1.000000, 
-                            #bAdaptParams = c(0.5, 2.5, 0.5 ,1 ,2, 0.5),
-							              #KKO=30
+                            #bAdaptParams = c(5, 2.5, 0.5),
+							#KKO=5
 							)
 
 timestart<-Sys.time()
