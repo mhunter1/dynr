@@ -531,7 +531,7 @@ setMethod("printex", "dynrModel",
 ##' \itemize{
 ##' 	\item Argument \code{regimes} is for a dynrRegimes object prepared with \code{\link{prep.regimes}}
 ##' 	\item Argument \code{transform} is for a dynrTrans object prepared with \code{\link{prep.tfun}}.
-##' 	\item Argument \code{options} a list of options. Check the NLopt website \url{http://ab-initio.mit.edu/wiki/index.php/NLopt_Reference#Stopping_criteria} 
+##' 	\item Argument \code{options} a list of options. Check the NLopt website \url{https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#stopping-criteria}
 ##' for details. Available options for use with a dynrModel object 
 ##' include xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, and maxtime, 
 ##' all of which control the termination conditions for parameter optimization. The examples below show a case where options were set.
@@ -558,7 +558,7 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  #browser()
+  
   if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
     stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
   }
@@ -594,7 +594,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
     #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
   }
-  
   # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
   # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
   # 2. whether values.dyn and params.dyn are of the same matrix dimension
@@ -651,15 +650,31 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if (!all(measurement@obs.names == data$observed.names)){
     stop("The obs.names slot of the 'dynrMeasurement' object should match the 'observed' argument passed to the dynr.data() function.")
   }
-
-  if (!is.null(data$covariate.names) & !all(measurement@exo.names %in% data$covariate.names)){
-    stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+  # Check all the covariates
+  # Check if any submodel piece has any covariates but data do not
+  if(.hasSlot(dynamics, 'covariates')){ dynCovar <- dynamics$covariates} else {dynCovar <- character(0)}
+  anyCovariateRecipes <- length(c(measurement$exo.names, initial$covariates, dynCovar)) > 0
+  if(anyCovariateRecipes && is.null(data$covariate.names)){
+    stop("I found some covariates in your recipes, but not in your data.")
   }
-
+  if (!is.null(data$covariate.names)){
+    if(!all(measurement$exo.names %in% data$covariate.names)){
+      stop("The 'exo.names' slot of the 'dynrMeasurement' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    if(!all(initial$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrInitial' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    if(class(dynamics) == "dynrDynamicsMatrix" && !all(dynamics$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrDynamicsMatrix' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
+    # Note: formula dynamics covariates are inferred from the formula and swapped in based on the data covariates
+  }
+  
   #if SAEM is TRUE but noise@values.latent are not zero matrix, warning
   if(saem == TRUE && any(noise@values.latent[[1]] != 0)){
     warning('Currently you can use the SAEM with ordinary differential equations (i.e., null matrix for the "values.latent" in dynrNoise)')
   }
+  
   # check and modify the data
   ## For discrete-time models, the time points needs to be equally spaced. 
   if (!dynamics$isContinuousTime){
@@ -669,7 +684,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       return(c(spacing = sum(difference%%min(difference)) > 1e-6, #can be a very small positive number
                full = sum(diff(difference)) > 1e-6))
     })
-	
     if(any(time.check["spacing",])){
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
     }else if (any(time.check["full",])){
@@ -682,7 +696,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
           out = merge(new, df, all.x = TRUE)
         })
-        
         data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
         names(data$observed) <- data$observed.names
@@ -693,7 +706,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
           out = merge(new, df, all.x = TRUE)
         })
         
-        #data <- dynr.data(data.new.dataframe, observed = paste0("obs", 1:length(data$observed.names)))
         data <- dynr.data(data.new.dataframe, observed = data$observed.names)
       }
     }
@@ -714,8 +726,6 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   unique.params <- extractParams(all.params)
   unique.numbers <- c() #allow for model with no free parameters
   if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
-  
-  
   
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
@@ -748,6 +758,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   #  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
+  #browser()
   legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names, 'exp')
   variables <- extractVariablesfromFormula(unlist(dynamics@formula))
   if(any(variables %in% data$observed.names)){
@@ -969,6 +980,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   if(any(sapply(inputs, class) %in% 'dynrRegimes')){
     numRegimes <- dim(inputs$regimes$values)[1]
+    if (!is.null(data$covariate.names) && !all(inputs$regimes$covariates %in% data$covariate.names)){
+      stop("The 'covariates' slot of the 'dynrRegimes' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
+    }
   } else {
     numRegimes <- 1L
   }
@@ -1052,6 +1066,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     cat(glom, file=obj.dynrModel@outfile)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   
+  if (.hasSlot(obj.dynrModel$dynamics, 'theta.formula') && length(obj.dynrModel$dynamics@theta.formula) > 0 && obj.dynrModel$dynamics$saem==FALSE){
+    #get the extended model and return it (don't keep the original model)
+    extended_model <- ExpandRandomAsLVModel(obj.dynrModel)
+	return(extended_model)
+  }
+
   return(obj.dynrModel)
   #modify the object slot, including starting values, etc.
 }
@@ -1103,4 +1123,143 @@ checkSSMConformable <- function(mat, rows, cols, matname, modname){
                  rows, " by ", cols, ".", sep="")
     stop(msg, call. = FALSE)
   }
+}
+
+
+##' Extend a user-specified model to include random varibles
+##' 
+##' @param dynrModel a dynrModel object prepared with recipe functions \code{\link{prep.formulaDynamics}}, \code{\link{prep.measurement}}, \code{\link{prep.noise}}, \code{\link{prep.initial}}, \code{\link{dynr.data}}. 
+
+##' 
+##' @return an object of dynrModel that is the expanede model.
+##' 
+##' @details
+##' A \code{dynrModel} is a collection of recipes.  The recipes are constructed with the functions unctions \code{\link{prep.formulaDynamics}}, \code{\link{prep.measurement}}, \code{\link{prep.noise}}, \code{\link{prep.initial}}. Additionally, data must be prepared with \code{\link{dynr.data}} and added to the model.
+##' 
+##' 
+##' @examples
+##' #model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, data=data, outfile="osc.cpp")
+##' #extended_model <- ExpandRandomAsLVModel(model)
+##'
+##' 
+##' #For full demo examples, see:
+##' #demo(OscWithRand, package="dynr")
+##' #demo(VDPwithRand, package="dynr")
+##' @export
+EstimateRandomAsLVModel<- function(dynrModel){  
+    # Restructure mixed effects structured via theta.formula into an expanded model with 
+    # random effects as additional state variables and cook it.
+    #browser()
+    if(.hasSlot(dynrModel@dynamics,'random.names') && length(dynrModel@dynamics@random.names) > 0){
+        user.random.names = setdiff(dynrModel@dynamics@random.names, paste0('b_', dynrModel@measurement@state.names))
+        
+        # Add the user-specified random effects into states to be estimated
+        # state.names2 = state.names + user.random.names
+        state.names2 = c(dynrModel@measurement@state.names, user.random.names)
+        #print(paste("New state variables to be estimated:", state.names2))
+    }
+    else{
+        stop("There is no random effect variables to be estimated. Initial value estimates are done.")
+        #return(list(coefEst=coefEst))
+        return(list())
+    }
+    
+	##New cov matrices
+    params.latent <- function(){
+        icol <- dynrModel@noise@params.latent[[1]]
+        ind <- which(icol!=0)
+        icol[ind] <- dynrModel$'param.names'[icol[ind]]
+        for (i in 1:length(user.random.names)){
+        icol <- rbind(icol, 'fixed') 
+        icol <- cbind(icol, 'fixed')
+        }
+        return(icol)
+    }
+    #browser()
+    # If there is random effect to be estimated, set up a new model
+    params.latent = diag(c(diag(dynrModel@noise@params.latent[[1]]), rep(0, length(user.random.names))))
+    mdcov2 <- prep.noise(
+        values.latent=diag(c(diag(dynrModel@noise@values.latent[[1]]), rep(0, length(user.random.names)))),
+        params.latent=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, params.latent), nrow=nrow(params.latent)),
+        #params.latent=diag(rep("fixed",length(state.names2)), length(state.names2)),
+        #params.latent=diag(state.names2, length(state.names2)),
+        #params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
+        values.observed=dynrModel@noise@values.observed[[1]],
+        params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
+        #params.observed=dynrModel@noise@params.observed[[1]]
+    )
+    
+
+    num.y = length(dynrModel@measurement@obs.names)
+    #lambda matrix
+	if (length(dynrModel@measurement@params.int) > 0){
+		meas2 <- prep.measurement(
+			values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			#params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			obs.names = dynrModel@measurement@obs.names,
+			state.names = state.names2,
+			values.int=dynrModel@measurement@values.int,
+			#params.int=dynrModel@measurement@params.int
+			params.int=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@measurement@params.int[[1]]), nrow=nrow(dynrModel@measurement@params.int[[1]]))
+			)
+	}
+	else{
+		meas2 <- prep.measurement(
+			values.load = matrix(c(as.vector(dynrModel@measurement@values.load[[1]]), rep(0, num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			#params.load = matrix(c(dynrModel@measurement@params.load[[1]], rep("fixed", num.y * length(user.random.names))), nrow=num.y, ncol= length(state.names2), byrow=FALSE),
+			obs.names = dynrModel@measurement@obs.names,
+			state.names = state.names2
+			)
+	}
+
+    # Generate the new variance/covariance matrix 
+    # by adding the user-specified random names into states
+    #   - state.names2: c(state.names, random.names)
+    #   - values.inicov: initial values of variance/covariance matrix
+    #       *state.names: from the first fitted model
+    #       *random.names: from user specified in dynrModel@dynamics 
+    num.state = length(dynrModel@measurement@state.names)
+    num.state2 = length(state.names2) 
+    values.inicov = diag(1, length(state.names2))
+    values.inicov[1:num.state,1:num.state] = dynrModel@initial@values.inicov[[1]]
+    values.inicov[(num.state+1):num.state2,(num.state+1):num.state2] = dynrModel@dynamics@random.values.inicov
+    params.inicov = matrix("fixed", nrow=nrow(values.inicov), ncol=ncol(values.inicov))
+    params.inicov[1:num.state,1:num.state] = matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+    #params.inicov[1:num.state,1:num.state] = matrix(dynrModel@initial@params.inicov[[1]], nrow=nrow(dynrModel@initial@params.inicov[[1]]))
+    params.inicov[(num.state+1):num.state2,(num.state+1):num.state2]  = dynrModel@dynamics@random.params.inicov 
+    
+    initial2 <- prep.initial(
+        values.inistate=c(as.vector(dynrModel@initial@values.inistate[[1]]), rep(0, num.state2 - num.state)),
+        params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}), rep("fixed", num.state2 - num.state)),
+        #params.inistate=c(dynrModel@initial@params.inistate[[1]], rep("fixed", num.state2 - num.state)),
+        values.inicov=values.inicov, 
+        params.inicov=params.inicov)
+    
+    
+    # Formula processing:  
+    # 1. If the formula has been already extended to include random.names and mu_x1, mu_x2,
+    # only retrieve the formula with state variables as LHS
+    formula <- list(dynrModel@dynamics@formulaOriginal[[1]][1:length(dynrModel@measurement@state.names)])
+    
+    # 2. If theta.formula exists, substitute the content of theta.formula 
+    if(length(dynrModel@dynamics@theta.formula) > 0){
+        formula <- lapply(formula, function(x){substituteFormula(x, dynrModel@dynamics@theta.formula)})  
+    }
+    
+    #formula <- unlist(dynrModel@dynamics@formula2)[1:length(dynrModel@measurement@state.names)]
+    for(i in ((length(dynrModel@measurement@state.names)+1):length(state.names2)) )
+        formula[[1]][[i]] <- as.formula(paste0(state.names2[i], '~ 0')) 
+    
+    dynm2<-prep.formulaDynamics(formula=unlist(formula),
+                                startval=dynrModel@dynamics@startval,
+                                isContinuousTime=dynrModel@dynamics@isContinuousTime)
+    
+    model2 <- dynr.model(dynamics=dynm2, measurement=meas2,
+                         noise=mdcov2, initial=initial2, data=dynrModel@data)
+    #fitted_model2 <- dynr.cook(model2, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+    #return(fitted_model2)
+	return(model2)
+    
 }

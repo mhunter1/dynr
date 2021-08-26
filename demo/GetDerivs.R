@@ -1,7 +1,8 @@
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# Illustration I: Linear oscillator example
+# Illustrates how to get smoothed derivative estimates based on B-splines
+# via wrapper function call to the fda package
 # Author: Sy-Miin Chow
-# Last modified: 9/7/2018
+# Last modified: 11/4/2020
 # The simulation model features:
 # dx1(t)/dt = x2(t)
 # dx2(t)/dt = eta*x1(t) + zeta*x2(t)

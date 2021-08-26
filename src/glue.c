@@ -21,7 +21,7 @@ extern SEXP rcpparma_hello_world();
 extern SEXP wrap_rcpp_saem_interface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static R_NativePrimitiveArgType main_R_t[] = {
-    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP
+    VECSXP, VECSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, LGLSXP, INTSXP
 };
 
 

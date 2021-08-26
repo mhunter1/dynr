@@ -20,25 +20,25 @@ help:
 	@echo ""
 	@echo "INSTALL"
 	@echo ""
-	@echo "  install       install dynr"
+	@echo "  install            install dynr on your local machine"
 	@echo ""
 	@echo "CLEANING"
 	@echo ""
-	@echo "  clean      remove all files from the build directory"
+	@echo "  clean              remove all files from the build directory"
 	@echo ""
 	@echo "TESTING"
 	@echo ""	
-	@echo "  test               run the test suite"
+	@echo "  test               run the test suite (demo inst/models/passing)"
 	@echo "  torture            run the test suite with gctorture(TRUE)"
-	@echo "  cran-test          build dynr and run CRAN check"
-	@echo "  cran-test-cran     build dynr and run CRAN check with --as-cran"
+	@echo "  cran-check         check documentation and so on for CRAN"
+	@echo "  cran-check-as      same as cran-check but with --as-cran option"
 	@echo "  slow-test          run the test suite with gctorture(TRUE)"
 	@echo ""
 	@echo "BUILDS"
 	@echo ""
-	@echo "  build         create a dynr binary for the local system"
-	@echo "  srcbuild      create a dynr source release"
-	@echo "  cran-build    create a dynr CRAN release"
+	@echo "  build              create a dynr binary for the local system"
+	@echo "  srcbuild           create a dynr source release"
+	@echo "  cran-build         create a dynr source release for CRAN"
 
 
 
@@ -98,12 +98,12 @@ torture:
 slow-test:
 	$(REXEC) --vanilla --slave -f $(TESTFILE) --args slow
 
-cran-test-cran: cran-build
+cran-check-as: cran-build
 	$(REXEC) CMD check --as-cran build/dynr_*.tar.gz | tee cran-test.log
 	wc -l dynr.Rcheck/00check.log
 	@if [ $$(wc -l dynr.Rcheck/00check.log | cut -d ' ' -f 1) -gt 59 ]; then echo "CRAN check problems have grown; see cran-check.log" ; false; fi
 
-cran-test: cran-build
+cran-check: cran-build
 	$(REXEC) CMD check build/dynr_*.tar.gz | tee cran-test.log
 	wc -l dynr.Rcheck/00check.log
 	@if [ $$(wc -l dynr.Rcheck/00check.log | cut -d ' ' -f 1) -gt 59 ]; then echo "CRAN check problems have grown; see cran-check.log" ; false; fi

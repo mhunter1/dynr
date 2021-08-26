@@ -48,7 +48,8 @@ modelLog <- dynr.model(dynamics=dynamicsLog, measurement=measLog,
                        noise=ecovLog, initial=initialLog, #transform=trans,
                        data=dataLog, outfile="setpointLog.c")
 
-modelLog$ub[c('r', 'pnoise')] <- 10
+
+modelLog$ub[c("eta",'r', 'pnoise')] <- c(0,10,10)
 
 
 resLog <- dynr.cook(modelLog, verbose=FALSE)
@@ -56,4 +57,6 @@ resLog <- dynr.cook(modelLog, verbose=FALSE)
 
 summary(resLog)
 
+round(coef(resLog),3)
 # True parameters: freq=-1; damp=-.1; b=0.1; r=.5; sigma1=0.1, mnoise=1
+
