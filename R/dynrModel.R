@@ -1146,7 +1146,7 @@ checkSSMConformable <- function(mat, rows, cols, matname, modname){
 ##' #demo(OscWithRand, package="dynr")
 ##' #demo(VDPwithRand, package="dynr")
 ##' @export
-EstimateRandomAsLVModel<- function(dynrModel){  
+ExpandRandomAsLVModel<- function(dynrModel){  
     # Restructure mixed effects structured via theta.formula into an expanded model with 
     # random effects as additional state variables and cook it.
     #browser()

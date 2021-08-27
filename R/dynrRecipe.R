@@ -2490,18 +2490,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	}
 
 	
-
-
-	startval.names <- names(startval)
-	x$saem <- saem
-	
-	if(saem == FALSE){
-		return(new("dynrDynamicsFormula", x))
-	}
-
-	
-	# The following is only for saem	
 	# parsing the parameters in ...
+	#browser()
 	if(length(dots) > 0){
 		if('random.names' %in% names(dots))
 			x$random.names <- dots$random.names
@@ -2527,6 +2517,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
 
 	}
+	
+
+	startval.names <- names(startval)
+	x$saem <- saem
+	
+	if(saem == FALSE){
+		return(new("dynrDynamicsFormula", x))
+	}
+
+	
+	# The following is only for saem	
+
 		
 
 	
