@@ -101,8 +101,8 @@ dynm<-prep.formulaDynamics(formula=formula,
 						   random.params.inicov = matrix(c('sigma2_b_zeta'), ncol=1,byrow=TRUE),
 						   random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
 						   #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
-						   random.lb = -5, 
-						   random.ub = 5,
+						   random.lb = -10, 
+						   random.ub = 10,
 						   saem=TRUE
 						   )
 
@@ -129,6 +129,8 @@ print(model@random.params.inicov)
 
 saemp <- prep.saemParameter(MAXGIB = max_gib, 
 							MAXITER = max_iter, 
+							seed = seed_num,
+							setScaleb = 0
 							#maxIterStage1 = 100, 
 							#gainpara = 0.600000, 
 							#gainparb = 3.000000, 
