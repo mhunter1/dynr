@@ -90,7 +90,7 @@ dynm<-prep.formulaDynamics(formula=formula,
 model <- dynr.model(dynamics=dynm, measurement=meas,
                     noise=mdcov, initial=initial, data=data, #saem=TRUE, 
                     #outfile=paste0(tempfile(),'.cpp'))
-                    outfile="vdp5.cpp"#,
+                    outfile="vdp6.cpp"#,
                     #ub =c(zeta0=10,zeta1=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10)
                     )
 
@@ -114,8 +114,8 @@ print(model$xstart)
 #model$ub[names(model@lb)] = 10
 #print(model@random.params.inicov)
 
-saemp <- prep.saemParameter(MAXGIB = 3, 
-                            MAXITER = 100, 
+saemp <- prep.saemParameter(MAXGIB = 100, 
+                            MAXITER = 500, 
                             seed = 9,
                             setScaleb = 0
                             #setAccept= 0.7
@@ -126,7 +126,7 @@ saemp <- prep.saemParameter(MAXGIB = 3,
                             #gainpara1 = 0.900000, 
                             #gainparb1 = 1.000000, 
                             #bAdaptParams = c(5, 2.5, 0.5),
-							#KKO=5
+							              #KKO=5
 							)
 
 timestart<-Sys.time()
