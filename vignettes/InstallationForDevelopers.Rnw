@@ -2,8 +2,7 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,
-            linkcolor=blue}
+\hypersetup{colorlinks=true}
 \usepackage{menukeys} 
 \usepackage{graphicx}
 \usepackage{float}
@@ -17,11 +16,7 @@
 \SweaveOpts{concordance=TRUE}
 
 \maketitle
-The \texttt{dynr} software is a package for R written in R and C. Therefore, it requires additional setup to configure the C compiler and relevant C libraries. This additional setup may be burdensome, but do not fear! This installation manual is here to help! Once \texttt{dynr} is correctly setup, hopefully the ease of model fitting will make it worth the effort! (Not to mention that having the compiler setup will also save you the time and effort when you install other packages that use C for their backend computation - there are quite a few, believe it or not! Your future self will thank you for it!)
-
-\texttt{dynr} has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code. Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameter estimates, standard errors, and latent variable estimates.
-
-\tableofcontents
+The \texttt{dynr} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameters estimates, standard errors, and latent variable estimates.
 
 
 
@@ -29,32 +24,47 @@ The \texttt{dynr} software is a package for R written in R and C. Therefore, it 
 Because the \texttt{dynr} package compiles C code in response to user input, more setup is required for the \texttt{dynr} package than for many others. The general requirements are as follows:
 
 \begin{enumerate}
+\item R must be installed in a directory without spaces in the path.  See Section \ref{sec:R}.
 \item Rtools must be installed so that C code can be compiled on Windows. See Section \ref{sec:Rtools}.
 \item Additional GSL libraries must be installed so that the C code can use GSL for matrix multiplication routines. See Section \ref{sec:gsl}.
+\item The environment variable for the system Path must be modified to include R and Rtools. See Section \ref{sec:rpath}.
 \item An environment variable for GSL called LIB\_GSL must be created. See Section \ref{sec:libgsl}.
 \end{enumerate}
-\item The environment variable for the system Path must be modified to include R and Rtools. See Section \ref{sec:libgsl}.
 
 Each of these steps is detailed below.  We acknowledge that this additional setup can be bothersome, but we believe the ease of use for the rest of the package and the wide variety of models it is possible to fit with it will compensate for this initial burden.  Hopefully you will agree!
 
-%\subsection{\Large Instructions for Installation of R}
-%\label{sec:R}
-%\begin{itemize}
-%    \item Make sure that R is installed and Check the directory in which R is installed.
-%    \item If not go to \href{https://www.r-project.org/}{https://www.r-project.org/}  and click on download R and select any mirror.
-%    \item The critical step is just to make sure that you install R to a directory where there are {\bf no spaces} in the words describing the directory.  By default, it will suggest to install R in {``C:\textbackslash Program Files''} on your computer. Instead change it to just {``C:\textbackslash''} {\em or any other directory where there are {\bf no spaces} in the words describing the directory}. For example as given in the default directory ``Program Files'' has a space in between the two words so avoid using such directories.
-%\end{itemize}
-\subsection{\Large Instructions for Installing of R-tools }
+\subsection{\Large Instructions for Installation of R}
+\label{sec:R}
+\begin{itemize}
+    \item Make sure that R is installed and Check the directory in which R is installed.
+    \item If not go to \href{https://www.r-project.org/}{https://www.r-project.org/}  and click on download R and select any mirror.
+    \item The critical step is just to make sure that you install R to a directory where there are {\bf no spaces} in the words describing the directory.  By default, it will suggest to install R in {``C:\textbackslash Program Files''} on your computer. Instead change it to just {``C:\textbackslash''} {\em or any other directory where there are {\bf no spaces} in the words describing the directory}. For example as given in the default directory ``Program Files'' has a space in between the two words so avoid using such directories.
+\end{itemize}
+
+
+\subsection{\Large Instructions for Installation of R-tools }
 \label{sec:Rtools}
 \begin{enumerate}
 \item If you already have R-tools on your machine, make sure the version of R-tools matches with your R version. R-tools versions newer than 3.0 should work fine with \texttt{dynr}.
-\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. %Install the latest {\em frozen} version of Rtools.
-\item You may be asked if you want to save or run a file ``Rtools***.exe'' (*** being the version number). Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
-% \item You will be asked what language to install it in - choose English.
-\item The Rtools Setup Wizard will appear in a window. Follow the Setup Wizard until it reaches the ``Select Destination Location'' page. 
-\item On the page says ``Select Destination Location'' at the top, by default, it will suggest to install R in ``C:\textbackslash Rtools'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Follow through the Setup Wizard after that. 
+\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest version of Rtools.
+\item You may be asked if you want to save or run a file ``Rtools34.exe''. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
+\item You will be asked what language to install it in - choose English.
+\item The Rtools Setup Wizard will appear in a window. Click ``Next'' at the bottom of the R Setup wizard window.
+\item The next page says ``Information'' at the top. Click ``Next'' again.
+\item The next page says ``Select Destination Location'' at the top. By default, it will suggest to install R in ``C:\textbackslash Rtools'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Click ``Next'' at the bottom of the R tools Setup wizard window.
+\item The next page says ``Select components'' at the top. Make sure that the Cygwin Dlls box {\bf is checked}. Click ``Next'' again.
+\item The next page says ``Select additional tasks'' at the top. Check the box to edit the system PATH. Click ``Next'' again.
+\item Add the directory paths containing both R and Rtools (examples are shown below). Place these paths at the top of your list of {\em system path} variable or just move them all to way up to the top. The order of the directory paths should be the same as shown in the example below.\\
+\texttt{C:\textbackslash Rtools\textbackslash bin;\\
+ C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;\\
+ C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}\\
+You may want to first go to the directory where Rtools is installed and check that you know the correct pathway containing the gcc version you have installed (e.g., 4.6.3 in the example below). Also make sure that you enter the path containing R.exe (e.g., in C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin in the example above).
+\item The next page says ``Ready to install'' at the top. Click ``install''.
 \item Rtools should now be installed. This will take about a minute. Click ``Finish''.
 \end{enumerate}
+
+
+
 \subsection{\Large Instructions for Installation of GSL}
 \label{sec:gsl}
 \begin{enumerate}
@@ -64,91 +74,46 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \item Extract it into a new folder and copy and paste the extracted new folder into the same directory as R (``C:\textbackslash'') so that there would be two folders in that directory. One containing R-3.2.3 (or whatever version of R you have installed) and another local323.
 \end{enumerate}
 
-\subsection{\Large Instructions for Installation of GSL}
-\label{sec:gsl}
-\begin{enumerate}
-\item If you already have GSL libraries installed on your machine, you may skip this step and go to Section \ref{sec:libgsl}.  
-\item To install GSL libraries, go to \href{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}.
-\item Download ``local323.zip'' (or the latest version) by clicking it.  The 323 refers to R 3.2.3, but it works for more recent R (e.g., 4.0.5).
-\item Extract it into a new folder and copy and paste the extracted new folder into the same directory as R (e.g., ``C:\textbackslash Program Files\textbackslash R'' or ``C:\textbackslash R'') so that there would be two folders in that directory: one containing R-4.0.5 (or whatever version of R you have installed) and another local323.
-\includegraphics[width=4cm, height=2.5cm]{Figures/RDirExample}
 
-\end{enumerate}
-
-
-
-\subsection{\Large Setting up the GSL Environment Variable and the R/Rtools Path Environment Variable}
+\subsection{\Large Setting up the GSL Environment Variable}
 \label{sec:libgsl}
-%Set the LIB\_GSL environment variable by using {\em one} of the following.
-%\begin{enumerate}
-% \item Use R to set LIB\_GSL.
-% \begin{enumerate}
-%  \item Open R
-%  \item Copy paste the following into the R console\\
-%  \texttt{Sys.setenv(LIB\_GSL=paste0(R.home(), "/../", "local323"))}
-% \end{enumerate}
-% \item
- \begin{enumerate}
- \item \textbf{Use Windows system to set LIB\_GSL.}
- \begin{enumerate}
-
+\begin{enumerate}
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
  \item Click on Advanced system settings and then click on ``Environment Variables''
  \item Add a new {\em system} variable by clicking on New.  Note that this should be a {\em System} environment variable, not a {\em User} environment variable.
  \item Name the new variable as LIB\_GSL and set the variable value to the 
- directory containing the local323 files downloaded in Section \ref{sec:gsl} or the directory where your GSL libraries are installed. Example \texttt{C:\textbackslash Program Files\textbackslash R\textbackslash local323} and note that the direction of the slashes should not matter for users.
- 
- \includegraphics[width=7cm, height=2.5cm]{Figures/EnvVarExample}
- \end{enumerate}
+ directory containing the local323 files downloaded in Section \ref{sec:gsl} or the directory where your GSL libraries are installed. Example {C:/R/local323} but please note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.
+\end{enumerate}
 
 
-\item \textbf{Setting up R and Rtools}
-% \subsection{\Large Setting up R and Rtools }
-% \label{sec:rpath}
- \begin{enumerate}
- \item Use the Windows system to set your PATH environment variable.
- \begin{enumerate}
- \item Click on “Path” in the Systems environment variable and click Edit button
- \item Add these 3 paths in there and move them to the top\\ 
- \texttt{C:\textbackslash rtools40\textbackslash bin;C:\textbackslash rtools40\textbackslash mingw64\textbackslash lib\textbackslash gcc;C:\textbackslash R\textbackslash R-4.0.5\textbackslash bin;}
- 
-  \includegraphics[width=9cm, height=2.5cm]{Figures/PathVarExample}
-
-  \end{enumerate}
-  
- \item Check if R can be run through CMD as follows. Put a simple R script (e.g., save a simple R command: print (``hello'') to a .R document as ``Hello.R'') to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.R'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.R''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
+\subsection{\Large Setting up R and Rtools Environment Variable}
+\label{sec:rpath}
+\begin{enumerate}
+ \item Check if R can be run through CMD as follows. Put a simple R script (e.g., save a simple R command: print (``hello'') to a .r document as ``Hello.r'') to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.r'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.r''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
  \item Close your command prompt window.
- \item If the file did not run correctly, repeat step a and double-check the PATH variable. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
-% \item Use R to set your PATH environment variable.
-% \begin{enumerate}
-%   \item Open R.  Look at your PATH variable by copying \texttt{Sys.getenv("PATH")} into the R console.
-%   \item Copy-paste the below into the R console\\
-%   \texttt{Sys.setenv(PATH=paste(\\
-% "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash bin",\\
-% "C:\textbackslash \textbackslash Rtools\textbackslash \textbackslash mingw\_64\textbackslash \textbackslash bin",\\
-% R.home(component="bin"), Sys.getenv("PATH"), sep=";"))}
-% \item Look at your PATH variable again by copying \texttt{Sys.getenv("PATH")} into the R console.
-% \end{enumerate}
-
-\end{enumerate}
+ \item If the file did not run correctly, follow the next 4 steps.
+ \item Open - Control Panel\textbackslash System and Security\textbackslash System
+ \item Click on Advanced system settings
+ \item Check to make sure that your path variable specified during Rtools installation is specified correctly. In Windows 10 do so by clicking on ``Environment Variables'' and then in the ``System variables'' panel click on ``Path'' and then ``Edit''. Check that the following paths have been specified at the front of your {\em system} path variable or just move them all to way up to the top in the following order.
+ \texttt{C:\textbackslash Rtools\textbackslash bin;C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}
+ \item Repeat (1) and see if you can now run R from CMD. Make sure that you open a new CMD window after you have completed the steps above. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
 \end{enumerate}
 
 
 
-
-%\subsection{\Large Instructions for Installation of Cygwin}
-%\label{sec:cygwin}
-%\begin{enumerate}
-%\item Install Cygwin through \url{https://cygwin.com/index.html}.
-%\item When prompted, select to install the following packages in cygwin: 
-%\begin{enumerate}
-%\item git (under Devel): "Distributed version control system"
-%\item gcc (under Devel): "gcc-core: GNU Compiler Collection (C, OpenMP)"
-%\item make (under Devel): "The GNU version of the 'make' utility"
-%\item perl: (under Perl): "Perl programming language interpreter"
-%\end{enumerate}
-%\item Make sure that \texttt{C:\textbackslash cygwin\textbackslash bin} is in the path variable, if not, add it
-%\end{enumerate}
+\subsection{\Large Instructions for Installation of Cygwin}
+\label{sec:cygwin}
+\begin{enumerate}
+\item Install Cygwin through \url{https://cygwin.com/index.html}.
+\item When prompted, select to install the following packages in cygwin: 
+\begin{enumerate}
+\item git (under Devel): "Distributed version control system"
+\item gcc (under Devel): "gcc-core: GNU Compiler Collection (C, OpenMP)"
+\item make (under Devel): "The GNU version of the 'make' utility"
+\item perl: (under Perl): "Perl programming language interpreter"
+\end{enumerate}
+\item Make sure that \texttt{C:\textbackslash cygwin\textbackslash bin} is in the path variable, if not, add it
+\end{enumerate}
 
 \subsection{\Large Wrapping up the Installation Procedure for Windows}
 \label{wrapup}
@@ -166,6 +131,10 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \label{sec:macpre}
 \begin{enumerate}
 \item Install Xcode with the command line tools from your Apple store. For this and all the subsequent steps, please read the installation instructions on the individual websites carefully to pick the correct software versions for your operating system.
+\begin{itemize}
+\item \textbf{NOTE:} If you have Big Sur as your Operating System, you do not need to install the command line tools. In fact, you need to remove it by navigating to /Library/Developer and remove Command Line Tools. 
+\item Then, edit /Library/Frameworks/R.framework/Resources/etc/Makeconf and remove all compilers’ explicit link to a particular OS; e.g., change "CC=clang -mmacosx-version-min=10.16" to just "CC=clang." Please see the FAQ section on the \href{https://dynrr.github.io/FAQ.html}{dynr GitHub webpage} for further updates.
+\end{itemize}
 \item Install Macports by going to \url{https://www.macports.org/install.php}
 \item Open the terminal window. In the terminal window install the gsl library by typing: ``sudo port install gsl''.
 \item Follow the steps in section \ref{sec:maccheck} to verify that these steps worked properly.
@@ -174,26 +143,25 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \subsection{\Large Checking the Installation for Mac}
 \label{sec:maccheck}
 \begin{enumerate}
-\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config -{}-cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
+\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))}\\ and then check again.
 \item If the above failed, then something went wrong with one or several of the steps in Section \ref{sec:macpre}. Please go back and try repeating or checking that section.
 \item Follow the steps in section \ref{sec:bitbucket} to finish the installation process in R.
 \end{enumerate}
 
 
-\section{\Large Getting \texttt{dynr} from Github Repository}
+\section{\Large Getting \texttt{dynr} from Bitbucket Repository}
 \label{sec:bitbucket}
 \begin{enumerate}
-\item Create a Github account if you don't already have one (\url{https://github.com/}). Email Michael D. Hunter (\href{mailto:midohu@gmail.com}{midohu@gmail.com}) for permission to dynr's Github repository.
+\item Create a Bitbucket account if you don't already have one (\url{https://bitbucket.org}). Email Michael D. Hunter (\href{mailto:midohu@gmail.com}{midohu@gmail.com}) for permission to dynr's Bitbucket repository.
 \item Once permission is granted, open a Command Prompt window (it can be done by searching ``cmd" in the windows search box) on Windows, or a Terminal window on Macs, and change the directory to a desired location for the dynr package folder (e.g. by typing \texttt{cd <path to location>}).
-\item Clone the repository from Github. It should involve typing something like \texttt{git clone https://github.com/mhunter1/dynr.git} in the window.
+\item Clone the repository from Bitbucket. It should involve typing something like \texttt{git clone <https://your\_account@bitbucket.org/mhunter/dynr.git>} in the window.
 \item Install \texttt{dynr} by running \texttt{make clean install} in the Command Prompt/Terminal window.
 \item To test if \texttt{dynr} is installed correctly, run one of the demo examples in R. For instance, type: \\
 \texttt{demo(`LinearSDE',package=`\texttt{dynr}')}\\
 \texttt{Press $<$Return$>$ to start the demo.}\\
 Note that this specific demo requires the packages \textit{Matrix} and \textit{mvtnorm} so make sure that these have been installed.
 \item If you're on Windows and everything worked fine until you tried to run the model, something probably went wrong with installing Rtools (Section \ref{sec:Rtools}) or installing GSL (Section \ref{sec:gsl}). Please refer to those sections for troubleshooting.
-\item If you are on Mac (with a os of BigSur or later) and get a warning on model compilation regarding the dylib being built for a new os version than linked, please refer to our \href{https://dynrr.github.io/FAQ.html}{FAQ} page for a working solution.
 \end{enumerate}
 
 
