@@ -114,3 +114,105 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	}
   #return( libLFile )
 }
+
+#------------------------------------------------------------------------------
+# Check configuration
+
+##' Check that dynr in configured properly
+##' 
+##' @param verbose logical.  Whether to print messages during/after checks
+##' 
+##' @details
+##' The 'dynr' package requires additional set-up and configuration beyond
+##' just installing the package.  In particular, it requires compiling C code
+##' along with GSL to run (cook) models.  This function runs some basic checks
+##' of the configuration.  We check that (1) R is on the PATH variable, (2)
+##' Rtools exists and is on the PATH variable for Windows, (3) a C compiler
+##' is available, and (4) GSL is available and on the PATH.
+##' 
+##' In general, see the 'Installation for Users' vignette for set-up and
+##' configuration instructions.
+##' 
+##' @return No return value.
+##' 
+##' @examples
+##' dynr.config()
+dynr.config <- function(verbose=FALSE){
+	genmsg <- paste0(
+		"\nPlease read the 'Installation for Users' vignette at\n",
+		"https://cran.r-project.org/web/packages/dynr/",
+		"vignettes/InstallationForUsers.pdf",
+		"\nor\n",
+		"vignette(package='dynr', 'InstallationForUsers')\n")
+	# Check that R is on the path
+	noRmsg <- "R did not appear to be on the 'PATH' environment variable."
+	# Check that Rtools exists and is on the path
+	noRtoolsmsg <- "No Rtools found in 'PATH' environment variable."
+	# Check for a C compiler
+	noCmsg <- "No C compiler found."
+	# Check for GSL
+	noGSLmsg <- "LIB_GSL variable not found."
+	if ( .Platform$OS.type == "windows" ) {
+		path <- Sys.getenv("PATH")
+		path <- gsub("\\\\", "/", path)
+		if(grep(R.home(component="bin"), path) != 1){
+			stop(paste0(noRmsg, genmsg))
+		}
+		if(grep('rtools', path, ignore.case=TRUE) != 1){
+			stop(paste0(noRtoolsmsg, genmsg))
+		}
+		if(!checkForCompiler() ){
+			stop(paste0(noCmsg, genmsg))
+		}
+		
+		## windows gsl flags
+		LIB_GSL <- Sys.getenv("LIB_GSL")
+		LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+		LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
+		if(nchar(LIB_GSL) < 1){
+			stop(paste0(noGSLmsg, genmsg))
+		}
+	}else {
+		## UNIX-alike build
+		
+		if(!checkForCompiler() ){
+			stop(paste0(noCmsg, genmsg))
+		}
+		
+		## Unix gsl flags
+		gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
+		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+		if(0){ # TODO fill with something!
+			stop(paste0(noGSLmsg, genmsg))
+		}
+	}
+	if(verbose){
+		message("Configuration check complete.  Ready to rock and roll.")
+	}
+}
+
+
+# Taken from Rcpp
+checkForCompiler <- function(minVersion = package_version("4.6.0")){
+	binaries <- c("g++", Sys.getenv("CXX", unset = ""),
+		Sys.getenv("CXX1X", unset = ""))
+	binpaths <- lapply(binaries, function(b) {
+		if (b == "")
+			NULL
+		else Sys.which(b)
+	})
+	allgood <- FALSE
+	rl <- lapply(binpaths, function(b) {
+		if (is.null(b)) 
+			return(NULL)
+		con <- pipe(paste(b, "-v 2>&1"), "r")
+		lines <- readLines(con)
+		close(con)
+		lines <- lines[grepl("^g.. version", lines)]
+		if (length(lines) == 0)
+			return(NULL)
+		ver <- strsplit(lines, " ")[[1]][3]
+		package_version(ver) >= minVersion
+	})
+	all(do.call(c, rl))
+}

@@ -22,6 +22,8 @@
 ##' @param type character the type of thing you want predicted: latent variables or manifest variables.
 ##' @param ... further named arguments, e.g., \code{size} for the ensemble size when using the ensemble prediction
 ##' 
+##' @return A list of the prediction estimates, intervals, and ensemble members.
+##' 
 ##' @details
 ##' The \code{newdata} argument is either a \code{data.frame} or \code{ts} object.  It passed as the \code{dataframe} argument of \code{dynr.data} and must accept the same further arguments as the data in the model passed in the \code{object} argument (e.g., same \code{id}, \code{time}, \code{observed}, and \code{covariates} arguments).
 ##' 

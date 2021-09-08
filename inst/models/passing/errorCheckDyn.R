@@ -233,13 +233,14 @@ testthat::expect_error(
 # Check for the correct class of dynamic argument in dynr.model
 testthat::expect_error(
 	dynrmodel <- dynr.model(formula1D, measurement, noise, initial, data),
-	regexp="Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.",
+	regexp="Check that the 'dynamics' argument is of the correct class.\nHint: it should be either a 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.\nCreate it with prep.formulaDynamics() or prep.matrixDynamics().",
 	fixed=TRUE)
 
 testthat::expect_error(
-	dynrmodel <- dynr.model(measurement,dynamics, noise, initial, data),
-	regexp="Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.",
+	dynrmodel <- dynr.model(measurement, dynamics, noise, initial, data),
+	regexp="Check that the 'dynamics' argument is of the correct class.\nHint: it should be either a 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.\nCreate it with prep.formulaDynamics() or prep.matrixDynamics().",
 	fixed=TRUE)
+
 
 #------------------------------------------------------------------------------
 # End

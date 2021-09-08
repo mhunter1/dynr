@@ -58,24 +58,25 @@ g = lm(d2x~x+dx-1,data=dxall)
 
 #Component + residuals plot to show the association between smoothed d2x and smoothed x
 #after partialling out the effect of smoothed dx
-par(mgp=c(2.5,0.5,0))
+oldpar <- par(mgp=c(2.5,0.5,0))
 car::crPlots(g,terms=~x,
         main=c(""),layout=c(1,1),
         cex.lab=1.3,cex.axis=1.2,
         xlab=expression(hat(eta)[i](t)),
         ylab=expression(paste("Component+Residuals ", "  ",d^2,hat(eta)[i](t)/dt^2))
 )
+par(oldpar)
 
 #Component + residuals plot to show the association between smoothed d2x and smoothed dx
 #after partialling out the effect of smoothed x
-par(mgp=c(2.5,0.5,0))
+oldpar <- par(mgp=c(2.5,0.5,0))
 car::crPlots(g,terms=~dx,
         main=c(""),layout=c(1,1),
         cex.lab=1.3,cex.axis=1.2,
         xlab=expression(paste(d, hat(eta)[i](t)/dt)),
         ylab=expression(paste("Component+Residuals ", "  ",d^2,hat(eta)[i](t)/dt^2))
 )
-
+par(oldpar)
 
 # ---- Plot of simple slopes and region of significance ----
 g2 = lm(d2x~x+dx+x:dx-1,data=dxall) #Adding an interaction term to illustrate some

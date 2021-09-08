@@ -77,7 +77,7 @@ static int reflectpt(int n, double *xnew,
 }
 
 #define CHECK_EVAL(xc,fc) 						  \
- stop->nevals++;							  \
+ ++ *(stop->nevals_p);							  \
  if (nlopt_stop_forced(stop)) { ret=NLOPT_FORCED_STOP; goto done; }        \
  if ((fc) <= *minf) {							  \
    *minf = (fc); memcpy(x, (xc), n * sizeof(double));			  \
@@ -153,7 +153,12 @@ nlopt_result nldrmd_minimize_(int n, nlopt_func f, void *f_data,
 					   ub[i] : lb[i]) + x[i]);
 	       }
 	  }
-	  if (close(pt[1+i], x[i])) { ret=NLOPT_FAILURE; goto done; }
+	  if (close(pt[1+i], x[i])) { 
+              nlopt_stop_msg(stop, "starting step size led to simplex that was too small in dimension %d: %g is too close to x[%d]=%g",
+                             i, pt[1+i], i, x[i]);
+              ret=NLOPT_FAILURE;
+              goto done; 
+          }
 	  pt[0] = f(n, pt+1, NULL, f_data);
 	  CHECK_EVAL(pt+1, pt[0]);
      }
@@ -290,7 +295,7 @@ nlopt_result nldrmd_minimize(int n, nlopt_func f, void *f_data,
      double *scratch, fdiff;
 
      *minf = f(n, x, NULL, f_data);
-     stop->nevals++;
+     ++ *(stop->nevals_p);
      if (nlopt_stop_forced(stop)) return NLOPT_FORCED_STOP;
      if (*minf < stop->minf_max) return NLOPT_MINF_MAX_REACHED;
      if (nlopt_stop_evals(stop)) return NLOPT_MAXEVAL_REACHED;

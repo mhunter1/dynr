@@ -13,6 +13,7 @@ man/autoplot.dynrTaste.Rd
 man/coef.dynrCook.Rd
 man/confint.dynrCook.Rd
 man/diag-character-method.Rd
+man/dynr.config.Rd
 man/dynr.cook.Rd
 man/dynr.data.Rd
 man/dynr.flowField.Rd
@@ -65,7 +66,6 @@ man/prep.regimes.Rd
 man/prep.tfun.Rd
 man/printex.Rd
 man/RSPPsim.Rd
-man/substituteFormula.Rd
 man/summary.dynrCook.Rd
 man/theta_plot.Rd
 man/TrueInit_Y14.Rd

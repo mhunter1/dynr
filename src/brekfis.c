@@ -1421,7 +1421,7 @@ void EKimSmoother(double *y_time, gsl_vector **co_variate, const ParamConfig *co
                     gsl_matrix_memcpy(error_cov_regime_jk_T,error_cov_regime_j_t[t][regime_j]);
                     gsl_matrix_set_zero(temp_modif_p);
                     gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, P_tilde_regime_jk, temp_diff_P, 0.0, temp_modif_p);
-                    gsl_blas_dgemm(CblasNoTrans,CblasNoTrans, 1.0, temp_modif_p,P_tilde_regime_jk, 1, error_cov_regime_jk_T);
+                    gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, temp_modif_p,P_tilde_regime_jk, 1, error_cov_regime_jk_T);/* @@@SMC changed 2nd CblasNoTrans to Trans */
 
 
 
