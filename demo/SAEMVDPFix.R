@@ -114,8 +114,8 @@ print(model$xstart)
 #model$ub[names(model@lb)] = 10
 #print(model@random.params.inicov)
 
-saemp <- prep.saemParameter(MAXGIB = 100, 
-                            MAXITER = 500, 
+saemp <- prep.saemParameter(MAXGIB = 1, 
+                            MAXITER = 1, 
                             seed = 9,
                             setScaleb = 0
                             #setAccept= 0.7
