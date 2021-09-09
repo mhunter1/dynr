@@ -72,3 +72,5 @@ man/TrueInit_Y14.Rd
 man/VARsim.Rd
 man/vcov.dynrCook.Rd
 man/vdpData.Rd
+.DS_Store
+vignettes/.DS_Store
