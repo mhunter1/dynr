@@ -120,7 +120,7 @@ You may want to first go to the directory where Rtools is installed and check th
 \begin{enumerate}
 \item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{shell("echo \%LIB\_GSL\%")}\\ If this returns something like ``C:/R/local323'', then everything worked fine.
  \item If that command returns something like ``\%LIB\_GSL\%'', then something might be wrong with the GSL installation (Return to Section \ref{sec:gsl}) or GSL path (Return to Section \ref{sec:libgsl}).
- \item If the command worked fine, follow the steps in section \ref{sec:bitbucket} to finish the installation process in R.
+ \item If the command worked fine, follow the steps in section \ref{sec:GitHub} to finish the installation process in R.
 \end{enumerate}
 
 
@@ -146,16 +146,16 @@ You may want to first go to the directory where Rtools is installed and check th
 \item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))}\\ and then check again.
 \item If the above failed, then something went wrong with one or several of the steps in Section \ref{sec:macpre}. Please go back and try repeating or checking that section.
-\item Follow the steps in section \ref{sec:bitbucket} to finish the installation process in R.
+\item Follow the steps in section \ref{sec:GitHub} to finish the installation process in R.
 \end{enumerate}
 
 
-\section{\Large Getting \texttt{dynr} from Bitbucket Repository}
-\label{sec:bitbucket}
+\section{\Large Getting \texttt{dynr} from GitHub Repository}
+\label{sec:GitHub}
 \begin{enumerate}
-\item Create a Bitbucket account if you don't already have one (\url{https://bitbucket.org}). Email Michael D. Hunter (\href{mailto:midohu@gmail.com}{midohu@gmail.com}) for permission to dynr's Bitbucket repository.
+\item Create a GitHub account if you don't already have one (\url{https://github.com/}). Email Michael D. Hunter (\href{mailto:midohu@gmail.com}{midohu@gmail.com}) for permission to dynr's GitHub repository.
 \item Once permission is granted, open a Command Prompt window (it can be done by searching ``cmd" in the windows search box) on Windows, or a Terminal window on Macs, and change the directory to a desired location for the dynr package folder (e.g. by typing \texttt{cd <path to location>}).
-\item Clone the repository from Bitbucket. It should involve typing something like \texttt{git clone <https://your\_account@bitbucket.org/mhunter/dynr.git>} in the window.
+\item Clone the repository from GitHub. It should involve typing something like \texttt{git clone <https://github.com/mhunter1/dynr.git>} in the window.
 \item Install \texttt{dynr} by running \texttt{make clean install} in the Command Prompt/Terminal window.
 \item To test if \texttt{dynr} is installed correctly, run one of the demo examples in R. For instance, type: \\
 \texttt{demo(`LinearSDE',package=`\texttt{dynr}')}\\
