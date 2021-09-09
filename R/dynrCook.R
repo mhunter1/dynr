@@ -487,7 +487,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	
 	#  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
 	dots <- list(...)
-	saem <- dynrModel$dynamics$saem 
+	
+	if (class(dynrModel$dynamics) == "dynrDynamicsFormula"){
+	  saem <- dynrModel$dynamics$saem 
+	}
+	else{
+	  saem <- FALSE #SAEM only supports dynrDynamicsFormula for now
+	}
+	
 	if(length(dots) > 0){
 	  #obtaining saem parameters
 	  if('saemp' %in% names(dots)){

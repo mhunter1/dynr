@@ -2491,7 +2491,6 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 
 	
 	# parsing the parameters in ...
-	#browser()
 	if(length(dots) > 0){
 		if('random.names' %in% names(dots))
 			x$random.names <- dots$random.names

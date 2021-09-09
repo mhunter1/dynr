@@ -558,7 +558,6 @@ setMethod("printex", "dynrModel",
 ##' #For a full demo example, see:
 ##' #demo(RSLinearDiscrete , package="dynr")
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
-  
   if(!class(dynamics) %in% c("dynrDynamicsFormula","dynrDynamicsMatrix")){
     stop("Check to see that dynamics argument is of the correct class. Hint: it should be either 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.")
   }
@@ -594,6 +593,10 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     
     #Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
   }
+  else {
+    saem <- FALSE #SAEM only supports dynrDynamicsFormula for now
+  }
+  
   # if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
   # since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
   # 2. whether values.dyn and params.dyn are of the same matrix dimension
@@ -759,17 +762,23 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
   #browser()
-  legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, inputs$dynamics@random.names, inputs$dynamics@theta.names, 'exp')
-  variables <- extractVariablesfromFormula(unlist(dynamics@formula))
-  if(any(variables %in% data$observed.names)){
-    error.variables <- variables[variables %in% data$observed.names == TRUE]
-    stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
-  }
+  if (class(dynamics) == "dynrDynamicsFormula"){
+    legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, 'exp')
+    if(.hasSlot(inputs$dynamics, 'random.names'))
+      legal.variables <-c(legal.variables, inputs$dynamics@random.names)
+    if(.hasSlot(inputs$dynamics, 'theta.names'))
+      legal.variables <-c(legal.variables, inputs$dynamics@theta.names)
+	
+    variables <- extractVariablesfromFormula(unlist(dynamics@formula))
+    if(any(variables %in% data$observed.names)){
+      error.variables <- variables[variables %in% data$observed.names == TRUE]
+      stop(paste0("Observed variables, namely, those declared as ``observed'' in dynr.data are not supposed to appear in the dynamic equations. Check to see if they can or should be linked to some state variables: ", paste(error.variables, collapse=", ")))
+    }
   
-  if(!all(variables %in% legal.variables)){
-
-    error.variables <- variables[variables %in% legal.variables  == FALSE]
-    stop(paste0("In formula, there are variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+    if(!all(variables %in% legal.variables)){
+      error.variables <- variables[variables %in% legal.variables  == FALSE]
+      stop(paste0("In formula, there are variables that are not specified in startvals: ", paste(error.variables, collapse=", ")))
+    }
   }
   
   #browser()
