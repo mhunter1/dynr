@@ -2455,13 +2455,15 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		# }
 	  # }
 	# }
-	jacobian <- autojacobTry(formula)
-    autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
-	if (class(autojcb) == "try-error") {
-		stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
-				 Please provide the analytic jacobian functions.")
-	}else{
-		jacobian=lapply(autojcb,"[[","jacob") 
+	#jacobian <- autojacob(formula)
+	if (missing(jacobian)){
+		autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
+		if (class(autojcb) == "try-error") {
+			stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
+					 Please provide the analytic jacobian functions.")
+		}else{
+			jacobian=lapply(autojcb,"[[","jacob") 
+		}
 	}
   
   
@@ -2537,22 +2539,22 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	
 	
 	#dfdtheta <- autojacobTry(formula_onlystate, diff.variables=theta.names)
-	dfdtheta <- autojacobTry(formula, diff.variables=theta.names)
-	x$dfdtheta <- dfdtheta
+	dfdtheta <- autojacob(formula[[1]], n = length(formula[[1]]), diff.variables=theta.names)
+	x$dfdtheta <- dfdtheta$jacob
 	x$theta.names<-theta.names
 	
-	dfdx <- autojacobTry(formula, diff.variables=state.names)
-	dfdx2 <- autojacobTry(dfdx, diff.variables=state.names)
-	x$dfdx2 <- dfdx2
+	dfdx <- autojacob(formula[[1]], n = length(formula[[1]]), diff.variables=state.names)
+	dfdx2 <- autojacob(dfdx$jacob, n = length(dfdx$jacob),  diff.variables=state.names)
+	x$dfdx2 <- dfdx2$jacob
 	
-	dfdxdtheta <- autojacobTry(dfdx, diff.variables=theta.names)
-	x$dfdxdtheta <- dfdxdtheta
+	dfdxdtheta <- autojacob(dfdx$jacob, n = length(dfdx$jacob), diff.variables=theta.names)
+	x$dfdxdtheta <- dfdxdtheta$jacob
 	
-	dfdthetadx <- autojacobTry(dfdtheta, diff.variables=state.names)
-	x$dfdthetadx <- dfdthetadx
+	dfdthetadx <- autojacob(dfdtheta$jacob, n = length(dfdtheta$jacob), diff.variables=state.names)
+	x$dfdthetadx <- dfdthetadx$jacob
 	
-	dfdtheta2 <- autojacobTry(dfdtheta, diff.variables=theta.names)
-	x$dfdtheta2 <- dfdtheta2
+	dfdtheta2 <- autojacob(dfdtheta$jacob, n = length(dfdtheta$jacob), diff.variables=theta.names)
+	x$dfdtheta2 <- dfdtheta2$jacob
 	x$beta.names <- startval.names
 	
 	
