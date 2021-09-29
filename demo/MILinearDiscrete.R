@@ -48,13 +48,13 @@ meas <- prep.measurement(
   values.load=matrix(c(1,0,
                        0,1),ncol=2,byrow=T), 
   params.load=matrix(rep("fixed",4),ncol=2),
-  state.names=c("wp","hp"),
+  state.names=c("eta_wp","eta_hp"),
   obs.names=c("wp","hp")
 )
 
 # Define elements of the dynamic model
-formula =list(wp ~ a*wp + b*hp + c*ca + d*cn,
-       hp ~ a1*hp + b1*wp +c1*ca + d1*cn)
+formula =list(eta_wp ~ a*eta_wp + b*eta_hp + c*ca + d*cn,
+       eta_hp ~ a1*eta_hp + b1*eta_wp +c1*ca + d1*cn)
 
 dynm  <- prep.formulaDynamics(formula=formula,
                               startval=c(a = .4, b = -.3, b1=-.2, a1=.3, 
