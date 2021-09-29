@@ -126,4 +126,3 @@ testthat::expect_true(all(dim(model@dSigmabdb2) - c(648,8)==0))
 
 
 #------------------------------------------------------------------------------
-{"mode":"full","isActive":false}
