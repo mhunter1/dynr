@@ -761,14 +761,14 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
   #  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
-  #browser()
   if (class(dynamics) == "dynrDynamicsFormula"){
-    legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, 'exp')
+    legal.variables <- c(all.params, inputs$measurement@state.names, data$covariate.names, 'exp', 'abs')
     if(.hasSlot(inputs$dynamics, 'random.names'))
       legal.variables <-c(legal.variables, inputs$dynamics@random.names)
     if(.hasSlot(inputs$dynamics, 'theta.names'))
       legal.variables <-c(legal.variables, inputs$dynamics@theta.names)
 	
+	# this chuck of code judges whether variables in data$observed.names appears in dynamics@formula. If yes, raise an error
     variables <- extractVariablesfromFormula(unlist(dynamics@formula))
     if(any(variables %in% data$observed.names)){
       error.variables <- variables[variables %in% data$observed.names == TRUE]
