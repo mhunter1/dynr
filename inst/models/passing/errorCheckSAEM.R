@@ -120,13 +120,14 @@ meas <- prep.measurement(
     obs.names = c('y1', 'y2', 'y3'),
     state.names=c('x1', 'x2')) 
 
+
 initial <- prep.initial(
     values.inistate=c(0, 0),
-    params.inistate=c("mu_x1", "mu_x2"),
-    values.inicov=matrix(c(.8,.3,
-                           .3,.7),ncol=2,byrow=TRUE), 
-    params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
-                           'sigma_bx1x2','sigma2_bx2'),ncol=2,byrow=TRUE))
+    params.inistate=c("fixed", "fixed"),
+    values.inicov=matrix(c(1,.3,
+                           .3,1),ncol=2,byrow=TRUE), 
+    params.inicov=matrix(c('fixed','fixed',
+                           'fixed','fixed'),ncol=2,byrow=TRUE))
 
 mdcov <- prep.noise(
     values.latent=diag(0, 2),
@@ -174,19 +175,19 @@ fitted_model <- dynr.cook(model, verbose=FALSE)
 # sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5
 
 # compare true parameters to estimated ones
-trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, mu_x1 = 0, mu_x2 = 0, sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5)
-#trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, sigma2_b_zeta = .5)
+#trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, mu_x1 = 0, mu_x2 = 0, sigma2_bx1 = 1, sigma_bx1x2 = .3, sigma2_bx2 = 1, sigma2_b_zeta = .5)
+trueParams <- c(zeta0 = 3, zeta1 = .5, zeta2 = .5, lambda_21 = .7, lambda_31 = 1.2, var_1 = .5, var_2 = .5, var_3 = .5, sigma2_b_zeta = .5)
 
 
-data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31', 'var_1', 'var_2', 'var_3', 'mu_x1', 'mu_x2','sigma_bx1', 'sigma_bx1x2', 'sigma_bx2','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
-#data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', 'var_2', 'var_3','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
+#data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31', 'var_1', 'var_2', 'var_3', 'mu_x1', 'mu_x2','sigma_bx1', 'sigma_bx1x2', 'sigma_bx2','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
+data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', 'var_2', 'var_3','sigma2_b_zeta'), true=trueParams, estim=coef(fitted_model))
 
 
 (CI <- confint(fitted_model, level=0.99))
 
 # Check that all true parameters are within the confidence intervals of the estimated params
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
-withinIntervals
-testthat::expect_true(all(withinIntervals))
+withinIntervals[1:8]
+testthat::expect_true(all(withinIntervals[1:8]))
 
 #------------------------------------------------------------------------------

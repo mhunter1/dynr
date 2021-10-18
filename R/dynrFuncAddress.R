@@ -275,8 +275,8 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
 		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
 		arma_libs <- ""
 	}
-	if (verbose) cat('Setting PKG_CPPFLAGS to', gsl_cflags, '-I"$(RCPP_LIBS)/Rcpp/include" -I"$(RCPP_LIBS)/RcppArmadillo/include" -std=c++11')
-	Sys.setenv(PKG_CPPFLAGS=paste(gsl_cflags, '-I"$(RCPP_LIBS)/Rcpp/include" -I"$(RCPP_LIBS)/RcppArmadillo/include" -std=c++11'))
+	if (verbose) cat('Setting PKG_CPPFLAGS to', gsl_cflags, '-I"$(R_HOME)/library/Rcpp/include" -I"$(R_HOME)/library/RcppArmadillo/include" -std=c++11')
+	Sys.setenv(PKG_CPPFLAGS=paste(gsl_cflags, '-I"$(R_HOME)/library/Rcpp/include" -I"$(R_HOME)/library/RcppArmadillo/include" -std=c++11'))
 	if (verbose) cat("Setting PKG_LIBS to", gsl_libs, arma_libs, "-fopenmp", paste0("-L",Sys.getenv("LIB_ARMADILLO"), "/lib_win64 -lblas -llapack"), "\n")
 	#Sys.setenv(PKG_LIBS=paste(gsl_libs, arma_libs, "-fopenmp"))
 	Sys.setenv(PKG_LIBS = paste(gsl_libs, arma_libs, "-fopenmp", paste0("-L",Sys.getenv("LIB_ARMADILLO"), "/lib_win64 -lblas -llapack")))
