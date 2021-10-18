@@ -10,6 +10,8 @@
 //#include "supplementary_function.h"
 //#include "converted_function.h"
 
+
+
 // Step 3 in the MainUseThins.m
 void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output){
 	//Rprintf("in MainUseThis\n");
@@ -31,8 +33,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//freeIC = 1;
 	timer = time(NULL);
 	
-	//rma_rng::set_seed_random(); 
-	arma_rng::set_seed(seed);
+	//don't use this to avoid warning
+	//arma_rng::set_seed(seed);
+	
 
 	output.avebAccept = 0;
 	isBlock1Only = 0;	

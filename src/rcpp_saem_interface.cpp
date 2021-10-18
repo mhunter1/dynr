@@ -16,7 +16,12 @@ using namespace Rcpp;
 #include "saem_estimation.h"
 
 
-
+// [[Rcpp::export]]
+void set_seed(double seed) {
+    Rcpp::Environment base_env("package:base");
+    Rcpp::Function set_seed_r = base_env["set.seed"];
+    set_seed_r(std::floor(std::fabs(seed)));
+}
 
 
 
@@ -343,7 +348,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
 	//InfDS.trueb.print("InfDS.trueb");
 	//InfDS.setAccept = 0.8;
-	
+	set_seed(double(seed));
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
 
 	return Rcpp::List::create(Rcpp::Named("convFlag") = output.convFlag, 
