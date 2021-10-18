@@ -8,7 +8,7 @@
 library('dynr')
 library('plyr')
 
-setwd("C:/Users/Cynthia/Documents/gits/dynr/")
+#setwd("C:/Users/Cynthia/Documents/gits/dynr/")
 
 nPeople = 200
 nTimes = 300

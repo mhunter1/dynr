@@ -18,6 +18,6 @@ FC = /usr/local/gfortran/bin/gfortran
 FLIBS = -L/usr/local/gfortran/lib/gcc/x86_64-apple-darwin18/8.2.0 -L/usr/local/gfortran/lib -lgfortran -lquadmath -lm
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS) $(SHLIB_OPENMP_CXXFLAGS) -I"$(RCPP_LIBS)/Rcpp/include" -I"$(RCPP_LIBS)/RcppArmadillo/include"
+PKG_CPPFLAGS = $(GSL_CFLAGS) $(SHLIB_OPENMP_CXXFLAGS) -I"$(R_HOME)/library/Rcpp/include" -I"$(R_HOME)/library/RcppArmadillo/include"
 PKG_LIBS = $(GSL_LIBS) $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
