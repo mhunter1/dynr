@@ -86,8 +86,32 @@ testthat::expect_error(
 
 
 #------------------------------------------------------------------------------
+# Check whether NAs are inserted correctly with discrete-time models
+data(Oscillator)
+Oscillator$id[401:800] <- 2
+Oscillator$id[801:1000] <- 3
+Oscillator$y1[c(10,799)] <- NA
+Oscillator <- Oscillator[!is.na(Oscillator$y1),]
+data <- dynr.data(Oscillator, id="id", time="times", observed="y1")
+Oscillator_id1 <- Oscillator[Oscillator$id==1,]
+data_id1 <- dynr.data(Oscillator_id1, id="id", time="times", observed="y1")
 
+dynamics <- prep.matrixDynamics(
+  values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+  params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+  isContinuousTime=FALSE)
 
+testthat::expect_invisible({
+  model <- dynr.model(dynamics=dynamics, measurement=meas,
+             noise=ecov, initial=initial, data=data)
+}
+)
+
+testthat::expect_true(
+  {model <- dynr.model(dynamics=dynamics, measurement=meas,
+                      noise=ecov, initial=initial, data=data_id1);
+  all(diff(model$data$time)==1)}
+)
 
 #------------------------------------------------------------------------------
 
