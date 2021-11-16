@@ -136,7 +136,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
 ##' @return No return value.
 ##' 
 ##' @examples
-##' dynr.config()
+##' \dontrun{dynr.config()}
 dynr.config <- function(verbose=FALSE){
 	genmsg <- paste0(
 		"\nPlease read the 'Installation for Users' vignette at\n",
