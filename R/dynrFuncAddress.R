@@ -155,7 +155,8 @@ dynr.config <- function(verbose=FALSE){
 	if ( .Platform$OS.type == "windows" ) {
 		path <- Sys.getenv("PATH")
 		path <- gsub("\\\\", "/", path)
-		if(grep(R.home(component="bin"), path) != 1){
+		findR <- grep(R.home(component="bin"), path)
+		if(length(findR) < 1 || findR != 1){
 			stop(paste0(noRmsg, genmsg))
 		}
 		if(grep('rtools', path, ignore.case=TRUE) != 1){
