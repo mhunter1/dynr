@@ -144,34 +144,49 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   
   # Array of inverse covariance matrices (i.e. information matrices) for the observed variables
   # F^-1  in Chow, Hamaker, and Allaire
-  F_inv <- array(apply(dynrCook$residual_cov, 3, solve),
+  F_inv <- array(apply(dynrCook$residual_cov, 3, 
+                       # only solve the observed part of the matrix in case of partial missingness
+                       function(x){
+                         if(any(is.na(x))&any(!is.na(x))){
+                           x[!is.na(x)] <- solve(matrix(x[!is.na(x)],ncol=sqrt(sum(!is.na(x)))))
+                           return(x)
+                         }else(return(solve(x)))
+                       }),
                  c(dimObs, dimObs, dimTime))
+  
+  # F_inv <- array(apply(dynrCook$residual_cov, 3, solve),
+  #                c(dimObs, dimObs, dimTime))
   
   # Compute Kalman gain for every person/time combination
   P_pred <- dynrCook$error_cov_predicted
   t_Lambda <- t(Lambda)
   v <- dynrCook$innov_vec
   K <- array(NA, c(dimLat, dimObs, dimTime))
-  chiObs <- numeric(dimTime)
+  chiObs <- rep(NA,dimTime)
   
   for(i in 1:dimTime){
-    F_inv_i <- matrix(F_inv[,,i], dimObs, dimObs)
-    K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv_i # [lat, obs]
-    v_i <- v[,i] # [obs, 1]
-    chiObs[i] <- t(v_i) %*% F_inv_i %*% v_i
+    idx <- which(!is.na(v[,i]))
+    if(length(idx)>0){
+      K[,,i][,idx] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+      chiObs[i] <- t(v[idx,i,drop=F]) %*% F_inv[idx,idx,i] %*% v[idx,i,drop=F]
+    }
+    # F_inv_i <- matrix(F_inv[,,i], dimObs, dimObs)
+    # K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv[,,i] # [lat, obs]
+    # v_i <- v[,i] # [obs, 1]
+    # chiObs[i] <- t(v[,i]) %*% F_inv[,,i] %*% v[,i]
   }
   # N.B. the first element in P_pred is the initial, predicted latent covariance matrix, i.e. from dynrInitial
   #  The second element is the predicted cov for time=2 given the updated cov from time=1.
   
   # For each person, loop backward from their final time to their first time
   # computing r and N
-  r <- matrix(NA, dimLat, dimTime)
-  N <- array(NA, c(dimLat, dimLat, dimTime))
+  r <- matrix(0, dimLat, dimTime)
+  N <- array(0, c(dimLat, dimLat, dimTime))
   # save Ninv to calculate W_t (for delta)
   Ninv <- array(NA, c(dimLat, dimLat, dimTime))
   u <- matrix(NA, dimObs, dimTime)
   tstart <- dynrModel$data$tstart
-  chiLat <- numeric(dimTime)
+  chiLat <- rep(NA,dimTime)
   time <- dynrModel$data$time
   
   if ( inherits(dynrModel$dynamics, 'dynrDynamicsMatrix') ) {
@@ -182,25 +197,28 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       endTime <- tstart[j+1] # Use the 0-indexed beginning position of the next person as the 1-indexed end of the current person
       # set endTime r and N to 0
       #  --> set r and N 0 at first when allocate
-      r[,endTime] <- 0
-      N[,,endTime] <- 0
+      # r[,endTime] <- 0
+      # N[,,endTime] <- 0
       for(i in endTime:(beginTime+1)){
         ri <- matrix(r[,i], dimLat, 1)
         Ni <- matrix(N[,,i], dimLat, dimLat)
         Ki <- matrix(K[,,i], dimLat, dimObs)
-        Li <- B - Ki %*% Lambda
         obsInfI <- matrix(F_inv[,,i], dimObs, dimObs)
         vi <- matrix(v[,i], nrow=dimObs, ncol=1)
-        ui <- obsInfI %*% vi - t(Ki) %*% ri
-        u[, i] <- ui
-        rnew <- t_Lambda %*% ui + t(B) %*% ri
-        r[,i-1] <- rnew
-        Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
-        N[,,i-1] <- Nnew
-        Ninv_i <- try(solve(Nnew), silent=TRUE)
-        if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
-        Ninv[,,i-1] <- Ninv_i
-        chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+        idx <- which(!is.na(vi))
+        if(length(idx)>0){
+          Li <- B - Ki[,idx,drop=F] %*% Lambda[idx,,drop=F]
+          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=F] - t(Ki[,idx,drop=F]) %*% ri
+          u[idx, i] <- ui
+          rnew <- t_Lambda[,idx,drop=F] %*% ui + t(B) %*% ri
+          r[,i-1] <- rnew
+          Nnew <- t_Lambda[,idx,drop=F] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=F] + t(Li) %*% Ni %*% Li
+          N[,,i-1] <- Nnew
+          Ninv_i <- try(solve(Nnew), silent=TRUE)
+          if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
+          Ninv[,,i-1] <- Ninv_i
+          chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+        }
       }
       ri <- matrix(r[,beginTime], dimLat, 1)
       Ki <- matrix(K[,,beginTime], dimLat, dimObs)
@@ -270,8 +288,8 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       
       # set endTime r and N to 0
       #  --> set r and N 0 at first when allocate
-      r[,endTime] <- 0
-      N[,,endTime] <- 0
+      # r[,endTime] <- 0
+      # N[,,endTime] <- 0
       
       for(i in endTime:(beginTime+1)){
         ri <- matrix(r[,i], dimLat, 1)
@@ -281,16 +299,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         Li <- B - Ki %*% Lambda
         obsInfI <- matrix(F_inv[,,i], dimObs, dimObs)
         vi <- matrix(v[,i], nrow=dimObs, ncol=1)
-        ui <- obsInfI %*% vi - t(Ki) %*% ri
-        u[, i] <- ui
-        rnew <- t_Lambda %*% ui + t(B) %*% ri
-        r[,i-1] <- rnew
-        Nnew <- t_Lambda %*% obsInfI %*% Lambda + t(Li) %*% Ni %*% Li
-        N[,,i-1] <- Nnew
-        Ninv_i <- try(solve(Nnew), silent=TRUE)
-        if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
-        Ninv[,,i-1] <- Ninv_i
-        chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+        idx <- which(!is.na(vi))
+        if(length(idx)>0){
+          Li <- B - Ki[,idx,drop=F] %*% Lambda[idx,,drop=F]
+          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=F] - t(Ki[,idx,drop=F]) %*% ri
+          u[idx, i] <- ui
+          rnew <- t_Lambda[,idx,drop=F] %*% ui + t(B) %*% ri
+          r[,i-1] <- rnew
+          Nnew <- t_Lambda[,idx,drop=F] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=F] + t(Li) %*% Ni %*% Li
+          N[,,i-1] <- Nnew
+          Ninv_i <- try(solve(Nnew), silent=TRUE)
+          if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
+          Ninv[,,i-1] <- Ninv_i
+          chiLat[i-1] <- t(rnew) %*% Ninv_i %*% rnew
+        }
       }
       ri <- matrix(r[,beginTime], dimLat, 1)
       Ki <- matrix(K[,,beginTime], dimLat, dimObs)
@@ -328,17 +350,20 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       endTime <- tstart[i+1]
       
       for (j in beginTime:endTime) {
-        Q_j <- W_t - matrix(K[,,j], dimLat, dimObs) %*% X_t
-        Q[,,j] <- Q_j##
-        S_j <- t(X_t) %*% matrix(F_inv[,,j], dimObs, dimObs) %*% X_t +
-          t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
-        S[,,j] <- S_j##
-        s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
-        s[,j] <- s_j##
-        S_j_inv <- try(solve(S_j), silent=TRUE)
-        if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
-        delta[,j] <- S_j_inv %*% s_j
-        t_value[,j] <- s_j / sqrt(diag(S_j))
+        idx <- which(!is.na(v[,j]))
+        if(length(idx)>0){
+          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=F]
+          Q[,,j] <- Q_j##
+          S_j <- t(X_t[idx,,drop=F]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=F] +
+            t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
+          S[,,j] <- S_j##
+          s_j <- t(X_t[idx,,drop=F]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
+          s[,j] <- s_j##
+          S_j_inv <- try(solve(S_j), silent=TRUE)
+          if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
+          delta[,j] <- S_j_inv %*% s_j
+          t_value[,j] <- s_j / sqrt(diag(S_j))
+        }
       }
       # 0/0 at endTime
       # t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
@@ -350,14 +375,17 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       endTime <- tstart[i+1]
       
       for (j in beginTime:endTime) {
-        Q_j <- W_t - matrix(K[,,j], dimLat, dimObs) %*% X_t
-        S_j <- t(X_t) %*% matrix(F_inv[,,j], dimObs, dimObs) %*% X_t +
-          t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
-        s_j <- t(X_t) %*% u[,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
-        S_j_inv <- try(solve(S_j), silent=TRUE)
-        if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
-        delta[,j] <- S_j_inv %*% s_j
-        t_value[,j] <- s_j / sqrt(diag(S_j))
+        idx <- which(!is.na(v[,j]))
+        if(length(idx)>0){
+          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=F]
+          S_j <- t(X_t[idx,,drop=F]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=F] +
+            t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
+          s_j <- t(X_t[idx,,drop=F]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
+          S_j_inv <- try(solve(S_j), silent=TRUE)
+          if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
+          delta[,j] <- S_j_inv %*% s_j
+          t_value[,j] <- s_j / sqrt(diag(S_j))
+        }
       }
       # 0/0 at endTime
       # t_value[(dimObs+1):(dimObs+dimLat), endTime] <- 0
@@ -367,10 +395,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   ############ chi-square test ############################
   # de Jong's method.
   chiJnt <- chiLat + chiObs
-  chiJnt_pval <- pchisq(chiJnt, df=dimLat+dimObs, lower.tail=FALSE)
+  chiJnt_pval <- pchisq(chiJnt, df=dimLat+apply(v,2,function(x){sum(!is.na(x))}), lower.tail=FALSE)
   # p-values of chi-sqaure
   chiLat_pval <- pchisq(chiLat, df=dimLat, lower.tail=FALSE)
-  chiObs_pval <- pchisq(chiObs, df=dimObs, lower.tail=FALSE)
+  chiObs_pval <- pchisq(chiObs, df=apply(v,2,function(x){sum(!is.na(x))}), lower.tail=FALSE)
   
   # locate shock points, TRUE for significance
   chiJnt_shk <- chiJnt_pval < (1 - conf.level)
@@ -380,15 +408,15 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   ################### t-test ###############################
   alternative <- match.arg(alternative)
   t_O_calcp <- if (alternative=="two.sided") {
-    function(subj) {
+    function(subj,dimObs=dimObs) {
       2 * pt( -abs(subj), df=(ncol(subj)-dimObs) )
     }
   }	else if (alternative=="greater") {
-    function(subj) {
+    function(subj,dimObs=dimObs) {
       pt( subj, df=(ncol(subj)-dimObs), lower.tail=FALSE )
     }
   }	else {
-    function(subj) {
+    function(subj,dimObs=dimObs) {
       pt( subj, df=(ncol(subj)-dimObs), lower.tail=TRUE )
     }
   }
@@ -419,7 +447,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   for(i in 1:nID){
     begT <- tstart[i] + 1
     endT <- tstart[i+1]
-    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT, drop=FALSE])
+    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT, drop=FALSE],dimObs=apply(v[,begT:endT],2,function(x){sum(!is.na(x))}))
     t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT, drop=FALSE])
   }
   
