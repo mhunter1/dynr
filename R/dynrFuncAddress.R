@@ -136,7 +136,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
 ##' @return No return value.
 ##' 
 ##' @examples
-##' dynr.config()
+##' \dontrun{dynr.config()}
 dynr.config <- function(verbose=FALSE){
 	genmsg <- paste0(
 		"\nPlease read the 'Installation for Users' vignette at\n",
@@ -155,7 +155,8 @@ dynr.config <- function(verbose=FALSE){
 	if ( .Platform$OS.type == "windows" ) {
 		path <- Sys.getenv("PATH")
 		path <- gsub("\\\\", "/", path)
-		if(grep(R.home(component="bin"), path) != 1){
+		findR <- grep(R.home(component="bin"), path)
+		if(length(findR) < 1 || findR != 1){
 			stop(paste0(noRmsg, genmsg))
 		}
 		if(grep('rtools', path, ignore.case=TRUE) != 1){
