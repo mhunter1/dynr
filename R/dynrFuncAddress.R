@@ -297,7 +297,11 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
   #if ( file.exists(libLFile) ) {file.remove( libLFile )}
   setwd(dirname(libCFile))
   errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
-  cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " ", Sys.getenv("LIB_ARMADILLO"),"/lapack_win64_MT.dll ",Sys.getenv("LIB_ARMADILLO"),"/blas_win64_MT.dll 2> ", errfile, sep="")
+  if ( .Platform$OS.type == "windows" ) {
+    cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " ", Sys.getenv("LIB_ARMADILLO"),"/lapack_win64_MT.dll ",Sys.getenv("LIB_ARMADILLO"),"/blas_win64_MT.dll 2> ", errfile, sep="")
+  } else {
+    cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " 2> ", errfile, sep="")
+  }  
   if (verbose) cat("Compilation argument:\n", cmd, "\n")
   compiled <- system(cmd, intern=!verbose)
   errmsg <- readLines(errfile)
