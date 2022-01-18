@@ -45,6 +45,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 	// ------- 
 	yesMean = 0;
+	STARTGIB = 0;
 	
 	//InfDS.par = join_vert(x1, InfDS.par);
 	//InfDS.par.print("par");
