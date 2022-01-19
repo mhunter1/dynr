@@ -749,7 +749,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     time.check = sapply(time.split, function(x) {
       difference = diff(x)
       return(c(spacing = sum(difference%%min(difference)) > 1e-6, #can be a very small positive number
-               full = sum(diff(difference)) > 1e-6))
+               full = sum(abs(diff(difference))) > 1e-6))
     })
     if(any(time.check["spacing",])){
       stop("Please check the data. The time points are irregularly spaced even with missingness inserted.")
@@ -770,7 +770,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
         
         data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
           new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
-          out = merge(new, df, all.x = TRUE)
+          out = merge(new, df, by="time", all.x = TRUE)
         })
         
         data <- dynr.data(data.new.dataframe, observed = data$observed.names)
