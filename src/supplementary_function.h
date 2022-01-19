@@ -199,10 +199,10 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
 					if (indexY(0, j-1) == 0)
 						indexY.shed_col(j-1);
 				}
-				//mexPrintf("enter vdpmeas %d %d %d\n", Xtild.n_rows, Xtild.n_cols, Xtild.n_slices);
+				
 				//Xtild.slice(tt-1).col(i-1).print("Xtild.slice(tt-1).col(i-1)");
-				VDPMeas(Xtild.slice(tt-1).col(i-1), Ny, Nx, NxState, Lambda, mu, &yPredtmp, &Jytmp);
-				//printf("exit vdpmeas\n");
+				meas(Xtild.slice(tt-1).col(i-1), Ny, Nx, NxState, Lambda, mu, &yPredtmp, &Jytmp);
+				
 				
 				arma::mat inovtmp, result;
 				//inovtmp = rowProjection(Y.slice(tt-1).row(i-1).t(),indexY)- rowProjection(yPredtmp,indexY);
@@ -554,10 +554,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	return InfDS;
 }
 
-void VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy){
+void meas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy){
   
-  // return arma::fmat& yPred, arma::fmat& Jy
-  //arma::mat yPred, Jy;
   //mexPrintf("\n\ncheck point VD\n\n");
   /*  main function starts from here */ 
   // Line 1: Lambda = zeros(Ny, Nx);
@@ -578,8 +576,10 @@ void VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, a
   //(*yPred).print("y_Pred=");
   
   // Line 4: Jy = reshape(kron(ones(1,size(x,2)), Lambda),Ny, Nx, size(x,2));
-  *Jy = reshape(kron(temp, Lambda), Ny, Nx, x.n_cols);
-  //(*Jy).print("Jy = \n");
+  //*Jy = arma::reshape(kron(temp, Lambda), Ny, Nx, x.n_cols);]
+  (*Jy) = kron(temp, Lambda);
+
+  
   
   /*  main function ends from here */ 
   return;
@@ -591,7 +591,8 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 	
 	arma::mat SIndex, SIndex2, LIndex, dlikdBetaAll, dlikdBetaAll2, dlikdmuAll, dlikdmuAll2, dlikdLambdaAll, dlikdLambdaAll2, dlikdMudLambda, dlikdLambdMu, dlikdMudBeta, dlikdBetadMu, dlikdLambdadBeta, dlikdBetadLambda, dlikdEpsilonAll, dlikdEpsilonAll2, dlikdbAll, dlikdbAll2, ivSigmab, Lambda, Zt, dXtildthetaf, dXtildthetaf2, vvv, aa, b, ivSigmae2, dlik, dlik2, Z, SIndex3, a;
 	arma::cube X(0,0,0);
-	int mulp2, mulp, isPar, t, T, curpos2, curpos1, startBeta, endBeta, startMu, endMu, startLamb, endLamb;
+	int mulp2, mulp, isPar, t, T, curpos2, curpos1;
+	int startBeta = 0, endBeta = 0, startMu = 0, endMu = 0, startLamb = 0, endLamb = 0;
 	
 	
 	
@@ -907,6 +908,9 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 		endBeta = curpos2;
 	}
 	//Rprintf("beta\n");
+	
+	
+	
 	
 	if (InfDS.Nmu > 0){
 		//dlikdmuAll.print("dlikdmuAll");
@@ -1275,7 +1279,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	arma::vec indexKept, cindexKept, filteredAvgScalingb, idx, tp, tp1, propden_old, tpNew;
 	arma::ucolvec tpidx;
 	arma::cube newb1, xtild;;
-	double low1, high1, by1, scaleb;
+	double low1, high1, scaleb;
 	int Nb, q, Nkept, Ntmp, T, t;
 	bool r;
 	struct C_INFDS InfDS1;
@@ -1301,12 +1305,12 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	if (InfDS.bAdaptParams.n_elem == 0){
 		low1 = 1;
 		high1 = 2;
-		by1 = .1;
+		//by1 = .1;
 	}
 	else{
 		low1 = InfDS.bAdaptParams(0);
 		high1 = InfDS.bAdaptParams(1);
-		by1 = InfDS.bAdaptParams(2);
+		//by1 = InfDS.bAdaptParams(2);
 	}
 	
 
@@ -1675,11 +1679,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		InfDS.N = 1;
 	}
 	
-	/*Debug Printing*/
-	//InfDS.b.submat(0,0,2,2).print("InfDS.b");
-	//mexPrintf("low1=%lf high1=%lf by1=%lf\nisBlock1Only=%d InfDS.scaleb=%lf\nbAccept=%lf\n", low1, high1, by1,isBlock1Only, InfDS.scaleb,bAccept);
-	
-	//printf("execution point 10 end\n");
 
 	return;
 }

@@ -45,7 +45,7 @@ arma::mat modProjection(arma::mat data, int divisor, int remainder);
 int maxElement(arma::imat integer_matrix);
 arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS);
 C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS);
-void VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);
+void meas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);
 //arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::imat allT, const arma::cube Xtild, arma::cube Y);
 
 arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
