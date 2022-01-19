@@ -1071,7 +1071,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
       cat(glom, file=obj.dynrModel@outfile)
   }
   else if(saem==TRUE){
-    glom <- paste(cparts)
+    glom <- paste(cparts, "\n\n")
     cat(glom, file=obj.dynrModel@outfile)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   
