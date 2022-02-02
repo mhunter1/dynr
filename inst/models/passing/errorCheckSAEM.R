@@ -70,18 +70,16 @@ dynm_w <- prep.formulaDynamics(formula=formula,
     random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
     random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 
-model_w <- dynr.model(dynamics=dynm_w, measurement=meas,
-                    noise=mdcov, initial=initial, data=data)
 
-
-testthat::expect_error(fitted_model <- dynr.cook(model_w, verbose=FALSE), regexp="There is no random effect variables to be estimated. Initial value estimates are done.", fixed=TRUE)
+testthat::expect_error(model_w <- dynr.model(dynamics=dynm_w, measurement=meas,
+                                             noise=mdcov, initial=initial, data=data), regexp="There is no random effect variables to be estimated. Initial value estimates are done.", fixed=TRUE)
 
 #------------------------------------------------------------------------------
 
 # Examination of dynr.model: Check that number of assigned values from coef<- is the same as number available
 testthat::expect_error(
     coef(model) <- rep(.1, 5),
-    regexp="Number of model coeficients (9) does not match number assigned (5).", fixed=TRUE)
+    regexp="Number of model coeficients (10) does not match number assigned (5).", fixed=TRUE)
 
 #------------------------------------------------------------------------------
 #fix seed
