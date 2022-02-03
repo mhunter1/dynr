@@ -315,7 +315,7 @@ static void nnls_(double *a, int *mda, int *m, int *
     double up;
     int iz1, iz2, npp1, iter;
     double wmax, alpha, asave;
-    int itmax, izmax, nsetp;
+    int itmax, izmax = 0, nsetp;
     double unorm;
 
 /*     C.L.LAWSON AND R.J.HANSON, JET PROPULSION LABORATORY: */
@@ -859,7 +859,7 @@ static void hfti_(double *a, int *mda, int *m, int *
     a_dim1 = *mda;
     a_offset = 1 + a_dim1;
     a -= a_offset;
-    --rnorm;
+    
     b_dim1 = *mdb;
     b_offset = 1 + b_dim1;
     b -= b_offset;
@@ -953,10 +953,10 @@ L110:
     kp1 = k + 1;
 /*   NORM OF RESIDUALS */
     i__2 = *nb;
-    for (jb = 1; jb <= i__2; ++jb) {
+    for (jb = 0; jb < i__2; ++jb) {
 /* L130: */
 	i__1 = *m - k;
-	rnorm[jb] = dnrm2___(&i__1, &b[kp1 + jb * b_dim1], 1);
+	rnorm[jb] = dnrm2___(&i__1, &b[kp1 + (jb+1) * b_dim1], 1);
     }
     if (k > 0) {
 	goto L160;
@@ -1145,7 +1145,7 @@ static void lsei_(double *c__, double *d__, double *e,
     }
     *mode = 1;
     w[mc1] = 0.0;
-    i__2 = *mg; // BUGFIX for *mc == *n: changed from *mg - *mc, SGJ 2010
+    i__2 = *mg; /* BUGFIX for *mc == *n: changed from *mg - *mc, SGJ 2010 */
     dcopy___(&i__2, &w[mc1], 0, &w[mc1], 1);
     if (*mc == *n) {
 	goto L50;
@@ -1775,7 +1775,7 @@ typedef struct {
     double alpha;
     int iexact;
     int incons, ireset, itermx;
-    double *x0;   /* point at start of major iteration */
+    double *x0;
 } slsqpb_state;
 
 #define SS(var) state->var = var
@@ -1815,7 +1815,6 @@ static void slsqpb_(int *m, int *meq, int *la, int *
     const double hun = 100.;
     const double ten = 10.;
     const double two = 2.;
-    const int maxLineSearchIterations = 20;
 
     /* System generated locals */
     int a_dim1, a_offset, i__1, i__2;
@@ -1826,14 +1825,12 @@ static void slsqpb_(int *m, int *meq, int *la, int *
 
     /* saved state from one call to the next;
        SGJ 2010: save/restore via state parameter, to make re-entrant. */
-    double t, f0, h2, h4;
-    double h1;     /* improvement compared to major iter */
-    double h3;     /* expected improvement */
+    double t, f0, h1, h2, h3, h4;
     int n1, n2, n3;
     double t0, gs;
     double tol;
-    int line;     /* count of minor iterations */
-    double alpha; /* line search step scalar */
+    int line;
+    double alpha;
     int iexact;
     int incons, ireset, itermx;
     RESTORE_STATE;
@@ -1866,13 +1863,7 @@ static void slsqpb_(int *m, int *meq, int *la, int *
 
     /* Function Body */
     if (*mode == -1) {
-	    i__1 = *n;
-	    for (i__ = 1; i__ <= i__1; ++i__) {
-		    /* We may have jumped back to an earlier point in the line
-		       search (not the most recent point) */
-		    s[i__] = x[i__] - x0[i__];
-	    }
-	    goto L260;
+	goto L260;
     } else if (*mode == 0) {
 	goto L100;
     } else {
@@ -2045,14 +2036,16 @@ L190:
 	 else if (x[i__] > xu[i__]) x[i__] = xu[i__];
     }
 
-    *mode = 1;
+    /* SGJ 2010: optimizing for the common case where the inexact line
+       search succeeds in one step, use special mode = -2 here to
+       eliminate a a subsequent unnecessary mode = -1 call, at the 
+       expense of extra gradient evaluations when more than one inexact
+       line-search step is required */
+    *mode = line == 1 ? -2 : 1;
     goto L330;
 L200:
-    if (line > maxLineSearchIterations) {
-	    goto L240;
-    }
     if (nlopt_isfinite(h1)) {
-	    if (h1 <= h3 / ten) {
+	    if (h1 <= h3 / ten || line > 10) {
 		    goto L240;
 	    }
 	    /* Computing MAX */
@@ -2091,12 +2084,7 @@ L220:
 	}
 /* Computing MAX */
 	d__1 = -c__[j];
-	if (nlopt_isfinite(d__1)) {
-		t += mu[j] * MAX2(d__1,h1);
-	} else {
-		t = d__1;
-		break;
-	}
+	t += mu[j] * MAX2(d__1,h1);
 /* L230: */
     }
     h1 = t - t0;
@@ -2138,6 +2126,7 @@ L255:
 /*   CALL JACOBIAN AT CURRENT X */
 /*   UPDATE CHOLESKY-FACTORS OF HESSIAN MATRIX BY MODIFIED BFGS FORMULA */
 L260:
+    i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	u[i__] = g[i__] - ddot_sl__(m, &a[i__ * a_dim1 + 1], 1, &r__[1], 1) - v[i__];
 /* L270: */
@@ -2446,50 +2435,18 @@ static void length_work(int *LEN_W, int *LEN_JW, int M, int MEQ, int N)
      *LEN_JW = MINEQ;
 }
 
-struct estimate {
-	int n;     /* const, should be optimized out */
-	int feasible;
-	double infeasibility;
-	double *par;
-	double fval;
-};
-
-static void estimate_init(struct estimate *est, int n, double *par, double *x)
-{
-	est->n = n;
-	est->feasible = 0;
-	est->infeasibility = HUGE_VAL;
-	est->par = par;
-	memcpy(par, x, sizeof(double) * n);
-	est->fval = HUGE_VAL;
-}
-
-static void estimate_return(struct estimate *est, double *minf, double *x)
-{
-	*minf = est->fval;
-	memcpy(x, est->par, sizeof(double)*est->n);
-}
-
-static void estimate_copy(struct estimate *to, struct estimate *from)
-{
-	to->feasible = from->feasible;
-	to->infeasibility = from->infeasibility;
-	memcpy(to->par, from->par, sizeof(double)*to->n);
-	to->fval = from->fval;
-}
-
 nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 			 unsigned m, nlopt_constraint *fc,
 			 unsigned p, nlopt_constraint *h,
 			 const double *lb, const double *ub,
-			 double *theSpot, double *minf,
+			 double *x, double *minf,
 			 nlopt_stopping *stop)
 {
      slsqpb_state state = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL};
      unsigned mtot = nlopt_count_constraints(m, fc);
      unsigned ptot = nlopt_count_constraints(p, h);
-     int constrained = (m+p) > 0;
-     double *work, *cgrad, *c, *grad, *w, *cgradtmp;
+     double *work, *cgrad, *c, *grad, *w, 
+	  fcur, *xcur, fprev, *xprev, *cgradtmp;
      int mpi = (int) (mtot + ptot), pi = (int) ptot,  ni = (int) n, mpi1 = mpi > 0 ? mpi : 1;
      int len_w, len_jw, *jw;
      int mode = 0, prev_mode = 0;
@@ -2497,10 +2454,10 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
      int iter = 0; /* tell sqsqp to ignore this check, since we check evaluation counts ourselves */
      unsigned i, ii;
      nlopt_result ret = NLOPT_SUCCESS;
+     int feasible, feasible_cur;
+     double infeasibility = HUGE_VAL, infeasibility_cur = HUGE_VAL;
      unsigned max_cdim;
      int want_grad = 1;
-     int makingProgress = 0;
-     struct estimate cur, minor, major;
      
      max_cdim = MAX2(nlopt_max_constraint_dim(m, fc),
 		    nlopt_max_constraint_dim(p, h));
@@ -2509,69 +2466,42 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 #define U(n) ((unsigned) (n))
      work = (double *) malloc(sizeof(double) * (U(mpi1) * (n + 1) 
 						+ U(mpi) 
-						+ n+1 + n + n + n + max_cdim*n
+						+ n+1 + n + n + max_cdim*n
 						+ U(len_w))
 			      + sizeof(int) * U(len_jw));
      if (!work) return NLOPT_OUT_OF_MEMORY;
      cgrad = work;
      c = cgrad + U(mpi1) * (n + 1);
      grad = c + mpi;
-     estimate_init(&cur, n, grad + n+1, theSpot);
-     estimate_init(&minor, n, cur.par + n, theSpot);
-     estimate_init(&major, n, minor.par + n, theSpot);
-     cgradtmp = major.par + n;
+     xcur = grad + n+1;
+     xprev = xcur + n;
+     cgradtmp = xprev + n;
      w = cgradtmp + max_cdim*n;
      jw = (int *) (w + len_w);
      
+     memcpy(xcur, x, sizeof(double) * n);
+     memcpy(xprev, x, sizeof(double) * n);
+     fprev = fcur = *minf = HUGE_VAL;
+     feasible = feasible_cur = 0;
+
      goto eval_f_and_grad; /* eval before calling slsqp the first time */
 
      do {
 	  slsqp(&mpi, &pi, &mpi1, &ni,
-		cur.par, lb, ub, &cur.fval,
+		xcur, lb, ub, &fcur,
 		c, grad, cgrad,
 		&acc, &iter, &mode,
 		w, &len_w, jw, &len_jw,
 		&state);
 
-	  /* note: mode == -1 corresponds to the completion of a line search,
-	     and is the only time we should check convergence (as in original slsqp code).
-	     We also check if slsqp failed to determine a search direction.
-	  */
-	  if ((mode == -1 && !nlopt_isinf(minor.fval)) || !nlopt_isfinite(cur.par[0])) {
-		  estimate_copy(&cur, &minor);
-		  //MYPRINT("best minor %f %f feasible %d\n",
-		  //minor.fval, minor.infeasibility, minor.feasible);
-
-		  if (!constrained || (constrained && minor.feasible)) {
-			  if (!nlopt_isinf(major.fval)) {
-				  //MYPRINT("check major %f %f\n", minor.fval, minor.infeasibility);
-				  if (nlopt_stop_ftol(stop, minor.fval, major.fval))
-					  ret = NLOPT_FTOL_REACHED;
-				  else if (nlopt_stop_x(stop, minor.par, major.par))
-					  ret = NLOPT_XTOL_REACHED;
-			  }
-			  estimate_copy(&major, &minor);
-			  if (ret != NLOPT_SUCCESS) goto done;
-		  }
-	  }
-
-	  /* A constrained problem with a small enough feasibility
-	     tolerance will never be feasible. We need to prevent such
-	     problems from looping forever. */
-	  if (mode == -1 && constrained) {
-		  if (!makingProgress) {
-			  ret = NLOPT_ROUNDOFF_LIMITED;
-			  goto done;
-		  }
-		  makingProgress = 0;
-	  }
-
 	  switch (mode) {
 	  case -1:  /* objective & gradient evaluation */
 	      if (prev_mode == -2 && !want_grad) break; /* just evaluated this point */
+	      /* fall through */
 	  case -2:
 	      eval_f_and_grad:
 	      want_grad = 1;
+	      /* fall through */
 	  case 1:{ /* don't need grad unless we don't have it yet */
 	      double *newgrad = 0;
 	      double *newcgrad = 0;
@@ -2579,24 +2509,24 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 		  newgrad = grad;
 		  newcgrad = cgradtmp;
 	      }
-	      cur.feasible = 1; cur.infeasibility = 0;
-	      cur.fval = f(n, cur.par, newgrad, f_data);
-	      stop->nevals++;
+	      feasible_cur = 1; infeasibility_cur = 0;
+	      fcur = f(n, xcur, newgrad, f_data);
+	      ++ *(stop->nevals_p);
 	      if (nlopt_stop_forced(stop)) {
-		  cur.fval = HUGE_VAL; ret = NLOPT_FORCED_STOP; goto done; }
-	      if (nlopt_isfinite(cur.fval)) {
+		  fcur = HUGE_VAL; ret = NLOPT_FORCED_STOP; goto done; }
+	      if (nlopt_isfinite(fcur)) {
 		  want_grad = 0;
 		  ii = 0;
 		  for (i = 0; i < p; ++i) {
 		      unsigned j, k;
-		      nlopt_eval_constraint(c+ii, newcgrad, h+i, n, cur.par);
+		      nlopt_eval_constraint(c+ii, newcgrad, h+i, n, xcur);
 		      if (nlopt_stop_forced(stop)) {
 			  ret = NLOPT_FORCED_STOP; goto done; }
 		      for (k = 0; k < h[i].m; ++k, ++ii) {
-			  cur.infeasibility =
-			      MAX2(cur.infeasibility, fabs(c[ii]));
-			  cur.feasible =
-			      cur.feasible && fabs(c[ii]) <= h[i].tol[k];
+			  infeasibility_cur =
+			      MAX2(infeasibility_cur, fabs(c[ii]));
+			  feasible_cur =
+			      feasible_cur && fabs(c[ii]) <= h[i].tol[k];
 			  if (newcgrad) {
 			      for (j = 0; j < n; ++ j)
 				  cgrad[j*U(mpi1) + ii] = cgradtmp[k*n + j];
@@ -2605,19 +2535,14 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 		  }
 		  for (i = 0; i < m; ++i) {
 		      unsigned j, k;
-		      nlopt_eval_constraint(c+ii, newcgrad, fc+i, n, cur.par);
+		      nlopt_eval_constraint(c+ii, newcgrad, fc+i, n, xcur);
 		      if (nlopt_stop_forced(stop)) {
 			  ret = NLOPT_FORCED_STOP; goto done; }
 		      for (k = 0; k < fc[i].m; ++k, ++ii) {
-			  if (!nlopt_isfinite(c[ii])) {
-				  cur.feasible = 0;
-				  cur.infeasibility = HUGE_VAL;
-				  break;
-			  }
-			  cur.infeasibility =
-			      MAX2(cur.infeasibility, c[ii]);
-			  cur.feasible =
-			      cur.feasible && c[ii] <= fc[i].tol[k];
+			  infeasibility_cur =
+			      MAX2(infeasibility_cur, c[ii]);
+			  feasible_cur =
+			      feasible_cur && c[ii] <= fc[i].tol[k];
 			  if (newcgrad) {
 			      for (j = 0; j < n; ++ j)
 				  cgrad[j*U(mpi1) + ii] = -cgradtmp[k*n + j];
@@ -2630,19 +2555,19 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 	      case 0: /* required accuracy for solution obtained */
 		  goto done;
 	      case 8: /* positive directional derivative for linesearch */
-		  /* relaxed convergence check for a cur.feasible point,
+		  /* relaxed convergence check for a feasible_cur point,
 		     as in the SLSQP code (except xtol as well as ftol) */
 		  ret = NLOPT_ROUNDOFF_LIMITED; /* usually why deriv>0 */
-		  if (cur.feasible) {
+		  if (feasible_cur) {
 		      double save_ftol_rel = stop->ftol_rel;
 		      double save_xtol_rel = stop->xtol_rel;
 		      double save_ftol_abs = stop->ftol_abs;
 		      stop->ftol_rel *= 10;
 		      stop->ftol_abs *= 10;
 		      stop->xtol_rel *= 10;
-		      if (nlopt_stop_ftol(stop, cur.fval, state.f0))
+		      if (nlopt_stop_ftol(stop, fcur, state.f0))
 			  ret = NLOPT_FTOL_REACHED;
-		      else if (nlopt_stop_x(stop, cur.par, state.x0))
+		      else if (nlopt_stop_x(stop, xcur, state.x0))
 			  ret = NLOPT_XTOL_REACHED;
 		      stop->ftol_rel = save_ftol_rel;
 		      stop->ftol_abs = save_ftol_abs;
@@ -2669,27 +2594,43 @@ nlopt_result nlopt_slsqp(unsigned n, nlopt_func f, void *f_data,
 	  prev_mode = mode;
 
 	  /* update best point so far */
-	  if (mode != -1 && nlopt_isfinite(cur.fval) && nlopt_isfinite(cur.infeasibility) &&
-	      !(cur.fval >= minor.fval && cur.infeasibility >= minor.infeasibility)) {
+	  if (nlopt_isfinite(fcur) && ((fcur < *minf && (feasible_cur || !feasible))
+				       || (!feasible && infeasibility_cur < infeasibility))) {
+	       *minf = fcur;
+	       feasible = feasible_cur;
+	       infeasibility = infeasibility_cur;
+	       memcpy(x, xcur, sizeof(double)*n);
+	  }
 
-		  //MYPRINT("best eval so far %f %f feasible %d\n", cur.fval, cur.infeasibility, cur.feasible);
-		  estimate_copy(&minor, &cur);
-		  makingProgress = 1;
+	  /* note: mode == -1 corresponds to the completion of a line search,
+	     and is the only time we should check convergence (as in original slsqp code) */
+	  if (mode == -1) {
+	       if (!nlopt_isinf(fprev)) {
+		    if (nlopt_stop_ftol(stop, fcur, fprev))
+			 ret = NLOPT_FTOL_REACHED;
+		    else if (nlopt_stop_x(stop, xcur, xprev))
+			 ret = NLOPT_XTOL_REACHED;
+	       }
+	       fprev = fcur;
+	       memcpy(xprev, xcur, sizeof(double)*n);
 	  }
 
 	  /* do some additional termination tests */
 	  if (nlopt_stop_evals(stop)) ret = NLOPT_MAXEVAL_REACHED;
 	  else if (nlopt_stop_time(stop)) ret = NLOPT_MAXTIME_REACHED;
-	  else if (major.feasible && major.fval < stop->minf_max) ret = NLOPT_MINF_MAX_REACHED;
+	  else if (feasible && *minf < stop->minf_max) ret = NLOPT_MINF_MAX_REACHED;
      } while (ret == NLOPT_SUCCESS);
 
 done:
-     if (!nlopt_isinf(major.fval)) {
-	     estimate_return(&major, minf, theSpot);
-     } else if (!nlopt_isinf(minor.fval)) {
-	     estimate_return(&minor, minf, theSpot);
-     } else if (!nlopt_isinf(cur.fval)) {
-	     estimate_return(&cur,   minf, theSpot);
+     if (nlopt_isinf(*minf)) { /* didn't find any feasible points, just return last point evaluated */
+	  if (nlopt_isinf(fcur)) { /* invalid cur. point, use previous pt. */
+	       *minf = fprev;
+	       memcpy(x, xprev, sizeof(double)*n);
+	  }
+	  else {
+	       *minf = fcur;
+	       memcpy(x, xcur, sizeof(double)*n);
+	  }
      }
 
      free(work);

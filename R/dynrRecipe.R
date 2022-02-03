@@ -318,6 +318,9 @@ setMethod("show", "dynrRecipe", function(object){printRecipeOrModel(object)})
 ##' 
 ##' Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
 ##' 
+##' 
+##' @return character text suitable for use fiel LaTeX
+##' 
 ##' @seealso A way to put this in a plot with \code{\link{plotFormula}}
 setGeneric("printex", function(object, ParameterAs, 
 	printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, show, ...) { 
@@ -538,7 +541,7 @@ formula2tex<-function(list_formulae,
 #------------------------------------------------------------------------------
 # paramName2Number method definitions
 
-setGeneric("paramName2Number", function(object, names) { 
+setGeneric("paramName2Number", function(object, names, invert=FALSE) { 
     return(standardGeneric("paramName2Number")) 
 	return(standardGeneric("paramName2Number")) 
 })
@@ -547,46 +550,80 @@ setGeneric("paramName2NumericNumber", function(object, paramList) {
   return(standardGeneric("paramName2NumericNumber")) 
 })
 
+# params is a matrix with parameter names in it
+# names is a vector of the parameter names
+# returns matrix with the parameters numbers instead of the names
 .exchangeNamesAndNumbers <- function(params, names){
 	matrix(match(params, names, nomatch=0), nrow(params), ncol(params), dimnames=dimnames(params))
 }
 
+# params is a matrix with parameter numbers in it
+# names is a vector of the parameter names
+# returns matrix with the parameters names instead of the numbers
+.exchangeNumbersAndNames <- function(params, names){
+	matrix(c(0, names)[params + 1], nrow(params), ncol(params), dimnames=dimnames(params))
+}
+
+# formula is the list of dynamics formula
+# paramnames is the character vector of names of parameters used in the formula
+# names is the character vector of the names of all the free parameters
+# returns list of formula with e.g. aParamName swapped to param[2]
 .exchangeformulaNamesAndNumbers <- function(formula, paramnames, names){
-	string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
+	string <- paste0(deparse(formula, width.cutoff = 500L), collapse="")
 	pattern <- paramnames
-	#pattern=gsub("\\{","\\\\\\{",paramnames)
-	#pattern=gsub("\\}","\\\\\\}",pattern)
-	pattern=gsub("\\\\","\\\\\\\\",pattern)
+	pattern <- gsub("\\\\", "\\\\\\\\", pattern)
 	
 	for(i in 1:length(paramnames)){
-		string<-gsub(paste0("\\<",pattern[i],"\\>"),paste0("param[",match(paramnames[i], names, nomatch=0)-1,"]"), string)
+		string <- gsub(paste0("\\<", pattern[i], "\\>"), paste0("param[", match(paramnames[i], names, nomatch=0)-1, "]"), string)
 	}
 	eval(parse(text=string))
 }
 
+# formula is the list of dynamics formula using C-style param[2] in place of character names
+# paramnames is the character vector of names of parameters used in the formula
+# names is the character vector of the names of all the free parameters
+# returns list of formula with e.g. param[2] swapped to aParamName
+.exchangeformulaNumbersAndNames <- function(formula, paramnames, names){
+	string <- paste0(deparse(formula, width.cutoff = 500L), collapse="")
+	pattern <- paramnames
+	pattern <- gsub("\\\\", "\\\\\\\\", pattern)
+	
+	for(i in 1:length(paramnames)){
+		string <- gsub(paste0("param\\[", match(paramnames[i], names, nomatch=0)-1, "\\]"), paste0("", pattern[i], ""), string)
+	}
+	eval(parse(text=string))
+}
+
+# Don't know why this exists
 .replaceNamesbyNumbers <- function(formula, paramtoPlot){
-  string<-paste0(deparse(formula,width.cutoff = 500L),collapse="")
-  names <-   paste0("param\\[",(1:length(paramtoPlot))-1,"\\]")
+  string <- paste0(deparse(formula,width.cutoff = 500L),collapse="")
+  names <- paste0("param\\[",(1:length(paramtoPlot))-1,"\\]")
   #names(paramtoPlot)
   #pattern=gsub("\\{","\\\\\\{",names)
   #pattern=gsub("\\}","\\\\\\}",pattern)
   #pattern=gsub("\\\\","\\\\\\\\",pattern)
   for (i in 1:length(names)){
-  string<-gsub(paste0("\\<",names[i],"\\>"),paramtoPlot[i], string)
+    string <- gsub(paste0("\\<", names[i], "\\>"), paramtoPlot[i], string)
   }
   eval(parse(text=string))
 }
 
 
 setMethod("paramName2Number", "dynrMeasurement",
-	function(object, names){
-		object@params.load <- lapply(object$params.load, .exchangeNamesAndNumbers, names=names)
-		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
-		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.load <- lapply(object$params.load, exchangeFUN, names=names)
+		object@params.exo <- lapply(object$params.exo, exchangeFUN, names=names)
+		object@params.int <- lapply(object$params.int, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
+# Don't know why this exists
 .exchangeNamesInFormula <- function(formula, names){
 	sall <- formula2string(formula)
 	sr <- sall$rhs
@@ -615,13 +652,19 @@ setMethod("paramName2Number", "dynrMeasurement",
 
 
 setMethod("paramName2Number", "dynrDynamicsFormula",
-	function(object, names){
-	  object@formula = .exchangeformulaNamesAndNumbers(object@formula, object@paramnames, names)
-	  object@jacobian = .exchangeformulaNamesAndNumbers(object@jacobian, object@paramnames, names)
-	  return(object)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeformulaNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeformulaNumbersAndNames
+		}
+		object@formula <- exchangeFUN(object@formula, object@paramnames, names)
+		object@jacobian <- exchangeFUN(object@jacobian, object@paramnames, names)
+		return(object)
 	}
 )
 
+# Don't know why this exists
 setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
           function(object, paramList){
             object@formulaOriginal <- object@formula
@@ -634,48 +677,74 @@ setMethod("paramName2NumericNumber", "dynrDynamicsFormula",
 
 
 setMethod("paramName2Number", "dynrDynamicsMatrix",
-	function(object, names){
-		object@params.dyn <- lapply(object$params.dyn, .exchangeNamesAndNumbers, names=names)
-		object@params.exo <- lapply(object$params.exo, .exchangeNamesAndNumbers, names=names)
-		object@params.int <- lapply(object$params.int, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.dyn <- lapply(object$params.dyn, exchangeFUN, names=names)
+		object@params.exo <- lapply(object$params.exo, exchangeFUN, names=names)
+		object@params.int <- lapply(object$params.int, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrRegimes",
-	function(object, names){
-		object@params <- .exchangeNamesAndNumbers(object$params, names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params <- exchangeFUN(object$params, names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrInitial",
-	function(object, names){
-		object@params.inistate <- lapply(object$params.inistate, .exchangeNamesAndNumbers, names=names)
-		object@params.inicov <- lapply(object$params.inicov, .exchangeNamesAndNumbers, names=names)
-		object@params.regimep <- .exchangeNamesAndNumbers(object$params.regimep, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.inistate <- lapply(object$params.inistate, exchangeFUN, names=names)
+		object@params.inicov <- lapply(object$params.inicov, exchangeFUN, names=names)
+		object@params.regimep <- exchangeFUN(object$params.regimep, names=names)
 		return(object)
 	}
 )
 
 
 setMethod("paramName2Number", "dynrNoise",
-	function(object, names){
-		object@params.latent <- lapply(object$params.latent, .exchangeNamesAndNumbers, names=names)
-		object@params.observed <- lapply(object$params.observed, .exchangeNamesAndNumbers, names=names)
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeNumbersAndNames
+		}
+		object@params.latent <- lapply(object$params.latent, exchangeFUN, names=names)
+		object@params.observed <- lapply(object$params.observed, exchangeFUN, names=names)
 		return(object)
 	}
 )
 
 setMethod("paramName2Number", "dynrTrans",
-  function(object, names){
-    if (length(object@formula.trans)>0){
-      object@formula.trans = .exchangeformulaNamesAndNumbers(object@formula.trans, object@paramnames, names)
-    }
-    return(object)
-  }
+	function(object, names, invert=FALSE){
+		if(!invert){
+			exchangeFUN <- .exchangeformulaNamesAndNumbers
+		} else {
+			exchangeFUN <- .exchangeformulaNumbersAndNames
+		}
+		if (length(object@formula.trans) > 0){
+			# TODO is this invert behavior correct?
+			object@formula.trans <- exchangeFUN(object@formula.trans, object@paramnames, names)
+		}
+		return(object)
+	}
 )
 
 
@@ -1439,6 +1508,8 @@ transldl <- function(mat){
 ##' This is a wrapper function around the \code{\link{chol}} function.
 ##' The goal is to factor a square, symmetric, positive (semi-)definite matrix into the product of a lower triangular matrix, a diagonal matrix, and the transpose of the lower triangular matrix.
 ##' The value returned is a lower triangular matrix with the elements of D on the diagonal.
+##' 
+##' @return A matrix
 dynr.ldl <- function(x){
 	ret <- t(chol(x))
 	d <- diag(ret)
@@ -1486,6 +1557,7 @@ reverseldl <- function(values){
 # Some usefull helper functions
 #
 
+
 ##' Create a diagonal matrix from a character vector
 ##' @aliases diag.character diag
 ##' 
@@ -1494,14 +1566,15 @@ reverseldl <- function(values){
 ##' @param ncol Numeric. Number of columns for the resulting matrix.
 ##' 
 ##' @details
-##' The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
+##' We create a new method for \code{diag} with character input.  The default behavior for missing \code{nrow} and/or \code{ncol} arguments is the same
 ##' as for the \code{\link{diag}} function in the base package.  Off-diagonal entries
 ##' are filled with "0".
 ##' 
+##' @return A matrix
+##' 
 ##' @examples
 ##' diag(letters[1:3])
-# a new method for diag with character input
-setMethod("diag", "character", #diag.character <-
+setMethod("diag", "character",
 	function(x=1, nrow, ncol){
 		n <- length(x)
 		if(!missing(nrow)) n <- nrow
@@ -1703,6 +1776,8 @@ extractValues <- function(v, p, symmetric=FALSE){
 ##' zero as the starting value.
 ##' For complete functionality use \code{\link{prep.measurement}}.
 ##' 
+##' @return Object of class 'dynrMeasurement'
+##' 
 ##' @examples
 ##' #Single factor model with one latent variable fixing first loading
 ##' prep.loadings(list(eta1=paste0('y', 1:4)), paste0("lambda_", 2:4))
@@ -1823,6 +1898,8 @@ prep.loadings <- function(map, params=NULL, idvar, exo.names=character(0), inter
 ##'
 ##' When a single matrix is given to values.*, that matrix is not regime-switching.
 ##' Correspondingly, when a list of length r is given, that matrix is regime-switching with values and params for the r regimes in the elements of the list.
+##' 
+##' @return Object of class 'dynrMeasurement'
 ##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
@@ -1956,28 +2033,28 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' Care should be taken that the parameters names for the latent covariances do not overlap with the parameters in the observed covariances.  Likewise, the parameter names for the latent covariances in each regime should either be identical or completely distinct. Because the LDL' transformation is applied to the covariances, sharing a parameter across regimes may cause problems with the parameter estimation.
 ##' 
 ##' Use $ to show specific arguments from a dynrNoise object (see examples).
+##' 
+##' @return Object of class 'dynrNoise'
+##' 
 ##' @seealso 
 ##' \code{\link{printex}} to show the covariance matrices in latex.
 ##'  
 ##' @examples 
 ##' # Two latent variables and one observed variable in a one-regime model
-##' Noise<-prep.noise(values.latent=diag(c(0.8, 1)), params.latent=diag(c('fixed', "e_x")), 
-##' values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
+##' Noise <- prep.noise(values.latent=diag(c(0.8, 1)),
+##'     params.latent=diag(c('fixed', "e_x")), 
+##'     values.observed=diag(1.5,1), params.observed=diag("e_y", 1))
 ##' # For matrices that can be import to latex:
-##' printex(Noise,show=TRUE)
+##' printex(Noise, show=TRUE)
 ##' # If you want to check specific arguments you've specified, for example,
 ##' # values for variance structure of the latent variables
 ##' Noise$values.latent
-##' # [[1]]
-##' #     [,1] [,2]
-##' # [1,]  0.8    0
-##' # [2,]  0.0    1
 ##' 
 ##' # Two latent variables and one observed variable in a two-regime model
-##' Noise<-prep.noise(values.latent=list(diag(c(0.8, 1)),diag(c(0.8, 1))), 
-##' params.latent=list(diag(c('fixed', "e_x1")),diag(c('fixed', "e_x2"))), 
-##' values.observed=list(diag(1.5,1),diag(0.5,1)), 
-##' params.observed=list(diag("e_y1", 1),diag("e_y2",1)))
+##' Noise <- prep.noise(values.latent=list(diag(c(0.8, 1)), diag(c(0.8, 1))),
+##'     params.latent=list(diag(c('fixed', "e_x1")), diag(c('fixed', "e_x2"))),
+##'     values.observed=list(diag(1.5,1), diag(0.5,1)),
+##'     params.observed=list(diag("e_y1", 1), diag("e_y2",1)))
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
@@ -2101,6 +2178,8 @@ checkSymmetric <- function(m, name="matrix"){
 ##' 
 ##' The \code{refRow} argument determines which row is used as the intercept row. It is only
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values} and \code{params} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to be the same as the reference column.  The reference column is automatically detected. If we have problems detecting which is the reference column, then we provide error messages that are as helpful as we can make them.
+##' 
+##' @return Object of class 'dynrRegimes'
 ##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
@@ -2308,6 +2387,8 @@ autojacob <- function(formula, n, diff.variables){
 ##' automatically inserts the random effect components specified in random.names as additional
 ##' latent (state) variables in the model, and estimate (cook) this expanded model. Do check
 ##' that the expanded model satisfies conditions such as observability for the estimation to work.
+##' 
+##' @return Object of class 'dynrDynamicsFormula'
 ##'
 ##' @examples
 ##' # In this example, we present how to define the dynamics of a bivariate dual change score model
@@ -2318,7 +2399,7 @@ autojacob <- function(formula, n, diff.variables){
 ##' # latent variables, which are "readLevel", "readSlope", "mathLevel", and "math Slope".  The right-
 ##' # hand side of each formula gives a function that defines the dynamics.   
 ##'  
-##'  formula =list(
+##'  formula <- list(
 ##'           list(readLevel~ (1+beta.read)*readLevel + readSlope + gamma.read*mathLevel,
 ##'           readSlope~ readSlope,
 ##'           mathLevel~ (1+beta.math)*mathLevel + mathSlope + gamma.math*readLevel, 
@@ -2368,10 +2449,10 @@ autojacob <- function(formula, n, diff.variables){
 ##'
 ##' #For a full demo example that includes unit-specific random effects in theta.formula see:
 ##' #demo(OscWithRand, package="dynr")
-##' formula = list(x ~ dx,
+##' formula <- list(x ~ dx,
 ##'                dx ~ eta_i * x + zeta*dx)
 ##' theta.formula  = list (eta_i ~ 1 * eta0  + u1 * eta1 + u2 * eta2 + 1 * b_eta)
-##' dynm<-prep.formulaDynamics(formula=formula,
+##' dynm <- prep.formulaDynamics(formula=formula,
 ##'                            startval=c(eta0=-1, eta1=.1, eta2=-.1,zeta=-.02),
 ##'                            isContinuousTime=TRUE,
 ##'                            theta.formula=theta.formula,
@@ -2625,6 +2706,8 @@ autojacobTry <- function(formula, formula2, ...){
 ##' 
 ##' \code{prep.matrixDynamics} serves as an alternative to \code{\link{prep.formulaDynamics}}.
 ##' 
+##' @return Object of class 'dynrDynamicsMatrix'
+##' 
 ##' @seealso 
 ##' Methods that can be used include: \code{\link{print}}, \code{\link{show}} 
 ##' 
@@ -2632,18 +2715,18 @@ autojacobTry <- function(formula, formula2, ...){
 ##' #Single-regime, continuous-time model. For further details run: 
 ##' #demo(RSNonlinearDiscrete, package="dynr"))
 ##' dynamics <- prep.matrixDynamics(
-##' values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
-##' params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
-##' isContinuousTime=TRUE)
+##'     values.dyn=matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##'     params.dyn=matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##'     isContinuousTime=TRUE)
 ##' 
 ##' #Two-regime, continuous-time model. For further details run: 
 ##' #demo(RSNonlinearDiscrete, package="dynr"))
 ##' dynamics <- prep.matrixDynamics(
-##' values.dyn=list(matrix(c(0, -0.1, 1, -0.2), 2, 2),
-##'                 matrix(c(0, -0.1, 1, 0), 2, 2)),
-##' params.dyn=list(matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
-##'            matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
-##' isContinuousTime=TRUE) 
+##'     values.dyn=list(matrix(c(0, -0.1, 1, -0.2), 2, 2),
+##'                     matrix(c(0, -0.1, 1, 0), 2, 2)),
+##'     params.dyn=list(matrix(c('fixed', 'spring', 'fixed', 'friction'), 2, 2),
+##'                     matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
+##'     isContinuousTime=TRUE) 
 prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
                                 covariates, isContinuousTime){
 	# Handle numerous cases of missing or non-list arguments
@@ -2872,8 +2955,10 @@ processFormula<-function(formula.list){
 ##' used in the deviation form (i.e. \code{deviation=TRUE}). In the deviation form, one row of \code{values.regimep} and \code{params.regimep} contains the intercepts, other rows contain deviations from these intercepts. The \code{refRow} argument says which row contains the intercept terms. The default behavior for \code{refRow} is to detect the reference row automatically based on which parameters are \code{fixed}.  If we have problems detecting which is the reference row, then we provide error messages that are as helpful as we can make them.
 ##' 
 ##' @seealso 
-##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}} 
-##'
+##' Methods that can be used include: \code{\link{print}}, \code{\link{printex}}, \code{\link{show}}
+##' 
+##' @return Object of class 'dynrInitial'
+##' 
 ##' @examples
 ##' #### No-covariates
 ##' # Single regime, no covariates
@@ -2973,10 +3058,12 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
             'initial state (', nrow(values.inistate[[1]]), '), initial cov (', nrow(values.inicov[[1]]), ')'))
     }
     if(ncol(values.inistate[[1]]) != (length(covariates) + 1)){
-        stop(paste0('Incorrect dimensions for initial state\nFound ', paste0(dim(values.inistate[[1]]), collapse=' by '),
-            ' but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
-            'k by (c+1) for k=number of latent variables, c=number of covariates'))
-    }
+		stop(paste0('Incorrect dimensions for initial state\nFound ', paste0(dim(values.inistate[[1]]), collapse=' by '),
+			' but should be ', nrow(values.inistate[[1]]), ' by ', length(covariates) + 1, '\n',
+			'k by (c+1) for k=number of latent variables, c=number of covariates\n',
+			"Maybe you forgot to add your covariates to the 'covariates' argument of prep.initial()\n",
+			"or forgot to add columns for the covariates to inistate"))
+	}
     
     if(identical(values.regimep, 1) && identical(params.regimep, 0)){
         values.regimep <- matrix(c(1, rep(0, length(covariates))), 1, length(covariates)+1)
@@ -3098,6 +3185,8 @@ prep.initial <- function(values.inistate, params.inistate, values.inicov, params
 ##' are automatically subjected to transformation functions to ensure that
 ##' the resultant covariance matrices are positive-definite. Thus, no additional
 ##' transformation functions are needed for variance-covariance parameters.
+##' 
+##' @return Object of class 'dynrTrans'
 ##' 
 ##' @examples
 ##' #Specifies a transformation recipe, r20, that subjects the parameters
@@ -3607,17 +3696,21 @@ prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, 
 
 
 
-##' A internal-use only function for substituting formula. If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}
-##' @param formula a list of original formulas
-##' @param term.formula a list of term formulas
-##'
-##' @return a list of formulas after the replacement
-##' @examples
-##' #substitutedformula <- substituteFormula(formula, term.formula)
-#parseFormulaTheta <- function(formula, theta.formula){
+# A internal-use only function for substituting formula
+# @param formula a list of original formulas
+# @param term.formula a list of term formulas
+# 
+# @details
+# If the RHS of \code{formula} has terms in the LHS of \code{term.formula}, this function replaces any appearance with the RHS of \code{term.formula}.
+#
+# @return a list of formulas after the replacement
+# @examples
+# #substitutedformula <- substituteFormula(formula, term.formula)
+
 substituteFormula <- function(formula, term.formula){
+	#parseFormulaTheta <- function(formula, theta.formula){
     #fun
-    fml=lapply(formula, as.character)
+	fml=lapply(formula, as.character)
     lhs=lapply(fml,function(x){x[[2]]})
     rhs=lapply(fml,function(x){x[[3]]})
     
@@ -3625,20 +3718,20 @@ substituteFormula <- function(formula, term.formula){
     fmlt=lapply(term.formula, as.character)
     lhst=lapply(fmlt,function(x){x[[2]]})
     rhst=lapply(fmlt,function(x){x[[3]]})
-
-    #deciding the substitute order: variables with longer name first (e.g., substitute zeta_i then eta_i
-    sub_order = order(1:length(lhst), key=sapply(1:length(lhst), function(i)nchar(lhst[[i]])), decreasing= TRUE)
+	
+	#deciding the substitute order: variables with longer name first (e.g., substitute zeta_i then eta_i
+	sub_order = order(1:length(lhst), key=sapply(1:length(lhst), function(i)nchar(lhst[[i]])), decreasing= TRUE)
 	
     for(i in 1:length(formula)){
         formula[[i]]=as.character(formula[[i]])
-	    for (j in sub_order){
-    		# gsub (a, b, c) : in c replace a with b
-    		rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
-	    }
-	    formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
+		for (j in sub_order){
+			# gsub (a, b, c) : in c replace a with b
+			rhs[[i]]=gsub(paste0(lhst[[j]]),paste0("(",rhst[[j]],")"),rhs[[i]], fixed = TRUE)
+		}
+		formula[[i]]=as.formula(paste0(lhs[[i]], ' ~ ', rhs[[i]]))
 	}
-    
-
+	
+	
 	return(formula)
 }
 

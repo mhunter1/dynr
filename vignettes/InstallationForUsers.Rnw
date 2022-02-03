@@ -133,6 +133,10 @@ Use Windows system to set LIB\_GSL.
 \label{sec:macpre}
 \begin{enumerate}
 \item Install Xcode with the command line tools from your Apple store. For this and all the subsequent steps, please read the installation instructions on the individual websites carefully to pick the correct software versions for your operating system.
+\begin{itemize}
+\item \textbf{NOTE:} If you have Big Sur as your Operating System, you do not need to install the command line tools. In fact, you need to remove it by navigating to /Library/Developer and remove Command Line Tools. 
+\item Then, edit /Library/Frameworks/R.framework/Resources/etc/Makeconf and remove all compilers’ explicit link to a particular OS; e.g., change "CC=clang -mmacosx-version-min=10.16" to just "CC=clang." Please see the FAQ section on the \href{https://dynrr.github.io/FAQ.html}{dynr Github webpage} for further updates.
+\end{itemize}
 \item Install Macports by going to \url{https://www.macports.org/install.php}
 \item Open the terminal window. In the terminal window install the gsl library by typing: ``sudo port install gsl''.
 \item Follow the steps in section \ref{sec:maccheck} to verify that these steps worked properly.
@@ -141,7 +145,7 @@ Use Windows system to set LIB\_GSL.
 \subsection{\Large Checking the Installation for Mac}
 \label{sec:maccheck}
 \begin{enumerate}
-\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config -{}-cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
+\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"), ":", "/opt/local/bin"))}\\ and then check again.
 \item If the above failed, then something went wrong with one or several of the steps in Section \ref{sec:macpre}. Please go back and try repeating or checking that section.
 \item Follow the steps in section \ref{sec:cran} to finish the installation process in R.

@@ -71,8 +71,8 @@ dynm_w <- prep.formulaDynamics(formula=formula,
     random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 
 
-
 testthat::expect_error(model_w <- dynr.model(dynamics=dynm_w, measurement=meas,
+                                             #noise=mdcov, initial=initial, data=data), regexp="There is no random effect variables to be estimated. Initial value estimates are done.", fixed=TRUE)
                                              noise=mdcov, initial=initial, data=data), regexp="In theta.formula, there are variables that are not specified in startvals: b_eta", fixed=TRUE)
 
 #------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ data.frame(name=c('zeta0', 'zeta1', 'zeta2', 'lambda_21', 'lambda_31','var_1', '
 
 # Check that all true parameters are within the confidence intervals of the estimated params
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
-withinIntervals[1:8]
-testthat::expect_true(all(withinIntervals[1:8]))
+withinIntervals[1:7]
+testthat::expect_true(all(withinIntervals[1:7]))
 
 #------------------------------------------------------------------------------

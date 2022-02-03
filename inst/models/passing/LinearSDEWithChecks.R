@@ -136,10 +136,18 @@ data.frame(name=c('Spring', 'Damping', 'DynVar', 'MeasVar', 'IniPos'), true=true
 withinIntervals <- CI[,1] < trueParams & trueParams < CI[,2]
 testthat::expect_true(all(withinIntervals))
 
+
+#------------------------------------------------------------------------------
+# Check some of the latent state estimates and their covariances
+
 # compare estimated smoothed latent states to true
 # simulated ones
 sm <- data.frame(t(res@eta_smooth_final))
 cor(sm, Oscillator[,c('x1', 'x2')])
+
+# Check that the smoothed state error covariance matrix is symmetric
+symmCov <- apply(res$error_cov_smooth_final, 3, isSymmetric)
+testthat::expect_true(all(symmCov))
 
 
 #------------------------------------------------------------------------------

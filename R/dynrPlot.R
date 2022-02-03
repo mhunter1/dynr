@@ -126,6 +126,8 @@ Mode <- function(y) {
 ##' @param textsize numeric. Font size used in the plot.
 ##' @param ... Further named arguments
 ##' 
+##' @return ggplot object.
+##' 
 ##' @details
 ##' This is a wrapper around \code{\link{dynr.ggplot}}.  A great benefit of it is that it shows the model equations in a plot.
 plot.dynrCook <- function(x, dynrModel, style = 1, names.state, names.observed, printDyn=TRUE, printMeas=TRUE, textsize=4, ...) {
@@ -177,6 +179,8 @@ plotdf <- function(vec_tex){
 ##' @param ylab (optional) Label of the y-axis.
 ##' @param textsize (default = 12) Text size for the axis labels and title (= textsize + 2).
 ##' @param print (default = TRUE) A flag for whether the plot should be printed.
+##' 
+##' @return ggplot object
 dynr.plotFreq <- function(res, dynrModel, names.regime, title, xlab, ylab, textsize=12,print=TRUE) {
   if(missing(names.regime)){names.regime<-paste0("Regime",1:dynrModel@num_regime)}
   if(missing(title)){title<-'Counts by most probable regime'}
@@ -213,6 +217,8 @@ dynr.plotFreq <- function(res, dynrModel, names.regime, title, xlab, ylab, texts
 ##' 
 ##' @details
 ##' This function typesets a set of formulas that represent the model.  Typical inputs to the \code{ParameterAs} argument are (1) the starting values for a model, (2) the final estimated values for a model, and (3) the parameter names.  These are accessible with (1) \code{model$xstart}, (2) \code{coef(cook)}, and (3) \code{model$param.names} or \code{names(coef(cook))}, respectively.
+##' 
+##' @return ggplot object
 plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
                         printRS=FALSE, textsize=4){
   
@@ -398,25 +404,29 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 ##' This function outputs a ggplot layer that can be modified using functions in the package \pkg{ggplot2}. That is, one can add layers, scales, coords and facets with the "+" sign. In an example below, the \code{ggplot2::ylim()} function is used to modify the limits of the y axis of the graph. More details can be found on \url{https://ggplot2.tidyverse.org/} and \url{https://ggplot2.tidyverse.org/reference/}.
 ##'
 ##' The two functions \code{dynr.ggplot()} and \code{autoplot()} as identical aliases of one another.  The \code{autoplot()} function is an S3 method from the package \pkg{ggplot2} that allows many objects to be plotted and works like the base \code{plot()} function.
+##' 
+##' @return ggplot object
 ##'
 ##' @examples
-##' # The following code is part of a demo example in dynr 
-##' # One can obtain the yum and rsmod objects needed below by running demo(RSLinearDiscreteYang).
-##' # p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
-##' # 	names.regime = c("Deactivated", "Activated"),
-##' # 	title = "(B) Results from RS-AR model", numSubjDemo = 1,
-##' # 	shape.values = c(1),
-##' # 	text = element_text(size = 16),
-##' # 	is.bw = TRUE)
+##' # The following code is part of a demo example in dynr
+##' \donttest{
+##' demo(RSLinearDiscreteYang, package='dynr')
+##' p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
+##'  	names.regime = c("Deactivated", "Activated"),
+##'  	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##'  	shape.values = c(1),
+##'  	text = element_text(size = 16),
+##'  	is.bw = TRUE)
 ##' # One can modify the limits on the y axis by using '+'
-##' # p + ggplot2::ylim(-2, 4)
-##'
-##' # autoplot(yum, dynrModel = rsmod, style = 1,
-##' #	names.regime = c("Deactivated", "Activated"),
-##' #	title = "(B) Results from RS-AR model", numSubjDemo = 1,
-##' #	shape.values = c(1),
-##' #	text = element_text(size = 16),
-##' #	is.bw = TRUE)
+##' p + ggplot2::ylim(-2, 4)
+##' 
+##' autoplot(yum, dynrModel = rsmod, style = 1,
+##' 	names.regime = c("Deactivated", "Activated"),
+##' 	title = "(B) Results from RS-AR model", numSubjDemo = 1,
+##' 	shape.values = c(1),
+##' 	text = element_text(size = 16),
+##' 	is.bw = TRUE)
+##' }
 dynr.ggplot <- function(res, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 
@@ -638,6 +648,8 @@ dynr.ggplot <- function(res, dynrModel, style = 1,
 ##' @rdname dynr.ggplot
 ##' 
 ##' @param object The same as res. The dynr object returned by dynr.cook().
+##' 
+##' @return ggplot object
 autoplot.dynrCook <- function(object, dynrModel, style = 1,
                         numSubjDemo=2, idtoPlot=c(),
                         names.state, 

@@ -16,6 +16,11 @@
 ##' @param verbose logical. flag to print the intermediate output during the estimation process
 ##' @param seed integer. random number seed to be used in the MI procedure
 ##' 
+##' @details
+##' See the demo, \code{demo(package='dynr', 'MILinearDiscrete')}, for an illustrative example 
+##' of using \code{dynr.mi} to implement multiple imputation with 
+##' a vector autoregressive model.
+##' 
 ##' @return an object of `dynrMi' class
 ##' that is a list containing:
 ##' 1. the imputation information, including a data set 
@@ -36,17 +41,6 @@
 ##' dynr.mi: An R Program for Multiple Imputation in Dynamic Modeling.
 ##' International Journal of Computer, Electrical, Automation, Control
 ##' and Information Engineering, 13, 302-311.
-##' 
-##' @examples
-##' # See the demo, MILinearDiscrete.R, for an illustrative example 
-##' # of using dynr.mi to implement multiple imputation with 
-##' # a vector autoregressive model
-##' # dynrMi <- dynr.mi(dynrModel, which.aux=c("x1","x2"), 
-##' # which.lag=c("wp","hp"), lag=1, which.lead=NULL, lead=0,
-##' # m=5, iter=5, imp.obs=FALSE, imp.exo=TRUE,
-##' # diag = TRUE, Rhat=1.1,
-##' # conf.level=0.95, verbose=FALSE, seed=12345)
-
 dynr.mi <- function(dynrModel, which.aux=NULL, 
                     which.lag=NULL, lag=0,
                     which.lead=NULL, lead=0,
