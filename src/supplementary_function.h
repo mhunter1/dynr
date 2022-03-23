@@ -700,6 +700,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 
 			Zt = Z(span::all,span(t, t));
 			
+			
 			//[HJ note] different original indexY contains indices that satisfies the if; now indexY contains Ny zeros and ones indicating the corresponding index satisfies the index or not
 			indexYt = ones(1, InfDS.Ny);	
 			//indexY = span_vec(0, InfDS.Ny-1, 1);
@@ -710,7 +711,8 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 				}
 				else{
 					count_not_finite += 1;
-					indexYt(i) = 0;
+					//indexYt(i) = 0;
+					indexYt(ii) = 0;
 				}
 			}
 			indexY.set_size(1, count_finite);
@@ -721,7 +723,11 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					jj += 1;
 				}
 			}
-			 
+			
+			//indexY.print("indexY");
+			//indexYt.print("indexYt");
+			
+			//Rprintf("count_finite = %d\n", count_finite);
 			
 			
 			if(count_not_finite < InfDS.Ny){ // Not all indicators are missing
@@ -738,15 +744,15 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					dXtildthetaf = InfDS.dXtildthetafAll(i);
 					dXtildthetaf2 = InfDS.dXtildthetafAll2(i);
 					
+					
 					/*
-					if(i == 0 && t == 0){
-						InfDS.H(span((i)*InfDS.Ntheta, ((i+1)*InfDS.Ntheta)-1), span::all).t().print("H 706");
-						dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
-						Lambda_.print("Lambda_");
-						ivSigmae2_.print("ivSigmae2_");
-						Zt_.print("Zt_");
-					}
+					InfDS.H(span((i)*InfDS.Ntheta, ((i+1)*InfDS.Ntheta)-1), span::all).t().print("H 706");
+					dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
+					Lambda_.print("Lambda_");
+					ivSigmae2_.print("ivSigmae2_");
+					Zt_.print("Zt_");
 					*/
+					
 					
 				   
 				    
@@ -754,13 +760,14 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 					
 					
 					
+					
 					/*
-					if(i == 0){
-						printf("t = %d\n",t);
-						dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
-						dlik.print("dlik");
-					}
+					printf("t = %d\n",t);
+					dXtildthetaf(span::all, span((t)*InfDS.Nx, (t+1)*InfDS.Nx-1)).print("dXtildthetaf");
+					dlik.print("dlik");
 					*/
+					
+					
 					
 					
 					vvv=kron(eye(InfDS.Nx, InfDS.Nx),InfDS.H(span((i)*InfDS.Ntheta,(i+1)*InfDS.Ntheta-1),span::all).t());
@@ -830,13 +837,13 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 				dlik2 = .5*kron(reshape(ivSigmae2_*(Zt_*Zt_.t())* ivSigmae2_, 1, InfDS.Ny*InfDS.Ny), eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_ - InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_*(Zt_*Zt_.t())*ivSigmae2_)*InfDS_dSigmaede_.t() - .5*kron(reshape(ivSigmae2_, 1, InfDS.Ny*InfDS.Ny),eye(InfDS.Ny, InfDS.Ny))*InfDS_dSigmaede2_+ .5*InfDS_dSigmaede_*kron(ivSigmae2_,ivSigmae2_)*InfDS_dSigmaede_.t();
 				
 				
+				
 				/*
-				if(i == 0){
-					printf("t = %d\n",t);
-					dlik.print("dlik");
-					dlik2.print("dlik2");
-				}
+				printf("t = %d\n",t);
+				dlik.print("dlik");
+				dlik2.print("dlik2");
 				*/
+				
 				
 				for (ii = 0; ii < (int)indexY.n_cols; ii++){
 					dlikdEpsilonAll(indexY(ii)-1) = dlikdEpsilonAll(indexY(ii)-1)+ dlik(indexY(ii)-1)/mulp;
@@ -952,9 +959,8 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 		curpos2 = curpos2 + InfDS.Nbpar;
 		infoMat(span(curpos1 - 1, curpos2-1), span(curpos1 - 1,curpos2-1)) = dlikdbAll2;
 	}
-
-	
 	//Rprintf("b\n");
+	
 	if (InfDS.Nmu > 0 && InfDS.NLambda > 0){
 		 infoMat(span(startMu-1, endMu-1), span(startLamb-1, endLamb-1)) = dlikdMudLambda;
 		 infoMat(span(startLamb-1, endLamb-1), span(startMu-1, endMu-1)) = dlikdLambdMu;
@@ -1547,7 +1553,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			//OMEGAi.print("OMEGAi");
 			cOMEGAb = diagmat(diagvec(sqrt(OMEGAi)));
 			printf("second chol\n");
-			OMEGAi.print("OMEGAi (2)");
+			//OMEGAi.print("OMEGAi (2)");
 			//cOMEGAb.print("cOMEGAb");
 		}
 		//cOMEGAb.print("cOMEGAb");
