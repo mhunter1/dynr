@@ -760,15 +760,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 
 
 		#setting lower and upper bounds
-		lower_bound <- c(dynrModel@lb[param.names], rep(dynrModel@dynamics@random.lb, length(dynrModel@dynamics@random.values.inicov)))
-		upper_bound <- c(dynrModel@ub[param.names], rep(dynrModel@dynamics@random.ub, length(dynrModel@dynamics@random.values.inicov)))
-		#print('Lower and Uppder bounds:')
-		#print(lower_bound)
-		#print(upper_bound)
+		#lower_bound <- c(dynrModel@lb[param.names], rep(dynrModel@dynamics@random.lb, length(dynrModel@dynamics@random.values.inicov)))
+		#upper_bound <- c(dynrModel@ub[param.names], rep(dynrModel@dynamics@random.ub, length(dynrModel@dynamics@random.values.inicov)))
+		#browser()
+		lower_bound <- c(dynrModel@lb[param.names], dynrModel@lb[sigmab.names])
+		upper_bound <- c(dynrModel@ub[param.names], dynrModel@ub[sigmab.names])
+		print('Lower and Uppder bounds:')
+		print(lower_bound)
+		print(upper_bound)
 		
 		
 		# #temporarily commented out 
-		# #browser()
+		#browser()
 		# #get the initial values of startvars
 		model <- ExpandRandomAsLVModel(dynrModel)
 		fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
@@ -777,7 +780,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
 		#log transformation
 		dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
-	    par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
+		dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
+	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
+		par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names])
 		print('Starting values:')
 		print(par_value)
 		

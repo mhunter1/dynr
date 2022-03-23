@@ -809,10 +809,16 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   #  if('armadillo' %in% names(inputs)){inputs$armadillo <- NULL}
   
   # Figure out what the unique parameters are
+  #browser()
   all.params <- unlist(sapply(inputs, slot, name='paramnames'))
   unique.params <- extractParams(all.params)
   unique.numbers <- c() #allow for model with no free parameters
+  if( .hasSlot(dynamics, 'random.params.inicov')){
+      sbp <- extractParams(list(dynamics$random.params.inicov))
+	  unique.params <- c(unique.params, sbp)
+  }
   if(length(unique.params) > 0){unique.numbers <- 1L:(length(unique.params))}
+
   
   # Create the map between parameter values, the user-specified parameter names, and the automatically-produced parameter numbers (param.data$param.number)
   param.data <- data.frame(param.number=unique.numbers, param.name=unique.params,stringsAsFactors=FALSE)
@@ -1081,17 +1087,32 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, writeCcode, data$covariate.names)
   }
   else if (saem == TRUE){
-    #browser()
-    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(c(param.data$param.name, sigmab.names)), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb, dLambdparLamb2=dLambdparLamb2,dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, Sigmab=ret$ldl, known.vars=ret$pars)
+    inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb, dLambdparLamb2=dLambdparLamb2,dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, Sigmab=ret$ldl, known.vars=ret$pars)
 	#inputs <- sapply(inputs, writeArmadilloCode, covariates=data$covariate.names, param.names=as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
   all.values <- unlist(sapply(inputs, slot, name='startval'))
   unique.values <- extractValues(all.values, all.params)
   
+  #browser()  
+  if( .hasSlot(dynamics, 'random.params.inicov') && length(dynamics$random.params.inicov) > 0){
+      sbp <- extractParams(list(dynamics$random.params.inicov))
+	  
+	  random.values.inicov.ldl <- lapply(list(dynamics$random.values.inicov), replaceDiagZero)
+	  random.values.inicov.ldl <- lapply(random.values.inicov.ldl, reverseldl)
+	
+	  sbv <- extractValues(random.values.inicov.ldl, list(dynamics$random.params.inicov))
+	  
+	  #unique.params <- c(unique.params, sbp)
+	  unique.values <- c(unique.values, sbv)
+  }
+  
+  
+  
   if(length(inputs$transform$formula.inv) > 0){
     unique.values <- inputs$transform$inv.tfun(unique.values)
   }
   param.data$param.value <- unique.values
+  
   
   #initiate a dynrModel object
   if(saem==FALSE){
