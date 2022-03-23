@@ -177,6 +177,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		lhs=lapply(fml,function(x){lapply(x,"[[",1)})
 		rhs=lapply(fml,function(x){lapply(x,"[[",2)})
 		
+		
+		
 		#Parse jacobian (dfdx)
 		fmlj=lapply(jacob,processFormula)
 		row=lapply(fmlj,function(x){lapply(x,"[[",1)})
@@ -225,15 +227,16 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			# - thetaf is calculated by calculateTheta()
 			# - the variable name of thetaf is from the LHS of theta.formula
 			# - in jacobian (dfdx), LHS of theta.formula is already replaced by RHS of theta.formula in rhsj (to get correct differentiation), thus, we replace the RHS of theta formula by thetaf
-			rhs <- lapply(rhs, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhsj <- lapply(rhsj, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhsp <- lapply(rhsp, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhsx2 <- lapply(rhsx2, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhsxp <- lapply(rhsxp, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhspx <- lapply(rhspx, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
-			rhsp2 <- lapply(rhsp2, function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)})
+			rhs <- list(lapply(rhs[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
 		}
 		
+		#browser()
 		#Replace variables (to be estimated) in formula and differentiations with InfDS.par
 		# - Hui-Ju: Here, I assume that variables in InfDS.par follows the order in model@param.names, 
 		# - Need to examine whether it works well for OSC model
@@ -246,13 +249,13 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			var.name <- repalce_order[i]
 			pattern <- var.name
 			ind <- index[param.names == var.name]
-			rhs <- lapply(rhs, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhsj <- lapply(rhsj, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhsp <- lapply(rhsp, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhsx2 <- lapply(rhsx2, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhsxp <- lapply(rhsxp, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhspx <- lapply(rhspx, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
-			rhsp2 <- lapply(rhsp2, function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)})
+			rhs  <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
 		}
 		
 		# Replace the covariate to corresponding variables in SAEM (i.e., InfDS.U1)
