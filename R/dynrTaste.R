@@ -167,7 +167,11 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   for(i in 1:dimTime){
     idx <- which(!is.na(v[,i]))
     if(length(idx)>0){
-      K[,,i][,idx] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+      if(dimObs==1){
+        K[,,i] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+      }else{
+        K[,,i][,idx] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+      }
       chiObs[i] <- t(v[idx,i,drop=F]) %*% F_inv[idx,idx,i] %*% v[idx,i,drop=F]
     }
     # F_inv_i <- matrix(F_inv[,,i], dimObs, dimObs)
@@ -447,7 +451,7 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
   for(i in 1:nID){
     begT <- tstart[i] + 1
     endT <- tstart[i+1]
-    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT, drop=FALSE],dimObs=apply(v[,begT:endT],2,function(x){sum(!is.na(x))}))
+    t_O_pval[, begT:endT] <- t_O_calcp(t_O[, begT:endT, drop=FALSE],dimObs=apply(v[,begT:endT,drop=FALSE],2,function(x){sum(!is.na(x))}))
     t_L_pval[, begT:endT] <- t_L_calcp(t_L[, begT:endT, drop=FALSE])
   }
   
