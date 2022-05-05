@@ -1100,7 +1100,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	  random.values.inicov.ldl <- lapply(list(dynamics$random.values.inicov), replaceDiagZero)
 	  random.values.inicov.ldl <- lapply(random.values.inicov.ldl, reverseldl)
 	
-	  sbv <- extractValues(random.values.inicov.ldl, list(dynamics$random.params.inicov))
+	  sbv <- extractValues(random.values.inicov.ldl, list(dynamics$random.params.inicov), symmetric=TRUE)
 	  
 	  #unique.params <- c(unique.params, sbp)
 	  unique.values <- c(unique.values, sbv)
