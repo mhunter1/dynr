@@ -2646,7 +2646,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	x$jacobianOriginal <- list(matrix(unlist(x$jacobianOriginal), ncol = length(state.names), byrow= FALSE))
 	x$dfdtheta <- list(matrix(unlist(x$dfdtheta), nrow =length(theta.names), byrow = FALSE))
 	x$dfdx2 <- list(matrix(unlist(x$dfdx2), ncol = length(state.names),byrow= TRUE))
-	x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= FALSE))
+	x$dfdxdtheta <- list(matrix(unlist(x$dfdxdtheta), ncol =length(theta.names),byrow= TRUE))
 	x$dfdthetadx <- list(matrix(unlist(x$dfdthetadx), ncol = length(state.names),byrow= TRUE))
 	x$dfdtheta2 <- list(matrix(unlist(x$dfdtheta2), ncol =length(theta.names),byrow= TRUE))
 	
