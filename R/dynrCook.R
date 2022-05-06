@@ -704,15 +704,16 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		}
 		
 		
-
+		#browser()
 		theta.variables <- extractVariablesfromFormula(dynrModel$dynamics@theta.formula)
 	    startval.names <- names(dynrModel$dynamics@startval)
         r =formula2design( 
         dynrModel$dynamics@theta.formula,
         covariates=c(data$covariate.names, "1"),
-        random.names=dynrModel$dynamics$random.names,
+        random.names=c(dynrModel$dynamics$random.names, 'dummy_random_variable_4895746'),
 		beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
         r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
+		r$random=r$random[, seq_len(length(dynrModel$dynamics$random.names)), drop=FALSE]
 		
 		
 		
