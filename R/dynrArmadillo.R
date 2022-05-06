@@ -249,13 +249,13 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			var.name <- repalce_order[i]
 			pattern <- var.name
 			ind <- index[param.names == var.name]
-			rhs  <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
-			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhs  <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
+			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
 		}
 		
 		# Replace the covariate to corresponding variables in SAEM (i.e., InfDS.U1)
@@ -311,6 +311,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#calculateTheta
 		ret = paste0(ret, "\narma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\t\n\tif(isPar == 1)\n\t\tprintf(\"Should NOT happen! isPar = 1\");\n\t\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (isPar==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(thetaf.n_rows, thetaf.n_cols) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Ntheta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));   \n\t\t\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\t\t\n\t\tif (isPar == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0)\n\t\tb.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b.col(ii);\n\t}\n\n\treturn thetaf;\n}\n\n")
+		#ret = paste0(ret, "\narma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\t\n\tif(isPar == 1)\n\t\tprintf(\"Should NOT happen! isPar = 1\");\n\t\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (isPar==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(thetaf.n_rows, thetaf.n_cols) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Ntheta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));   \n\t\t\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\t\t\n\t\tif (isPar == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0)\n\t\tb.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\nHi.print(\"Hi\");\nbetai.print(\"betai\");\nInfDS.Z.print(\"InfDS.Z\");\nb.col(ii).print(\"b\");\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b.col(ii);\n\t}\n\n\treturn thetaf;\n}\n\n")
 		
 		
 		
@@ -318,16 +319,22 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# output code for function dynfun
 		ret = paste0(ret, "arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){\n\n\t//local parameters\n\tarma::mat y, r, thetaf;\n\t\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\t\n\n\t//input parameters\n\ty = xin;\n\tr.set_size(InfDS.Nx, int(i.n_elem));\n\tr.clear();\n\tr = y;\n")
 		
+		
 
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhs, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
 		
+		
+		
+		
 		# [todo] replace the initial condition by information from prep.initial
 		# ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
 		
 		ret = paste0(ret, "\t\n\tr.zeros();\n\tint s;\n\tfor (s = 0; s < int(i.n_elem); s++){")
+		
+		
         for (i in 1:n){
 			for (j in 1:length(lhs[[1]])){
 			    # gsub (a, b, c) : in c replace a with b
