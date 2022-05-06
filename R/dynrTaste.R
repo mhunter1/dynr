@@ -168,11 +168,11 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
     idx <- which(!is.na(v[,i]))
     if(length(idx)>0){
       if(dimObs==1){
-        K[,,i] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+        K[,,i] <- P_pred[,,i] %*% t_Lambda[,idx,drop=FALSE] %*% F_inv[idx,idx,i] # [lat, obs]
       }else{
-        K[,,i][,idx] <- P_pred[,,i] %*% t_Lambda[,idx,drop=F] %*% F_inv[idx,idx,i] # [lat, obs]
+        K[,,i][,idx] <- P_pred[,,i] %*% t_Lambda[,idx,drop=FALSE] %*% F_inv[idx,idx,i] # [lat, obs]
       }
-      chiObs[i] <- t(v[idx,i,drop=F]) %*% F_inv[idx,idx,i] %*% v[idx,i,drop=F]
+      chiObs[i] <- t(v[idx,i,drop=FALSE]) %*% F_inv[idx,idx,i] %*% v[idx,i,drop=FALSE]
     }
     # F_inv_i <- matrix(F_inv[,,i], dimObs, dimObs)
     # K[,,i] <- P_pred[,,i] %*% t_Lambda %*% F_inv[,,i] # [lat, obs]
@@ -211,12 +211,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         vi <- matrix(v[,i], nrow=dimObs, ncol=1)
         idx <- which(!is.na(vi))
         if(length(idx)>0){
-          Li <- B - Ki[,idx,drop=F] %*% Lambda[idx,,drop=F]
-          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=F] - t(Ki[,idx,drop=F]) %*% ri
+          Li <- B - Ki[,idx,drop=FALSE] %*% Lambda[idx,,drop=FALSE]
+          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=FALSE] - t(Ki[,idx,drop=FALSE]) %*% ri
           u[idx, i] <- ui
-          rnew <- t_Lambda[,idx,drop=F] %*% ui + t(B) %*% ri
+          rnew <- t_Lambda[,idx,drop=FALSE] %*% ui + t(B) %*% ri
           r[,i-1] <- rnew
-          Nnew <- t_Lambda[,idx,drop=F] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=F] + t(Li) %*% Ni %*% Li
+          Nnew <- t_Lambda[,idx,drop=FALSE] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=FALSE] + t(Li) %*% Ni %*% Li
           N[,,i-1] <- Nnew
           Ninv_i <- try(solve(Nnew), silent=TRUE)
           if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
@@ -305,12 +305,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
         vi <- matrix(v[,i], nrow=dimObs, ncol=1)
         idx <- which(!is.na(vi))
         if(length(idx)>0){
-          Li <- B - Ki[,idx,drop=F] %*% Lambda[idx,,drop=F]
-          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=F] - t(Ki[,idx,drop=F]) %*% ri
+          Li <- B - Ki[,idx,drop=FALSE] %*% Lambda[idx,,drop=FALSE]
+          ui <- obsInfI[idx,idx] %*% vi[idx,,drop=FALSE] - t(Ki[,idx,drop=FALSE]) %*% ri
           u[idx, i] <- ui
-          rnew <- t_Lambda[,idx,drop=F] %*% ui + t(B) %*% ri
+          rnew <- t_Lambda[,idx,drop=FALSE] %*% ui + t(B) %*% ri
           r[,i-1] <- rnew
-          Nnew <- t_Lambda[,idx,drop=F] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=F] + t(Li) %*% Ni %*% Li
+          Nnew <- t_Lambda[,idx,drop=FALSE] %*% obsInfI[idx,idx] %*% Lambda[idx,,drop=FALSE] + t(Li) %*% Ni %*% Li
           N[,,i-1] <- Nnew
           Ninv_i <- try(solve(Nnew), silent=TRUE)
           if("try-error" %in% class(Ninv_i)){Ninv_i <- MASS::ginv(Nnew)}
@@ -356,12 +356,12 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       for (j in beginTime:endTime) {
         idx <- which(!is.na(v[,j]))
         if(length(idx)>0){
-          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=F]
+          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=FALSE]
           Q[,,j] <- Q_j##
-          S_j <- t(X_t[idx,,drop=F]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=F] +
+          S_j <- t(X_t[idx,,drop=FALSE]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=FALSE] +
             t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
           S[,,j] <- S_j##
-          s_j <- t(X_t[idx,,drop=F]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
+          s_j <- t(X_t[idx,,drop=FALSE]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
           s[,j] <- s_j##
           S_j_inv <- try(solve(S_j), silent=TRUE)
           if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
@@ -381,10 +381,10 @@ dynr.taste <- function(dynrModel, dynrCook=NULL,
       for (j in beginTime:endTime) {
         idx <- which(!is.na(v[,j]))
         if(length(idx)>0){
-          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=F]
-          S_j <- t(X_t[idx,,drop=F]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=F] +
+          Q_j <- W_t - matrix(K[,idx,j], dimLat, length(idx)) %*% X_t[idx,,drop=FALSE]
+          S_j <- t(X_t[idx,,drop=FALSE]) %*% matrix(F_inv[idx,idx,j], length(idx), length(idx)) %*% X_t[idx,,drop=FALSE] +
             t(Q_j) %*% matrix(N[,,j], dimLat, dimLat) %*% Q_j
-          s_j <- t(X_t[idx,,drop=F]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
+          s_j <- t(X_t[idx,,drop=FALSE]) %*% u[idx,j, drop=FALSE] + t(W_t) %*% r[,j, drop=FALSE]
           S_j_inv <- try(solve(S_j), silent=TRUE)
           if("try-error" %in% class(S_j_inv)){S_j_inv <- MASS::ginv(S_j)}
           delta[,j] <- S_j_inv %*% s_j
