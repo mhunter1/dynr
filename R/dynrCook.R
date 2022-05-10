@@ -119,7 +119,6 @@ setMethod("initialize", "dynrDebug",
             .Object@pr_t_given_t <- x$pr_t_given_t
             .Object@eta_filtered <- x$eta_filtered
             .Object@error_cov_filtered <- x$error_cov_filtered
-            .Object@eta_predicted <- x$eta_predicted
             .Object@error_cov_predicted <- x$error_cov_predicted
             .Object@innov_vec <- x$innov_vec
             .Object@residual_cov <- x$residual_cov
