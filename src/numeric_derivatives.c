@@ -23,7 +23,7 @@ void forward_diff_grad(double *grad_approx, double ref_fit, const double *x, voi
 }
 
 
-double neg_log_like_with_grade(unsigned n, const double *x, double *grad, void *my_func_data)
+double neg_log_like_with_grad(unsigned n, const double *x, double *grad, void *my_func_data)
 {
 	double fitval = function_neg_log_like(x, my_func_data);
 	if (grad) {
