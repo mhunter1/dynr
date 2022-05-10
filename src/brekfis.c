@@ -260,7 +260,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					// Computed above: neg_log_p
 					
 					/** compare the p with the (0.0001) and get the bigger one. We do not like probability that is too small. :)**/
-					double tooSmallNumber = 1e-322;
+					double tooSmallNumber = 1e-3;
 					double tryP = exp(-neg_log_p);
 					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
 					
