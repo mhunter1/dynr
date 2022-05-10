@@ -342,7 +342,7 @@ setMethod("printex", "dynrDynamicsMatrix",
 )
 
 setMethod("printex", "dynrRegimes",
-          function(object, ParameterAs, 
+          function(object, ParameterIs, 
 			  printDyn=TRUE, printMeas=TRUE, printInit=FALSE, printRS=FALSE, outFile, 
 			  show=TRUE, AsMatrix=TRUE){
             lG <- ifelse(nrow(object$values) != 0, .xtableMatrix(object$values, show), "")
