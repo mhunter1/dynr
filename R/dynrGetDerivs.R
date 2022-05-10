@@ -193,7 +193,6 @@ theta_plot <- function(.lm, predictor, moderator,
   }
  # .data magrittr::%>%
     ggplot(.data,aes(Z, theta, ymin=ci.lo_theta, ymax=ci.hi_theta)) + 
-    geom_ribbon(alpha = .2) + geom_line() + 
     ggtitle(paste(title0, "Simple slope of", predictorLab, 
                   "as function of", moderatorLab)) + 
     geom_hline(yintercept=0, linetype=2) + 
