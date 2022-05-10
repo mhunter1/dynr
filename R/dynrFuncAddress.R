@@ -187,6 +187,9 @@ dynr.config <- function(verbose=FALSE){
 			stop(paste0(noGSLmsg, genmsg))
 		}
 	}
+	if(verbose){
+		message("Configuration check complete.  Ready to rock and roll.")
+	}
 }
 
 
