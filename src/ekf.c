@@ -148,7 +148,7 @@ double ext_kalmanfilter(size_t t,
 	
 	// dynamic noise = eta_noise_cov
 	// updated/filtered cov = error_cov_t
-	if(isLastTime){
+	if(isFirstTime){
 		gsl_vector_memcpy(eta_t_plus_1,eta_t);
 	} else{
 		if(perturb){
