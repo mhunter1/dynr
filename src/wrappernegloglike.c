@@ -78,6 +78,7 @@ double function_neg_log_like(const double *params, void *data){
 	
 	
 	/** calculate the log_like **/
+	data_model.pc.func_transform(par.func_param);
 	model_constraint_init(&data_model.pc, &pi);
 	
 	neg_log_like = brekfis(data_model.y, data_model.co_variate, data_model.pc.total_obs, data_model.y_time, &data_model.pc, &pi, &par);
