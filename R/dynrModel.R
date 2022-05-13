@@ -934,15 +934,18 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	sigmab.names <- sigmab.names[!sigmab.names %in% c("fixed", "0")]
 	
 	if(length(sigmab.names) > 0){
+		random.params.inicov = inputs$dynamics$random.params.inicov
+		random.values.inicov = inputs$dynamics$random.values.inicov
+		
 		#variance/covariance of random.names
-		random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov
-		random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov
+		#random.params.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.params.inicov
+		#random.values.inicov[1:num.theta,1:num.theta] = inputs$dynamics$random.values.inicov
 		
 		#browser()
-		if(freeIC){
-			#variance/covariance of states
-			random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
-		} 
+		# if(freeIC){
+			# #variance/covariance of states
+			# random.params.inicov[(num.theta+1):(num.x+num.theta),(num.theta+1):(num.x+num.theta)] = inputs$initial$params.inicov[[1]]
+		# } 
 		
 		# LDL transformation
 		ret <- symbolicLDLDecomposition(random.params.inicov, random.values.inicov)

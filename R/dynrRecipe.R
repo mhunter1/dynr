@@ -3417,19 +3417,48 @@ formula2matrix <- function(formula, variables, strict=TRUE, col.match=TRUE, proc
     # return(list(fixed=as.matrix(fmat), random=as.matrix(rmat)))
 # }
 
-formula2design <- function(..., covariates, random.names, beta.names){
+# formula2design <- function(..., covariates, random.names, beta.names){
+  # #browser()
+  # dots <- unlist(list(...))  
+  # len_dots = length(dots)
+  
+  # # Extending the theta formula in dots to add variables in beta. names
+  # # beta.names include variables without random effects but needs to be estimated.
+  # if(length(beta.names) > 0){
+    # for (i in 1:length(beta.names)){
+      # dots = c(dots, as.formula(paste(beta.names[i], '~ 1 *', beta.names[i])))
+    # }
+  # }
+  
+  
+  # pf <- list(dynr:::processFormula(dots))
+  # lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
+  # rhs <- lapply(pf,function(x){lapply(x,"[[",2)})[[1]]
+  # rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
+  # rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
+  # rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+  # eleNames <- unique(unlist(sapply(rhs3, function(rlist){ sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
+  
+  
+  # dots <- cbind(lhs, rhs3)
+  # fmat <- t(apply(dots, 1, formula2matrix, variables=eleNames, strict=TRUE, process=FALSE))
+  # rmat <- t(apply(dots, 1, formula2matrix, variables=random.names, strict=TRUE, process=FALSE))
+  # fmat = fmat[seq_len(len_dots), , drop=FALSE]
+  # rmat = rmat[seq_len(len_dots), , drop=FALSE]
+  # dimnames(fmat) <- list(lhs[1:len_dots], eleNames)
+  # dimnames(rmat) <- list(lhs[1:len_dots], random.names)
+  
+  # #browser()
+  # #fmat = fmat[1:len_dots, ]
+  # #rmat = rmat[1:len_dots, ]
+  # return(list(fixed=as.matrix(fmat), random=as.matrix(rmat)))
+# }
+
+#formula2design_symiin
+formula2design <- function(..., covariates, random.names, startval.names){
   #browser()
-  dots <- unlist(list(...))  
-  len_dots = length(dots)
-  
-  # Extending the theta formula in dots to add variables in beta. names
-  # beta.names include variables without random effects but needs to be estimated.
-  if(length(beta.names) > 0){
-    for (i in 1:length(beta.names)){
-      dots = c(dots, as.formula(paste(beta.names[i], '~ 1 *', beta.names[i])))
-    }
-  }
-  
+  dots <- unlist(list(...))   
+  len_dots = length(dots) # = length of theta_formula
   
   pf <- list(dynr:::processFormula(dots))
   lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
@@ -3437,22 +3466,45 @@ formula2design <- function(..., covariates, random.names, beta.names){
   rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
   rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
   rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
-  eleNames <- unique(unlist(sapply(rhs3, function(rlist){ sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
+  thetaFormula_beta.names <- unique(unlist(sapply(rhs4, function(rlist){ 
+    sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)]} ) } )))
   
+  
+  # Extending the theta formula in dots to add variables in startvals that are not in theta formula
+  # beta.names include variables without random effects but needs to be estimated.
+  variablesToAdd = startval.names[!startval.names %in% thetaFormula_beta.names]
+  if(length(variablesToAdd) > 0){
+    for (i in 1:length(variablesToAdd)){
+      toAddRandom = NULL
+      if (length(random.names)>0){
+      toAddRandom = paste0(" + 0 * ",random.names[1])}
+      dots = c(dots, as.formula(paste0(variablesToAdd[i], '~ 1 *', variablesToAdd[i],toAddRandom)))
+    }}
+  
+  pf <- list(dynr:::processFormula(dots))
+  lhs <- unlist(lapply(pf,function(x){lapply(x,"[[",1)})[[1]])
+  rhs <- lapply(pf,function(x){lapply(x,"[[",2)})[[1]]
+  rhs2 <- sapply(rhs, strsplit, split=' + ', fixed=TRUE)
+  rhs3 <- lapply(rhs2, strsplit, split=" * ", fixed=TRUE)
+  #rhs4 <- lapply(rhs3, function(x){if(length(x) == 1) c("1", x) else x})
+  eleNames <- unique(unlist(sapply(rhs3, function(rlist){ 
+    sapply(rlist, function(x) {x[!(x %in% covariates) & !(x %in% random.names)&
+           (x!="0") & (x!= "1")]})})))
   
   dots <- cbind(lhs, rhs3)
   fmat <- t(apply(dots, 1, formula2matrix, variables=eleNames, strict=TRUE, process=FALSE))
-  rmat <- t(apply(dots, 1, formula2matrix, variables=random.names, strict=TRUE, process=FALSE))
-  fmat = fmat[seq_len(len_dots), , drop=FALSE]
-  rmat = rmat[seq_len(len_dots), , drop=FALSE]
-  dimnames(fmat) <- list(lhs[1:len_dots], eleNames)
-  dimnames(rmat) <- list(lhs[1:len_dots], random.names)
+  rmat <- t(apply(dots, 1, formula2matrix, variables=random.names, strict=FALSE, process=FALSE))
+  #fmat = fmat[seq_len(len_dots), , drop=FALSE]
+  rmat = matrix(rmat,ncol=length(random.names),byrow=TRUE)
+  dimnames(fmat) <- list(lhs, eleNames)
+  dimnames(rmat) <- list(lhs, random.names)
   
   #browser()
   #fmat = fmat[1:len_dots, ]
   #rmat = rmat[1:len_dots, ]
   return(list(fixed=as.matrix(fmat), random=as.matrix(rmat)))
 }
+
 
 # Example usage
 # formula2design(

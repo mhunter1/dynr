@@ -710,10 +710,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         r =formula2design( 
         dynrModel$dynamics@theta.formula,
         covariates=c(data$covariate.names, "1"),
-        random.names=c(dynrModel$dynamics$random.names, 'dummy_random_variable_4895746'),
-		beta.names=startval.names[startval.names %in% theta.variables == FALSE])    
+        random.names=c(dynrModel$dynamics$random.names),
+		startval.names=startval.names[startval.names %in% theta.variables == FALSE])    
         r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
-		r$random=r$random[, seq_len(length(dynrModel$dynamics$random.names)), drop=FALSE]
+		#r$random=r$random[, seq_len(length(dynrModel$dynamics$random.names)), drop=FALSE]
 		
 		
 		
@@ -1125,6 +1125,7 @@ combineModelDataInformation <- function(model, data){
 }
 
 combineModelDataInformationSAEM <- function(model, data){
+	#browser()
     # TODO add argument to dynrModel a la "usevars"
     # process usevars together with dynrData to drop
     # things from it that are not in usevars.
@@ -1186,8 +1187,10 @@ combineModelDataInformationSAEM <- function(model, data){
 
 	
 	#print('H & Z')
+	#browser()
 	r = model$r
-    Z= apply(r$random, 1, as.numeric)
+    #Z = apply(r$random, 1, as.numeric)
+	Z = apply(r$random, c(1,2), as.numeric)
     H = matrix(nrow=0, ncol=0)
     for (line in c(1: model$num_sbj)){
         U = c(1:length(data$covariate.names))
@@ -1217,7 +1220,7 @@ combineModelDataInformationSAEM <- function(model, data){
     }
     model$H <- as.matrix(H)
     model$Z <- as.matrix(Z)
-	print(H)
+	#print(H)
     
 
     return(model)
