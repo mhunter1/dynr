@@ -398,7 +398,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#----------------------------------------------------------------------------------------------
 		#Output dfdparFreeIC
-		ret=paste0(ret, "arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat y ;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.NxState, y.n_cols);\n")
+		ret=paste0(ret, "arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat y, thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.NxState, y.n_cols);\n")
 		
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhsp, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
@@ -455,7 +455,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#----------------------------------------------------------------------------------------------
 		# Output dfdxdp
-		ret=paste0(ret, "arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx * InfDS.Nx, InfDS.Ntheta, y.n_cols);\n")
+		ret=paste0(ret, "arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y, thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx * InfDS.Nx, InfDS.Ntheta, y.n_cols);\n")
 		
 		#browser()
 		# Judge whether we needs calculateTheta
@@ -486,7 +486,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#----------------------------------------------------------------------------------------------
 		# Output dfdpdx
-		ret=paste0(ret, "arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat  y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Nx, y.n_cols) ;\n")
+		ret=paste0(ret, "arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat  y, thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Nx, y.n_cols) ;\n")
 		
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhspx, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
@@ -516,7 +516,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#----------------------------------------------------------------------------------------------
 		#Output dfdp2
-		ret=paste0(ret, "arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y ;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.NxState*InfDS.Ntheta, InfDS.Ntheta, y.n_cols) ;\n\n")
+		ret=paste0(ret, "arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y , thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.NxState*InfDS.Ntheta, InfDS.Ntheta, y.n_cols) ;\n\n")
 		
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhsp2, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
