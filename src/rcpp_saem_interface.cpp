@@ -278,7 +278,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
     }
 	InfDS.Y[0](span(0,2), span(0,9)).print("InfDS.Y[0]");
 	InfDS.Y[1](span(0,2), span(0,9)).print("InfDS.Y[1]");
-	InfDS.Y[199](span(0,2), span(0,9)).print("InfDS.Y[199]");
+	//InfDS.Y[199](span(0,2), span(0,9)).print("InfDS.Y[199]");
 
 	//timeDiscrete & tobs
 	//NumericVector timeDiscrete_vec = model_sexp["time_"];
@@ -298,9 +298,9 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		}
 	}
 	InfDS.timeDiscrete[0](span(0,9), span::all).print("InfDS.timeDiscrete[0]");
-	InfDS.timeDiscrete[199](span(0,9), span::all).print("InfDS.timeDiscrete[199]");
+	//InfDS.timeDiscrete[199](span(0,9), span::all).print("InfDS.timeDiscrete[199]");
 	InfDS.tobs[0](span(0,9), span::all).print("InfDS.tobs[0]");
-	InfDS.tobs[199](span(0,9) , span::all).print("InfDS.tobs[199]");
+	//InfDS.tobs[199](span(0,9) , span::all).print("InfDS.tobs[199]");
 	
 	
 	Rcpp::List func_addr_sexp = model_sexp["func_address"];
