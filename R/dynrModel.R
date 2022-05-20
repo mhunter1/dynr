@@ -887,19 +887,20 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   if(saem==TRUE){
     # examine whether it is freeIC or fixed IC case
-	inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
-	inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
-	inicov.names <- unique(as.vector(inputs$initial@params.inicov[[1]]))
-	inicov.names <- inicov.names[!inicov.names %in% c(0, 'fixed')]
-	if(length(inistate.names) == 0 && length(inicov.names) > 0){
-		warning('The params.inistate in prep.initial are fixed, but params.inicov are free')
-	}
-	if (length(inistate.names) > 0 || length(inicov.names) > 0){
-		freeIC = TRUE
-	}
-	else{
-		freeIC = FALSE
-	}
+	# inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
+	# inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
+	# inicov.names <- unique(as.vector(inputs$initial@params.inicov[[1]]))
+	# inicov.names <- inicov.names[!inicov.names %in% c(0, 'fixed')]
+	# if(length(inistate.names) == 0 && length(inicov.names) > 0){
+		# warning('The params.inistate in prep.initial are fixed, but params.inicov are free')
+	# }
+	# if (length(inistate.names) > 0 || length(inicov.names) > 0){
+		# freeIC = TRUE
+	# }
+	# else{
+		# freeIC = FALSE
+	# }
+	freeIC = FALSE
 	
 	#browser()
 	#print("freeIC")
@@ -908,24 +909,30 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 
     #num.x <- length(inputs$dynamics@formula[[1]])
 	
-	num.x <- length(inputs$measurement$state.names)
+	#num.x <- length(inputs$measurement$state.names)
 	num.theta <- length(inputs$dynamics@theta.formula)
-	if(freeIC){
-		random.params.inicov = matrix(0L, 
-								nrow = num.x + num.theta, 
-								ncol = num.x + num.theta)
-		random.values.inicov = matrix(0L, 
-								nrow = num.x + num.theta, 
-								ncol = num.x + num.theta)
-	} else {
-		random.params.inicov = matrix(0L, 
-								nrow = num.theta, 
-								ncol = num.theta)
-		random.values.inicov = matrix(0L, 
-								nrow = num.theta, 
-								ncol = num.theta)
-	}
-	
+	# if(freeIC){
+		# random.params.inicov = matrix(0L, 
+								# nrow = num.x + num.theta, 
+								# ncol = num.x + num.theta)
+		# random.values.inicov = matrix(0L, 
+								# nrow = num.x + num.theta, 
+								# ncol = num.x + num.theta)
+	# } else {
+		# random.params.inicov = matrix(0L, 
+								# nrow = num.theta, 
+								# ncol = num.theta)
+		# random.values.inicov = matrix(0L, 
+								# nrow = num.theta, 
+								# ncol = num.theta)
+	# }
+	random.params.inicov = matrix(0L, 
+							nrow = num.theta, 
+							ncol = num.theta)
+	random.values.inicov = matrix(0L, 
+							nrow = num.theta, 
+							ncol = num.theta)
+
 
 	# setup InfDS.Sigmab
 	# sigmab.names: unique variables in random.params.inicov that needs to be estimated
