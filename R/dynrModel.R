@@ -1174,8 +1174,22 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   if (.hasSlot(obj.dynrModel$dynamics, 'theta.formula') && length(obj.dynrModel$dynamics@theta.formula) > 0 && obj.dynrModel$dynamics$saem==FALSE){
     #get the extended model and return it (don't keep the original model)
-    extended_model <- ExpandRandomAsLVModel(obj.dynrModel)
+	extended_model <- ExpandRandomAsLVModel(obj.dynrModel) # estimate all random variables at a time
 	return(extended_model)
+	
+	# The following are deciding which estimate approach will be used. May have bug exists. Will take care later
+	# ny <- as.integer(ncol(data$observed))
+	# ne <- obj.dynrModel@dim_latent_var
+	# nb <- length(inputs$dynamics$random.names)
+	# if ( nb <= min(ny, ne) ){
+	  # print('calling ExpandRandomAsLVModel')
+      # extended_model <- ExpandRandomAsLVModel(obj.dynrModel) # estimate all random variables at a time
+	  # return(extended_model)
+	# } else {
+	  # print('Will call TwoPhaseExpandRandomAsLVModel. The model is the original model.')
+	  # #extended_model <- TwoPhaseExpandRandomAsLVModel(obj.dynrModel) # estimate all random variables at a time
+	# }
+	
   }
 
   return(obj.dynrModel)
@@ -1369,4 +1383,107 @@ ExpandRandomAsLVModel<- function(dynrModel){
     #return(fitted_model2)
 	return(model2)
     
+}
+
+TwoPhaseExpandRandomAsLVModel<- function(dynrModel){  
+  # Restructure mixed effects structured via theta.formula into an expanded model with 
+  # random effects as additional state variables and cook it.
+  
+  if(.hasSlot(dynrModel@dynamics,'random.names') && length(dynrModel@dynamics@random.names) > 0){
+    random.names <- dynrModel@dynamics@random.names
+  }
+  else{
+    stop("There is no random effect variables to be estimated. Initial value estimates are done.")
+    return(list())
+  }
+  
+  random.zero.formula = list()
+  # for each random effect variables b_x, create a formula b_x ~ 0 
+  for(i in 1:length(random.names) )
+    random.zero.formula[[i]] <- as.formula(paste0(random.names[i], '~ 0')) 
+  
+  # substitute zero into theta formula to keep only fixed effects in theta formula
+  if(length(dynrModel@dynamics@theta.formula) > 0){
+    theta.formula.fixed <- lapply(list(dynrModel@dynamics@theta.formula), function(x){substituteFormula(x, random.zero.formula)})
+  }
+  
+  
+  
+  if (length(dynrModel@measurement@params.int) > 0){
+    meas <- prep.measurement(
+      values.load = dynrModel@measurement@values.load[[1]],
+      params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}})), nrow=nrow(dynrModel@measurement@params.load[[1]]), byrow=FALSE),
+      obs.names = dynrModel@measurement@obs.names,
+      state.names = dynrModel@measurement@state.names,
+      values.int=dynrModel@measurement@values.int,
+      params.int=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@measurement@params.int[[1]]), nrow=nrow(dynrModel@measurement@params.int[[1]]))
+    )
+  }
+  else{
+    meas <- prep.measurement(
+      values.load = dynrModel@measurement@values.load[[1]],
+      params.load = matrix(c(sapply(dynrModel@measurement@params.load[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}})), nrow=nrow(dynrModel@measurement@params.load[[1]]), byrow=FALSE),
+      obs.names = dynrModel@measurement@obs.names,
+      state.names = dynrModel@measurement@state.names
+    )
+  }
+  
+  initial <- prep.initial(
+    values.inistate=c(dynrModel@initial@values.inistate[[1]]),
+    params.inistate=c(sapply(dynrModel@initial@params.inistate[[1]], function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}})),
+    values.inicov=dynrModel@initial@values.inicov[[1]], 
+    params.inicov=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@initial@params.inicov[[1]]), nrow=nrow(dynrModel@initial@params.inicov[[1]])))
+  
+  params.latent = diag(c(diag(dynrModel@noise@params.latent[[1]]))) 
+  mdcov <- prep.noise(
+    values.latent=diag(c(diag(dynrModel@noise@values.latent[[1]]))),
+    params.latent=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, params.latent), nrow=nrow(params.latent)),
+    values.observed=dynrModel@noise@values.observed[[1]],
+    params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))
+    #params.observed=dynrModel@noise@params.observed[[1]]
+  )
+  
+  #browser()
+  
+  # substitute the theta.formula (only fixed effects) into formula
+  if(length(dynrModel@dynamics@theta.formula) > 0){
+    formula.fixed <- lapply(dynrModel@dynamics@formulaOriginal, function(x){substituteFormula(x, unlist(theta.formula.fixed))})
+  }
+  
+  dynm.fixed<-prep.formulaDynamics(formula=formula.fixed,
+                                   startval=dynrModel@dynamics@startval,
+                                   isContinuousTime=dynrModel@dynamics@isContinuousTime)
+  
+  model.fixed <- dynr.model(dynamics=dynm.fixed, measurement=meas,
+                            noise=mdcov, initial=initial, data=dynrModel@data)
+  
+  #browser()
+  fitted_model.fixed <- dynr.cook(model.fixed)
+  summary(fitted_model.fixed)
+  
+  dynm.random<-prep.formulaDynamics(formula=dynrModel@dynamics@formulaOriginal,
+                                    startval=dynrModel@dynamics@startval,
+                                    isContinuousTime=dynrModel@dynamics@isContinuousTime, saem=FALSE,
+                                    theta.formula=dynrModel@dynamics@theta.formula,
+                                    random.names=dynrModel@dynamics@random.names,
+                                    random.params.inicov=dynrModel@dynamics@random.params.inicov,
+                                    random.values.inicov=dynrModel@dynamics@random.values.inicov)
+  
+  model.random <- dynr.model(dynamics=dynm.random, measurement=meas,
+                             noise=mdcov, initial=initial, data=dynrModel@data)
+  
+  #browser()
+  
+  overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
+  model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
+  
+  model2 <- ExpandRandomAsLVModel(dynrModel)
+  
+  overLap = names(model2@xstart) %in% names(coef(fitted_model.fixed))
+  model2@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
+  
+  
+  # return is the expanded model (in the Step 1)
+  return(model2)
+   
 }
