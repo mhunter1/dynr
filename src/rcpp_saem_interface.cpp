@@ -276,8 +276,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
     }else{
         InfDS.Y.set_size(0);
     }
-	InfDS.Y[0](span(0,2), span(0,9)).print("InfDS.Y[0]");
-	InfDS.Y[1](span(0,2), span(0,9)).print("InfDS.Y[1]");
+	//InfDS.Y[0](span(0,2), span(0,9)).print("InfDS.Y[0]");
+	//InfDS.Y[1](span(0,2), span(0,9)).print("InfDS.Y[1]");
 	//InfDS.Y[199](span(0,2), span(0,9)).print("InfDS.Y[199]");
 
 	//timeDiscrete & tobs

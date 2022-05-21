@@ -183,12 +183,13 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
-		//Rprintf("end of getXtildIC3");
+		//Rprintf("end of getXtildIC3\n");
 		
 		
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		//InfDS.OMEGAb(span(0,11), span(0,5)).print("InfDS.OMEGAb");
+		//Rprintf("end of PropSigb\n");
+		
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
@@ -238,14 +239,15 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		if(1 || prev_stage != stage){
 			Rprintf("length of InfDS.par: %d\n", InfDS.par.n_elem);
 			InfDS.par.print("InfDS.par (free)");
-			InfDS.par(span(0,7), span::all).print("InfDS.par(1:8)");
-			exp(InfDS.par(span(8,11), span::all)).t().print("InfDS.par(9:12)");
-			///InfDS.Sigmab.print("Sigmab");
-			Rprintf("Averaging:\n");
-			InfDS.thetatild(span(0,7), span::all).print("InfDS.thetatild(1:8)");
-			exp(InfDS.thetatild(span(8,11), span::all)).t().print("InfDS.par(9:12)");
+			InfDS.thetatild.print("InfDS.thetatild (free)");
+			//InfDS.par(span(0,7), span::all).print("InfDS.par(1:8)");
+			//exp(InfDS.par(span(8,11), span::all)).t().print("InfDS.par(9:12)");
+			//InfDS.Sigmab.print("Sigmab");
+			//Rprintf("Averaging:\n");
+			//InfDS.thetatild(span(0,7), span::all).print("InfDS.thetatild(1:8)");
+			//exp(InfDS.thetatild(span(8,11), span::all)).t().print("InfDS.par(9:12)");
 			//D = diagmat(exp(InfDS.thetatild(span(12,14), span::all)));
-			L = "1 0 0;	0 1 0;0 0 1";
+			//L = "1 0 0;	0 1 0;0 0 1";
 			//L(2,1) = InfDS.thetatild(16);
 			//QQ = L*D*L.t();
 			
