@@ -245,7 +245,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
 	int T, i, Nsubj;
 	
-	//printf("execution 1\n");
+	//Rprintf("execution 1\n");
 	//return InfDS;
 	
 	if(isPar == 1)
@@ -349,7 +349,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		d2Xstar_t = d2Xtild;
 	}
 
-	//Rprintf("execution 2\n");
+	//("execution 2\n");
 	
 	InfDS.Xtild.slice(0) = XtildPrev;
 	fullX.slice(0) = XtildPrev;
@@ -367,7 +367,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	//Rprintf("execution 3\n");
 	//Do interpolation at small, equal intervals, as opposed to at observed intervals to avoid numerical problems
 	for (int t = 1; t < T; t++){
-		//printf("t = %d T= %d\n",t,T);
+		//Rprintf("t = %d T= %d\n",t,T);
 
 		//ODE solver	
 		/*
@@ -396,12 +396,15 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		xk1.slice(t) = k1;
 		xk2.slice(t) = k2;
 		
-		//Rprintf("execution 4\n");
+		//Rprintf("execution 4 getDxFlag=%d\n", getDxFlag);
 		if (getDxFlag==1 && t > 1){
+			
+			//tindex.print("tindex");
+			//dt.print("dt");
 			
 			dk1dtheta = InfDS.fp.dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
 			dk2dtheta = InfDS.fp.dfdparFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-			//printf("execution 4.1\n");
+			//Rprintf("execution 4.1\n");
 			
 			//Note that dfdx has x in rows, f in columns, unlike the Jacobian function
 			//used in ekf, specified in InfDS.Jdyn
@@ -463,11 +466,11 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			for (i = 0; i < Nsubj; i++){
 				second.slice(i) = dvecdfdxATk21dtheta.slice(i) + dvecdfdxATk21dk21.slice(i)*trans(dk21.slice(i)); //Second term, dvecfxdxatk21_2
 			}
-			//printf("execution 5.3\n");
+			//Rprintf("execution 5.3\n");
 			
 			dveck2dtheta = InfDS.fp.dfdpar2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
 			dveck2dthetadxATk21 = InfDS.fp.dfdpdxFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-			//printf("execution 5.4\n");
+			//Rprintf("execution 5.4\n");
 			
 			third = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
 			d2vecdk2 = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -570,15 +573,20 @@ void meas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma
   
   // Line 2: Lambda(1:Ny,1:NxState) = InfDS_Lambda;
   Lambda.submat(0, 0, Ny-1, NxState-1)= InfDS_Lambda;
-  //Lambda.print("Lambda=");
+
   
   
   
   //Line 3: yPred = Lambda*x + kron(ones(1,size(x,2)),mu);
   arma::mat temp(1, x.n_cols);
   temp.ones();
-  *yPred = Lambda * x + kron(temp,mu);
-  //(*yPred).print("y_Pred=");
+  if(mu.n_elem > 0){
+	*yPred = Lambda * x + kron(temp,mu);
+  }
+  else{
+	*yPred = Lambda * x;
+  }
+
   
   // Line 4: Jy = reshape(kron(ones(1,size(x,2)), Lambda),Ny, Nx, size(x,2));
   //*Jy = arma::reshape(kron(temp, Lambda), Ny, Nx, x.n_cols);]
@@ -678,7 +686,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
         Lambda = InfDS.Lambda;
     }
 	
-	//printf("*\n");
+	//Rprintf("*\n");
 	isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 	//Rprintf("isPar %d enter getXtildIC3\n", isPar);
 	if (InfDS.Nbeta > 0){
@@ -698,7 +706,12 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 		X = reshape(X, InfDS.Nx, T, 1);
 		mulp = 1; 
 
-		Z = InfDS.Y(i)(span::all,span(0, T-1)) - (kron(arma::ones<arma::mat>(1,T),InfDS.mu) + Lambda* X.slice(0));
+		if(InfDS.mu.n_elem > 0){
+			Z = InfDS.Y(i)(span::all,span(0, T-1)) - (kron(arma::ones<arma::mat>(1,T),InfDS.mu) + Lambda* X.slice(0));
+		}
+		else{
+			Z = InfDS.Y(i)(span::all,span(0, T-1)) - Lambda* X.slice(0);
+		}
 		
 		
 		for (t = 0; t < T; t++){
@@ -738,7 +751,9 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 			if(count_not_finite < InfDS.Ny){ // Not all indicators are missing
 			
 				//repeated used results
-				InfDS_dmudparMu_ = colProjection(rowProjection(InfDS.dmudparMu, indexY),indexY);
+				if(InfDS.dmudparMu.n_elem > 0)
+					InfDS_dmudparMu_ = colProjection(rowProjection(InfDS.dmudparMu, indexY),indexY);
+				
 				ivSigmae2_ = colProjection(rowProjection(ivSigmae2, indexY),indexY);
 				Lambda_ = rowProjection(Lambda, indexY);
 				Zt_ = rowProjection(Zt, indexY);
