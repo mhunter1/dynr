@@ -218,22 +218,29 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		#browser()
 		#Parse theta.formula
 		fmlt = processFormula(theta.formula)
+		theta.names = c()
 		for (i in 1:length(theta.formula)){
 			lhst = fmlt[[i]][1]
 			rhst = fmlt[[i]][2]
-			
-			
+			theta.names <- c(theta.names, lhst)
+		}
+		
+		#browser()
+		index <- 1:length(theta.names)
+		replace_order <- theta.names[order(nchar(theta.names), theta.names, decreasing= TRUE)]			
+		for (i in 1:length(theta.formula)){	
 			# Replace theta_i in formula with thetaf
 			# - thetaf is calculated by calculateTheta()
 			# - the variable name of thetaf is from the LHS of theta.formula
 			# - in jacobian (dfdx), LHS of theta.formula is already replaced by RHS of theta.formula in rhsj (to get correct differentiation), thus, we replace the RHS of theta formula by thetaf
-			rhs <- list(lapply(rhs[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(paste0(lhst),paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			pattern <- replace_order[i]
+			rhs <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
 		}
 		
 		#browser()
@@ -244,9 +251,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# - replace it with the descreasing order of variable name length
 		#print(param.names)
 		index <- 1:length(param.names)
-		repalce_order <- param.names[order(nchar(param.names), param.names, decreasing= TRUE)]
+		replace_order <- param.names[order(nchar(param.names), param.names, decreasing= TRUE)]
 		for (i in 1:length(param.names)){
-			var.name <- repalce_order[i]
+			var.name <- replace_order[i]
 			pattern <- var.name
 			ind <- index[param.names == var.name]
 			rhs  <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
@@ -310,7 +317,6 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = paste0(ret, "\narma::mat rowProjection(arma::mat data, arma::mat index){\n\t//index is a row vector\n\tint i;\n\tarma::mat output;\n\toutput.reset();\n\tfor (i = 0; i < (int)index.n_cols; i++){\n\t\toutput.insert_rows(output.n_rows, data.row(index(i)-1));\n\t}\n\treturn output;\n}\n\n")
 		
 		#calculateTheta
-		#ret = paste0(ret, "\narma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\t\n\tif(isPar == 1)\n\t\tprintf(\"Should NOT happen! isPar = 1\");\n\t\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (isPar==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(thetaf.n_rows, thetaf.n_cols) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Ntheta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));   \n\t\t\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\t\t\n\t\tif (isPar == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0)\n\t\tb.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b.col(ii);\n\t}\n\n\treturn thetaf;\n}\n\n")
 		ret = paste0(ret, "\narma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\tif(isPar == 1)\n\t\tprintf(\"Should NOT happen! isPar = 1\");\n\t\n\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (isPar==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(InfDS.Nb, 1) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Nbeta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));\n\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\n\t\tif (isPar == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0){\n\t\t\tb = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t\t//b(span(0, InfDS.b.n_cols-1), ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t}\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b;\n\t}\n\n\treturn thetaf;\n}\n\n")
 		
 		
@@ -324,7 +330,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhs, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhs, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
 		
@@ -358,7 +364,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	    ret=paste0(ret, "arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat Hi, b, bb, thetaf, rowNum, y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Nx, InfDS.Nx, y.n_cols) ;\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols) ;\n")
 		
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhsj, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhsj, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
 
@@ -401,9 +407,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret=paste0(ret, "arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat y, thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.NxState, y.n_cols);\n")
 		
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhsp, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhsp, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
-			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i,InfDS);\n\n")
+			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i, InfDS);\n\n")
 			
 		for (i in 1:length(rhsp[[1]])){
             for (j in 1:length(lhs[[1]])){
@@ -429,9 +435,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret=paste0(ret, "arma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat thetaf, y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx * InfDS.Nx, InfDS.Nx, y.n_cols) ;\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols) ;\n")
 		
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhsx2, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhsx2, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
-			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i,InfDS);\n\n")
+			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i, InfDS);\n\n")
 			
 		for (i in 1:length(rhsx2[[1]])){
             for (j in 1:length(lhs[[1]])){
@@ -459,7 +465,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#browser()
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhsxp, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhsxp, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i,InfDS);\n\n")
 			
@@ -489,7 +495,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret=paste0(ret, "arma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat  y, thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Nx, y.n_cols) ;\n")
 		
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhspx, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhspx, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i,InfDS);\n\n")
 			
@@ -519,7 +525,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret=paste0(ret, "arma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\t// i and t are dummy variables\n\tarma::mat y , thetaf;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin ;  \n\tr = arma::zeros<arma::cube>(InfDS.NxState*InfDS.Ntheta, InfDS.Ntheta, y.n_cols) ;\n\n")
 		
 		# Judge whether we needs calculateTheta
-		c_i <- lapply(rhsp2, function(x){grep(paste0("thetaf(0,s)"),x, fixed = TRUE)})
+		c_i <- lapply(rhsp2, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
 			ret=paste0(ret,"\n\tthetaf=calculateTheta(0, y, i,InfDS);\n\n")
 			
