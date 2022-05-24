@@ -297,6 +297,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# Start outputing the functions in converted_function.h
 		#ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\nvoid function_arma_hello_world(void) {\n\t\tarma::mat a(2,2);\n\ta(0, 0) = 1;\n\ta(1, 1) = 2;\n\ta(0, 1) = -3;\n\ta(1, 0) = -2;\n\tprintf(\"hello world!\\n\");\n\ta.print();\n}\n\n"
 		
+		#browser()
 		#ret_head = "#include <iostream>\n#include <armadillo>\nusing namespace std;\nusing namespace arma;\n\n\n"
 		ret = "#// [[Rcpp::depends(RcppArmadillo)]]\n\n#include <RcppArmadillo.h>\nusing namespace std;\nusing namespace arma;\nusing namespace Rcpp;\n\n"
 		
@@ -580,11 +581,12 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 
 		ret = paste(ret, "\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1; \n")
 		
+		#browser()
 		
 		ret = paste0(ret, "\tInfDS.Sigmab = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
 		for(i in 1: nrow(Sigmab)){
 			for(j in 1: ncol(Sigmab)){
-				expr.char = deparse(Sigmab[i,j][[1]])
+				expr.char = deparse(Sigmab[i,j][[1]], width.cutoff=500L)
 				if(length(expr.char) > 0 && expr.char[1] != "0"){
 					#print(param.names[Lambda[i, j]])
 					for(k in (1:length(known.vars))){
@@ -602,7 +604,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = paste0(ret, "\tInfDS.dSigmabdb = arma::zeros<arma::mat>(", nrow(dSigmabdb), ", ", ncol(dSigmabdb), ");\n")
 		for(i in 1: nrow(dSigmabdb)){
 			for(j in 1: ncol(dSigmabdb)){
-				expr.char = deparse(dSigmabdb[i,j][[1]])
+				expr.char = deparse(dSigmabdb[i,j][[1]], width.cutoff=500L)
 				if(length(expr.char) > 0 && expr.char[1] != "0"){
 					#print(param.names[Lambda[i, j]])
 					for(k in (1:length(known.vars))){
@@ -620,7 +622,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = paste0(ret, "\tInfDS.dSigmabdb2 = arma::zeros<arma::mat>(", nrow(dSigmabdb2), ", ", ncol(dSigmabdb2), ");\n")
 		for(i in 1: nrow(dSigmabdb2)){
 			for(j in 1: ncol(dSigmabdb2)){
-				expr.char = deparse(dSigmabdb2[i,j][[1]])
+				expr.char = deparse(dSigmabdb2[i,j][[1]], width.cutoff=500L)
 				if(length(expr.char) > 0 && expr.char[1] != "0"){
 					#print(param.names[Lambda[i, j]])
 					for(k in (1:length(known.vars))){
@@ -651,6 +653,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			# }
 			
 		#}
+		
+		#browser()
 		
 		
 		#ret contains all the transferred code, currently uses ret_head for testing
