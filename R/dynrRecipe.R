@@ -3769,7 +3769,37 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 # }
 
 
-prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5, .5), KKO = 20, scaleb = 1, setScaleb = 1, setAccept = 0.8, seed = NA){
+
+##' Recipe function for specifying the control parameters used in the SAEM estimation
+##' 
+##' @param MAXGIB A positive integer indicates the number of iterations to be run in the Gibbs sampler (Default: 200). 
+##' @param MAXITER A positive integer indicates the maximum number of iterations of SAEM (Default: 200).
+##' @param maxIterStage1 A positive integer indicates the maximum number of iterations of SAEM Stage 1 (Default: 100).
+##' @param gainpara A floating number; SAEM control parameter (Default: 0.6).
+##' @param gainparb A floating number; SAEM control parameter (Default: 3).
+##' @param gainpara1 A floating number; SAEM control parameter (Default: 0.9).
+##' @param gainparb1 A floating number; SAEM control parameter (Default: 1).
+##' @param bAdaptParams A vector of two floating number \code{[min, max]} to specify the control parameters in the MCMC sampler of b (Default: c(0.5, 2.5)).
+##' @param KKO A integer. The SAEM process only starts to evaluate whether to transit to stage 2 after \code{KKO} iterations (Default: 20).
+##' @param scaleb A floating number indicating the initial value of \code{scaleb}, which is a weighting parameter to control the b acceptance rate (Default: 1). 
+##' @param setScaleb A booling value. If \code{setScaleb} is set to 0, \code{scaleb} will remain in its initial value. If \code{setScaleb} is set to 1, \code{scaleb} will be updated in the MCMC sampler of b (Default: 1).
+##' @param setAccept A floating number, which is a control parameter of the b acceptance rate (Default: 0.8).
+##' @param seed An integer, the random seed. If \code{seed} is not specified, a random number will be given as seed (Default: NA).
+##' 
+##' @details
+##' Use @ to show specific arguments from a dynrSaemParameter object, see the example.
+##' 
+##' @return Object of class 'dynrSaemParameter'
+##' 
+##'  
+##' @examples 
+##' saemp <- prep.saemParameter(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100)
+##' print(saemp@MAXGIB)
+##' ## 200
+##' print(saemp@setAccept)
+##' ## 0.8
+##'
+prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5), KKO = 20, scaleb = 1, setScaleb = 1, setAccept = 0.8, seed = NA){
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else
