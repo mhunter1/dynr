@@ -716,6 +716,15 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#r$random=r$random[, seq_len(length(dynrModel$dynamics$random.names)), drop=FALSE]
 		
 		
+		# browser()
+		# inistate.names <- unique(as.vector(dynrModel$initial@params.inistate[[1]]))
+		# inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
+		# inicov.names <- unique(as.vector(dynrModel$initial@params.inicov[[1]]))
+		# inicov.names <- inicov.names[!inicov.names %in% c(0, 'fixed')]
+		# initial.names <- c(inistate.names, inicov.names)
+		# initial.names <- dynrModel@param.names[initial.names]
+		
+		
 		
 		# organize the lowerbound and upperbound vectors for saem
 		param.names <- logical(0)
@@ -727,8 +736,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  param.names <- c(param.names, lambda.names)
 		if(length(noise.names) > 0)
 		  param.names <- c(param.names, noise.names)
-		#if(length(sigmab.names) > 0)
-		#  param.names <- c(param.names, sigmab.names)		
+		#if(length(initial.names) > 0)
+		#  param.names <- c(param.names, initial.names)		
 		print('param.names')
 		print(c(param.names, sigmab.names))
 			
@@ -773,26 +782,26 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		# The following are deciding which estimate approach will be used. May have bug exists. Will take care later
-		# ny <- as.integer(ncol(dynrModel$data$observed))
-		# ne <- dynrModel@dim_latent_var
-		# nb <- length(dynrModel$dynamics$random.names)
-		# if ( nb <= min(ny, ne) ){
-		  # print('calling ExpandRandomAsLVModel')
-		  # model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  # fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-		# } else {
-		  # browser()
-		  # print('calling TwoPhaseExpandRandomAsLVModel')
-		  # model <- TwoPhaseExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  # #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
-		  # #model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
-		  # fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-		# }
+		ny <- as.integer(ncol(dynrModel$data$observed))
+		ne <- dynrModel@dim_latent_var
+		nb <- length(dynrModel$dynamics$random.names)
+		if ( nb <= min(ny, ne) ){
+		  print('calling ExpandRandomAsLVModel')
+		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
+		  fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		} else {
+		  #browser()
+		  print('calling TwoPhaseExpandRandomAsLVModel')
+		  model <- TwoPhaseExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
+		  #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
+		  #model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
+		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		}
 		# get the initial values of startvars
-		model <- TwoPhaseExpandRandomAsLVModel(dynrModel) 
-		fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-		#model <- ExpandRandomAsLVModel(dynrModel)
-		#fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		# model <- TwoPhaseExpandRandomAsLVModel(dynrModel) 
+		# fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		# model <- ExpandRandomAsLVModel(dynrModel)
+		# fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
 		coefEst <- coef(fitted_model)
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
@@ -810,10 +819,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# #temporarily commented out 
 		#b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b <- (fitted_model@eta_smooth_final[(model@measurement)$state.names %in% dynrModel$dynamics$random.names,
-                                              data$tstart[1:num.subj+1]])
+                                              data$tstart[1:num.subj+1], drop = FALSE])
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
 		#b <- matrix(b, nrow=num.subj, ncol=length(random.names))
 		b <- t(b)
+		
+		#browser()
 
 		# #browser()
 		# #trueb <- data$trueb[data$tstart[1:num.subj+1], ]
@@ -861,7 +872,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             verbose=dynrModel@verbose,
             num_theta=length(dynrModel@dynamics@theta.names),
             num_beta=length(dynrModel@dynamics@beta.names),
-			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[['id']] == 1, ]),
+			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[[data$idVar]] == 1, ]),
             num_lambda=length(lambda.names),
             num_mu=length(mu.names),
             num_random=length(random.names),
@@ -917,7 +928,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
         model <- combineModelDataInformationSAEM(model, data)
         model <- preProcessModel(model)
         
-        #browser()
+        
 		addr <- .C2funcaddressSAEMRcpp(isContinuousTime=model$isContinuousTime, infile=model$infile, outfile=model$outfile, verbose=model$verbose, compileLib = model$compileLib)
 		model$func_address <- addr$address
 		libname <- addr$libname
@@ -926,7 +937,16 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#call Rcpp_saem_interface
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
 		
+		#browser()
+		output$fitted.parameters <- c(output$thetatild)
+		names(output$fitted.parameters) <- c(param.names, sigmab.names)
+		
+		output$transformed.parameters <- output$fitted.parameters
+		output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
+		output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
+		
 
+		#browser()
         return(output)
     }
 
@@ -1183,11 +1203,13 @@ combineModelDataInformationSAEM <- function(model, data){
     }
 	
 	#print(model$Y[3,11:20])
+	#browser()
     for (i in sort(unique(data[['id']]))){
-        table_i <- data$original.data[data$original.data[['id']] == i, ]
+        #table_i <- data$original.data[data$original.data[['id']] == i, ]
+		table_i <- data$original.data[data$original.data[[data$idVar]] ==  i, ]
         model$allT[i] <- nrow(table_i)
 		#InfDS.tobs{i}
-		pos = sort(unlist(lapply(table_i[['time']], 
+		pos = sort(unlist(lapply(table_i[[data$timeVar]], 
 		  function(x, all_time){
             pos = match(x, all_time)
             return(pos)
@@ -1196,8 +1218,8 @@ combineModelDataInformationSAEM <- function(model, data){
 			
 		for(j in 2:nrow(table_i)){
             #dif[j,i] <- table_i[j, 'time'] - table_i[j - 1, 'time']
-			if(table_i[j, 'time'] - table_i[j - 1, 'time'] < model$delt)
-				model$delt <- table_i[j, 'time'] - table_i[j - 1, 'time'] 
+			if(table_i[j, data$timeVar] - table_i[j - 1, data$timeVar] < model$delt)
+				model$delt <- table_i[j, data$timeVar] - table_i[j - 1, data$timeVar] 
         }
     }
     #print(model$tobs)
