@@ -73,20 +73,23 @@ setMethod("writeArmadilloCode", "dynrMeasurement",
 				}
 				ret = paste0(ret, '\";\n')
 				
+				#browser()
 				Lambda = object$params.load[[1]]
-				startL = min(Lambda[Lambda>0]) + 1
-			
-				for(i in 1: nrow(Lambda)){
-					for(j in 1: ncol(Lambda)){
-						if(Lambda[i, j] > 0){
-							#print(param.names[Lambda[i, j]])
-							if(Lambda[i, j] - startL < 0)
-								ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL - ", -(Lambda[i, j] - startL), ');\n')
-							else
-								ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL + ", Lambda[i, j] - startL, ');\n')
+				if(!all(Lambda ==0)){
+					startL = min(Lambda[Lambda>0]) + 1
+				
+					for(i in 1: nrow(Lambda)){
+						for(j in 1: ncol(Lambda)){
+							if(Lambda[i, j] > 0){
+								#print(param.names[Lambda[i, j]])
+								if(Lambda[i, j] - startL < 0)
+									ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL - ", -(Lambda[i, j] - startL), ');\n')
+								else
+									ret = paste0(ret, "\t\tInfDS.Lambda(", i-1, ", ", j-1, ") = InfDS.par(startL + ", Lambda[i, j] - startL, ');\n')
+							}
 						}
+						
 					}
-					
 				}
 			}
 			
