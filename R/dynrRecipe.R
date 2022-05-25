@@ -3799,7 +3799,14 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 ##' print(saemp@setAccept)
 ##' ## 0.8
 ##'
-prep.saemParameter<- function(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100, gainpara = 0.600000, gainparb = 3.000000, gainpara1 = 0.900000, gainparb1 = 1.000000, bAdaptParams = c(.5, 2.5), KKO = 20, scaleb = 1, setScaleb = 1, setAccept = 0.8, seed = NA){
+prep.saemParameter<- function(MAXGIB = 50, MAXITER = 200, 
+                              maxIterStage1 = 100, 
+                              gainpara = 0.600000, 
+                              gainparb = 3.000000, 
+                              gainpara1 = 0.900000, 
+                              gainparb1 = 1.000000, 
+                              bAdaptParams = c(1, 2), KKO = 30, scaleb = 1, 
+                              setScaleb = 1, setAccept = 0.8, seed = NA){
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else

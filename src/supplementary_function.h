@@ -1336,16 +1336,16 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		InfDS.N=1;
 
 
-	if (InfDS.bAdaptParams.n_elem == 0){
-		low1 = 1;
-		high1 = 2;
-		//by1 = .1;
-	}
-	else{
+	//if (InfDS.bAdaptParams.n_elem == 0){
+	//	low1 = 1;
+	//	high1 = 2;
+	//	//by1 = .1;
+	//}
+	//else{
 		low1 = InfDS.bAdaptParams(0);
 		high1 = InfDS.bAdaptParams(1);
-		//by1 = InfDS.bAdaptParams(2);
-	}
+	//	//by1 = InfDS.bAdaptParams(2);
+//	}
 	
 
 
