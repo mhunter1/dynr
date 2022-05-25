@@ -268,7 +268,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	ttt = difftime(time(NULL), timer);
 	if( convFlag == 1)
-		Rprintf("\n\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k - 1, ttt);
+		Rprintf("\n\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k - 2, ttt);
 	else
 		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k, ttt);
 	

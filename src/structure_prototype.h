@@ -74,6 +74,7 @@ struct C_OUTPUT{
   double ss, avebAccept;
   mat Iytild; 
   vec thetatild; //column-major to keep the matrix InfDS.Iytild
+  mat b;
 };
 
 

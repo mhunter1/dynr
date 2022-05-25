@@ -11,7 +11,7 @@ using namespace Rcpp;
 
 #include "structure_prototype.h"
 #include "supplementary_function.h"
-#include "converted_function.h"
+//#include "converted_function.h"
 
 #include "saem_estimation.h"
 
@@ -194,16 +194,18 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		int Npar = InfDS.Nmu + InfDS.Ny + InfDS.NLambda + InfDS.Nbeta + InfDS.Nbpar;
 		printf("Npar = %d\n", Npar);
 		
-		InfDS.lowBound.set_size(1, Npar);
-		InfDS.upBound.set_size(1, Npar);
-		InfDS.par.set_size(1, Npar);
+		
+		
+		//InfDS.lowBound.set_size(1, Npar);
+		//InfDS.upBound.set_size(1, Npar);
+		//InfDS.par.set_size(1, Npar);
 		InfDS.lowBound = as<arma::mat>(model_sexp["lower_bound"]);
 		InfDS.upBound = as<arma::mat>(model_sexp["upper_bound"]);
 		InfDS.par = as<arma::mat>(model_sexp["par_value"]);
 
 		InfDS.lowBound.print("InfDS.lower_bound");
 		InfDS.upBound.print("InfDS.upper_bound");
-		InfDS.par.print("InfDS.par_value");
+		InfDS.par.print("InfDS.par");
 		
 	}
 	
@@ -325,6 +327,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//x.print("output of hello world");
 	
 	// assign output arbitrary values and return it back for testing
+	/*
 	output.convFlag =  output.nIterStage1 = output.nIterStage2 = 824;
 	output.ss = 0.9;
 	output.avebAccept = 0.78;
@@ -332,6 +335,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	output.Iytild.fill(0.09);
 	output.thetatild.set_size(5);
 	output.thetatild.fill(0.7);
+	*/
 	
 
 	char filenamePar[64] = "./Results/TrueInitparG1.txt";
@@ -345,9 +349,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 
 	arma::mat x1;
 	
-	//InfDS.trueb = as<rowvec>(model_sexp["trueb"]);
-	//InfDS.trueb.print("InfDS.trueb");
-	//InfDS.setAccept = 0.8;
+
 	set_seed(double(seed));
 	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
 
@@ -357,5 +359,6 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 							  Rcpp::Named("ss") = output.ss,
 							  Rcpp::Named("avebAccept") = output.avebAccept,
 							  Rcpp::Named("Iytild") = output.Iytild,
-							  Rcpp::Named("Iytild") = output.thetatild);
+							  Rcpp::Named("thetatild") = output.thetatild,
+							  Rcpp::Named("b") = InfDS.b);
 }
