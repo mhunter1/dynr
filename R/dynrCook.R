@@ -782,20 +782,23 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		# The following are deciding which estimate approach will be used. May have bug exists. Will take care later
-		ny <- as.integer(ncol(dynrModel$data$observed))
-		ne <- dynrModel@dim_latent_var
+		ny q
 		nb <- length(dynrModel$dynamics$random.names)
 		if ( nb <= min(ny, ne) ){
 		  print('calling ExpandRandomAsLVModel')
 		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		  fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, 
+		                            hessian_flag = FALSE,#hessian_flag, 
+		                            verbose=FALSE, weight_flag=weight_flag, 
+		                            debug_flag=debug_flag)
 		} else {
 		  #browser()
 		  print('calling TwoPhaseExpandRandomAsLVModel')
 		  model <- TwoPhaseExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
 		  #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
 		  #model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
-		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
+		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, 
+		                            hessian_flag = FALSE, verbose=FALSE, weight_flag=weight_flag, debug_flag=debug_flag)
 		}
 		# get the initial values of startvars
 		# model <- TwoPhaseExpandRandomAsLVModel(dynrModel) 
@@ -803,11 +806,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# model <- ExpandRandomAsLVModel(dynrModel)
 		# fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
 		coefEst <- coef(fitted_model)
-		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		dynrModel@xstart[estimated.names] <- coefEst[estimated.names]
+		coefEstUncon <- fitted_model@fitted.parameters
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEstUncon))
+		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names]
 		#log transformation
-		dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
-		dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
+		#dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
+		#dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
 		par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names])
 		print('Starting values:')
@@ -820,6 +824,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		b <- (fitted_model@eta_smooth_final[(model@measurement)$state.names %in% dynrModel$dynamics$random.names,
                                               data$tstart[1:num.subj+1], drop = FALSE])
+		#SMC: This needs to be moved into saem_estimation.h, not just here.
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
 		#b <- matrix(b, nrow=num.subj, ncol=length(random.names))
 		b <- t(b)
@@ -938,12 +943,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
 		
 		#browser()
+		#SMC: Pass this chunk to endProcessing
 		output$fitted.parameters <- c(output$thetatild)
 		names(output$fitted.parameters) <- c(param.names, sigmab.names)
 		
 		output$transformed.parameters <- output$fitted.parameters
-		output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
-		output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
+		#SMC Note: These are incorrect. Need to fix
+		#output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
+		#output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
 		
 
 		#browser()
