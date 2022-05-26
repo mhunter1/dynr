@@ -156,11 +156,11 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Nb > 0 && InfDS.Nsubj > 0){
 		InfDS.b = as<mat>(model_sexp["b"]);
-		InfDS.b.print("InfDS.b");
+		//InfDS.b.print("InfDS.b");
 		
 		//temporarily passing trueb
 		InfDS0.trueb = as<mat>(model_sexp["trueb"]);
-		InfDS0.trueb.print("InfDS0.trueb");
+		//InfDS0.trueb.print("InfDS0.trueb");
 		
 		//mat cor_b = cor(InfDS.b, InfDS0.trueb);
 		//cor_b.print("Correlation between b and trueb");
@@ -188,7 +188,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.totalT > 0 ){
 		InfDS.tspan = as<rowvec>(model_sexp["tspan"]);
-		InfDS.tspan.print("InfDS.tspan");
+		//InfDS.tspan.print("InfDS.tspan");
 	}
 	
 	if (InfDS.Nmu){
