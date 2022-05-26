@@ -257,7 +257,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//QQ = L*D*L.t();
 			
 			//remove the trueb part
-			//arma::mat cor_b = cor(InfDS.b,InfDS.trueb);
+			arma::mat cor_b = cor(InfDS.b,InfDS0.trueb);
 			cor_b.print("Correlation between b and trueb");
 			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 			Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
