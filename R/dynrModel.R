@@ -44,7 +44,10 @@ setClass(Class =  "dynrModel",
 		   dSigmabdb2="matrix",
 		   Sigmab="matrix",
 		   known.vars = "list",
-		   freeIC="logical"
+		   freeIC="logical",
+		   L="matrix",
+		   D="matrix",
+		   LDL="matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -1133,7 +1136,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   else if(saem==TRUE){
   #browser()
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, L=ret$L, D=ret$D, LDL=ret$ldl), inputs))
   }
   
   
