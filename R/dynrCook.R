@@ -795,15 +795,18 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# fitted_model <- dynr.cook(model, optimization_flag=FALSE, hessian_flag = FALSE, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
 		# model <- ExpandRandomAsLVModel(dynrModel)
 		# fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, hessian_flag = hessian_flag, verbose=verbose, weight_flag=weight_flag, debug_flag=debug_flag)
-		coefEst <- coef(fitted_model)
+		#browser()
+		coefEst <- coef(fitted_model)  #coefEst is in constrained scale
 		coefEstUncon <- fitted_model@fitted.parameters
-		estimated.names <- intersect(names(dynrModel@xstart), names(coefEstUncon))
-		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names]
+		names(coefEstUncon) <- names(coefEst)
+		# estimate names are names of all free parameters, including those in prep.initial
+		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
+		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
 		#log transformation
 		#dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
 		#dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
-		par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names])
+		par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names]) # uncontrained scale
 		print('Starting values:')
 		print(par_value)
 		
