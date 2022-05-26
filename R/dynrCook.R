@@ -714,18 +714,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		startval.names=startval.names[startval.names %in% theta.variables == FALSE])    
         r$fixed= as.matrix(r$fixed[ ,colnames(r$fixed) != '0'])	
 		#r$random=r$random[, seq_len(length(dynrModel$dynamics$random.names)), drop=FALSE]
-		
-		
-		# browser()
-		# inistate.names <- unique(as.vector(dynrModel$initial@params.inistate[[1]]))
-		# inistate.names <- inistate.names[!inistate.names %in% c(0, 'fixed')]
-		# inicov.names <- unique(as.vector(dynrModel$initial@params.inicov[[1]]))
-		# inicov.names <- inicov.names[!inicov.names %in% c(0, 'fixed')]
-		# initial.names <- c(inistate.names, inicov.names)
-		# initial.names <- dynrModel@param.names[initial.names]
-		
-		
-		
+
+				
 		# organize the lowerbound and upperbound vectors for saem
 		param.names <- logical(0)
 		if(length(dynrModel@dynamics@beta.names) > 0)
@@ -782,7 +772,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		
 		# The following are deciding which estimate approach will be used. May have bug exists. Will take care later
-		ny q
+		ny <- as.integer(ncol(dynrModel$data$observed))
 		nb <- length(dynrModel$dynamics$random.names)
 		if ( nb <= min(ny, ne) ){
 		  print('calling ExpandRandomAsLVModel')
@@ -826,18 +816,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
                                               data$tstart[1:num.subj+1], drop = FALSE])
 		#SMC: This needs to be moved into saem_estimation.h, not just here.
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
-		#b <- matrix(b, nrow=num.subj, ncol=length(random.names))
 		b <- t(b)
 		
-		#browser()
 
-		# #browser()
-		# #trueb <- data$trueb[data$tstart[1:num.subj+1], ]
 		
 		 
-		# # obtain y0 form eta_smooth_final		
+		# obtain y0 form eta_smooth_final		
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
-		# #temporarily set y0 to be the values from SAEM
 		for(i in 1:num.subj){
 		  if(length(dynrModel@initial$values.inistate[[1]]) > 0){
 		    if(dynrModel@freeIC){
@@ -944,6 +929,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		#browser()
 		#SMC: Pass this chunk to endProcessing
+		#Line 941 - 951 needs to be in endProcessing
 		output$fitted.parameters <- c(output$thetatild)
 		names(output$fitted.parameters) <- c(param.names, sigmab.names)
 		
@@ -951,6 +937,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#SMC Note: These are incorrect. Need to fix
 		#output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
 		#output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
+		
+		#arma::mat SE;
+
+		#SE = sqrt(diagvec(dgdpar/InfDS.Iytild*dgdpar.t()));
+        #SE = sqrt(diagvec(dgdpar/InfDS.Iytild*dgdpar.t()));
 		
 
 		#browser()
