@@ -143,10 +143,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			InfDS.fp.setParsFreeICwb(InfDS); //qqqq	
 			Rprintf("The matrices in beginning of iteration %d: \n",k);
 			InfDS.par.print("InfDS.par");
-			InfDS.Lambda.print("InfDS.Lambda");
-			InfDS.mu.print("InfDS.mu");
-			InfDS.Sigmae.print("InfDS.Sigmae");
-			InfDS.Sigmab.print("InfDS.Sigmab");
+			//InfDS.Lambda.print("InfDS.Lambda");
+			//InfDS.mu.print("InfDS.mu");
+			//InfDS.Sigmae.print("InfDS.Sigmae");
+			//InfDS.Sigmab.print("InfDS.Sigmab");
 		}		
 		
 		if (stage==2 && switchFlag==0){
@@ -257,10 +257,12 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//QQ = L*D*L.t();
 			
 			//remove the trueb part
-			//arma::mat R = cor(InfDS.b,InfDS.trueb);
-			//R.print("Correlation between b and trueb:");
+			//arma::mat cor_b = cor(InfDS.b,InfDS.trueb);
+			cor_b.print("Correlation between b and trueb");
+			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 			Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
 			Rprintf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
+			
 		}
 
 		//%%%%%%%%%%

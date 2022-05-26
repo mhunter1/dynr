@@ -93,28 +93,28 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//print out the values
 	Rprintf("flags %d %d %d %d %d\n", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
 	Rprintf("scaleb = %lf\n", InfDS.scaleb);
-	Rprintf("seed = %d\n", seed);
-	Rprintf("num_time = %d\n", num_time);
-	Rprintf("isfreeIC = %d\n", isfreeIC);
-	Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
-	Rprintf("InfDS.Ny = %d\n", InfDS.Ny);
-	Rprintf("InfDS.Nb = %d\n", InfDS.Nb);
-	Rprintf("InfDS.Nmu = %d\n", InfDS.Nmu);
-	Rprintf("InfDS.NLambda = %d\n", InfDS.NLambda);
-	Rprintf("InfDS.Nbpar = %d\n", InfDS.Nbpar);
-	Rprintf("InfDS.Nu = %d\n", InfDS.Nu);
-	Rprintf("InfDS.Nbeta = %d\n", InfDS.Nbeta);
+	//Rprintf("seed = %d\n", seed);
+	//Rprintf("num_time = %d\n", num_time);
+	//Rprintf("isfreeIC = %d\n", isfreeIC);
+	//Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
+	//Rprintf("InfDS.Ny = %d\n", InfDS.Ny);
+	//Rprintf("InfDS.Nb = %d\n", InfDS.Nb);
+	//Rprintf("InfDS.Nmu = %d\n", InfDS.Nmu);
+	//Rprintf("InfDS.NLambda = %d\n", InfDS.NLambda);
+	//Rprintf("InfDS.Nbpar = %d\n", InfDS.Nbpar);
+	//Rprintf("InfDS.Nu = %d\n", InfDS.Nu);
+	//Rprintf("InfDS.Nbeta = %d\n", InfDS.Nbeta);
 	Rprintf("InfDS.Nsubj = %d\n", InfDS.Nsubj);
-	Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
-	Rprintf("InfDS.totalT = %d\n", InfDS.totalT);
+	//Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
+	//Rprintf("InfDS.totalT = %d\n", InfDS.totalT);
 	Rprintf("InfDS.KKO = %d\n", InfDS.KKO);
-	Rprintf("InfDS.delt = %lf\n", InfDS.delt);
+	//Rprintf("InfDS.delt = %lf\n", InfDS.delt);
 	Rprintf("InfDS.maxT = %lf\n", InfDS.maxT);
-	upperb.print("upperb");
-	lowerb.print("lowerb");
+	//upperb.print("upperb");
+	//lowerb.print("lowerb");
 	Rprintf("InfDS.MAXGIB = %d\n", InfDS.MAXGIB);
-	Rprintf("InfDS.MAXITER = %d\n", InfDS.MAXITER);
-	Rprintf("InfDS.maxIterStage1 = %d\n", InfDS.maxIterStage1);
+	//Rprintf("InfDS.MAXITER = %d\n", InfDS.MAXITER);
+	//Rprintf("InfDS.maxIterStage1 = %d\n", InfDS.maxIterStage1);
 	
 	Rprintf("[SAEM Parameters] %lf %lf %lf %lf\n", InfDS.gainpara, InfDS.gainparb, InfDS.gainpara1, InfDS.gainparb1);
 	
@@ -126,22 +126,22 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		InfDS.Sigmab.print("InfDS.Sigmab");
 	
 	
-		InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
-		InfDS.dSigmabdb.print("InfDS.dSigmabdb");
+		//InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
+		//InfDS.dSigmabdb.print("InfDS.dSigmabdb");
 		
-		InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
-		InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
+		//InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
+		//InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	}
 	
 	if(InfDS.Ny > 0){
-		InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
-		InfDS.Sigmae.print("InfDS.Sigmae");
+		//InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
+		//InfDS.Sigmae.print("InfDS.Sigmae");
 		
-		InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
-		InfDS.dSigmaede.print("InfDS.dSigmaede");
+		//InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
+		//InfDS.dSigmaede.print("InfDS.dSigmaede");
 		
-		InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
-		InfDS.dSigmaede2.print("InfDS.dSigmaede2");
+		//InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
+		//InfDS.dSigmaede2.print("InfDS.dSigmaede2");
 	}
 	
 
@@ -169,20 +169,20 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Ntheta > 0 && InfDS.Nsubj > 0 && InfDS.Nbetax > 0){
 		InfDS.H = as<mat>(model_sexp["H"]);
-		InfDS.H.print("InfDS.H");
+		//InfDS.H.print("InfDS.H");
 	}
 	
 	/*-----*/
 	if (InfDS.Nb > 0 && InfDS.Ntheta > 0){
 		InfDS.Z = as<mat>(model_sexp["Z"]);
-		InfDS.Z.print("InfDS.Z");
+		//InfDS.Z.print("InfDS.Z");
 	}
 	
 	
 	if (InfDS.Nsubj > 0){
 		//InfDS.allT.set_size(1, InfDS.Nsubj);
 		InfDS.allT = as<rowvec>(model_sexp["allT"]);
-		InfDS.allT.print("InfDS.allT");
+		//InfDS.allT.print("InfDS.allT");
 	}
 	
 	
@@ -219,18 +219,18 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Ny > 0){
 		InfDS.dmudparMu = as<mat>(model_sexp["dmudparMu"]);
-		InfDS.dmudparMu.print("InfDS.dmudparMu");
+		//InfDS.dmudparMu.print("InfDS.dmudparMu");
 		
 		InfDS.dmudparMu2 = as<mat>(model_sexp["dmudparMu2"]);
-		InfDS.dmudparMu2.print("InfDS.dmudparMu2");
+		//InfDS.dmudparMu2.print("InfDS.dmudparMu2");
 	}
 	
 	if (InfDS.Ny > 0 && InfDS.NxState > 0 && InfDS.NLambda > 0){
 		InfDS.dLambdparLamb = as<mat>(model_sexp["dLambdparLamb"]);
-		InfDS.dLambdparLamb.print("InfDS.dLambdparLamb");
+		//InfDS.dLambdparLamb.print("InfDS.dLambdparLamb");
 		
 		InfDS.dLambdparLamb2 = as<mat>(model_sexp["dLambdparLamb2"]);
-		InfDS.dLambdparLamb2.print("InfDS.dLambdparLamb2");
+		//InfDS.dLambdparLamb2.print("InfDS.dLambdparLamb2");
 	}
 	
 	if (InfDS.Nsubj > 0 && InfDS.NxState > 0){
@@ -307,9 +307,9 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 			tobs_pointer++;
 		}
 	}
-	InfDS.timeDiscrete[0](span(0,9), span::all).print("InfDS.timeDiscrete[0]");
+	//InfDS.timeDiscrete[0](span(0,9), span::all).print("InfDS.timeDiscrete[0]");
 	//InfDS.timeDiscrete[199](span(0,9), span::all).print("InfDS.timeDiscrete[199]");
-	InfDS.tobs[0](span(0,9), span::all).print("InfDS.tobs[0]");
+	//InfDS.tobs[0](span(0,9), span::all).print("InfDS.tobs[0]");
 	//InfDS.tobs[199](span(0,9) , span::all).print("InfDS.tobs[199]");
 	
 	
