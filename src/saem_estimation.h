@@ -138,10 +138,15 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		// isPar = 1 is to estimate variables as states. Now this part is handle by dynr
 		isPar = 0;
 		
-		if(k > 1){
+		if(k >= 1){
 			// in the first iteration we adopt the parameters from dynr interface
 			InfDS.fp.setParsFreeICwb(InfDS); //qqqq	
-			//Rprintf("checkpoint M101 setParsFreeICwb\n");
+			Rprintf("The matrices in beginning of iteration %d: \n",k);
+			InfDS.par.print("InfDS.par");
+			InfDS.Lambda.print("InfDS.Lambda");
+			InfDS.mu.print("InfDS.mu");
+			InfDS.Sigmae.print("InfDS.Sigmae");
+			InfDS.Sigmab.print("InfDS.Sigmab");
 		}		
 		
 		if (stage==2 && switchFlag==0){

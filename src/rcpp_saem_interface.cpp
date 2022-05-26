@@ -151,7 +151,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 
 	if (InfDS.NxState > 0 && InfDS.Ny > 0){
 		InfDS.Lambda = as<mat>(model_sexp["lambda"]);
-		InfDS.Lambda.print("InfDS.Lambda");
+		//InfDS.Lambda.print("InfDS.Lambda");
 	}
 	
 	if (InfDS.Nb > 0 && InfDS.Nsubj > 0){
@@ -185,7 +185,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Nmu){
 		InfDS.mu = as<mat>(model_sexp["mu"]);
-		InfDS.mu.print("InfDS.mu");
+		//InfDS.mu.print("InfDS.mu");
 	}
 	
 	/*-----*/
