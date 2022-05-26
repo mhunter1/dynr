@@ -874,7 +874,6 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
             p0=as.vector(dynrModel@initial@values.inicov[[1]]),
             lambda=dynrModel@measurement$values.load[[1]], #column-major
             b= b,
-			#trueb=trueb,
 			random.lb=dynrModel@dynamics@random.lb,
 			random.ub=dynrModel@dynamics@random.ub,
 			bAdaptParams=as.matrix(saemp@bAdaptParams),
@@ -909,6 +908,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			seed=saemp@seed,
 			y0=y0,
 			r=r
+			,trueb=saemp@trueb
         )
 
 		

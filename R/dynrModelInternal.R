@@ -96,7 +96,7 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
-internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, scaleb, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab, mu, lower_bound, upper_bound, dmudparMu, dmudparMu2,y0, dLambdparLamb, dLambdparLamb2, sigmae, dSigmaede, dSigmaede2, dSigmabdb, dSigmabdb2, time_, freeIC, par_value, setScaleb, setAccept, seed, r){
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, scaleb, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab, mu, lower_bound, upper_bound, dmudparMu, dmudparMu2,y0, dLambdparLamb, dLambdparLamb2, sigmae, dSigmaede, dSigmaede2, dSigmabdb, dSigmabdb2, time_, freeIC, par_value, setScaleb, setAccept, seed, r, trueb){
 
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrepSAEM function must be a list.")
@@ -147,7 +147,6 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	KKO=KKO,
 	scaleb=scaleb,
 	b=b,
-	#trueb=trueb,
 	lambda=lambda,
 	random.lb=random.lb,
 	random.ub=random.ub,
@@ -185,7 +184,8 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	infile=infile,
     outfile=outfile,
     compileLib=compileLib,
-    verbose=verbose
+    verbose=verbose,
+	trueb=trueb
 	#func_address=func_address[[1]],
 	#libname=func_address[[2]]
 	))
