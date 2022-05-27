@@ -1461,7 +1461,10 @@ TwoPhaseExpandRandomAsLVModel<- function(dynrModel){
                             noise=mdcov, initial=initial, data=dynrModel@data)
   
   #browser()
-  fitted_model.fixed <- dynr.cook(model.fixed)
+  fitted_model.fixed <- dynr.cook(model.fixed,
+                                  optimization_flag = TRUE,
+                                  hessian_flag = FALSE,
+                                  verbose = FALSE, debug_flag=FALSE)
   summary(fitted_model.fixed)
   
   dynm.random<-prep.formulaDynamics(formula=dynrModel@dynamics@formulaOriginal,
@@ -1477,16 +1480,17 @@ TwoPhaseExpandRandomAsLVModel<- function(dynrModel){
   
   #browser()
   
+  #HJ: I do not understand why you need to specify model.random and then model 2 again.
+  #I thought you could just return model.random. Please check.
   overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
-  model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
+  model.random@xstart[overLap] <- fitted_model.fixed@fitted.parameters
+  return(model.random)
   
-  model2 <- ExpandRandomAsLVModel(dynrModel)
-  
-  overLap = names(model2@xstart) %in% names(coef(fitted_model.fixed))
-  model2@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
-  
-  
-  # return is the expanded model (in the Step 1)
-  return(model2)
+  #Commented out by SMC below
+  #model2 <- ExpandRandomAsLVModel(dynrModel)
+  #overLap = names(model2@xstart) %in% names(coef(fitted_model.fixed))
+  #model2@xstart[overLap] <- fitted_model.fixed@fitted.parameters
+  # return is the expanded model (in Step 1)
+  #return(model2)
    
 }
