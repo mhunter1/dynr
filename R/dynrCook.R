@@ -803,11 +803,15 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# estimate names are names of all free parameters, including those in prep.initial
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
-		#log transformation
-		#dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
-		#dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
+
+		print(paste0("dynrModel@xstart before = ", dynrModel@xstart))
+		dynrModel@xstart[noise.names] <- coefEstUncon[noise.names]
+		dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
+		print(paste0("dynrModel@xstart after = ", dynrModel@xstart))
+		
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
-		par_value <- c(dynrModel@xstart[param.names], 1) # uncontrained scale
+		par_value <- dynrModel@xstart
+		#par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names]) # uncontrained scale
 		print('Starting values:')
 		print(par_value)
 		
@@ -816,10 +820,11 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# #get the initial values of b
 		# #temporarily commented out 
 		#b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
-		b <- (fitted_model@eta_smooth_final[(model@measurement)$state.names %in% dynrModel$dynamics$random.names,
-                                              data$tstart[1:num.subj+1], drop = FALSE])
-		#SMC: This needs to be moved into saem_estimation.h, not just here.
-		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub ] = 0
+		b <- matrix(fitted_model@eta_smooth_final[(model@measurement)$state.names %in% dynrModel$dynamics$random.names,
+                                              data$tstart[1:num.subj+1], drop = FALSE],
+		            ncol=num.subj,byrow=TRUE)
+		print(paste0("dim b = ",dim(b)))
+		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub | !is.finite(b) ] = 0
 		b <- t(b)
 		
 

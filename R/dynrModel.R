@@ -1467,30 +1467,30 @@ TwoPhaseExpandRandomAsLVModel<- function(dynrModel){
                                   verbose = FALSE, debug_flag=FALSE)
   summary(fitted_model.fixed)
   
-  dynm.random<-prep.formulaDynamics(formula=dynrModel@dynamics@formulaOriginal,
-                                    startval=dynrModel@dynamics@startval,
-                                    isContinuousTime=dynrModel@dynamics@isContinuousTime, saem=FALSE,
-                                    theta.formula=dynrModel@dynamics@theta.formula,
-                                    random.names=dynrModel@dynamics@random.names,
-                                    random.params.inicov=dynrModel@dynamics@random.params.inicov,
-                                    random.values.inicov=dynrModel@dynamics@random.values.inicov)
+  #dynm.random<-prep.formulaDynamics(formula=dynrModel@dynamics@formulaOriginal,
+  #                                  startval=dynrModel@dynamics@startval,
+  #                                  isContinuousTime=dynrModel@dynamics@isContinuousTime, saem=FALSE,
+  #                                  theta.formula=dynrModel@dynamics@theta.formula,
+  #                                  random.names=dynrModel@dynamics@random.names,
+  #                                  random.params.inicov=dynrModel@dynamics@random.params.inicov,
+  #                                  random.values.inicov=dynrModel@dynamics@random.values.inicov)
   
-  model.random <- dynr.model(dynamics=dynm.random, measurement=meas,
-                             noise=mdcov, initial=initial, data=dynrModel@data)
+  #model.random <- dynr.model(dynamics=dynm.random, measurement=meas,
+  #                           noise=mdcov, initial=initial, data=dynrModel@data)
   
   #browser()
   
   #HJ: I do not understand why you need to specify model.random and then model 2 again.
   #I thought you could just return model.random. Please check.
-  overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
-  model.random@xstart[overLap] <- fitted_model.fixed@fitted.parameters
-  return(model.random)
+  #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
+  #model.random@xstart[overLap] <- fitted_model.fixed@fitted.parameters
+  #return(model.random)
   
   #Commented out by SMC below
-  #model2 <- ExpandRandomAsLVModel(dynrModel)
-  #overLap = names(model2@xstart) %in% names(coef(fitted_model.fixed))
-  #model2@xstart[overLap] <- fitted_model.fixed@fitted.parameters
+  model2 <- ExpandRandomAsLVModel(dynrModel)
+  overLap = names(model2@xstart) %in% names(coef(fitted_model.fixed))
+  model2@xstart[overLap] <- fitted_model.fixed@fitted.parameters
   # return is the expanded model (in Step 1)
-  #return(model2)
+  return(model2)
    
 }
