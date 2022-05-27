@@ -788,7 +788,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
 		  #model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
 		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, 
-		                            hessian_flag = FALSE, verbose=FALSE, weight_flag=weight_flag, debug_flag=debug_flag)
+		                            hessian_flag = FALSE, verbose=FALSE, weight_flag=weight_flag, 
+		                            debug_flag=TRUE) #Need debug_flag=TRUE to get eta_smooth_final
 		}
 		# get the initial values of startvars
 		# model <- TwoPhaseExpandRandomAsLVModel(dynrModel) 
@@ -806,7 +807,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#dynrModel@xstart[noise.names] <- log(coefEst[noise.names])
 		#dynrModel@xstart[sigmab.names] <- log(coefEst[sigmab.names])
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
-		par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names]) # uncontrained scale
+		par_value <- c(dynrModel@xstart[param.names], 1) # uncontrained scale
 		print('Starting values:')
 		print(par_value)
 		

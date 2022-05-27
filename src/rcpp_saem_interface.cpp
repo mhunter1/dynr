@@ -123,24 +123,26 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	if(InfDS.Nb > 0){
 
 		InfDS.Sigmab = as<mat>(model_sexp["sigmab"]);
-		InfDS.Sigmab.print("InfDS.Sigmab");
+		InfDS.Sigmab.print("InfDS.Sigmab at gateway");
 	
 	
-		//InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
+		InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
 		//InfDS.dSigmabdb.print("InfDS.dSigmabdb");
 		
-		//InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
+		InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
 		//InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	}
 	
+  // SMC: Sigmae could have all fixed parameters even though
+  // Ny > 0. Fixed later
 	if(InfDS.Ny > 0){
-		//InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
-		//InfDS.Sigmae.print("InfDS.Sigmae");
+		InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
+		InfDS.Sigmae.print("InfDS.Sigmae at gateway");
 		
-		//InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
+		InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
 		//InfDS.dSigmaede.print("InfDS.dSigmaede");
 		
-		//InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
+		InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
 		//InfDS.dSigmaede2.print("InfDS.dSigmaede2");
 	}
 	
