@@ -820,14 +820,14 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# #get the initial values of b
 		# #temporarily commented out 
 		#b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
-		b <- matrix(fitted_model@eta_smooth_final[(model@measurement)$state.names %in% dynrModel$dynamics$random.names,
-                                              data$tstart[1:num.subj+1], drop = FALSE],
-		            ncol=num.subj,byrow=TRUE)
+		print(paste0("model@statenames = ",(model@measurement)$state.names))
+		print(paste0("random.names = ",dynrModel$dynamics$random.names))
+		b <- fitted_model@eta_smooth_final[(model@measurement)$state.names %in% 
+		                                            dynrModel$dynamics$random.names,
+                                              data$tstart[1:num.subj+1], drop = FALSE]
 		print(paste0("dim b = ",dim(b)))
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub | !is.finite(b) ] = 0
 		b <- t(b)
-		
-
 		
 		 
 		# obtain y0 form eta_smooth_final		
