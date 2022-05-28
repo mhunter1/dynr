@@ -88,8 +88,10 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	upperb.fill(ub);
 	upperb.print("upperb");
 	
-	
-	
+	InfDS.errtrol = as<double>(model_sexp["errtrol"]);
+	InfDS.errtrol1 = as<double>(model_sexp["errtrol1"]);
+	Rprintf("Stage 1 error tolerance = %lf\n", InfDS.errtrol1);
+	Rprintf("Stage 2 error tolerance = %lf\n", InfDS.errtrol);	
 	//print out the values
 	Rprintf("flags %d %d %d %d %d\n", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
 	Rprintf("scaleb = %lf\n", InfDS.scaleb);
@@ -116,7 +118,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//Rprintf("InfDS.MAXITER = %d\n", InfDS.MAXITER);
 	//Rprintf("InfDS.maxIterStage1 = %d\n", InfDS.maxIterStage1);
 	
-	Rprintf("[SAEM Parameters] %lf %lf %lf %lf\n", InfDS.gainpara, InfDS.gainparb, InfDS.gainpara1, InfDS.gainparb1);
+	Rprintf("[SAEM Parameters] %lf %lf %lf %lf\n", InfDS.gainpara, InfDS.gainparb, InfDS.gainpara1, InfDS.gainparb1,InfDS.errtrol, InfDS.errtrol1);
 	
 	
 

@@ -918,7 +918,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			seed=saemp@seed,
 			y0=y0,
 			r=r
-			,trueb=saemp@trueb
+			,trueb=saemp@trueb,
+			errtrol1 = saemp@errtrol1,
+			errtrol = saemp@errtrol
         )
 
 		

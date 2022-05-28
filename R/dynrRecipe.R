@@ -246,7 +246,9 @@ setClass(Class =  "dynrSaemParameter",
 		   setScaleb = "numeric",
 		   setAccept = "numeric",
 		   seed = "numeric",
-		   trueb = "matrix"
+		   trueb = "matrix",
+		   errtrol1 = "numeric",
+		   errtrol = "numeric"
          ),
          contains = "dynrRecipe"
 )
@@ -3807,12 +3809,17 @@ prep.saemParameter<- function(MAXGIB = 50, MAXITER = 200,
                               gainpara1 = 0.900000, 
                               gainparb1 = 1.000000, 
                               bAdaptParams = c(1, 2), KKO = 30, scaleb = 1, 
-                              setScaleb = 1, setAccept = 0.8, seed = NA, trueb = matrix()){
+                              setScaleb = 1, setAccept = 0.8, seed = NA, trueb = matrix(),
+                              errtrol1 = .5, errtrol = .1){ #errtrol1 and errtrol are stages 1 and 2 error tolerance levels in saem
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else
 		seed <- as.integer((100000-1) * runif(1) + 1)
-    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  bAdaptParams = bAdaptParams, KKO = KKO, scaleb=scaleb, setScaleb = setScaleb, setAccept=setAccept, seed = seed, trueb=trueb)
+    x <- list(MAXGIB = MAXGIB, MAXITER = MAXITER, maxIterStage1 = maxIterStage1, gainpara = gainpara, 
+              gainparb = gainparb, gainpara1 = gainpara1, gainparb1 = gainparb1,  
+              bAdaptParams = bAdaptParams, KKO = KKO, scaleb=scaleb, 
+              setScaleb = setScaleb, setAccept=setAccept, seed = seed, 
+              trueb=trueb, errtrol1 = errtrol1, errtrol = errtrol)
     return(new("dynrSaemParameter", x))
 }
 
