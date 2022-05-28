@@ -2587,18 +2587,18 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 		
 		if('random.ub' %in% names(dots))
 			x$random.ub <- dots$random.ub
-		else if ('random.values.inicov' %in% names(dots))
-			x$random.ub <- diag(dots$random.values.inicov)[1] * 10
+		#else if ('random.values.inicov' %in% names(dots))
+		#	x$random.ub <- diag(dots$random.values.inicov)[1] * 10
 		else
 			x$random.ub <- 10
 		
 		 
 		if('random.lb' %in% names(dots))
 			x$random.lb <- dots$random.lb
-		else if ('random.values.inicov' %in% names(dots))
-			x$random.lb <- diag(dots$random.values.inicov)[1] * -10
+		#else if ('random.values.inicov' %in% names(dots))
+		#	x$random.lb <- diag(dots$random.values.inicov)[1] * -10
 		else
-			x$random.lb <- dots$random.lb
+			x$random.lb <- -10#dots$random.lb
 
 
 	}

@@ -129,10 +129,10 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	
 		InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
-		//InfDS.dSigmabdb.print("InfDS.dSigmabdb");
+		InfDS.dSigmabdb.print("InfDS.dSigmabdb");
 		
 		InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
-		//InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
+		InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	}
 	
   // SMC: Sigmae could have all fixed parameters even though
@@ -142,10 +142,10 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		InfDS.Sigmae.print("InfDS.Sigmae at gateway");
 		
 		InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
-		//InfDS.dSigmaede.print("InfDS.dSigmaede");
+		InfDS.dSigmaede.print("InfDS.dSigmaede");
 		
 		InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
-		//InfDS.dSigmaede2.print("InfDS.dSigmaede2");
+		InfDS.dSigmaede2.print("InfDS.dSigmaede2");
 	}
 	
 

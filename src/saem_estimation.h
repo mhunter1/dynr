@@ -166,10 +166,11 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
 		if (bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
             useMultN = 1; // Lu modified, 04-12-13,5;
+		        MAXGIB=1;
 		}
 		//else if(stage==1 && k == 3){
 		else if(stage==1 && k <= 5){
-            useMultN = 1; 
+            useMultN = 1; MAXGIB=20;
 		}
 		/*
 		else if (stage==1 && k <= 4 && k != 3){
@@ -178,7 +179,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		}*/
 		else {
 			useMultN = 0; 
-			//MAXGIB = 10;
+			MAXGIB = InfDS.MAXGIB;
 		}
 
 		mscore = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
