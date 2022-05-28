@@ -765,7 +765,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		#browser()
 		lower_bound <- c(dynrModel@lb[param.names], dynrModel@lb[sigmab.names])
 		upper_bound <- c(dynrModel@ub[param.names], dynrModel@ub[sigmab.names])
-		print('Lower and Uppder bounds:')
+		print('Lower and Upper bounds:')
 		print(lower_bound)
 		print(upper_bound)
 		
@@ -805,13 +805,17 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
 
 		print(paste0("dynrModel@xstart before = ", dynrModel@xstart))
-		dynrModel@xstart[noise.names] <- coefEstUncon[noise.names]
+		#dynrModel@xstart[noise.names] <- coefEstUncon[noise.names]
 		dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
 		print(paste0("dynrModel@xstart after = ", dynrModel@xstart))
 		
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
-		par_value <- dynrModel@xstart
+		par_value <- dynrModel@xstart[c(param.names,sigmab.names)]
 		#par_value <- c(dynrModel@xstart[param.names], dynrModel@xstart[sigmab.names]) # uncontrained scale
+		
+		lower_bound <- c(dynrModel@lb[param.names], dynrModel@lb[sigmab.names])
+		
+		
 		print('Starting values:')
 		print(par_value)
 		
