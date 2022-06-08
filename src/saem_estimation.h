@@ -137,6 +137,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 //if(k >= 1){
 			// in the first iteration we adopt the parameters from dynr interface
+			//if(k > 1)
 			InfDS.fp.setParsFreeICwb(InfDS); //qqqq	
 			Rprintf("The matrices in beginning of iteration %d: \n",k);
 			InfDS.par.print("InfDS.par");

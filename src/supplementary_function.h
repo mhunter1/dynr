@@ -1336,11 +1336,18 @@ void PropSigb(struct C_INFDS &InfDS){
 			//(dfdbt * iSigmae * dfdbt.t()).print("dfdbt * iSigmae * dfdbt.t()");
             temp = temp + dfdbt * iSigmae * dfdbt.t(); 
 			//printf("t = %d\n done\n", t);
-			/*
-			if(i == 0){
-				printf("t = %d\n",t);
+			
+			if( !dfdbt.is_finite()){
+				printf("i= %d t = %d\n",i, t);
 				dfdbt.print("dfdbt");
-			}*/
+				dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1)).print("dXtilddthetafAll");
+				InfDS.Z.print("InfDS.Z");
+				InfDS.Lambda.print("InfDS.Lambda");
+				iSigmae.print("iSigmae");
+				
+				
+				
+			}
 		}//end of t loop
         	//inv(inv(InfDS.Sigmab) + temp).print("omegab");
 		//printf("i = %d\n",i);
@@ -1441,8 +1448,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 		for(uj = 0; uj < s.n_cols; uj++)
 			s(ui, uj) = sqrt(s(ui, uj));
 
-/////
+
 	OMEGAb = InfDS.OMEGAb;
+	OMEGAb.print("OMEGAb in Line 1446");
 	scaleb = InfDS.scaleb;
 	//printf("execution point 2\n");
 
@@ -1458,6 +1466,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			}
 			
 			if(!OMEGAi.is_symmetric()){
+				OMEGAb.print("OMEGAb in Line 1446");
+				Rprintf("InfDS.scaleb = %lf\n", InfDS.scaleb);
+				InfDS.b.print("InfDS.b");
 				Rprintf("OMEGAi in Line 1462 is not symmetric\n");
 				//cout.precision(11);
 				//cout.setf(ios::fixed);
@@ -1627,6 +1638,10 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			}
 			
 			if(!OMEGAi.is_symmetric()){
+				OMEGAb.print("OMEGAb in Line 1633");
+				Rprintf("InfDS.scaleb = %lf\n", InfDS.scaleb);
+				InfDS.b.print("InfDS.b");
+				
 				Rprintf("OMEGAi in Line 1642 is not symmetric\n");
 				//cout.precision(11);
 				//cout.setf(ios::fixed);

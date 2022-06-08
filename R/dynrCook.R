@@ -802,11 +802,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		names(coefEstUncon) <- names(coefEst)
 		# estimate names are names of all free parameters, including those in prep.initial
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
-		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
+		#temporarily commented out
+		#dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
 
 		print(paste0("dynrModel@xstart before = ", dynrModel@xstart))
 		#dynrModel@xstart[noise.names] <- coefEstUncon[noise.names]
-		dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
+		#temporarily commented out
+		#dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
 		print(paste0("dynrModel@xstart after = ", dynrModel@xstart))
 		
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
