@@ -1071,25 +1071,74 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 	//Rprintf("checkpoint 947\n");
 	//printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
 
+
 	
+	
+	if(!InfDS.Iy.is_symmetric()){
+		arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
+		//if the difference between OMEGAi and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
+		if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
+			InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
+		}
+		
+		if(!InfDS.Iy.is_symmetric()){
+			Rprintf("InfDS.Iy in Line 1086 is not symmetric\n");
+			//cout.precision(11);
+			//cout.setf(ios::fixed);
+			//InfDS.Iy.raw_print(cout, "InfDS.Iy:");
+			InfDS.Iy.print("InfDS.Iy");
+		}
+	}
 	flag = chol(R, InfDS.Iy);
 	if(!flag){
 		//printf("\nIy is not positive definite. ss = %5f\n",ss);
-		Rprintf("Serious error!\n");
+		//Rprintf("Serious error!\n");
+		;
 	}
 	
 	while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
 		t = 0.5 * t;
 		InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
+		
+		if(!InfDS.Iy.is_symmetric()){
+			arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
+			//if the difference between InfDS.Iy and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
+			if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
+				InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
+			}
+			
+			if(!InfDS.Iy.is_symmetric()){
+				Rprintf("InfDS.Iy in Line 1112 is not symmetric\n");
+				//cout.precision(11);
+				//cout.setf(ios::fixed);
+				//InfDS.Iy.raw_print(cout, "InfDS.Iy:");
+				InfDS.Iy.print("InfDS.Iy");
+			}
+		}
 		flag = chol(R, InfDS.Iy);
 	}
 	//Rprintf("checkpoint enter 955\n");
  
-	
+	if(!InfDS.Iy.is_symmetric()){
+		arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
+		//if the difference between OMEGAi and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
+		if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
+			InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
+		}
+		
+		if(!InfDS.Iy.is_symmetric()){
+			Rprintf("InfDS.Iy in Line 1131 is not symmetric\n");
+			//cout.precision(11);
+			//cout.setf(ios::fixed);
+			//InfDS.Iy.raw_print(cout, "InfDS.Iy:");
+			InfDS.Iy.print("InfDS.Iy");
+		}
+	}
 	flag = chol(R, InfDS.Iy);
 	if (!flag){
 		redFlag=1;
-		printf("redFlag = %d @ Line 1112\n", redFlag);
+		//printf("redFlag = %d @ Line 1112\n", redFlag);
+		;
 	}
 	
 
@@ -1398,38 +1447,37 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	//printf("execution point 2\n");
 
 	for (i = 0; i < InfDS.Nsubj; i++){
-		//mexPrintf("i = %d\n", i);
-		//OMEGAi = scaleb*OMEGAb(1+(i-1)*Nb:i*Nb,1+(i-1)*Nb:i*Nb);
 		OMEGAi = scaleb*OMEGAb(span(i*Nb, (i+1)*Nb - 1), span(i*Nb, (i+1)*Nb - 1));
-	        //printf("OMEGAi %d %d\n", OMEGAi.n_rows, OMEGAi.n_cols);
-		//OMEGAi.print("OMEGAi");
+	        
 	
+		if(!OMEGAi.is_symmetric()){
+			arma::mat diff = abs(OMEGAi - OMEGAi.t());
+			//if the difference between OMEGAi and its transpose is small, set OMEGAi as the average of OMEGAi and its transpose to avoid rounding error
+			if(accu(diff)/accu(abs(OMEGAi)) < .000001){	
+				OMEGAi = (OMEGAi + OMEGAi.t())/2;
+			}
+			
+			if(!OMEGAi.is_symmetric()){
+				Rprintf("OMEGAi in Line 1462 is not symmetric\n");
+				//cout.precision(11);
+				//cout.setf(ios::fixed);
+				//OMEGAi.raw_print(cout, "OMEGAi:");
+				OMEGAi.print("OMEGAi");
+			}
+		}
 		//If the decomposition fails:
 		//chol(R,X) resets R (to be size zero) and returns a bool set to false (exception is not thrown)
 		//[cOMEGAb0,r] = chol(OMEGAi);
-		//OMEGAi.ones();
-		//OMEGAi.print("OMEGAi (1)");
 		r = chol(cOMEGAb0,OMEGAi);
 		if (!r){
-			//OMEGAi.print("OMEGAi");
 			cOMEGAb0 = diagmat(diagvec(sqrt(OMEGAi)));
-			//OMEGAi.print("OMEGAi (1)");
 			//mexPrintf("first chol\n");
-			//cOMEGAb0.print("cOMEGAb0");
 		}
-		//cOMEGAb0.print("cOMEGAb0");
 		
-		//printf("cOMEGAb0 %d %d\n", cOMEGAb0.n_rows, cOMEGAb0.n_cols);
 	      
     
 		for (q = 0; q < InfDS.N; q++){
 			cOMEGAb = s(i,q)*cOMEGAb0;
-			/*
-			if(q < 3 && i  < 10){
-				//cOMEGAb.print("cOMEGAb");
-				MUb(span(i*Nb, (i+1)*Nb - 1), span::all).print("MUb(span(i*Nb, (i+1)*Nb - 1), span::all)");
-			}
-			*/
 			normtmp.set_size(Nb,1);
 			normtmp.randn();
 			//normtmp.ones(); // de randomized
@@ -1567,34 +1615,34 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	avgScalingb = zeros<arma::mat>(InfDS.Nsubj,1);
 
 	for (i = 0; i < InfDS.Nsubj; i++){    
-		//mexPrintf("i = %d\n",i);
 		OMEGAi = s(i,tpidx(i)) * InfDS.scaleb * (OMEGAb(span(i*Nb,(i+1)*Nb-1),span(i*Nb,(i+1)*Nb-1))); 
-		//OMEGAi.print("OMEGAi");
-		//printf("s(i,tpidx(i)) = %lf InfDS.scaleb = %lf\n", s(i,tpidx(i)), InfDS.scaleb);
-		//scanf("%d");
 		avgScalingb(i) =s(i,tpidx(i));
 		
+		
+		if(!OMEGAi.is_symmetric()){
+			arma::mat diff = abs(OMEGAi - OMEGAi.t());
+			//if the difference between OMEGAi and its transpose is small, set OMEGAi as the average of OMEGAi and its transpose to avoid rounding error
+			if(accu(diff)/accu(abs(OMEGAi)) < .000001){	
+				OMEGAi = (OMEGAi + OMEGAi.t())/2;
+			}
+			
+			if(!OMEGAi.is_symmetric()){
+				Rprintf("OMEGAi in Line 1642 is not symmetric\n");
+				//cout.precision(11);
+				//cout.setf(ios::fixed);
+				//OMEGAi.raw_print(cout, "OMEGAi:");
+				OMEGAi.print("OMEGAi");
+			}
+		}
 		//[cOMEGAb,r] = chol(OMEGAi);
 		r = chol(cOMEGAb,OMEGAi);
-		//OMEGAi.print("OMEGAi (2)");
 		if (!r){
-			//OMEGAi.print("OMEGAi");
 			cOMEGAb = diagmat(diagvec(sqrt(OMEGAi)));
-			printf("second chol\n");
-			//OMEGAi.print("OMEGAi (2)");
-			//cOMEGAb.print("cOMEGAb");
+			//Rprintf("second chol\n");
 		}
-		//cOMEGAb.print("cOMEGAb");
 		
-		//printf("inv error happens here:");
 		normtmp = reshape(bdtmp(span(i,i),span::all),1,Nb) * inv(cOMEGAb); 
-		//printf("exit");
-		//normtmp.print("normtmp");		
-		// to be check
 		propden_old(i) = -0.5* sum(sum(normtmp % normtmp, 1)) - sum(sum(log(diagvec(cOMEGAb)), 1));
-		//if (i <= 5)
-		//	mexPrintf("propden_old(%d) = %lf\n",i, propden_old(i));
-
 	}
 	
 	//propden_old(span(0,4)).print("propden_old");
@@ -1625,8 +1673,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	cindexKept.zeros();
 	Nkept = 0;
 	for (i = 0; i < (int)tp.n_elem; i++){
-		//mexPrintf("i %d %lf %lf\n",i, tp(i), tp1(i));
-		//if (tp(i) <= tp1(i)+ERROR && tpNew( span(i, i) ).is_finite()){
 		if (tp(i) <= tp1(i) && tpNew( span(i, i) ).is_finite()){
 			indexKept(i) = 1;
 			Nkept++;
@@ -1640,8 +1686,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 	
 
 	InfDS.bacc = InfDS.bacc + indexKept;
-	//InfDS.bacc.t().print("bacc");
-	//printf("execution point 8 Nkept = %d\n", Nkept);
+	//Rprintf("execution point 8 Nkept = %d\n", Nkept);
 
 	if (Nkept  > 0){    
 		//tpOld(indexKept) = tpNew(indexKept);
