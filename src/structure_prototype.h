@@ -75,6 +75,9 @@ struct C_OUTPUT{
   mat Iytild; 
   vec thetatild; //column-major to keep the matrix InfDS.Iytild
   mat b;
+  arma::cube Xtild;
+  arma::field<arma::mat> dXtildthetafAll;
+  
 };
 
 

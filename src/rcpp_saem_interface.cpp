@@ -372,5 +372,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 							  Rcpp::Named("avebAccept") = output.avebAccept,
 							  Rcpp::Named("Iytild") = output.Iytild,
 							  Rcpp::Named("thetatild") = output.thetatild,
-							  Rcpp::Named("b") = InfDS.b);
+							  Rcpp::Named("b") = InfDS.b, 
+							  Rcpp::Named("Xtild") = InfDS.Xtild, 
+							  Rcpp::Named("dXtildthetafAll") = InfDS.dXtildthetafAll);
 }
