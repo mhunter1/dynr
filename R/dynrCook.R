@@ -850,7 +850,10 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			}
 		  }
 		}
+		#temporarily set the NaNs in y0 as 0
+		y0[is.na(y0)] <- 0
 		dynrModel@initial@y0 <- list(y0)
+		print(dynrModel@initial@y0 )
 
 		
 		
