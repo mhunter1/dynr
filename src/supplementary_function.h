@@ -396,6 +396,14 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		xk1.slice(t) = k1;
 		xk2.slice(t) = k2;
 		
+		if(! Xtild_t.is_finite()){
+			Rprintf("t = %d. Xtild_t is not finite d(t) = %lf\n", t, dt(t));
+			XtildPrev.print("XtildPrev");
+			k1.print("k1");
+			k2.print("k2");
+			
+		}
+		
 		//Rprintf("execution 4 getDxFlag=%d\n", getDxFlag);
 		if (getDxFlag==1 && t > 1){
 			
@@ -430,6 +438,17 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			
 			dXstar_t = dt(t)/2*(dk1 + dk2);
 			dXtild = dXtildPrev + dXstar_t;
+			
+			if(!dXtild.is_finite()){
+				Rprintf("t = %d. dXtild\n ", t);
+				if(!dk1dtheta.is_finite())
+					dk1dtheta.print("dk1dtheta");
+				if(!dk2dtheta.is_finite())
+					dk2dtheta.print("dk2dtheta");
+				if(!dfdxATk21.is_finite())
+					dfdxATk21.print("dfdxATk21");
+			}
+			
 			//printf("t = %d\n", t);
 			//dXtild.slice(0).rows(0, InfDS.Ntheta-1).print("dXtild"); //correct here
 			//printf("execution 4.2\n");
@@ -455,6 +474,17 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				dveck1dtheta.slice(i) + 
 				dveck1dthetadXtild.slice(i)*trans(dXtildPrev.slice(i));
 				first.slice(i) = (d2XtildPrev.slice(i) + dt(t)*d2vecdk1.slice(i));
+				
+				if(!d2vecdk1.slice(i).is_finite()){
+					Rprintf("i = %d  t = %d. d2vecdk1.\n",i,t);
+					d2vecdk1.slice(i).print("d2vecdk1.slice(i)");
+					dvecdfdXtilddtheta.slice(i).print("dvecdfdXtilddtheta.slice(i)");
+					dvecdfdXtilddXtild.slice(i).print("dvecdfdXtilddXtild.slice(i)");
+					dXtildPrev.slice(i).print("dXtildPrev.slice(i)");
+					dfdxATXtildprev.slice(i).print("dfdxATXtildprev.slice(i)");
+					dveck1dtheta.slice(i).print("dveck1dtheta.slice(i)");
+					dveck1dthetadXtild.slice(i).print("dveck1dthetadXtild.slice(i)");
+				}
 			}
 			//Rprintf("execution 5.1\n");
 
@@ -465,6 +495,15 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 			
 			for (i = 0; i < Nsubj; i++){
 				second.slice(i) = dvecdfdxATk21dtheta.slice(i) + dvecdfdxATk21dk21.slice(i)*trans(dk21.slice(i)); //Second term, dvecfxdxatk21_2
+				
+				if(!second.slice(i).is_finite()){
+					Rprintf("i = %d  t = %d. second.slice(i).\n",i,t);
+					second.slice(i).print("second.slice(i)");
+					dvecdfdxATk21dtheta.slice(i).print("dvecdfdxATk21dtheta.slice(i)");
+					dvecdfdxATk21dk21.slice(i).print("dvecdfdxATk21dk21.slice(i)");
+					dk21.slice(i).print("dk21.slice(i)");	
+				}
+				
 			}
 			//Rprintf("execution 5.3\n");
 			
@@ -483,6 +522,13 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 				(kron(dfdxATk21.slice(i),eye1.eye(InfDS.Ntheta, InfDS.Ntheta))).t()* first.slice(i) + 
 				kron(eye2.eye(InfDS.Nx, InfDS.Nx), dk21.slice(i))*(second.slice(i)) +
 				third.slice(i);
+				
+				if(!third.slice(i).is_finite()){
+					Rprintf("i = %d  t = %d. third.slice(i).\n",i,t);
+					third.slice(i).print("third.slice(i)");
+					dfdxATk21.slice(i).print("dfdxATk21.slice(i)");
+					
+				}
 			}
 			//printf("execution 5.5\n");
 			
@@ -1339,14 +1385,11 @@ void PropSigb(struct C_INFDS &InfDS){
 			
 			if( !dfdbt.is_finite()){
 				printf("i= %d t = %d\n",i, t);
-				dfdbt.print("dfdbt");
+				//dfdbt.print("dfdbt");
 				dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1)).print("dXtilddthetafAll");
 				InfDS.Z.print("InfDS.Z");
 				InfDS.Lambda.print("InfDS.Lambda");
 				iSigmae.print("iSigmae");
-				
-				
-				
 			}
 		}//end of t loop
         	//inv(inv(InfDS.Sigmab) + temp).print("omegab");
@@ -1450,7 +1493,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 
 
 	OMEGAb = InfDS.OMEGAb;
-	OMEGAb.print("OMEGAb in Line 1446");
+	//OMEGAb.print("OMEGAb in Line 1446");
 	scaleb = InfDS.scaleb;
 	//printf("execution point 2\n");
 
@@ -1466,8 +1509,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			}
 			
 			if(!OMEGAi.is_symmetric()){
-				OMEGAb.print("OMEGAb in Line 1446");
-				Rprintf("InfDS.scaleb = %lf\n", InfDS.scaleb);
+				//OMEGAb.print("OMEGAb in Line 1446");
+				//Rprintf("InfDS.scaleb = %lf\n", InfDS.scaleb);
 				InfDS.b.print("InfDS.b");
 				Rprintf("OMEGAi in Line 1462 is not symmetric\n");
 				//cout.precision(11);
@@ -1638,7 +1681,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, arma::mat &meanb
 			}
 			
 			if(!OMEGAi.is_symmetric()){
-				OMEGAb.print("OMEGAb in Line 1633");
+				//OMEGAb.print("OMEGAb in Line 1633");
 				Rprintf("InfDS.scaleb = %lf\n", InfDS.scaleb);
 				InfDS.b.print("InfDS.b");
 				
