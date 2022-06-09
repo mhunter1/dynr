@@ -229,21 +229,23 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		}
 		
 		#browser()
-		index <- 1:length(theta.names)
-		replace_order <- theta.names[order(nchar(theta.names), theta.names, decreasing= TRUE)]			
+		ind_order <- order(nchar(theta.names), theta.names, decreasing= TRUE)
+		var_order <- theta.names[ind_order]	
 		for (i in 1:length(theta.formula)){	
 			# Replace theta_i in formula with thetaf
 			# - thetaf is calculated by calculateTheta()
 			# - the variable name of thetaf is from the LHS of theta.formula
 			# - in jacobian (dfdx), LHS of theta.formula is already replaced by RHS of theta.formula in rhsj (to get correct differentiation), thus, we replace the RHS of theta formula by thetaf
-			pattern <- replace_order[i]
-			rhs <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
-			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("thetaf(",i-1,",s)"),x, fixed = TRUE)}))
+			pattern <- var_order[i]
+			ind <- ind_order[i]
+			
+			rhs <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsx2 <- list(lapply(rhsx2[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsxp <- list(lapply(rhsxp[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhspx <- list(lapply(rhspx[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
+			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("thetaf(",ind-1,",s)"),x, fixed = TRUE)}))
 		}
 		
 		#browser()
@@ -253,12 +255,12 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# - param.names: model@param.names
 		# - replace it with the descreasing order of variable name length
 		#print(param.names)
-		index <- 1:length(param.names)
-		replace_order <- param.names[order(nchar(param.names), param.names, decreasing= TRUE)]
+		ind_order <- order(nchar(param.names), param.names, decreasing= TRUE)
+		var_order <- param.names[ind_order]
 		for (i in 1:length(param.names)){
-			var.name <- replace_order[i]
-			pattern <- var.name
-			ind <- index[param.names == var.name]
+			pattern <- var_order[i]
+			ind <- ind_order[i]
+			
 			rhs  <- list(lapply(rhs[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
 			rhsj <- list(lapply(rhsj[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
 			rhsp <- list(lapply(rhsp[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
@@ -268,9 +270,11 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			rhsp2 <- list(lapply(rhsp2[[1]], function(x){gsub(pattern, paste0("InfDS.par(",ind-1,")"),x, fixed = TRUE)}))
 		}
 		
+		#browser()
 		# Replace the covariate to corresponding variables in SAEM (i.e., InfDS.U1)
+		ind_order <- order(nchar(covariate.names), covariate.names, decreasing= TRUE)
         for (i in 1:length(covariate.names)){
-            selected <- covariate.names[i]
+            selected <- covariate.names[ind_order[i]]
             #get <- paste0("covariate(s,", which(covariate.names == selected)-1,")")
 			get <- paste0("InfDS.U1(s,", which(covariate.names == selected)-1,")")
             rhs <- lapply(gsub(paste0("\\<",selected,"\\>"), get, rhs), function(x){eval(parse(text=x))})
@@ -354,7 +358,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			    rhs[[1]][[i]]=gsub(paste0("\\<",lhs[[1]][[j]],"\\>"),paste0("y(",j-1,", s)"),rhs[[1]][[i]])
 			}
             if(isStateVariables[[i]] == TRUE)
-                ret=paste(ret,paste0("\t\t\tr(",i-1,", s)= ",rhs[[1]][[i]],";"),sep="\n")
+                ret=paste(ret,paste0("\t\tr(",i-1,", s)= ",rhs[[1]][[i]],";"),sep="\n")
 
         }
 
@@ -460,7 +464,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 				ret=paste(ret,paste0("\t\tr.slice(s)(",row,",",col,") = ",rhsx2[[1]][[i]],";"),sep="\n")
 	        
 	    }
-		ret = paste(ret, "\n\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t\t;\n\t}\n\treturn r;\n}\n")
 		ret=paste0(ret,"\n//----------------\n")
 		
 		#----------------------------------------------------------------------------------------------
@@ -490,7 +494,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 				ret=paste(ret,paste0("\t\tr.slice(s)(",row,",",col,") = ",rhsxp[[1]][[i]],";"),sep="\n")
 	        
 	    }
-		ret = paste(ret, "\n\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t\t;\n\t}\n\treturn r;\n}\n")
 		ret=paste0(ret,"\n//----------------\n")
 		
 		
@@ -520,7 +524,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 				ret=paste(ret,paste0("\t\tr.slice(s)(",row,",",col,") = ",rhspx[[1]][[i]],";"),sep="\n")
 	        
 	    }
-		ret = paste(ret, "\n\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t\t;\n\t}\n\treturn r;\n}\n")
 		ret=paste0(ret,"\n//----------------\n")
 
 		
@@ -550,7 +554,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 				ret=paste(ret,paste0("\t\tr.slice(s)(",row,",",col,") = ",rhsp2[[1]][[i]],";"),sep="\n")
 	        
 	    }
-		ret = paste(ret, "\n\t}\n\treturn r;\n}\n")
+		ret = paste(ret, "\n\t\t;\n\t}\n\treturn r;\n}\n")
 		
 		#----------------------------------------------------------------------------------------------
 		#Output setParsFreeICwb
