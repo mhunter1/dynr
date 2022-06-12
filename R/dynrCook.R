@@ -803,12 +803,12 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		# estimate names are names of all free parameters, including those in prep.initial
 		estimated.names <- intersect(names(dynrModel@xstart), names(coefEst))
 		#temporarily commented out
-		#dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
+		dynrModel@xstart[estimated.names] <- coefEstUncon[estimated.names] #xstart are in uncontrained scale
 
 		print(paste0("dynrModel@xstart before = ", dynrModel@xstart))
 		#dynrModel@xstart[noise.names] <- coefEstUncon[noise.names]
 		#temporarily commented out
-		#dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
+		dynrModel@xstart[sigmab.names] <- coefEstUncon[sigmab.names]
 		print(paste0("dynrModel@xstart after = ", dynrModel@xstart))
 		
 	    #par_value <- c(dynrModel@xstart[param.names], log(dynrModel@dynamics@random.values.inicov))
@@ -825,7 +825,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		# #get the initial values of b
 		# #temporarily commented out 
-		#b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
+		b <- fitted_model@eta_smooth_final[(num.x + 1):nrow(fitted_model@eta_smooth_final),data$tstart[1:num.subj+1]]
 		print(paste0("model@statenames = ",(model@measurement)$state.names))
 		print(paste0("random.names = ",dynrModel$dynamics$random.names))
 		b <- fitted_model@eta_smooth_final[(model@measurement)$state.names %in% 
@@ -836,24 +836,35 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		b <- t(b)
 		
 		 
-		# obtain y0 form eta_smooth_final		
+		# obtain y0 form eta_smooth_final
+		browser()
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		for(i in 1:num.subj){
 		  if(length(dynrModel@initial$values.inistate[[1]]) > 0){
 		    if(dynrModel@freeIC){
               #y0[i, ] <- dynrModel@initial$values.inistate[[1]] + b[i, (1:num.x)]
-			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
+			  if(all(is.finite(fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)])))
+			    y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
+			  else if(all(is.finite(fitted_model@eta_filtered[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)])))
+			    y0[i, ] <- fitted_model@eta_filtered[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
+			  else
+			    y0[i, ] <- fitted_model@eta_predicted[1:num.x, data$tstart[i]+1] + b[i, (1:num.x)]
 			}
 			else{
 			  #y0[i, ] <- dynrModel@initial$values.inistate[[1]] 
-			  y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1]
+			  if(all(is.finite(fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1])))
+			    y0[i, ] <- fitted_model@eta_smooth_final[1:num.x, data$tstart[i]+1]
+			  else if(all(is.finite(fitted_model@eta_filtered[1:num.x, data$tstart[i]+1])))
+			    y0[i, ] <- fitted_model@eta_filtered[1:num.x, data$tstart[i]+1]
+			  else 
+			    y0[i, ] <- fitted_model@eta_predicted[1:num.x, data$tstart[i]+1]
 			}
 		  }
 		}
 		#temporarily set the NaNs in y0 as 0
-		y0[is.na(y0)] <- 0
+		#y0[is.na(y0)] <- 0
 		dynrModel@initial@y0 <- list(y0)
-		print(dynrModel@initial@y0 )
+		print(dynrModel@initial@y0)
 
 		
 		
