@@ -837,7 +837,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		 
 		# obtain y0 form eta_smooth_final
-		browser()
+		#browser()
 		y0 <- matrix(0, nrow=num.subj, ncol=num.x)
 		for(i in 1:num.subj){
 		  if(length(dynrModel@initial$values.inistate[[1]]) > 0){
