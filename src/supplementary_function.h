@@ -405,7 +405,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 		}
 		
 		//Rprintf("execution 4 getDxFlag=%d\n", getDxFlag);
-		if (getDxFlag==1 && t > 1){
+		if (getDxFlag==1 && t >= 1){
 			
 			//tindex.print("tindex");
 			//dt.print("dt");
