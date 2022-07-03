@@ -597,6 +597,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
 	//InfDS.dXtildthetafAll(0).cols((0)*InfDS.Nx, (0+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 0");
 	//InfDS.dXtildthetafAll(0).cols((199)*InfDS.Nx, (199+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 199");
 
+	InfDS.dXtild = dXtild;
+	InfDS.d2Xtild = d2Xtild;
 	
 	for (i = 0; i < InfDS.Nsubj; i++){
 		for(int j = 0; j < InfDS.allT(i); j++){
@@ -1237,6 +1239,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				if (ss <= InfDS.errtrol1 || gmm == InfDS.maxIterStage1){
 					stage = 2; 
 					gmm = 1;
+					
 				}
 			}
 		}

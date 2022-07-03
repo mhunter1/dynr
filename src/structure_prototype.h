@@ -21,7 +21,7 @@ struct C_INFDS{
 	double omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;
 	int alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;
 	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;
-	arma::cube Xtild;
+	arma::cube Xtild, dXtild, d2Xtild, Xtild_p1, dXtild_p1, d2Xtild_p1, Xtild_12, dXtild_12, d2Xtild_12;
 	arma::Mat<double> allT;
 	struct C_FUNC_POINTER fp;
 };

@@ -37,6 +37,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//arma_rng::set_seed(seed);
 	
 
+	InfDS.Xtild_12.reset();
 	output.avebAccept = 0;
 	isBlock1Only = 0;	
 	switchFlag = 0;
@@ -159,6 +160,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			yesMean= 1;
 			switchFlag = 1; 
 			meanb = arma::zeros<arma::mat>(InfDS.Nsubj,InfDS.Nb); //Keeps b estimates averaged across Gibbs runs
+			
 		}
 
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
@@ -196,6 +198,20 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
 		//Rprintf("end of getXtildIC3\n");
+		if(k == 1){
+			InfDS.Xtild_p1 = InfDS.Xtild;
+			InfDS.dXtild_p1 = InfDS.dXtild;
+			InfDS.d2Xtild_p1 = InfDS.d2Xtild;
+
+		}
+		else if (stage == 2 && InfDS.Xtild_12.is_empty()){			
+			//copy Xtild, dXtild, and d2Xtild before transitting to stage 2
+			InfDS.Xtild_12 = InfDS.Xtild;
+			InfDS.dXtild_12 = InfDS.dXtild;
+			InfDS.d2Xtild_12 = InfDS.d2Xtild;
+			//InfDS.d2Xtild.print("InfDS.d2Xtild");
+			
+		}
 		
 		
 
