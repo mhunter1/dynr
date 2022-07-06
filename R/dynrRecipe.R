@@ -3808,9 +3808,9 @@ prep.saemParameter<- function(MAXGIB = 50, MAXITER = 200,
                               gainparb = 3.000000, 
                               gainpara1 = 0.900000, 
                               gainparb1 = 1.000000, 
-                              bAdaptParams = c(1, 2), KKO = 30, scaleb = 1, 
+                              bAdaptParams = c(1, 2), KKO = 10, scaleb = 1, 
                               setScaleb = 0, setAccept = 0.8, seed = NA, trueb = matrix(),
-                              errtrol1 = 1, errtrol = .5){ #errtrol1 and errtrol are stages 1 and 2 error tolerance levels in saem
+                              errtrol1 = 1, errtrol = 1){ #errtrol1 and errtrol are stages 1 and 2 error tolerance levels in saem
     if(is.numeric(seed) == TRUE)
 		seed <- as.integer(seed)
 	else

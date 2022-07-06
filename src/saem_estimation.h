@@ -172,14 +172,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		        MAXGIB=1;
 		}
 		//else if(stage==1 && k == 3){
-		else if(stage==1 && k <= 5){
-            useMultN = 1; MAXGIB=20;
-		}
-		/*
-		else if (stage==1 && k <= 4 && k != 3){
-            useMultN = 0; 
-			//MAXGIB = 1;
-		}*/
+		//SMC commented out 7/5/22
+		//else if(stage==1 && k <= InfDS.KKO){
+    //        useMultN = 1; MAXGIB=20;
+		//}
 		else {
 			useMultN = 0; 
 			MAXGIB = InfDS.MAXGIB;
@@ -253,7 +249,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 		Covscore = mscore2 - mscore*mscore.t();
 	
-		saem(InfDS, gmm, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore);
+		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore);
 	
     
 		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);

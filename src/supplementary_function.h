@@ -8,7 +8,7 @@ double quantile(arma::vec X, double p){
 	double devision;
 	int id;
 	if (X.is_sorted("ascend") == false)
-		X = sort(X, "ascend");
+		X = sort(X, "ascend");     
 	
 	threshold = (0.5)/X.n_elem;
 	if(p <= threshold)
@@ -1057,7 +1057,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 
 
 
-void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore){
+void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore){
 
 
 	// variable declaration
@@ -1087,9 +1087,10 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		gainparb = InfDS.gainparb1;
 	}
 
-	if (stage < 2 && gmm <= 5)
-		gmm1 = 1;
-	else
+	//SMC commented out 7/5/22
+	//if (stage < 2 && gmm <= 5)
+	//	gmm1 = 1;
+	//else
 		gmm1 = gmm;
 	
 	gain = gainparb/(pow(gmm1, gainpara) + gainparb - 1);  
@@ -1208,7 +1209,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 			dc2= zeros(mscore.n_elem);
 		}
 	}
-	//dc2.print("dc2"); //the same
+	dc2.print("dc2"); //the same
 
 	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	if (!redFlag){
@@ -1230,16 +1231,16 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 		}
 		if (stage==1){
 			//Rprintf("sgnTH %d %d dc2 %d\n",sgnTH.n_rows, sgnTH.n_cols, dc2.n_elem);
-			sgnTH(span::all, gmm - 1) = gain * sign(dc2); 
+			sgnTH(span::all, gmm - 1) = gain*dc2;//gain * sign(dc2); 
 			//Rprintf("sgnTH %d %d dc2 %d\n",sgnTH.n_rows, sgnTH.n_cols, dc2.n_elem);
 			if (gmm >= InfDS.KKO){    
-				ss = norm(mean(sgnTH(span::all,span(gmm - InfDS.KKO, gmm - 1)),1));
-				Rprintf("\nStage 1 Error tolerance at convergence = %6f\n", ss); 
-	   
+				//ss = norm(mean(sgnTH(span::all,span(min(gmm - InfDS.KKO, gmm-1), gmm - 1)),1));
+				ss = norm(mean(sgnTH(span::all,span(min(0,gmm - InfDS.KKO), gmm - 1))),2);
+			  Rprintf("\nStage 1 Error tolerance at convergence = %6f\n", ss); 
 				if (ss <= InfDS.errtrol1 || gmm == InfDS.maxIterStage1){
 					stage = 2; 
 					gmm = 1;
-					
+
 				}
 			}
 		}
@@ -1317,8 +1318,11 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 				
 				//ss = abs(InfDS.sytild.t()*inv(InfDS.Iytild)*InfDS.sytild + trace(solve(InfDS.Iytild,Covscore))/gmm);
 				arma::mat temp = InfDS.sytild.t()*inv(InfDS.Iytild)*InfDS.sytild;
-				ss = abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore))/gmm);
+				Rprintf("\nStage 2 ss numerator = %6f\n", abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore)))); 
 				
+				//SMC 7/5/22 temporarily omitted /gmm in the following:
+				ss = abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore))/(double) k); ///gmm);
+				Rprintf("\nStage 2 ss = %6f\n", ss); 
 				/*
 				if (ss > ssmin)
 				   noIncrease = noIncrease + 1;
@@ -1342,6 +1346,9 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &stage, int &redFlag, int &convFl
 					stop = 1;
 				}
 			}
+			//iterCount++;
+			Rprintf("IterCount =  %d\n", k);
+			
 		}
 	}
 

@@ -38,8 +38,9 @@ Note
 #include "numeric_derivatives.h"
 #include "print_function.h"
 
-int opt_nlopt(void *my_func_data, size_t num_func_param, double *ub, double *lb, double *minf, double *fittedpar, gsl_matrix *Hessian_mat, gsl_matrix *inv_Hessian_mat, double *xtol_rel, double *stopval, double *ftol_rel, double *ftol_abs, int *maxeval, double *maxtime)
+int opt_nlopt(void *my_func_data, size_t num_func_param, double *ub, double *lb, double *minf, double *fittedpar, gsl_matrix *Hessian_mat, gsl_matrix *inv_Hessian_mat, double *xtol_rel, double *stopval, double *ftol_rel, double *ftol_abs, int *maxeval, double *maxtime, int *iterCount)
 {
+  //SMC note for HJ: In here, set up a global iteration counter
 	MYPRINT("Optimization function called.\n");
 	nlopt_opt opt;
 	//opt = nlopt_create(NLOPT_LD_MMA, num_func_param);
@@ -65,6 +66,7 @@ int opt_nlopt(void *my_func_data, size_t num_func_param, double *ub, double *lb,
 	/*MYPRINT("Set ftol_rel to  %f\n", *ftol_rel);*/
 	
 	int status=nlopt_optimize(opt, fittedpar, minf);
+	(*iterCount) = nlopt_get_numevals(opt);
 	
 	nlopt_destroy(opt);
 	

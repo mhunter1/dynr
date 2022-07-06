@@ -269,6 +269,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	double *ftol_rel = REAL(ftol_rel_sexp);
 	double *ftol_abs = REAL(ftol_abs_sexp);
 	int *maxeval = INTEGER(maxeval_sexp);
+	int iterCount;
 	double *maxtime = REAL(maxtime_sexp);
 	
 	/** Optimization bounds and starting values **/
@@ -309,7 +310,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		double minf; /* the minimum objective value, upon return */
 		
 		gsl_matrix *inv_Hessian_mat = gsl_matrix_calloc(data_model.pc.num_func_param, data_model.pc.num_func_param);
-		status = opt_nlopt(&data_model, data_model.pc.num_func_param, ub, lb, &minf, fittedpar, Hessian_mat, inv_Hessian_mat, xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, maxtime);
+		status = opt_nlopt(&data_model, data_model.pc.num_func_param, ub, lb, &minf, fittedpar, Hessian_mat, inv_Hessian_mat, xtol_rel, stopval, ftol_rel, ftol_abs, maxeval, maxtime, &iterCount);
 		
 		gsl_matrix_free(inv_Hessian_mat);
 	}else{
@@ -527,8 +528,8 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	SEXP res_names;
 
 	if (debug_flag){
-	    res_list=PROTECT(allocVector(VECSXP, 14));
-	    res_names=PROTECT(allocVector(STRSXP, 14));
+	    res_list=PROTECT(allocVector(VECSXP, 15));
+	    res_names=PROTECT(allocVector(STRSXP, 15));
 	}else{
 	    res_list=PROTECT(allocVector(VECSXP,10));
 	    res_names=PROTECT(allocVector(STRSXP, 10));
@@ -770,6 +771,16 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		SET_VECTOR_ELT(res_list, 13, residual_cov);
 		UNPROTECT(2);
 		DYNRPRINT(verbose_flag, "residual_cov created and copied.\n");
+		
+		//ADDED to track number of iterations in dynr
+		SEXP iterCountSEXP=PROTECT(allocVector(INTSXP,1));
+		*INTEGER(iterCountSEXP)=iterCount;
+		SET_STRING_ELT(res_names, 14, mkChar("numIterations"));
+		SET_VECTOR_ELT(res_list, 14, iterCountSEXP);
+		UNPROTECT(1);
+		DYNRPRINT(verbose_flag, "numIterations created and copied.\n");
+		
+		//END ADDED
 		
 	}	
 	
