@@ -1057,7 +1057,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 
 
 
-void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore){
+void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore, int &numIterations){
 
 
 	// variable declaration
@@ -1321,7 +1321,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int
 				Rprintf("\nStage 2 ss numerator = %6f\n", abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore)))); 
 				
 				//SMC 7/5/22 temporarily omitted /gmm in the following:
-				ss = abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore))/(double) k); ///gmm);
+				ss = abs(temp(0,0) + trace(solve(InfDS.Iytild,Covscore))/(double) numIterations); ///gmm);
 				Rprintf("\nStage 2 ss = %6f\n", ss); 
 				/*
 				if (ss > ssmin)

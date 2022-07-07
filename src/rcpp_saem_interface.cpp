@@ -39,6 +39,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	/*scalar inputs*/
 	//int
+	int numIterations = as<int>(model_sexp["numIterations"]);
 	int seed = as<int>(model_sexp["seed"]);
 	int num_time = as<int>(model_sexp["num_time"]);
 	int isfreeIC = as<int>(model_sexp["freeIC"]);
@@ -93,6 +94,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	Rprintf("Stage 1 error tolerance = %lf\n", InfDS.errtrol1);
 	Rprintf("Stage 2 error tolerance = %lf\n", InfDS.errtrol);	
 	//print out the values
+	Rprintf("Number of iterations from expanded approach = %d",int(numIterations));
 	Rprintf("flags %d %d %d %d %d\n", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
 	Rprintf("scaleb = %lf\n", InfDS.scaleb);
 	//Rprintf("seed = %d\n", seed);
@@ -355,7 +357,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	char filenameconv[64] = "./Results/TrueInitconvG1.txt";
 	char filenamebhat[64] = "./Results/TrueInitbhatG1.txt";
 	char filenamebhat2[64] = "./Results/TrueInitbhat2G1.txt";
-	int kk = 1;
+	//int kk = 1;
 	int trueInit = 1;
 	int batch = 1;
 
@@ -363,7 +365,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 
 	set_seed(double(seed));
-	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, kk, trueInit, batch, seed, isfreeIC, output);
+	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, numIterations, trueInit, batch, seed, isfreeIC, output);
 
 	return Rcpp::List::create(Rcpp::Named("convFlag") = output.convFlag, 
 	                          Rcpp::Named("nIterStage1") = output.nIterStage1, 

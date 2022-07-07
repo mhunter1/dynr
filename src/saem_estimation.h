@@ -249,7 +249,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 		Covscore = mscore2 - mscore*mscore.t();
 	
-		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore);
+		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore,kk);
 	
     
 		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);
@@ -299,88 +299,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 
 	Rprintf("(4) Wrap up estimation and write out results\n");
-
-
-	//arma::mat dgdpar;
-
-	//If using transformation functions
-	//dgdpar = eye(InfDS.par.n_rows, InfDS.par.n_rows);
-	//dgdpar(span(10,12), span(10,12)) = diagmat(exp(InfDS.par(span(10,12),0)));
-
-/*
-	Rprintf("(41) Wrap up estimation and write out results\n");
-
-	//Columns -- par, rows --transformation function
-	dgdpar(13, 13) = exp(InfDS.par(13));
-	dgdpar(14, 14) = exp(InfDS.par(14));
-
-	dgdpar(15,14) = InfDS.par(16)*exp(InfDS.par(14));//diff(f1,par2)
-	dgdpar(15,16) = exp(InfDS.par(14));//%diff(f1,par4)
-	dgdpar(16,14) = InfDS.par(16)*InfDS.par(16)*exp(InfDS.par(14));//diff(f2,par2)
-	dgdpar(16,15) = exp(InfDS.par(15));//%diff(f2,par3)
-	dgdpar(16,16) = 2*InfDS.par(16)*exp(InfDS.par(14)); //diff(f2,par4)
-	
-	Rprintf("(42) Wrap up estimation and write out results\n");
-	
-	arma::mat SE;
-
-	//SE = sqrt(diagvec(dgdpar/InfDS.Iytild*dgdpar.t()));
-        SE = sqrt(diagvec(dgdpar/InfDS.Iytild*dgdpar.t()));
-	InfDS.par(10) = exp(InfDS.par(10));
-	InfDS.par(11) = exp(InfDS.par(11));
-	InfDS.par(12) = exp(InfDS.par(12));
-	//to be converted
-	//InfDS.par(span(13,16)) = [QQ(0,0), QQ(1,1), QQ(2,2), QQ(1,2)];
-	InfDS.par(13) = QQ(0,0);
-	InfDS.par(14) = QQ(1,1);
-	InfDS.par(15) = QQ(2,2);
-	InfDS.par(16) = QQ(1,2);
-	//InfDS.lastb = InfDS.b; 
-	//InfDS.meanb = meanb;
-	//InfDS.convFlag = convFlag;
-	//InfDS.ss = ss;
-
-	Rprintf("(43) Wrap up estimation and write out results\n");
-*/
-/*
-	fitInit = 1; //Fit models with freely estimated IC.
-	//dlmwrite(filenamePar,[trueInit fitInit batch kk reshape(InfDS.par,1,length(InfDS.par))],'-append');
-	p_filenamePar = fopen(filenamePar, "a");
-	fprintf(p_filenamePar, "%d,%d,%d,%d,%d", seed, trueInit, fitInit, batch, kk);
-	for (i = 0; i < InfDS.par.n_elem; i++)
-		fprintf(p_filenamePar, ",%lf", InfDS.par(i));
-	fprintf(p_filenamePar, "\n");
-	
-	//dlmwrite(filenameSE,[trueInit fitInit batch kk reshape(InfDS.SE,1,length(InfDS.par))],'-append');
-	p_filenameSE = fopen(filenameSE, "a");
-	fprintf(p_filenameSE, "%d,%d,%d,%d,%d", seed, trueInit, fitInit, batch, kk);
-	for (i = 0; i < InfDS.par.n_elem; i++)
-		fprintf(p_filenameSE, ",%lf", SE(i));
-	fprintf(p_filenameSE, "\n");
-	
-	//dlmwrite(filenameconv,[trueInit fitInit batch kk InfDS.convFlag InfDS.ss],'-append');
-	p_filenameconv = fopen(filenameconv, "a");
-	fprintf(p_filenameconv, "%d,%d,%d,%d,%d,%d,%lf\n", seed, trueInit, fitInit, batch, kk, convFlag, ss);
-	
-	
-	//dlmwrite(filenamebhat,[trueInit fitInit batch kk reshape(InfDS.lastb,1,InfDS.Nsubj*InfDS.Nb)],'-append'); %Reshape by column
-	p_filenamebhat = fopen(filenamebhat, "a");
-	fprintf(p_filenamebhat, "%d,%d,%d,%d,%d", seed, trueInit, fitInit, batch, kk);
-	for (j = 0; j < InfDS.b.n_cols; j++){
-		for (i = 0; i < InfDS.b.n_rows; i++)
-			fprintf(p_filenamebhat, ",%lf", InfDS.b(i,j));
-	}
-	fprintf(p_filenamebhat, "\n");
-	
-	//dlmwrite(filenamebhat2,[trueInit fitInit batch kk reshape(InfDS.meanb,1,InfDS.Nsubj*InfDS.Nb)],'-append');%Reshape by column
-	p_filenamebhat2 = fopen(filenamebhat2, "a");
-	fprintf(p_filenamebhat2, "%d,%d,%d,%d,%d",seed, trueInit, fitInit, batch, kk);
-	for (j = 0; j < meanb.n_cols; j++){
-		for (i = 0; i < meanb.n_rows; i++)
-			fprintf(p_filenamebhat2, ",%lf", meanb(i,j));
-	}
-	fprintf(p_filenamebhat2, "\n");
-*/
 
 	InfDS.Iytild.print("InfDS.Iytild");
 	InfDS.thetatild.print("InfDS.thetatild");

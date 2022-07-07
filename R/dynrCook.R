@@ -93,7 +93,8 @@ setClass(Class =  "dynrDebug",
            innov_vec = "matrix", # LxT
            residual_cov = "array", # LxLxT
            run.times = "numeric",
-           param.names = "character"
+           param.names = "character",
+           numIterations = "numeric"
          ),
          contains = "dynrCook"
 )
@@ -123,6 +124,7 @@ setMethod("initialize", "dynrDebug",
             .Object@error_cov_predicted <- x$error_cov_predicted
             .Object@innov_vec <- x$innov_vec
             .Object@residual_cov <- x$residual_cov
+            .Object@numIterations <- x$numIterations
             return(.Object)
           }
 )
@@ -157,7 +159,8 @@ summaryResults <- function(object, ...){
 print.summary.dynrCook <- function(x, digits = max(3L, getOption("digits") - 3L), signif.stars = getOption("show.signif.stars"), ...){
 	cat("Coefficients:\n")
 	printCoefmat(x$Coefficients, cs.ind=c(1L, 2L, 4L, 5L), tst.ind=3L, zap.ind=6L, digits = digits, signif.stars = signif.stars, ...)
-	cat(paste0("\n-2 log-likelihood value at convergence = ", sprintf("%.02f", round(x$neg2LL,2))))
+	cat(paste0("\n-2 log-likelihood value at convergence = ", 
+	           sprintf("%.02f", round(x$neg2LL,2))))
 	cat(paste0("\nAIC = ", sprintf("%.02f", round(x$AIC,2))))
 	cat(paste0("\nBIC = ", sprintf("%.02f", round(x$BIC,2))))
 	cat("\n")
@@ -788,7 +791,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  fitted_model <<- dynr.cook(model, optimization_flag=optimization_flag, 
 		                            hessian_flag = FALSE,#hessian_flag, 
 		                            verbose=FALSE, weight_flag=weight_flag, 
-		                            debug_flag=debug_flag)
+		                            debug_flag=TRUE) #debug_flag = debug_flag
+		  #fitted_model@
+		  browser()
 		  save.image(file = "After expanded.RData")
 		} else {
 		  #browser()
@@ -966,6 +971,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model$func_address <- addr$address
 		libname <- addr$libname
 		
+		#Pass in number of iterations from traditional dynr expanded approach and pass to SAEM
+		model$numIterations <- fitted_model@numIterations
         
 		#call Rcpp_saem_interface
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
@@ -977,7 +984,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		names(output$fitted.parameters) <- c(param.names, sigmab.names)
 		
 		output$transformed.parameters <- output$fitted.parameters
-		#SMC Note: These are incorrect. Need to fix
+		output$hessian.matrix <- output$Iytild
+		output$inv.hessian <- inv(output$Iytild)
+		#SMC Note: These are incorrect. tag HJ to get transformation function to fix
 		#output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
 		#output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
 		
@@ -988,10 +997,9 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 
 		#browser()
-        return(output)
+        return(output) #Later comment this out and go through the rest of endProcessing
     }
-
-    
+  else{  
 	#internalModelPrep convert dynrModel to a model list
 	model <- internalModelPrep(
 		num_regime=dynrModel@num_regime,
@@ -1028,7 +1036,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 	dyn.unload(libname) # unload the compiled library
 	# unlink(libname) # deletes the DLL
 	#gc() # garbage collection
+} # END OF non-SAEM estimation
+	
+	
 	cat('Original exit flag: ', output$exitflag, '\n')
+	if (debug_flag && !is.null(output$numIterations)){
+	cat('Number of iterations: ', output$numIterations,'\n')
+	} 
 	# Check to make sure likelihood is not NaN.
 	output$exitflag <- ifelse(!is.finite(output$neg.log.likelihood), -6, output$exitflag)
 	# Use lookup table for exit flags
