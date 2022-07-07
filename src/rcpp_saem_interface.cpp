@@ -39,6 +39,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	/*scalar inputs*/
 	//int
+	bool observedFlag = as<int>(model_sexp["observedFlag"]);
 	int numIterations = as<int>(model_sexp["numIterations"]);
 	int seed = as<int>(model_sexp["seed"]);
 	int num_time = as<int>(model_sexp["num_time"]);
@@ -97,6 +98,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	Rprintf("Number of iterations from expanded approach = %d",int(numIterations));
 	Rprintf("flags %d %d %d %d %d\n", int(weight_flag), int(debug_flag), int(optimization_flag), int(hessian_flag), int(verbose));
 	Rprintf("scaleb = %lf\n", InfDS.scaleb);
+	Rprintf("Model observable = %d\n", observedFlag);
 	//Rprintf("seed = %d\n", seed);
 	//Rprintf("num_time = %d\n", num_time);
 	//Rprintf("isfreeIC = %d\n", isfreeIC);
@@ -365,7 +367,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 
 	set_seed(double(seed));
-	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, numIterations, trueInit, batch, seed, isfreeIC, output);
+	saem_estimation(InfDS, InfDS0, upperb, lowerb, x1, filenamePar, filenameSE, filenameconv, filenamebhat, filenamebhat2, numIterations, trueInit, batch, seed, isfreeIC, output, observedFlag);
 
 	return Rcpp::List::create(Rcpp::Named("convFlag") = output.convFlag, 
 	                          Rcpp::Named("nIterStage1") = output.nIterStage1, 

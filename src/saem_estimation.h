@@ -13,7 +13,7 @@
 
 
 // Step 3 in the MainUseThins.m
-void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output){
+void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output, int observedFlag){
 	//Rprintf("in MainUseThis\n");
 	
 	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
@@ -167,15 +167,15 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 		// HJ: on 07/20/2020, change the conditions according to FitFixedIC.m (see comments for the old ones
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
-		if (bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
+		if ((observedFlag == 0 && k <= 5) || bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
             useMultN = 1; // Lu modified, 04-12-13,5;
 		        MAXGIB=1;
 		}
 		//else if(stage==1 && k == 3){
 		//SMC commented out 7/5/22
-		//else if(stage==1 && k <= InfDS.KKO){
-    //        useMultN = 1; MAXGIB=20;
-		//}
+		else if(observedFlag==0 && k > 5 && k <= InfDS.KKO){
+            useMultN = 1; MAXGIB=20;
+		}
 		else {
 			useMultN = 0; 
 			MAXGIB = InfDS.MAXGIB;
@@ -289,9 +289,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	ttt = difftime(time(NULL), timer);
 	if( convFlag == 1)
-		Rprintf("\n\nThe estimation converged. There are totally %5d iterations. Total running time is %5f seconds\n", k - 1, ttt);
+		Rprintf("\n\nThe estimation converged. There are totally %5d iterations in SAEM. Total running time is %5f seconds\n", k - 1, ttt);
 	else
-		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations. Total running time is %5f seconds\n", k - 1, ttt);
+		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations in SAEM. Total running time is %5f seconds\n", k - 1, ttt);
 	
 
 	meanb = meanb/STARTGIB;
@@ -300,8 +300,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 
 	Rprintf("(4) Wrap up estimation and write out results\n");
 
-	InfDS.Iytild.print("InfDS.Iytild");
-	InfDS.thetatild.print("InfDS.thetatild");
+  //InfDS.Iytild.print("InfDS.Iytild");
+	//InfDS.thetatild.print("InfDS.thetatild");
 
 	/* setting outputs*/
 	output.convFlag = convFlag;

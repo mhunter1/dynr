@@ -786,15 +786,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  #browser()
 		  print('calling ExpandRandomAsLVModel')
 		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  #load(file = "After expanded.RData")
+		  load(file = "After expanded.RData")
 		  #SMC 7/5/22: Temporarily suppressed cooking fitted_model to save time
-		  fitted_model <<- dynr.cook(model, optimization_flag=optimization_flag, 
-		                            hessian_flag = FALSE,#hessian_flag, 
-		                            verbose=FALSE, weight_flag=weight_flag, 
-		                            debug_flag=TRUE) #debug_flag = debug_flag
-		  #fitted_model@
-		  browser()
-		  save.image(file = "After expanded.RData")
+		  #fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, 
+		  #                          hessian_flag = FALSE,#hessian_flag, 
+		  #                          verbose=FALSE, weight_flag=weight_flag, 
+		  #                          debug_flag=TRUE) #debug_flag = debug_flag
+		  #save.image(file = "After expanded.RData")
 		} else {
 		  #browser()
 		  print('calling TwoPhaseExpandRandomAsLVModel')
@@ -973,6 +971,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		#Pass in number of iterations from traditional dynr expanded approach and pass to SAEM
 		model$numIterations <- fitted_model@numIterations
+		model$observedFlag <- observedFlag 
         
 		#call Rcpp_saem_interface
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
@@ -985,7 +984,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		output$transformed.parameters <- output$fitted.parameters
 		output$hessian.matrix <- output$Iytild
-		output$inv.hessian <- inv(output$Iytild)
+		output$inv.hessian <- solve(output$Iytild)
 		#SMC Note: These are incorrect. tag HJ to get transformation function to fix
 		#output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
 		#output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
