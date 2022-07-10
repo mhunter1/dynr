@@ -1,43 +1,43 @@
 #include <time.h>
 //#include <stdlib.h>
-//#include<math.h>
-
-//#include <armadillo>
-
-//using namespace arma;
+  //#include<math.h>
+  
+  //#include <armadillo>
+  
+  //using namespace arma;
 
 //#include "structure_prototype.h"
-//#include "supplementary_function.h"
-//#include "converted_function.h"
-
-
-
-// Step 3 in the MainUseThins.m
+  //#include "supplementary_function.h"
+  //#include "converted_function.h"
+  
+  
+  
+  // Step 3 in the MainUseThins.m
 void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output, int observedFlag){
-	//Rprintf("in MainUseThis\n");
-	
-	arma::mat sgnTH, meanb, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, tpOld, score, Covscore;
-	arma::vec mscore;
-	int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, STARTGIB, stop, isBlock1Only, redFlag, convFlag, k2;
-	double bAccept, ss, ttt, ssmin;
-	int prev_stage;
-	time_t timer;
-	//int i, j;
-	
-	//C_OUTPUT output;
-	//--for writing output files--
-	//int i, j, fitInit;
-	//FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
-	//----
-	
-	//freeIC = 1;
-	timer = time(NULL);
-	
-	//don't use this to avoid warning
+  //Rprintf("in MainUseThis\n");
+  
+  arma::mat sgnTH, L, QQ, D, mscore2, OMEGAb, infoMat, minfoMat, meanb,tpOld, score, Covscore;
+  arma::vec mscore;
+  int k, stage, gmm, MAXGIB, setScaleb, noIncrease, isPar, yesMean, switchFlag, useMultN, GIB, stop, isBlock1Only, redFlag, convFlag, k2;
+  double bAccept, ss, ttt, ssmin;
+  int prev_stage;
+  time_t timer;
+  //int i, j;
+  
+  //C_OUTPUT output;
+  //--for writing output files--
+    //int i, j, fitInit;
+  //FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
+  //----
+    
+    //freeIC = 1;
+    timer = time(NULL);
+    
+    //don't use this to avoid warning
 	//arma_rng::set_seed(seed);
 	
 
-	InfDS.Xtild_12.reset();
+	//InfDS.Xtild_12.reset();
 	output.avebAccept = 0;
 	isBlock1Only = 0;	
 	switchFlag = 0;
@@ -46,7 +46,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 	// ------- 
 	yesMean = 0;
-	STARTGIB = 0;
 	
 	//InfDS.par = join_vert(x1, InfDS.par);
 	//InfDS.par.print("par");
@@ -134,8 +133,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		// isPar = 1 is to estimate variables as states. Now this part is handle by dynr
 		isPar = 0;
 		
-		
-		
 //if(k >= 1){
 			// in the first iteration we adopt the parameters from dynr interface
 			//if(k > 1)
@@ -149,22 +146,20 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			cor_b.print("Correlation between b and trueb");
 			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 			Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
+
+		  cor_b = cor(InfDS.meanb,InfDS0.trueb);
+			cor_b.print("Correlation between meanb and trueb");
+			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
+			Rprintf("\nRange of meanb estimates: [%lf, %lf]\n", InfDS.meanb.min(), InfDS.meanb.max());
 			
-			//InfDS.Lambda.print("InfDS.Lambda");
-			//InfDS.mu.print("InfDS.mu");
-			//InfDS.Sigmae.print("InfDS.Sigmae");
-			//InfDS.Sigmab.print("InfDS.Sigmab");
-//		}		
-		
+					
 		if (stage==2 && switchFlag==0){
-			yesMean= 1;
 			switchFlag = 1; 
-			meanb = arma::zeros<arma::mat>(InfDS.Nsubj,InfDS.Nb); //Keeps b estimates averaged across Gibbs runs
-			
 		}
 
 		//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
-
+		Rprintf("Observed flag = %d\n", observedFlag);
+		yesMean = 1;
 		// HJ: on 07/20/2020, change the conditions according to FitFixedIC.m (see comments for the old ones
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
 		if ((observedFlag == 0 && k <= 5) || bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
@@ -192,48 +187,47 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 		
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
-		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde
-		//Rprintf("end of getXtildIC3\n");
-		if(k == 1){
-			InfDS.Xtild_p1 = InfDS.Xtild;
-			InfDS.dXtild_p1 = InfDS.dXtild;
-			InfDS.d2Xtild_p1 = InfDS.d2Xtild;
-
-		}
-		else if (stage == 2 && InfDS.Xtild_12.is_empty()){			
-			//copy Xtild, dXtild, and d2Xtild before transitting to stage 2
-			InfDS.Xtild_12 = InfDS.Xtild;
-			InfDS.dXtild_12 = InfDS.dXtild;
-			InfDS.d2Xtild_12 = InfDS.d2Xtild;
-			//InfDS.d2Xtild.print("InfDS.d2Xtild");
-			
-		}
 		
-		
+		Rprintf("Set useb to meanb in saem_estimation.h\n");
+		InfDS.useb = InfDS.meanb;
+		Rprintf("Start of getXtildIC3\n");
+		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
+		Rprintf("End of getXtildIC3\n");
+		//if(k == 1){
+		//	InfDS.Xtild_p1 = InfDS.Xtild;
+		//	InfDS.dXtild_p1 = InfDS.dXtild;
+		//	InfDS.d2Xtild_p1 = InfDS.d2Xtild;
+    //
+		//}
+		//else if (stage == 2 && InfDS.Xtild_12.is_empty()){			
+		//	//copy Xtild, dXtild, and d2Xtild before transitting to stage 2
+		//	InfDS.Xtild_12 = InfDS.Xtild;
+		//	InfDS.dXtild_12 = InfDS.dXtild;
+		//	InfDS.d2Xtild_12 = InfDS.d2Xtild;
+		//	//InfDS.d2Xtild.print("InfDS.d2Xtild");
+		//	
+		//}
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		//Rprintf("end of PropSigb\n");
+		Rprintf("end of PropSigb\n");
 		
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
-	
-		//Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
+		meanb = arma::zeros<arma::mat>(InfDS.Nsubj, InfDS.Nb); //Holds running MCMC means for b
+		
+		Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
-			//Rprintf("GIB = %d\n", GIB);
-			if (stage == 2){
-				yesMean = 1;
-				STARTGIB = STARTGIB+1;
-			}
+			Rprintf("GIB = %d\n", GIB);
 
 			// run drawbGeneral6_opt3 from the first iteration
 			//if (k >= 4){   
 			if (k >= 1){ 
-				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
-				drawbGeneral6_opt3(isPar, InfDS, meanb, yesMean, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept);
-				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
+				Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
+				drawbGeneral6_opt3(isPar, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
+				Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
 			}
         
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -246,6 +240,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			mscore2 = mscore2 + (1.0/MAXGIB)*(score*score.t());
 			minfoMat = minfoMat + (1.0/MAXGIB)*infoMat;
 		} //end of Gibbs sampler loop
+		
+		InfDS.meanb = meanb;
 	
 		Covscore = mscore2 - mscore*mscore.t();
 	
@@ -293,8 +289,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	else
 		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations in SAEM. Total running time is %5f seconds\n", k - 1, ttt);
 	
-
-	meanb = meanb/STARTGIB;
 	InfDS.par = InfDS.thetatild;	
 	
 

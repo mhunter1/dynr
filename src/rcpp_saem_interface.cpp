@@ -42,7 +42,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	bool observedFlag = as<int>(model_sexp["observedFlag"]);
 	int numIterations = as<int>(model_sexp["numIterations"]);
 	int seed = as<int>(model_sexp["seed"]);
-	int num_time = as<int>(model_sexp["num_time"]);
+	//int num_time = as<int>(model_sexp["num_time"]);
 	int isfreeIC = as<int>(model_sexp["freeIC"]);
 	InfDS.NxState = as<int>(model_sexp["dim_latent_var"]);
 	InfDS.Nx = InfDS.NxState; // in the saem process, Nx remains as NxState; it only becaomes NxState + Nbeta during initial value estimation
@@ -164,7 +164,11 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Nb > 0 && InfDS.Nsubj > 0){
 		InfDS.b = as<mat>(model_sexp["b"]);
+	  InfDS.meanb = as<mat>(model_sexp["b"]);
+	  InfDS.useb = as<mat>(model_sexp["b"]);
+	  
 		//InfDS.b.print("InfDS.b");
+		InfDS.meanb.print("InfDS.meanb at gateway");
 		
 		//temporarily passing trueb
 		InfDS0.trueb = as<mat>(model_sexp["trueb"]);
@@ -183,7 +187,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	/*-----*/
 	if (InfDS.Nb > 0 && InfDS.Ntheta > 0){
 		InfDS.Z = as<mat>(model_sexp["Z"]);
-		//InfDS.Z.print("InfDS.Z");
+		InfDS.Z.print("InfDS.Z");
 	}
 	
 	
@@ -243,7 +247,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	
 	if (InfDS.Nsubj > 0 && InfDS.NxState > 0){
 		InfDS.y0 = as<mat>(model_sexp["y0"]);
-		//InfDS.y0.print("InfDS.y0");
+		InfDS.y0.print("InfDS.y0");
 	}
 
 	
@@ -377,13 +381,14 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 							  Rcpp::Named("Iytild") = output.Iytild,
 							  Rcpp::Named("thetatild") = output.thetatild,
 							  Rcpp::Named("b") = InfDS.b, 
+							  Rcpp::Named("meanb") = InfDS.meanb, 
 							  Rcpp::Named("Xtild") = InfDS.Xtild, 
 							  Rcpp::Named("dXtild") = InfDS.dXtild,
-							  Rcpp::Named("d2Xtild") = InfDS.d2Xtild, 
-							  Rcpp::Named("Xtild_p1") = InfDS.Xtild_p1, 
-							  Rcpp::Named("dXtild_p1") = InfDS.dXtild_p1,
-							  Rcpp::Named("d2Xtild_p1") = InfDS.d2Xtild_p1, 
-							  Rcpp::Named("Xtild_12") = InfDS.Xtild_12, 
-							  Rcpp::Named("dXtild_12") = InfDS.dXtild_12,
-							  Rcpp::Named("d2Xtild_12") = InfDS.d2Xtild_12);
+							  Rcpp::Named("d2Xtild") = InfDS.d2Xtild); 
+							  //Rcpp::Named("Xtild_p1") = InfDS.Xtild_p1, 
+							  //Rcpp::Named("dXtild_p1") = InfDS.dXtild_p1,
+							  //Rcpp::Named("d2Xtild_p1") = InfDS.d2Xtild_p1, 
+							  //Rcpp::Named("Xtild_12") = InfDS.Xtild_12, 
+							  //Rcpp::Named("dXtild_12") = InfDS.dXtild_12,
+							  //Rcpp::Named("d2Xtild_12") = InfDS.d2Xtild_12);
 }

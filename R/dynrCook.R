@@ -786,13 +786,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  #browser()
 		  print('calling ExpandRandomAsLVModel')
 		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  #load(file = "After expanded.RData")
+		  #load(file = "After expandedEx4.RData")
 		  #SMC 7/5/22: Temporarily suppressed cooking fitted_model to save time
 		  fitted_model <<- dynr.cook(model, optimization_flag=optimization_flag, 
 		                            hessian_flag = FALSE,#hessian_flag, 
 		                            verbose=FALSE, weight_flag=weight_flag, 
-		                            debug_flag=TRUE) #debug_flag = debug_flag
-		  save.image(file = "After expanded.RData")
+		                           debug_flag=TRUE) #debug_flag = debug_flag
+		  save.image(file = "After expandedEx4.RData")
 		} else {
 		  #browser()
 		  print('calling TwoPhaseExpandRandomAsLVModel')
@@ -846,6 +846,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		print(paste0("dim b = ",dim(b)))
 		b[ b < dynrModel@dynamics@random.lb | b > dynrModel@dynamics@random.ub | !is.finite(b) ] = 0
 		b <- t(b)
+		meanb <- b
 		
 		 
 		# obtain y0 form eta_smooth_final
@@ -948,8 +949,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			par_value=as.matrix(par_value),
 			seed=saemp@seed,
 			y0=y0,
-			r=r
-			,trueb=saemp@trueb,
+			r=r,
+			trueb=saemp@trueb,
 			errtrol1 = saemp@errtrol1,
 			errtrol = saemp@errtrol
         )

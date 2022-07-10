@@ -146,7 +146,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	bAdaptParams=bAdaptParams,
 	KKO=KKO,
 	scaleb=scaleb,
-	b=b,
+	b=b, 
 	lambda=lambda,
 	random.lb=random.lb,
 	random.ub=random.ub,
