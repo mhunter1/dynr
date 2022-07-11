@@ -22,6 +22,8 @@ data <- dynr.data(vdpData, id="id", time="time",
                  observed=c('y1', 'y2', 'y3'),
                  covariates=c("u1", "u2"))
 
+trueb <- data$trueb[data$tstart[1:nPeople+1], ]
+
 meas <- prep.measurement(
     #values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2), #original setting
     values.load=matrix(c(1, 0.6994, 1.1974, 0, 0, 0), 3, 2), # in SAEMTesting
