@@ -246,7 +246,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
   int T, i, Nsubj;
   
-  Rprintf("execution 1\n");
+  //Rprintf("execution 1\n");
   //return InfDS;
   
   if(isPar == 1)
@@ -262,21 +262,21 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   
   tspan = InfDS.tspan;
   fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
-  Rprintf("execution 1.1\n");
+  //Rprintf("execution 1.1\n");
   
   T = InfDS.tspan.n_cols;
   xk1 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
   xk2 = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,T);
   tindex = InfDS.tspan.t();
   //tindex.print("tindex");
-  Rprintf("execution 1.2\n");
+  //Rprintf("execution 1.2\n");
   
   delt.set_size(1,1);
   delt(0,0) = InfDS.delt;
   dt = repmat(delt, T, 1);
   Nsubj = InfDS.Nsubj;
   //tcount = arma::ones<arma::mat>(Nsubj,1);
-  Rprintf("execution 1.3\n");
+  //Rprintf("execution 1.3\n");
   
   for (i = 0; i < InfDS.Nsubj;i++){
     if (getDxFlag ==1){
@@ -297,7 +297,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
    isPar = 1;
    */
   
-  Rprintf("execution 1.4~~~\n");
+  //Rprintf("execution 1.4~~~\n");
   
   
   //odd setting
@@ -306,7 +306,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   
   //SMC: @@@HJ, the following is weird. InfDS.y0 is not what I would expect;
   //The dimension is also off.
-  (trans(InfDS.y0)).print("Trans(InfDS.y0) in GetXtildIC3");
+  //(trans(InfDS.y0)).print("Trans(InfDS.y0) in GetXtildIC3");
   XtildPrev = trans(InfDS.y0);
   dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
   
@@ -353,16 +353,16 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
     d2Xstar_t = d2Xtild;
   }
   
-  Rprintf("execution 2\n");
+  //Rprintf("execution 2\n");
   printf("Size of InfDS.Xtild.slice(0) %d %d\n", (InfDS.Xtild.slice(0)).n_rows, (InfDS.Xtild.slice(0)).n_cols);
   printf("Size of XtildPrev %d %d\n", (XtildPrev).n_rows, (XtildPrev).n_cols);
   printf("Size of fullX.slice(0) %d %d\n", (fullX.slice(0)).n_rows, (fullX.slice(0)).n_cols);
   
   InfDS.Xtild.slice(0) = XtildPrev;
-  Rprintf("execution 2.1\n");
+  //Rprintf("execution 2.1\n");
   
   fullX.slice(0) = XtildPrev;
-  Rprintf("execution 2.2\n");
+  //Rprintf("execution 2.2\n");
   
   if (getDxFlag == 1){ 
     // HJ: dXtildPrev has one slice, and need to be accessed in index 0 not 1. 
@@ -383,7 +383,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   }
   
   //InfDS.par.print("InfDS.par getXtildIC3 367");
-  Rprintf("execution 3\n");
+  //Rprintf("execution 3\n");
   //Do interpolation at small, equal intervals, as opposed to at observed intervals to avoid numerical problems
   for (int t = 1; t < T; t++){
     //Rprintf("t = %d T= %d\n",t,T);
@@ -423,7 +423,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       
     }
     
-    Rprintf("execution 4 getDxFlag=%d\n", getDxFlag);
+    //Rprintf("execution 4 getDxFlag=%d\n", getDxFlag);
     if (getDxFlag==1 && t >= 1){
       
       //tindex.print("tindex");
@@ -431,13 +431,13 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       
       dk1dtheta = InfDS.fp.dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
       dk2dtheta = InfDS.fp.dfdparFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-      Rprintf("execution 4.1\n");
+      //Rprintf("execution 4.1\n");
       
       //Note that dfdx has x in rows, f in columns, unlike the Jacobian function
       //used in ekf, specified in InfDS.Jdyn
       //Rprintf("enter dfdxFreeICM\n");
       dfdxATXtildprev = InfDS.fp.dfdxFreeICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS);
-      Rprintf("leave dfdxFreeICM\n");
+      //Rprintf("leave dfdxFreeICM\n");
       dk1 = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.Nx, InfDS.Nsubj);
       for (i = 0; i < Nsubj; i++){
         //Rprintf("i %d\n",i); 
@@ -470,7 +470,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       
       //printf("t = %d\n", t);
       //dXtild.slice(0).rows(0, InfDS.Ntheta-1).print("dXtild"); //correct here
-      printf("execution 4.2\n");
+      //printf("execution 4.2\n");
       
       dvecdfdXtilddtheta = InfDS.fp.dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
       //Rprintf("execution 4.2.1\n");
@@ -484,7 +484,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       d2vecdk1= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
       first= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
       
-      Rprintf("execution 5\n");
+      //Rprintf("execution 5\n");
       for (i = 0; i < InfDS.Nsubj; i++){
         arma:: mat eye1, eye2;
         d2vecdk1.slice(i) = 
@@ -505,7 +505,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
           dveck1dthetadXtild.slice(i).print("dveck1dthetadXtild.slice(i)");
         }
       }
-      Rprintf("execution 5.1\n");
+      //Rprintf("execution 5.1\n");
       
       dvecdfdxATk21dtheta = InfDS.fp.dfdxdpFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
       dvecdfdxATk21dk21 = InfDS.fp.dfdx2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
@@ -549,7 +549,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
           
         }
       }
-      printf("execution 5.5\n");
+      //printf("execution 5.5\n");
       
       d2Xstar_t = dt(t)/2*(d2vecdk1 + d2vecdk2);
       d2Xtild = d2XtildPrev + d2Xstar_t;
@@ -611,7 +611,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
     }
     //printf("end of loop3\n");
   }
-  Rprintf("execution 6.2\n");
+  //Rprintf("execution 6.2\n");
   //correct here
   //InfDS.dXtildthetafAll(0).cols((0)*InfDS.Nx, (0+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 0");
   //InfDS.dXtildthetafAll(0).cols((199)*InfDS.Nx, (199+1)*InfDS.Nx - 1).print("InfDS.dXtildthetafAll(0) time 199");
@@ -625,7 +625,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
     }
   }
   
-  Rprintf("execution 7\n");
+  //Rprintf("execution 7\n");
   return InfDS;
 }
 
@@ -1622,7 +1622,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     // to be examined: isPar 0: no need
     //C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS)
     InfDS1.useb = InfDS1.b;
+	//Rprintf("Enter 1625 getXtildIC3\n");
     InfDS1 = getXtildIC3(0, 0 ,freeIC,InfDS1);
+	//Rprintf("Leave 1625 getXtildIC3\n");
     //mexPrintf("execution point 3.2\n");
     //arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::mat allT, const arma::cube Xtild, arma::cube Y)
     tpNew = ekfContinuous10(InfDS1.Nsubj, InfDS1.N, InfDS1.Ny, InfDS1.Nx, InfDS1.Nb, InfDS1.NxState, InfDS1.Lambda, InfDS1.totalT, InfDS1.Sigmae, InfDS1.Sigmab, InfDS1.mu, InfDS1.b, InfDS1.allT, InfDS1.Xtild, InfDS1.Y);		
@@ -1662,7 +1664,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   InfDS.useb = InfDS.b;
   //SMC: change 2nd flag from 0 to 1 if want to reevaluate dx stuff
   //Here we use dXtilddthetafAll based on meanb from the last iteration so 2nd flag = 0
+  //Rprintf("Enter 1668 getXtildIC3\n");
   InfDS = getXtildIC3(0, 0 ,freeIC, InfDS);
+  //Rprintf("Leave 1668 getXtildIC3\n");
   //InfDS = getXtildIC3(0, 1 ,freeIC, InfDS); 
   //mexPrintf("leave getXtildIC3\n");
   InfDS.N = Ntmp;
@@ -1670,7 +1674,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   //Proposal for oldb
-  //printf("execution point 5\n");
+  //Rprintf("execution point 5\n");
   
   for (i = 0; i < InfDS.Nsubj; i++){
     T = InfDS.timeDiscrete(i).n_elem;
@@ -1680,7 +1684,8 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
       
       arma::mat dfdbt;
       // error happens here InfDS.Z
-      dfdbt = InfDS.Z(i,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
+	  //HJ: the matrix multiplication error happend in the following line, because InfDS.Z(span::all,span(0,Nb-1)) was wrongly change to InfDS.Z(i,span(0,Nb-1))
+      dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
       
       //dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
       temp = temp + dfdbt * iSigmae * dfdbt.t();
@@ -1693,7 +1698,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     //OMEGAb(span(i*Nb,(i+1)*Nb-1),span(i*Nb,(i+1)*Nb-1)).print("OMEGAb");
   }
   
-  //printf("execution point 6\n");
+  //Rprintf("execution point 6\n");
   
   bdtmp = oldb(span::all,span(0,Nb-1))-InfDS.b(span::all,span(0,Nb-1));
   //bdtmp.print("bdtmp");
@@ -1736,7 +1741,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   
   //propden_old(span(0,4)).print("propden_old");
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  //printf("execution point 7\n");
+  //Rprintf("execution point 7\n");
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
   //Evaluate MH ratio and which set to keep%

@@ -230,9 +230,9 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			// run drawbGeneral6_opt3 from the first iteration
 			//if (k >= 4){   
 			if (k >= 1){ 
-				Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
+				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(isPar, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
-				Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
+				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
 			}
         
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
