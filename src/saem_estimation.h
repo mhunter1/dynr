@@ -30,6 +30,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
   //FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
   //----
     
+	InfDS.y0.print("y0 at the start of saem_estimation");
+	
     //freeIC = 1;
     timer = time(NULL);
     
@@ -69,7 +71,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.dfdx2 = @dfdx2FreeIC;
 	*/
 	
-	//InfDS.y0 = arma::zeros<arma::mat> (InfDS.Nsubj, 2);
+
 	InfDS.sy = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
 	InfDS.ES = arma::zeros<arma::mat>(InfDS.par.n_elem, InfDS.par.n_elem);
 	InfDS.EI = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
@@ -147,7 +149,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 			Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
 
-		  cor_b = cor(InfDS.meanb,InfDS0.trueb);
+			cor_b = cor(InfDS.meanb,InfDS0.trueb);
 			cor_b.print("Correlation between meanb and trueb");
 			Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 			Rprintf("\nRange of meanb estimates: [%lf, %lf]\n", InfDS.meanb.min(), InfDS.meanb.max());
@@ -188,9 +190,12 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		
+		InfDS.y0.print("y0 before setting useb"); //already odd
+		
 		Rprintf("Set useb to meanb in saem_estimation.h\n");
 		InfDS.useb = InfDS.meanb;
 		Rprintf("Start of getXtildIC3\n");
+		InfDS.y0.print("y0 before getXtildIC3"); //already odd
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
 		Rprintf("End of getXtildIC3\n");
 		//if(k == 1){

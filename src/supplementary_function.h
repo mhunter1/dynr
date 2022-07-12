@@ -364,11 +364,13 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   fullX.slice(0) = XtildPrev;
   Rprintf("execution 2.2\n");
   
-  if (getDxFlag == 1){ 	
-    printf("Size of dXtildPrev.slice(1) %d %d\n", dXtildPrev.slice(1).n_rows, dXtildPrev.slice(1).n_cols);
-    printf("Size of InfDS.dXtildthetafAll(1).cols %d %d\n", (InfDS.dXtildthetafAll(i).cols(0, InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll(i).cols(0, InfDS.Nx - 1)).n_cols);
-    printf("Size of d2XtildPrev.slice(1) %d %d\n", d2XtildPrev.slice(1).n_rows, d2XtildPrev.slice(1).n_cols);
-    printf("Size of InfDS.dXtildthetafAll2(1).rows(0,InfDS.Ntheta*InfDS.Nx - 1) %d %d\n", (InfDS.dXtildthetafAll2(i).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll2(i).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_cols);
+  if (getDxFlag == 1){ 
+    // HJ: dXtildPrev has one slice, and need to be accessed in index 0 not 1. 
+	// HJ: Originally it was InfDS.dXtildthetafAll(i) without setting i. So I changed it to 0
+    printf("Size of dXtildPrev.slice(0) %d %d\n", dXtildPrev.slice(0).n_rows, dXtildPrev.slice(0).n_cols);
+    printf("Size of InfDS.dXtildthetafAll(0).cols %d %d\n", (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_cols);
+    printf("Size of d2XtildPrev.slice(0) %d %d\n", d2XtildPrev.slice(0).n_rows, d2XtildPrev.slice(0).n_cols);
+    printf("Size of InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1) %d %d\n", (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_cols);
     
     for( i = 0;i < InfDS.Nsubj; i++){
       //SMC: 7/10/22 Why initialize again after already done in lines 286 and 287?

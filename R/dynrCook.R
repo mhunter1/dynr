@@ -786,13 +786,13 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  #browser()
 		  print('calling ExpandRandomAsLVModel')
 		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  #load(file = "After expandedEx4.RData")
+		  load(file = "After expandedEx4.RData")
 		  #SMC 7/5/22: Temporarily suppressed cooking fitted_model to save time
-		  fitted_model <<- dynr.cook(model, optimization_flag=optimization_flag, 
-		                            hessian_flag = FALSE,#hessian_flag, 
-		                            verbose=FALSE, weight_flag=weight_flag, 
-		                           debug_flag=TRUE) #debug_flag = debug_flag
-		  save.image(file = "After expandedEx4.RData")
+		  #fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, 
+		                            #hessian_flag = FALSE,#hessian_flag, 
+		                            #verbose=FALSE, weight_flag=weight_flag, 
+		                           #debug_flag=TRUE) #debug_flag = debug_flag
+		  #save.image(file = "After expandedEx4.RData")
 		} else {
 		  #browser()
 		  print('calling TwoPhaseExpandRandomAsLVModel')
