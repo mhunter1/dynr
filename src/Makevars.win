@@ -1,15 +1,15 @@
 # set by configure
 GSL_CFLAGS = -I$(LIB_GSL)/include 
-ARMA_CFLAGS = -I$(LIB_ARMADILLO)/include
+ARMA_CFLAGS = -I${R_HOME}/library/armadillo_libs/include
 
 
 ifeq "$(WIN)" "64"
 GSL_LIBS = -L$(LIB_GSL)/lib/x64 -lgsl -lgslcblas
-ARMA_LIBS = -L$(LIB_ARMADILLO)/lib_win64 -lblas -llapack 
+ARMA_LIBS = -L${R_HOME}/library/armadillo_libs/lib_win64 -lblas -llapack 
 else
 GSL_LIBS = -L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas 
 endif
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS) $(SHLIB_OPENMP_CXXFLAGS) -I"${R_LIBS_USER}/Rcpp/include" -I"${R_LIBS_USER}/RcppArmadillo/include"
+PKG_CPPFLAGS = $(GSL_CFLAGS) $(SHLIB_OPENMP_CXXFLAGS) -I"${R_HOME}/library/Rcpp/include" -I"${R_HOME}/library/RcppArmadillo/include"
 PKG_LIBS = $(GSL_LIBS) $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
