@@ -30,7 +30,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
   //FILE *p_filenamePar, *p_filenameSE, *p_filenameconv, *p_filenamebhat, *p_filenamebhat2;
   //----
     
-	InfDS.y0.print("y0 at the start of saem_estimation");
+	//InfDS.y0.print("y0 at the start of saem_estimation");
 	
     //freeIC = 1;
     timer = time(NULL);
@@ -166,16 +166,16 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
 		if ((observedFlag == 0 && k <= 5) || bAccept < .001 || bAccept > .99){ //Not looking too good. Pump up no. of chains
             useMultN = 1; // Lu modified, 04-12-13,5;
-		        MAXGIB=1;
+		        MAXGIB=InfDS.MAXGIB;
 		}
 		//else if(stage==1 && k == 3){
 		//SMC commented out 7/5/22
-		else if(observedFlag==0 && k > 5 && k <= InfDS.KKO){
-            useMultN = 1; MAXGIB=20;
-		}
+		//else if(observedFlag==0 && k > 5 && k <= InfDS.KKO){
+    //        useMultN = 1; MAXGIB=20;
+		//}
 		else {
 			useMultN = 0; 
-			MAXGIB = InfDS.MAXGIB;
+			//MAXGIB = InfDS.MAXGIB;
 		}
 
 		mscore = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
@@ -190,14 +190,14 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		
 		//isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
 		
-		InfDS.y0.print("y0 before setting useb"); //already odd
+		//InfDS.y0.print("y0 before setting useb"); //already odd
 		
 		Rprintf("Set useb to meanb in saem_estimation.h\n");
 		InfDS.useb = InfDS.meanb;
-		Rprintf("Start of getXtildIC3\n");
-		InfDS.y0.print("y0 before getXtildIC3"); //already odd
+		//Rprintf("Start of getXtildIC3\n");
+		//InfDS.y0.print("y0 before getXtildIC3"); //already odd
 		InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
-		Rprintf("End of getXtildIC3\n");
+		//Rprintf("End of getXtildIC3\n");
 		//if(k == 1){
 		//	InfDS.Xtild_p1 = InfDS.Xtild;
 		//	InfDS.dXtild_p1 = InfDS.dXtild;
@@ -214,8 +214,6 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//}
 
 		PropSigb(InfDS);  //covariance of proposal distribution of b
-		Rprintf("end of PropSigb\n");
-		
 
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
@@ -225,7 +223,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
 
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
-			Rprintf("GIB = %d\n", GIB);
+			//Rprintf("GIB = %d\n", GIB);
 
 			// run drawbGeneral6_opt3 from the first iteration
 			//if (k >= 4){   
@@ -238,6 +236,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
 			//Rprintf("checkpoint enter getScoreInfoY_tobs_opt\n");	
+			InfDS.useb = InfDS.b;
 			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);
 			//Rprintf("checkpoint leave getScoreInfoY_tobs_opt\n");				
 			

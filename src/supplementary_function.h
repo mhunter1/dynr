@@ -304,9 +304,6 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   //XtildPrev = InfDS.fp.dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
   //change according to symiin's testing in July 2020
   
-  //SMC: @@@HJ, the following is weird. InfDS.y0 is not what I would expect;
-  //The dimension is also off.
-  //(trans(InfDS.y0)).print("Trans(InfDS.y0) in GetXtildIC3");
   XtildPrev = trans(InfDS.y0);
   dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
   
@@ -354,9 +351,9 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   }
   
   //Rprintf("execution 2\n");
-  printf("Size of InfDS.Xtild.slice(0) %d %d\n", (InfDS.Xtild.slice(0)).n_rows, (InfDS.Xtild.slice(0)).n_cols);
-  printf("Size of XtildPrev %d %d\n", (XtildPrev).n_rows, (XtildPrev).n_cols);
-  printf("Size of fullX.slice(0) %d %d\n", (fullX.slice(0)).n_rows, (fullX.slice(0)).n_cols);
+  //printf("Size of InfDS.Xtild.slice(0) %d %d\n", (InfDS.Xtild.slice(0)).n_rows, (InfDS.Xtild.slice(0)).n_cols);
+  //printf("Size of XtildPrev %d %d\n", (XtildPrev).n_rows, (XtildPrev).n_cols);
+  //printf("Size of fullX.slice(0) %d %d\n", (fullX.slice(0)).n_rows, (fullX.slice(0)).n_cols);
   
   InfDS.Xtild.slice(0) = XtildPrev;
   //Rprintf("execution 2.1\n");
@@ -367,10 +364,10 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   if (getDxFlag == 1){ 
     // HJ: dXtildPrev has one slice, and need to be accessed in index 0 not 1. 
 	// HJ: Originally it was InfDS.dXtildthetafAll(i) without setting i. So I changed it to 0
-    printf("Size of dXtildPrev.slice(0) %d %d\n", dXtildPrev.slice(0).n_rows, dXtildPrev.slice(0).n_cols);
-    printf("Size of InfDS.dXtildthetafAll(0).cols %d %d\n", (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_cols);
-    printf("Size of d2XtildPrev.slice(0) %d %d\n", d2XtildPrev.slice(0).n_rows, d2XtildPrev.slice(0).n_cols);
-    printf("Size of InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1) %d %d\n", (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_cols);
+    //printf("Size of dXtildPrev.slice(0) %d %d\n", dXtildPrev.slice(0).n_rows, dXtildPrev.slice(0).n_cols);
+    //printf("Size of InfDS.dXtildthetafAll(0).cols %d %d\n", (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_cols);
+    //printf("Size of d2XtildPrev.slice(0) %d %d\n", d2XtildPrev.slice(0).n_rows, d2XtildPrev.slice(0).n_cols);
+    //printf("Size of InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1) %d %d\n", (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_cols);
     
     for( i = 0;i < InfDS.Nsubj; i++){
       //SMC: 7/10/22 Why initialize again after already done in lines 286 and 287?
