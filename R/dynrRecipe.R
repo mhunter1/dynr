@@ -4209,7 +4209,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	
 	#browser()
 	#browser()
-	# exponentail tranformation of D
+	# exponential tranformation of D
 	D <- sapply(D, function(term){ if(is.na(evaluateExpression(term[[1]]))){term[[1]]<- paste0('exp(', term[[1]], ')')} else{ term[[1]]<- paste0('(', term[[1]], ')')}})
 	
 	#L*D

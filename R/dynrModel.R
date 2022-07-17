@@ -45,9 +45,11 @@ setClass(Class =  "dynrModel",
 		   Sigmab="matrix",
 		   known.vars = "list",
 		   freeIC="logical",
-		   L="matrix",
-		   D="matrix",
-		   LDL="matrix"
+		   L.expr="matrix",
+		   D.expr="matrix",
+		   LDL="matrix",
+		   L.value = "matrix",
+		   D.value = "matrix"
          ),
          prototype = prototype(
            num_regime=as.integer(1),
@@ -962,6 +964,12 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 		#Solve for numerical values of par0-par9 (the unconstrained parameters)
 		# given starting values for the random effect covariance matrix in model@random.params.inicov
 		known.vars <- solveStartLDL(ret$ldl, random.values.inicov)
+		# the following obtains the valeues and expressions of L and D in LDL decomposition
+		L.expr <- ret$L
+		D.expr <- ret$D
+		L.value <- matrix(sapply(L.expr, function(x){eval(x, known.vars)}), nrow=nrow(L.expr), ncol=ncol(L.expr))
+		D.value <- matrix(sapply(D.expr, function(x){eval(x, known.vars)}), nrow=nrow(D.expr), ncol=ncol(D.expr))
+		
 		
 		dSigmabdb <- differentiateMatrixOfVariable(ret$ldl, ret$pars)
 		dSigmabdb2 <- differentiateMatrixOfVariable(dSigmabdb, ret$pars)
@@ -1136,7 +1144,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   }
   else if(saem==TRUE){
   #browser()
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, L=ret$L, D=ret$D, LDL=ret$ldl), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, LDL=ret$ldl, L.expr=L.expr, D.expr=D.expr, L.value = L.value, D.value=D.value), inputs))
   }
   
   
