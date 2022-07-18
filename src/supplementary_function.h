@@ -116,10 +116,7 @@ int maxElement(arma::imat integer_matrix){
 }
 
 
-arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){
-  
-  if(isPar == 1)
-    printf("[HJ] Should NOT happen! isPar = 1");
+arma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){
   
   arma::mat b, betai, temp, Hi, thetaf, par;
   
@@ -127,12 +124,9 @@ arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, stru
   par = InfDS.par;
   
   //printf("thetaf %d %d\n", thetaf.n_rows, thetaf.n_cols);
-  if (isPar==0){
     //printf("InfDS.Nbeta %d\n", InfDS.Nbeta);
     temp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters
     par = rowProjection(par, temp);
-    // par.print("par");
-  }
   
   b = arma::zeros<arma::mat>(thetaf.n_rows, thetaf.n_cols) ;	
   betai = arma::zeros<arma::mat>(InfDS.Ntheta, 1);	// beta
@@ -142,18 +136,18 @@ arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, stru
     int current_i = int(i(ii));   
     
     Hi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);   
-    //Hi.print("Hi"); 
+    Hi.print("Hi"); 
     
-    if (isPar == 1)            
-      betai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);
-    else
+   // if (isPar == 1)            
+   //   betai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);
+  //  else
       betai = reshape(par,InfDS.Nbeta, 1);
-     
-    //betai.print("betai");
+    par.print("In CalculateTheta, par = "); 
+    betai.print("In CalculateTheta, betai = ");
     if (InfDS.Nb > 0)
       //b.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);
       b.col(ii) = reshape(InfDS.useb.row(current_i-1),InfDS.Nb,1);
-    b.col(ii).print("b col i");
+      b.col(ii).print("b col i");
     
     thetaf.col(ii) = Hi * betai + InfDS.Z * b.col(ii);
   }
@@ -206,7 +200,6 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
         
         
         arma::mat inovtmp, result;
-        //inovtmp = rowProjection(Y.slice(tt-1).row(i-1).t(),indexY)- rowProjection(yPredtmp,indexY);
         inovtmp = rowProjection(Y(i-1, 0).col(tt-1), indexY)- rowProjection(yPredtmp,indexY);
         inovtmp.insert_cols(1,arma::zeros(indexY.n_cols, indexY.n_cols-1));
         
@@ -234,7 +227,8 @@ arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, co
   return tp ;
 }
 
-C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS){
+//TODO: is_meanb not use (from isPar before). Get rid of it throughout later
+C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS){
   
   arma::mat dXtildPrev0, d2XtildPrev0, tcount, delt, tspan, XtildPrev;
   arma::cube fullX, xk1, xk2, xk21, tpsan, dXtildPrev, d2XtildPrev, dXtild, dXstar_t, d2Xstar_t, d2Xtild, dfdxATk21,d2vecdk1,first;
@@ -245,13 +239,12 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
   
   static arma::vec empty_vec = span_vec(1, InfDS.Nsubj,1);
   int T, i, Nsubj;
+  struct C_INFDS InfDS_new = InfDS;
   
   //Rprintf("execution 1\n");
   //return InfDS;
   
-  if(isPar == 1)
-    Rprintf("[HJ] Should NOT happen! isPar = 1");
-  
+
   InfDS.Xtild = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.totalT);
   if (getDxFlag ==1){
     InfDS.dXstarAll.set_size(InfDS.Nsubj);
@@ -288,25 +281,9 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
     }
     
   }
-  //Rprintf("execution 1.4~~~ %d\n", isPar);
-  //return InfDS;
-  /*
-   if(InfDS.NxState == InfDS.Nx)
-   isPar = 0;
-   else
-   isPar = 1;
-   */
-  
-  //Rprintf("execution 1.4~~~\n");
-  
-  
-  //odd setting
-  //XtildPrev = InfDS.fp.dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
-  //change according to symiin's testing in July 2020
-  
+ 
   XtildPrev = trans(InfDS.y0);
   dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
-  
   d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
   
   
@@ -315,7 +292,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
    if (freeIC==1){
    //printf("execution 1.4.1\n");
    //trans(InfDS.y0).print("ddd");
-   XtildPrev = InfDS.fp.dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
+   XtildPrev = InfDS.fp.dynfunICM(is_meanb, trans(InfDS.y0), empty_vec, 0, 1, InfDS);	
    //InfDS.par.print("InfDS.par getXtildIC3 dynfunICM");
    
    // ****** size of dXtildPrev0 should be determined dynamically
@@ -326,7 +303,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
    }
    else{
    //printf("execution 1.4.2\n");
-   XtildPrev = InfDS.fp.dynfunICM(isPar, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
+   XtildPrev = InfDS.fp.dynfunICM(is_meanb, trans(InfDS.y0), empty_vec, 0, 1, InfDS);
    dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
    d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
    //printf("execution 1.4.2\n");
@@ -388,23 +365,23 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
     //ODE solver	
     /*
      if (freeIC == 0)
-     k1 = InfDS.fp.dynfunICM(1, XtildPrev, empty_vec, tindex(t), 0, InfDS);
+     k1 = InfDS.fp.dynfunICM(1, XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
      else
-     k1 = InfDS.fp.dynfunICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS);
+     k1 = InfDS.fp.dynfunICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
      */
     //Rprintf("enter dynfunICM\n");
-    k1 = InfDS.fp.dynfunICM(isPar, XtildPrev, empty_vec, tindex(t), 0, InfDS);
+    k1 = InfDS.fp.dynfunICM(is_meanb, XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
     //Rprintf("leave dynfunICM\n");
     k21= XtildPrev+dt(t)*k1;
     //Rprintf("k21\n");
-    //[to be checked] case 1 goes for isPar = 1, case 2 goes for isPar = 0
+    //[to be checked] case 1 goes for is_meanb = 1, case 2 goes for is_meanb = 0
     /*
      if (freeIC == 0)
-     k2 = InfDS.fp.dynfunICM(1, k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+     k2 = InfDS.fp.dynfunICM(1, k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
      else
-     k2 = InfDS.fp.dynfunICM(0, k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+     k2 = InfDS.fp.dynfunICM(0, k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
      */
-    k2 = InfDS.fp.dynfunICM(isPar, k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+    k2 = InfDS.fp.dynfunICM(is_meanb, k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
     //printf("k2\n");
     Xtild_t = XtildPrev+dt(t)*(k1+k2)/2;
     //if(t == 1)
@@ -426,14 +403,14 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       //tindex.print("tindex");
       //dt.print("dt");
       
-      dk1dtheta = InfDS.fp.dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
-      dk2dtheta = InfDS.fp.dfdparFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+      dk1dtheta = InfDS.fp.dfdparFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
+      dk2dtheta = InfDS.fp.dfdparFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
       //Rprintf("execution 4.1\n");
       
       //Note that dfdx has x in rows, f in columns, unlike the Jacobian function
       //used in ekf, specified in InfDS.Jdyn
       //Rprintf("enter dfdxFreeICM\n");
-      dfdxATXtildprev = InfDS.fp.dfdxFreeICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS);
+      dfdxATXtildprev = InfDS.fp.dfdxFreeICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
       //Rprintf("leave dfdxFreeICM\n");
       dk1 = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.Nx, InfDS.Nsubj);
       for (i = 0; i < Nsubj; i++){
@@ -444,9 +421,9 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       
       
       
-      //dfdxATk21 = feval(InfDS.dfdx,k21,InfDS,[],tindex(t)); //df/dx evaluated at k21
+      //dfdxATk21 = feval(InfDS.dfdx,k21,InfDS_new,[],tindex(t)); //df/dx evaluated at k21
       // Does freeIC need to be the freeIC in getXtildIC3?
-      dfdxATk21 = InfDS.fp.dfdxFreeICM(0, k21, empty_vec, tindex(t), 0, InfDS);
+      dfdxATk21 = InfDS.fp.dfdxFreeICM(0, k21, empty_vec, tindex(t), 0, InfDS_new);
       dk2 = arma::zeros<arma::cube>(InfDS.Ntheta, InfDS.Nx, InfDS.Nsubj);
       for (i = 0; i < Nsubj; i++){
         dk2.slice(i) = dk21.slice(i)*dfdxATk21.slice(i) + dk2dtheta.slice(i);
@@ -469,13 +446,13 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       //dXtild.slice(0).rows(0, InfDS.Ntheta-1).print("dXtild"); //correct here
       //printf("execution 4.2\n");
       
-      dvecdfdXtilddtheta = InfDS.fp.dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+      dvecdfdXtilddtheta = InfDS.fp.dfdxdpFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
       //Rprintf("execution 4.2.1\n");
-      dvecdfdXtilddXtild = InfDS.fp.dfdx2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+      dvecdfdXtilddXtild = InfDS.fp.dfdx2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
       //Rprintf("execution 4.2.2\n");
-      dveck1dthetadXtild = InfDS.fp.dfdpdxFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+      dveck1dthetadXtild = InfDS.fp.dfdpdxFreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
       //printf("execution 4.2.3\n");
-      dveck1dtheta = InfDS.fp.dfdpar2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS);
+      dveck1dtheta = InfDS.fp.dfdpar2FreeIC(XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
       //printf("execution 4.2.4\n");
       
       d2vecdk1= arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -504,8 +481,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       }
       //Rprintf("execution 5.1\n");
       
-      dvecdfdxATk21dtheta = InfDS.fp.dfdxdpFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-      dvecdfdxATk21dk21 = InfDS.fp.dfdx2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+      dvecdfdxATk21dtheta = InfDS.fp.dfdxdpFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
+      dvecdfdxATk21dk21 = InfDS.fp.dfdx2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
       second = arma::zeros<arma::cube>(pow(InfDS.Nx, 2), InfDS.Ntheta, InfDS.Nsubj);
       //Rprintf("execution 5.2\n");
       
@@ -523,8 +500,8 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       }
       //Rprintf("execution 5.3\n");
       
-      dveck2dtheta = InfDS.fp.dfdpar2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
-      dveck2dthetadxATk21 = InfDS.fp.dfdpdxFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS);
+      dveck2dtheta = InfDS.fp.dfdpar2FreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
+      dveck2dthetadxATk21 = InfDS.fp.dfdpdxFreeIC(k21, empty_vec, tindex(t)+dt(t), 0, InfDS_new);
       //Rprintf("execution 5.4\n");
       
       third = arma::zeros<arma::cube>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta, InfDS.Nsubj);
@@ -621,8 +598,7 @@ C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, stru
       InfDS.Xtild.slice(j).col(i) = fullX.slice(int(InfDS.tobs(i)(j) - 1)).col(i);
     }
   }
-  
-  //Rprintf("execution 7\n");
+
   return InfDS;
 }
 
@@ -668,7 +644,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
   
   arma::mat SIndex, SIndex2, LIndex, dlikdBetaAll, dlikdBetaAll2, dlikdmuAll, dlikdmuAll2, dlikdLambdaAll, dlikdLambdaAll2, dlikdMudLambda, dlikdLambdMu, dlikdMudBeta, dlikdBetadMu, dlikdLambdadBeta, dlikdBetadLambda, dlikdEpsilonAll, dlikdEpsilonAll2, dlikdbAll, dlikdbAll2, ivSigmab, Lambda, Zt, dXtildthetaf, dXtildthetaf2, vvv, aa, b, ivSigmae2, dlik, dlik2, Z, SIndex3, a;
   arma::cube X(0,0,0);
-  int mulp2, mulp, isPar, t, T, curpos2, curpos1;
+  int mulp2, mulp, t, T, curpos2, curpos1;
   int startBeta = 0, endBeta = 0, startMu = 0, endMu = 0, startLamb = 0, endLamb = 0;
   
   
@@ -750,17 +726,15 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
     Lambda = InfDS.Lambda;
   }
   
-  //Rprintf("*\n");
-  isPar = (InfDS.Nx == InfDS.NxState) ? 0 : 1;
-  //Rprintf("isPar %d enter getXtildIC3\n", isPar);
-  if (InfDS.Nbeta > 0){
-    InfDS = getXtildIC3(isPar, 1 ,freeIC, InfDS);
-  }
-  else{
-    InfDS = getXtildIC3(isPar, 0 ,freeIC, InfDS);
-  }
-  //Rprintf("isPar %d leave getXtildIC3\n", isPar);
-  mulp2 = 1;
+// Not needed as already done earlier in drawb
+ // if (InfDS.Nbeta > 0){
+//    InfDS.useb = InfDS.b;
+//    InfDS = getXtildIC3(0, 1 ,freeIC, InfDS);
+//  }
+//  else{
+//    InfDS = getXtildIC3(0, 0 ,freeIC, InfDS);
+//  }
+    mulp2 = 1;
   
   
   //InfDS.dXtildthetafAll(0)(span::all,span(0, 9)).print("InfDS.dXtildthetafAll(0)");
@@ -1073,7 +1047,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 
 
 
-void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore, int &numIterations){
+void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int &convFlag, int &noIncrease, int &stop, double &ssmin, double &ss, arma::mat &sgnTH, arma::vec &mscore, arma::mat &mscore2, arma::mat &minfoMat, arma::mat &Covscore, unsigned int &numIterations){
   
   
   // variable declaration
@@ -1081,10 +1055,10 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int
   arma::mat EI, ES, Iy, R, sy;
   double gainpara, gainparb, gmm1, t, gain;
   int flag;
+  unsigned int i;
   
   ss = -1; //Here ss is a multiplicative constant (t in Zhu et al.) to make sure that the information matrix is positive definite. 
   stop = 0; 
-  
   
   thetam = reshape(InfDS.par,InfDS.par.n_elem,1);
   convFlag = 0;
@@ -1135,101 +1109,59 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int
   InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
   //Rprintf("checkpoint 947\n");
   //printf("Line 1022: InfDS.ES(12,12) = %lf\n",InfDS.ES(11,11));
-  
-  
-  
-  
   if(!InfDS.Iy.is_symmetric()){
     arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
     //if the difference between OMEGAi and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
     if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
       InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
     }
-    
-    if(!InfDS.Iy.is_symmetric()){
-      Rprintf("InfDS.Iy in Line 1086 is not symmetric\n");
-      //cout.precision(11);
-      //cout.setf(ios::fixed);
-      //InfDS.Iy.raw_print(cout, "InfDS.Iy:");
-      InfDS.Iy.print("InfDS.Iy");
-    }
   }
+  
   flag = chol(R, InfDS.Iy);
-  if(!flag){
+  //if(!flag){
     //printf("\nIy is not positive definite. ss = %5f\n",ss);
     //Rprintf("Serious error!\n");
-    ;
-  }
+  //}
+  arma::mat invIy_s(InfDS.Iy.n_rows, InfDS.Iy.n_cols);
   
   while (!flag && t >= 0.4){ //decomposition fails and t >= 0.4
     t = 0.5 * t;
     InfDS.Iy = -t*InfDS.ES + (InfDS.sy*InfDS.sy.t()) + InfDS.EI;
-    
-    if(!InfDS.Iy.is_symmetric()){
-      arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
-      //if the difference between InfDS.Iy and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
-      if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
-        InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
-      }
-      
-      if(!InfDS.Iy.is_symmetric()){
-        Rprintf("InfDS.Iy in Line 1112 is not symmetric\n");
-        //cout.precision(11);
-        //cout.setf(ios::fixed);
-        //InfDS.Iy.raw_print(cout, "InfDS.Iy:");
-        InfDS.Iy.print("InfDS.Iy");
-      }
-    }
     flag = chol(R, InfDS.Iy);
   }
   //Rprintf("checkpoint enter 955\n");
-  
-  if(!InfDS.Iy.is_symmetric()){
-    arma::mat diff = abs(InfDS.Iy - InfDS.Iy.t());
-    //if the difference between OMEGAi and its transpose is small, set InfDS.Iy as the average of InfDS.Iy and its transpose to avoid rounding error
-    if(accu(diff)/accu(abs(InfDS.Iy)) < .000001){	
-      InfDS.Iy = (InfDS.Iy + InfDS.Iy.t())/2;
-    }
-    
-    if(!InfDS.Iy.is_symmetric()){
-      Rprintf("InfDS.Iy in Line 1131 is not symmetric\n");
-      //cout.precision(11);
-      //cout.setf(ios::fixed);
-      //InfDS.Iy.raw_print(cout, "InfDS.Iy:");
-      InfDS.Iy.print("InfDS.Iy");
-    }
-  }
   flag = chol(R, InfDS.Iy);
   if (!flag){
     redFlag=1;
-    //printf("redFlag = %d @ Line 1112\n", redFlag);
-    ;
   }
   
-  
-  
-  
-  unsigned int i, j;
-  arma::sp_mat Iy_s(InfDS.Iy.n_rows, InfDS.Iy.n_cols);
-  for(i = 0; i < InfDS.Iy.n_rows;i++){
-    for(j = 0; j < InfDS.Iy.n_cols;j++)
-      Iy_s(i, j) = InfDS.Iy(i, j);
-  }
+ 
   //Rprintf("checkpoint enter 969\n");	
-  
-  //Iy_s.print("Iy_s"); //the same
+  dc2= zeros(mscore.n_elem);
+  //InfDS.Iy.print("Iy"); //the same
   //mscore.print("mscore"); //the same
-  // If spsolve can not find solution, try solve. If solve also doesn't work, set is as zero
-  if(!spsolve(dc2, Iy_s, mscore, "lapack")){
-    if(!solve(dc2, mat(Iy_s), mscore)){
-      dc2= zeros(mscore.n_elem);
-    }
-  }
-  dc2.print("dc2"); //the same
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if (!redFlag){
+   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ // if (!redFlag){
+     //for(i = 0; i < InfDS.Iy.n_rows;i++){
+    //  for(j = 0; j < InfDS.Iy.n_cols;j++)
+    //    invIy_s(i, j) = InfDS.Iy(i, j);
+    //}
+    
+    // If spsolve can not find solution, try solve. If solve also doesn't work, set is as zero
+   // if(!spsolve(dc2, Iy_s, mscore, "lapack")){
+   //   if(!solve(dc2, mat(Iy_s), mscore)){
+  //    }
+    //}
+    bool success = inv(invIy_s,InfDS.Iy);//inv_sympd(invIy_s,InfDS.Iy);
+    //invIy_s.print("inv Iy_s");
+    
+    if (success){ 
+    dc2 = invIy_s * mscore;
+    dc2.print("dc2");
+    Rprintf("\ngain = %lf\n", gain);
     thetam = thetam + gain * dc2;
+  }else{
+    Rprintf("Not updating par in this iteration!");
   }
   
   //Rprintf("checkpoint enter 1090, Stage %d\n", stage);
@@ -1377,7 +1309,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int
 
 void PropSigb(struct C_INFDS &InfDS){
   arma::mat temp, dfdbt, OMEGAb, iSigmae, Sigmae;
-  arma::field<arma::mat> dXtilddthetafAll;
+  //arma::field<arma::mat> dXtilddthetafAll;
   
   int i, T, t;
   
@@ -1387,7 +1319,7 @@ void PropSigb(struct C_INFDS &InfDS){
   iSigmae.replace(datum::nan, 0);
   
   //%dxstardthetafAll = InfDS.dXstarAll; 
-  dXtilddthetafAll = InfDS.dXtildthetafAll;
+  //dXtilddthetafAll = InfDS.dXtildthetafAll_meanb;
   OMEGAb.set_size(InfDS.Nb * InfDS.Nsubj, InfDS.Nb * InfDS.Nsubj);
   OMEGAb.zeros();
   
@@ -1401,7 +1333,7 @@ void PropSigb(struct C_INFDS &InfDS){
       // error happens here InfDS.Z
       //Rprintf("t = %d\n enter", t);
       dfdbt = InfDS.Z.t()* 
-        dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1))*
+        InfDS.dXtildthetafAll_meanb(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1))*
         InfDS.Lambda.t();
       //Rprintf("first %d %d\n", InfDS.Z.n_rows, InfDS.Z.n_cols);
       //Rprintf("second %d %d\n", dXtilddthetafAll(i).n_rows, (t+1)*InfDS.NxState-1 - t*InfDS.NxState + 1);
@@ -1414,7 +1346,7 @@ void PropSigb(struct C_INFDS &InfDS){
       if( !dfdbt.is_finite()){
         printf("i= %d t = %d\n",i, t);
         //dfdbt.print("dfdbt");
-        dXtilddthetafAll(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1)).print("dXtilddthetafAll");
+        InfDS.dXtildthetafAll_meanb(i)(span::all, span(t*InfDS.NxState, (t+1)*InfDS.NxState-1)).print("dXtilddthetafAll_meanb");
         InfDS.Z.print("InfDS.Z");
         InfDS.Lambda.print("InfDS.Lambda");
         iSigmae.print("iSigmae");
@@ -1432,28 +1364,23 @@ void PropSigb(struct C_INFDS &InfDS){
   
 }
 
-
-
-
-void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arma::mat &meanb, arma::mat upperb, arma::mat lowerb, int useMultN, arma::mat &tpOld, int freeIC, int isBlock1Only, int setScaleb, double &bAccept, int MAXGIB){
+void drawbGeneral6_opt3(const int is_meanb, struct C_INFDS &InfDS, int yesMean, arma::mat &meanb, arma::mat upperb, arma::mat lowerb, int useMultN, arma::mat &tpOld, int freeIC, int isBlock1Only, int setScaleb, double &bAccept, int MAXGIB){
   arma::mat iSigmae, oldb, s, propden_new, propden_new1, tpNew1, OMEGAb, OMEGAi, R, MUb, normtmp, avgScalingb, cOMEGAb, bTemp, bdtmp, cOMEGAb0, tempi;
   arma::vec indexKept, cindexKept, filteredAvgScalingb, idx, tp, tp1, propden_old, tpNew;
   arma::ucolvec tpidx;
-  arma::cube newb1, xtild;;
+  arma::cube newb1, xtild, xtild_new;
   double low1, high1, scaleb;
-  int Nb, q, Nkept, Ntmp, T, t;
+  int Nb, q, Nkept, T, t;
   bool r;
   struct C_INFDS InfDS1;
   int i, j, jj;
   unsigned int ui, uj;
   
-  arma::field<arma::mat> dXtilddthetafAll, dXtilddthetafAll2;
+  arma::field<arma::mat> dXtildthetafAll, dXtildthetafAll2;
+  //arma::field<arma::mat> dXtilddthetafAll_new, dXtilddthetafAll2_new;
   
   //printf("execution point 0\n");
-  if(isPar == 1)
-    printf("[HJ] Should NOT happen! isPar = 1");
-  
-  
+
   iSigmae = inv(InfDS.Sigmae);
   //iSigmae.print("iSigmae");
   
@@ -1495,12 +1422,12 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   tpNew1 = zeros<arma::mat>(InfDS.Nsubj, InfDS.N);
   newb1 = zeros<arma::cube>(InfDS.Nsubj, Nb, InfDS.N);
   
+  //At this point, these guys were evaluated at oldb
+  //#ExtractionOldbElements
   xtild = InfDS.Xtild;
-  dXtilddthetafAll = InfDS.dXtildthetafAll;
-  dXtilddthetafAll2 = InfDS.dXtildthetafAll2;
+  dXtildthetafAll = InfDS.dXtildthetafAll;
+  dXtildthetafAll2 = InfDS.dXtildthetafAll2;
   //printf("execution point 1\n");
-  
-  
   
   arma::mat rand_result(InfDS.Nsubj* InfDS.N,1);
   //old setting (uniformly random from low1-high1 (continious)
@@ -1553,8 +1480,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
       cOMEGAb0 = diagmat(diagvec(sqrt(OMEGAi)));
       //mexPrintf("first chol\n");
     }
-    
-    
     
     for (q = 0; q < InfDS.N; q++){
       cOMEGAb = s(i,q)*cOMEGAb0;
@@ -1615,12 +1540,9 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     InfDS1 = InfDS;
     InfDS1.N = 1;
     InfDS1.b(span::all, span(0,Nb-1)) = reshape(newb1.slice(q)(span::all,span(0, Nb-1)),InfDS.Nsubj, Nb);
-    //mexPrintf("execution point 3.1\n");
-    // to be examined: isPar 0: no need
-    //C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS)
     InfDS1.useb = InfDS1.b;
 	//Rprintf("Enter 1625 getXtildIC3\n");
-    InfDS1 = getXtildIC3(0, 0 ,freeIC,InfDS1);
+    InfDS1 = getXtildIC3(0, 1 ,freeIC,InfDS1);//For calculation of tpNew only new Xtild is needed
 	//Rprintf("Leave 1625 getXtildIC3\n");
     //mexPrintf("execution point 3.2\n");
     //arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::mat allT, const arma::cube Xtild, arma::cube Y)
@@ -1631,7 +1553,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   //InfDS1.b.submat(0,0,2,2).print("InfDS1.b");
   //InfDS.dXtildthetafAll(0)(span::all, span(3*InfDS.NxState, (3 + 1)*InfDS.NxState -1)).print("after");
   //printf("execution point 4 %d %d\n", tpNew1.n_rows, tpNew1.n_cols);
-  
   
   tpNew = max(tpNew1,1);
   //arma::uvec max_index_temp = index_max(tpNew1,1);
@@ -1650,26 +1571,17 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   //mean(bTemp).print("mean btemp");
   //var(bTemp).print("var btemp");
   
-  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // These were extracted earlier under #ExtractionOldbElements
+  //xtild = InfDS.Xtild;
+  //dXtildthetafAll = InfDS.dXtildthetafAll;
+  //dXtildthetafAll2 = InfDS.dXtildthetafAll2;
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //Replace b and corresponding components with new b
   InfDS.b(span::all,span(0,Nb-1)) = bTemp;
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Ntmp = InfDS.N;
-  InfDS.N = 1;
-  //InfDS = getXtildIC3(InfDS, 1, freeIC);
-  // to be examined: isPar
-  //mexPrintf("enter getXtildIC3\n");
-  InfDS.useb = InfDS.b;
-  //SMC: change 2nd flag from 0 to 1 if want to reevaluate dx stuff
-  //Here we use dXtilddthetafAll based on meanb from the last iteration so 2nd flag = 0
-  //Rprintf("Enter 1668 getXtildIC3\n");
-  InfDS = getXtildIC3(0, 0 ,freeIC, InfDS);
-  //Rprintf("Leave 1668 getXtildIC3\n");
-  //InfDS = getXtildIC3(0, 1 ,freeIC, InfDS); 
-  //mexPrintf("leave getXtildIC3\n");
-  InfDS.N = Ntmp;
-  //InfDS.dXtildthetafAll(0)(span::all, span(3*InfDS.NxState, (3 + 1)*InfDS.NxState -1)).print("after2");
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  InfDS.useb = InfDS.b; 
+  InfDS = getXtildIC3(0, 1 ,freeIC, InfDS);//Now contains dx stuff evaluated at new b
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   //Proposal for oldb
   //Rprintf("execution point 5\n");
   
@@ -1680,9 +1592,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     for (t = 0; t < T-1; t++){
       
       arma::mat dfdbt;
-      // error happens here InfDS.Z
-	  //HJ: the matrix multiplication error happend in the following line, because InfDS.Z(span::all,span(0,Nb-1)) was wrongly change to InfDS.Z(i,span(0,Nb-1))
-      dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
+      dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
       
       //dfdbt = InfDS.Z(span::all,span(0,Nb-1)).t()*InfDS.dXtildthetafAll(i)(span::all, span(t*InfDS.NxState, (t + 1)*InfDS.NxState -1))*InfDS.Lambda.t();
       temp = temp + dfdbt * iSigmae * dfdbt.t();
@@ -1751,9 +1661,6 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     tp1(i)= fmin(1.0, exp(tpNew(i) + propden_old(i) - tpOld(i) - propden_new(i)));
   }
   
-  
-  
-  
   //to be converted: the following three lines
   //idx.zeros(size(tp));
   //idx = (tp(i)<=tp1(i));//&&~isnan(tpNew); //(& : and)
@@ -1779,6 +1686,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
   InfDS.bacc = InfDS.bacc + indexKept;
   //Rprintf("execution point 8 Nkept = %d\n", Nkept);
   
+  //Pop back old elements for old b that were better than those from new b
   if (Nkept  > 0){    
     //tpOld(indexKept) = tpNew(indexKept);
     for (i = 0; i < (int)indexKept.n_elem; i++){
@@ -1800,7 +1708,7 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
         j++;
       }
       
-      //to be convert: quantile
+      //to be converted: quantile
       InfDS.scaleb = InfDS.scaleb*quantile(filteredAvgScalingb, 1 - InfDS.setAccept);
       Rprintf("quantile(filteredAvgScalingb, 1 - InfDS.setAccept) = %lf\nbAccept = %lf\n", quantile(filteredAvgScalingb, 1 - InfDS.setAccept), bAccept);
       //%mean(avgScalingb);
@@ -1815,22 +1723,14 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     //end
   }
   if (Nkept < InfDS.Nsubj){
-    //InfDS.b(cindexKept,span(0,Nb-1)) = oldb(cindexKept,span(0,Nb-1));    
-    //InfDS.Xtild(span::all,cindexKept,span::all) = xtild(span::all,cindexKept,span:all);
     for (i = 0; i < (int)cindexKept.n_elem; i++){
       //i = cindexKept(i);
       if(cindexKept(i)){
         InfDS.b(i,span(0,Nb-1)) = oldb(i,span(0,Nb-1));
         InfDS.Xtild(span::all,span(i,i),span::all) = xtild(span::all,span(i,i),span::all);
-      }
-    }
-    
-    //for i = cindexKept
-    for (i = 0; i < (int)cindexKept.n_elem; i++){
-      //i = cindexKept(i);
-      if(cindexKept(i)){
-        InfDS.dXtildthetafAll(i) = dXtilddthetafAll(i);
-        InfDS.dXtildthetafAll2(i) = dXtilddthetafAll2(i);  
+        InfDS.dXtildthetafAll(i) = dXtildthetafAll(i);
+        InfDS.dXtildthetafAll2(i) = dXtildthetafAll2(i);  
+        
       }
     }
     
@@ -1845,13 +1745,11 @@ void drawbGeneral6_opt3(const int isPar, struct C_INFDS &InfDS, int yesMean, arm
     meanb = meanb + InfDS.b*(1/((double)MAXGIB));
   }
   
-  
-  
   if (useMultN==1){
     InfDS.N = 1;
   }
   
-  
+  InfDS.useb = InfDS.b;
   return;
 }
 

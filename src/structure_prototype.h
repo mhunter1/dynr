@@ -1,5 +1,5 @@
-typedef arma::mat (*dynfunICMPtr)(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
-typedef arma::cube (*dfdxFreeICMPtr)(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+typedef arma::mat (*dynfunICMPtr)(const int is_meanb, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
+typedef arma::cube (*dfdxFreeICMPtr)(const int is_meanb, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 typedef arma::cube (*cubePtr)(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
 typedef arma::mat (*_rcpparma_hello_worldPtr)(void);
@@ -20,8 +20,8 @@ struct C_INFDS{
 	//arma::Mat<double> Tfilter, tidx, lens, ICb;
 	double omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;
 	int alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;
-	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;
-	arma::cube Xtild, dXtild, d2Xtild;
+	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, dXtildthetafAll_meanb, dXtildthetafAll2_meanb, tobs, Y;
+	arma::cube Xtild, dXtild, d2Xtild, Xtild_meanb;
 	arma::Mat<double> allT;
 	struct C_FUNC_POINTER fp;
 };
@@ -43,13 +43,13 @@ arma::mat rowProjection(arma::mat data, arma::mat index);
 arma::mat colProjection(arma::mat data, arma::mat index);
 arma::mat modProjection(arma::mat data, int divisor, int remainder);
 int maxElement(arma::imat integer_matrix);
-arma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS);
-C_INFDS getXtildIC3(const int isPar, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS);
+arma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS);
+C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, struct C_INFDS &InfDS);
 void meas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);
 //arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::imat allT, const arma::cube Xtild, arma::cube Y);
 
-arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
-arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
+arma::mat dynfunICM(const int is_meanb, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);
+arma::cube dfdxFreeICM(const int is_meanb, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);
 arma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);

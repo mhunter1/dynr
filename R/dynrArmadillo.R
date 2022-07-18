@@ -309,10 +309,10 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = "#// [[Rcpp::depends(RcppArmadillo)]]\n\n#include <RcppArmadillo.h>\nusing namespace std;\nusing namespace arma;\nusing namespace Rcpp;\n\n"
 		
 		# structure prototype
-		ret= paste0(ret, "\n\nstruct C_INFDS{\n//public:\n\tint Nx, NxState, Ny, Nbeta, Ntheta, Nb, Nmu, NLambda, Nbpar, Nu, Npar0, totalT, Nsubj, Neta, Nbetax, N, MAXGIB;\n\tarma::mat Z, G,  tspan, H, U1, allDelta, thetatild, sytild, EStild, EItild, Iytild, bAdaptParams, OMEGAb, bacc, Sigmae, dSigmaede, dSigmaede2, Sigmab, dSigmabdb, dSigmabdb2, start, startpars, b, meanb, useb, sy, ES, EI, Iy, lowBound, upBound, y0, SigmaEta, mu, dmudparMu, dmudparMu2, Lambda, dLambdparLamb, dLambdparLamb2, P0, par, trueb, Tfilter, tidx, lens, ICb;\n\tdouble omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;\n\tint alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;\n\tarma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, tobs, Y;\n\tarma::cube Xtild, dXtild, d2Xtild;\n\tarma::Mat<double> allT;\n};\n\n")
+		ret= paste0(ret, "\n\nstruct C_INFDS{\n//public:\n\tint Nx, NxState, Ny, Nbeta, Ntheta, Nb, Nmu, NLambda, Nbpar, Nu, Npar0, totalT, Nsubj, Neta, Nbetax, N, MAXGIB;\n\tarma::mat Z, G,  tspan, H, U1, allDelta, thetatild, sytild, EStild, EItild, Iytild, bAdaptParams, OMEGAb, bacc, Sigmae, dSigmaede, dSigmaede2, Sigmab, dSigmabdb, dSigmabdb2, start, startpars, b, meanb, useb, sy, ES, EI, Iy, lowBound, upBound, y0, SigmaEta, mu, dmudparMu, dmudparMu2, Lambda, dLambdparLamb, dLambdparLamb2, P0, par, trueb, Tfilter, tidx, lens, ICb;\n\tdouble omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;\n\tint alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;\n\tarma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, dXtildthetafAll_meanb, dXtildthetafAll2_meanb, tobs, Y;\n\tarma::cube Xtild, dXtild, d2Xtild, Xtild_meanb;\n\tarma::Mat<double> allT;\n};\n\n")
 		
 		# function C extern
-		ret= paste0(ret, "\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\narma::mat hello_world();\n\narma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);\narma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\nvoid VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);\nvoid setParsFreeICwb(C_INFDS &InfDS);\n\narma::mat rowProjection(arma::mat data, arma::mat index);\narma::vec span_vec(int start, int end, int step);\n\n#ifdef __cplusplus\n}\n#endif\n")
+		ret= paste0(ret, "\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\narma::mat hello_world();\n\narma::mat dynfunICM(const int is_meanb, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS);\narma::cube dfdxFreeICM(const int is_meanb, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdparFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdx2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdxdpFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpdxFreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\narma::cube dfdpar2FreeIC(arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS);\nvoid VDPMeas(arma::vec x, int Ny, int Nx, int NxState, arma::mat InfDS_Lambda, arma::mat mu, arma::mat *yPred, arma::mat *Jy);\nvoid setParsFreeICwb(C_INFDS &InfDS);\n\narma::mat rowProjection(arma::mat data, arma::mat index);\narma::vec span_vec(int start, int end, int step);\n\n#ifdef __cplusplus\n}\n#endif\n")
 		
 		
 		#hello_world
@@ -325,7 +325,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = paste0(ret, "\narma::mat rowProjection(arma::mat data, arma::mat index){\n\t//index is a row vector\n\tint i;\n\tarma::mat output;\n\toutput.reset();\n\tfor (i = 0; i < (int)index.n_cols; i++){\n\t\toutput.insert_rows(output.n_rows, data.row(index(i)-1));\n\t}\n\treturn output;\n}\n\n")
 		
 		#calculateTheta
-		ret = paste0(ret, "\narma::mat calculateTheta(const int isPar, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\tif(isPar == 1)\n\t\tprintf(\"Should NOT happen! isPar = 1\");\n\t\n\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (isPar==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(InfDS.Nb, 1) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Nbeta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));\n\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\n\t\tif (isPar == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0){\n\t\t\tb = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t\t//b(span(0, InfDS.b.n_cols-1), ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t}\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b;\n\t}\n\n\treturn thetaf;\n}\n\n")
+		ret = paste0(ret, "\narma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\tif(is_meanb == 1)\n\t\tprintf(\"is_meanb = 1\");\n\t\n\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\n\tif (is_meanb==0){\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\t}\n\t\n\tb = arma::zeros<arma::mat>(InfDS.Nb, 1) ;\n\tbetai = arma::zeros<arma::mat>(InfDS.Nbeta, 1);// beta\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\tint current_i = int(i(ii));\n\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\n\t\tif (is_meanb == 1)\n\t\t\tbetai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);\n\t\telse\n\t\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\t\n\t\tif (InfDS.Nb > 0){\n\t\t\tb = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t\t//b(span(0, InfDS.b.n_cols-1), ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);\n\t\t}\n\t\tthetaf.col(ii) = Hi * betai + InfDS.Z * b;\n\t}\n\n\treturn thetaf;\n}\n\n")
 		
 		
 		
@@ -333,20 +333,20 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#----------------------------------------------------------------------------------------------
 		# output code for function dynfun
-		ret = paste0(ret, "arma::mat dynfunICM(const int isPar, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){\n\n\t//local parameters\n\tarma::mat y, r, thetaf;\n\t\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\t\n\n\t//input parameters\n\ty = xin;\n\tr.set_size(InfDS.Nx, int(i.n_elem));\n\tr.clear();\n\tr = y;\n")
+		ret = paste0(ret, "arma::mat dynfunICM(const int is_meanb, const arma::mat &xin, arma::vec &i, const int t, const int isStart, struct C_INFDS &InfDS){\n\n\t//local parameters\n\tarma::mat y, r, thetaf;\n\t\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\t\n\n\t//input parameters\n\ty = xin;\n\tr.set_size(InfDS.Nx, int(i.n_elem));\n\tr.clear();\n\tr = y;\n")
 		
 		
 
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhs, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
-			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
+			ret=paste0(ret,"\n\tthetaf=calculateTheta(is_meanb, y, i,InfDS);\n\n")
 		
 		
 		
 		
 		# [todo] replace the initial condition by information from prep.initial
-		# ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
+		# ret = paste0(ret,"\tif (isStart==1){\n\t\tr.zeros();\n\t\tint row, s;\n\t\tfor (s = 0; s < int(i.n_elem); s++){\n\t\t\tfor (row = 0; row < InfDS.NxState; row++)\n\t\t\t\tr(row, s) = thetaf(row +1, s);\n\n\t\t\tif (is_meanb == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n \t\t\t\t\tr(row, s) = y(row, s);\n \t\t\t\t}\n \t\t\t}\n\t\t}\n\n\t}\n")
 		
 		ret = paste0(ret, "\t\n\tr.zeros();\n\tint s;\n\tfor (s = 0; s < int(i.n_elem); s++){")
 		
@@ -362,19 +362,19 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 
         }
 
-	    #ret=paste0(ret,"\n\t\t\tif (isPar == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n\t\t\t\t\tr(row, s) = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\treturn r;\n}\n")
+	    #ret=paste0(ret,"\n\t\t\tif (is_meanb == 1){\n\t\t\t\tfor (row = InfDS.NxState; row < InfDS.NxState + InfDS.Nbeta; row++){\n\t\t\t\t\tr(row, s) = 0;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\treturn r;\n}\n")
 		ret=paste0(ret,"\n\t}\n\treturn r;\n}\n")
 	    ret=paste0(ret,"\n//----------------\n")
 
 	    #----------------------------------------------------------------------------------------------
 		
 		# Output dfdxFreeICM
-	    ret=paste0(ret, "arma::cube dfdxFreeICM(const int isPar, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat Hi, b, bb, thetaf, rowNum, y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Nx, InfDS.Nx, y.n_cols) ;\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols) ;\n")
+	    ret=paste0(ret, "arma::cube dfdxFreeICM(const int is_meanb, arma::mat &xin, arma::vec &i, int t, int isStart, struct C_INFDS &InfDS){\n\tarma::mat Hi, b, bb, thetaf, rowNum, y;\n\tarma::cube r;\n\n\t// if i is empty, traverse all vectors\n\tif(i.is_empty()){\n\t\ti = span_vec(1, InfDS.Nsubj, 1);\n\t}\n\n\ty = xin;\n\tr = arma::zeros<arma::cube>(InfDS.Nx, InfDS.Nx, y.n_cols) ;\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols) ;\n")
 		
 		# Judge whether we needs calculateTheta
 		c_i <- lapply(rhsj, function(x){grep(paste0("thetaf("),x, fixed = TRUE)})
 		if(length(c_i[[1]]) > 0)	
-			ret=paste0(ret,"\n\tthetaf=calculateTheta(isPar, y, i,InfDS);\n\n")
+			ret=paste0(ret,"\n\tthetaf=calculateTheta(is_meanb, y, i,InfDS);\n\n")
 
 		# repalce the state variable with corresponding InfDS variable
         for (i in 1:length(jacob[[1]])){
@@ -384,7 +384,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
         }
 
 		# [todo] replace the initial condition by information from prep.initial
-		#ret=paste(ret, "\tif (isStart==1){\n\t\tif (isPar == 0)\n\t\t\t; //Undefined case in dfdxParIC\n\t\telse{\n\t\t\tint s;\n\t\t\tfor (s = 0; s < int(y.n_cols); s++){\n\t\t\t\tr.slice(s)(2, 2)=1 ;\n\t\t\t\tr.slice(s)(3, 3)=1 ;\n\t\t\t\tr.slice(s)(4, 4)=1 ;\n\t\t\t\tr.slice(s)(5, 5)=1 ;\n\t\t\t\tr.slice(s)(6, 6)=1 ;\n\t\t\t} \n\t\t}\n\t}\n")
+		#ret=paste(ret, "\tif (isStart==1){\n\t\tif (is_meanb == 0)\n\t\t\t; //Undefined case in dfdxParIC\n\t\telse{\n\t\t\tint s;\n\t\t\tfor (s = 0; s < int(y.n_cols); s++){\n\t\t\t\tr.slice(s)(2, 2)=1 ;\n\t\t\t\tr.slice(s)(3, 3)=1 ;\n\t\t\t\tr.slice(s)(4, 4)=1 ;\n\t\t\t\tr.slice(s)(5, 5)=1 ;\n\t\t\t\tr.slice(s)(6, 6)=1 ;\n\t\t\t} \n\t\t}\n\t}\n")
 		
 	    ret=paste(ret,"\t\n\tint s;\n\n\tfor (s = 0; s < int(y.n_cols); s++){")
 	    for (i in 1:length(jacob[[1]])){
@@ -396,8 +396,8 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	        }
 	    }
 
-	    # output(isPar)
-	    # ret = paste(ret, "\n\t\t\tif(isPar == 1){")
+	    # output(is_meanb)
+	    # ret = paste(ret, "\n\t\t\tif(is_meanb == 1){")
 	    # for (i in 1:length(jacob[[1]])){
 	        # col <- (i-1)%/%n  
 	        # row <- (i-1)%%n 

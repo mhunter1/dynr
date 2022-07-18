@@ -785,20 +785,20 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		if (observedFlag){
 		  #browser()
 		  print('calling ExpandRandomAsLVModel')
-		  model <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
+		  msodel <- ExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
 		  #load(file = "After expandedEx4.RData")
 		  #SMC 7/5/22: Temporarily suppressed cooking fitted_model to save time
-		  fitted_model <- dynr.cook(model, optimization_flag=optimization_flag, 
+		  fitted_model <- dynr.cook(model, optimization_flag=FALSE,#TEMP: optimization_flag, 
 		                            hessian_flag = FALSE,#hessian_flag, 
 		                            verbose=FALSE, weight_flag=weight_flag, 
 		                           debug_flag=TRUE) #debug_flag = debug_flag
-		  save.image(file = "After expandedEx2.RData")
+		  #save.image(file = "After expandedEx2.RData")
 		} else {
 		  #browser()
 		  print('calling TwoPhaseExpandRandomAsLVModel')
 		  model <- TwoPhaseExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
-		  #overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
-		  #model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
+		  ##overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
+		  ##model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
 		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, 
 		                            hessian_flag = FALSE, verbose=FALSE, weight_flag=weight_flag, 
 		                            debug_flag=TRUE) #Need debug_flag=TRUE to get eta_smooth_final
