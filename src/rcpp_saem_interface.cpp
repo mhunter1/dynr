@@ -178,10 +178,10 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		cor_b.print("Correlation between b and trueb");
 		
 	}
-	
+
 	if (InfDS.Ntheta > 0 && InfDS.Nsubj > 0 && InfDS.Nbetax > 0){
 		InfDS.H = as<mat>(model_sexp["H"]);
-		//InfDS.H.print("InfDS.H");
+		InfDS.H.print("InfDS.H");
 	}
 	
 	/*-----*/

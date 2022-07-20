@@ -136,14 +136,14 @@ arma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, s
     int current_i = int(i(ii));   
     
     Hi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);   
-    Hi.print("Hi"); 
+    //Hi.print("Hi"); 
     
    // if (isPar == 1)            
    //   betai = y.col(ii).rows(InfDS.NxState,InfDS.NxState + Hi.n_cols-1);
   //  else
       betai = reshape(par,InfDS.Nbeta, 1);
-    par.print("In CalculateTheta, par = "); 
-    betai.print("In CalculateTheta, betai = ");
+    //par.print("In CalculateTheta, par = "); 
+    //betai.print("In CalculateTheta, betai = ");
     if (InfDS.Nb > 0)
       //b.col(ii) = reshape(InfDS.b.row(current_i-1),InfDS.Nb,1);
       b.col(ii) = reshape(InfDS.useb.row(current_i-1),InfDS.Nb,1);
