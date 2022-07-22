@@ -96,7 +96,7 @@ processModelOptionsArgument <- function(opt){
 	}
 }
 
-internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, scaleb, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab, mu, lower_bound, upper_bound, dmudparMu, dmudparMu2,y0, dLambdparLamb, dLambdparLamb2, sigmae, dSigmaede, dSigmaede2, dSigmabdb, dSigmabdb2, time_, freeIC, par_value, setScaleb, setAccept, seed, r, trueb, errtrol1, errtrol){
+internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, verbose, num_theta, num_beta, total_t, num_lambda, num_mu, num_sigmae, theta.formula, random.names, p0, num_random, lambda, bAdaptParams, KKO, scaleb, b, random.lb, random.ub, MAXGIB, MAXITER, maxIterStage1, gainpara, gainparb, gainpara1, gainparb1, num_bpar, sigmab, mu, lower_bound, upper_bound, dmudparMu, dmudparMu2,y0, dLambdparLamb, dLambdparLamb2, sigmae, dSigmaede, dSigmaede2, dSigmabdb, dSigmabdb2, time_, freeIC, par_value, setScaleb, setAccept, seed, r, trueb, errtrol1, errtrol){
 
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrepSAEM function must be a list.")
@@ -115,13 +115,6 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	if( (length(dim_latent_var) != 1) || (round(dim_latent_var) != dim_latent_var) ){
 		stop("Number of latent variables (dim_latent_var) must be a single integer.")
 	}
-	
-	
-	
-
-	
-	
-
 	#returns a list of addresses of the compiled model functions
 	#func_address=.C2funcaddressSAEM(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
 	
@@ -140,6 +133,7 @@ internalModelPrepSAEM <- function(num_regime, dim_latent_var, xstart, ub, lb, op
 	num_lambda=as.integer(num_lambda),
 	theta.formula=theta.formula,
 	num_mu=num_mu,
+	num_sigmae = num_sigmae,
 	random.names=random.names,
 	p0=p0,
 	num_random=num_random,

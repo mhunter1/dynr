@@ -30,8 +30,6 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	struct C_OUTPUT output;
 	C_INFDS InfDS;
 	C_INFDS0 InfDS0;
-
-	
 		
 	/*constant*/
 	InfDS.N = 1;
@@ -51,10 +49,11 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	InfDS.Nb = as<int>(model_sexp["num_random"]);
 	InfDS.Nmu = as<int>(model_sexp["num_mu"]);
 	InfDS.NLambda = as<int>(model_sexp["num_lambda"]);
+	InfDS.Nsigmae = as<int>(model_sexp["num_sigmae"]);
 	InfDS.Nbpar = as<int>(model_sexp["num_bpar"]);
 	InfDS.Nu = as<int>(model_sexp["dim_co_variate"]);
 	InfDS.Nbeta = as<int>(model_sexp["num_beta"]);
-	InfDS.Nbetax = InfDS.Nbeta;
+	//InfDS.Nbetax = InfDS.Nbeta;
 	InfDS.Nsubj = as<int>(model_sexp["num_sbj"]);
 	InfDS.totalT = as<int>(model_sexp["total_t"]);
 	InfDS.KKO = as<int>(model_sexp["KKO"]);
@@ -109,7 +108,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//Rprintf("InfDS.NLambda = %d\n", InfDS.NLambda);
 	//Rprintf("InfDS.Nbpar = %d\n", InfDS.Nbpar);
 	//Rprintf("InfDS.Nu = %d\n", InfDS.Nu);
-	//Rprintf("InfDS.Nbeta = %d\n", InfDS.Nbeta);
+	Rprintf("InfDS.Nbeta = %d\n", InfDS.Nbeta);
+	Rprintf("InfDS.Nsigmae = %d\n", InfDS.Nsigmae);
 	Rprintf("InfDS.Nsubj = %d\n", InfDS.Nsubj);
 	//Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
 	//Rprintf("InfDS.totalT = %d\n", InfDS.totalT);
@@ -139,7 +139,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	}
 	
-  // SMC: Sigmae could have all fixed parameters even though
+  // SMC: TODO: Sigmae could have all fixed parameters even though
   // Ny > 0. Fixed later
 	if(InfDS.Ny > 0){
 		InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
@@ -179,7 +179,7 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		
 	}
 
-	if (InfDS.Ntheta > 0 && InfDS.Nsubj > 0 && InfDS.Nbetax > 0){
+	if (InfDS.Ntheta > 0 && InfDS.Nbeta > 0){
 		InfDS.H = as<mat>(model_sexp["H"]);
 		InfDS.H.print("InfDS.H");
 	}

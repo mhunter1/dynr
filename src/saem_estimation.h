@@ -129,9 +129,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	//InfDS.par.print("InfDS.par");
 	//Rprintf("checkpoint M92 entering the k loop\n");	
 	
-	//InfDS.meanb = InfDS0.trueb; //TEMP For debugging
+	InfDS.meanb = InfDS0.trueb; //TEMP For debugging - REMOVE LATER
 	//InfDS.b = InfDS0.trueb;  //TEMP For debugging
-	InfDS.b = arma::zeros<arma::mat>(InfDS.Nsubj, InfDS.Nb);//TEMP for debuggin
 	InfDS.useb = InfDS.b;
 	InfDS = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get Xtilde and dXtilddthetaf before saem
 	C_INFDS InfDS_meanb = InfDS;
@@ -163,7 +162,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		else k_stop = gmm;
 		yesMean = 1;
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
-		if ((observedFlag == 0 || k <= InfDS.KKO) || bAccept < .001 || bAccept > .99){ //TEMP; CHANGE BACK TO FOLLOWING AFTER DEBUGGING
+		if ((observedFlag == 0 || k <= 5) || bAccept < .001 || bAccept > .99){ //TEMP; CHANGE BACK TO FOLLOWING AFTER DEBUGGING
 //		if ((observedFlag == 0 && k <= 5) || bAccept < .001 || bAccept > .99){ 
             useMultN = 1; // Lu modified, 04-12-13,5;
 		        MAXGIB=5;
@@ -216,48 +215,49 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
  
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
-			//Rprintf("GIB = %d\n", GIB);
-
-			if (k >= 4){ 
-			//if (k >= 1){ 
+			  //Rprintf("GIB = %d\n", GIB);
 				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
 				drawbGeneral6_opt3(is_meanb, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
 				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
-			}
-        
+				
+				arma::mat cor_b = cor(InfDS.b,InfDS0.trueb);
+				cor_b.print("Correlation between b and trueb");
+				Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
+				Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
+				
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
 			//Rprintf("checkpoint enter getScoreInfoY_tobs_opt\n");	
 			getScoreInfoY_tobs_opt(InfDS, stage, k, freeIC, score, infoMat);
-			//Rprintf("checkpoint leave getScoreInfoY_tobs_opt\n");				
+			//Rprintf("checkpoint leave getScoreInfoY_tobs_opt\n");		
+			
+			//score.print("Score");
+			//infoMat.print("InfoMat");
 			
 			mscore = mscore + (1.0/MAXGIB)*score;
 			mscore2 = mscore2 + (1.0/MAXGIB)*(score*score.t());
 			minfoMat = minfoMat + (1.0/MAXGIB)*infoMat;
 		} //end of Gibbs sampler loop
 		
-		InfDS.meanb = meanb;
-		InfDS.useb = InfDS.meanb;
-		//Rprintf("Start of getXtildIC3 with meanb\n");
-		InfDS_meanb = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
-		InfDS.Xtild_meanb = InfDS_meanb.Xtild;
-		InfDS.dXtildthetafAll_meanb = InfDS_meanb.dXtildthetafAll;
-		InfDS.dXtildthetafAll2_meanb = InfDS_meanb.dXtildthetafAll2;
-		arma::mat cor_b = cor(InfDS.b,InfDS0.trueb);
-		cor_b.print("Correlation between b and trueb");
-		Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
-		Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
+		//TEMP DEBUG - UNCOMMENT THIS WHOLE BLOCK LATER
+		//----------------------------------------------
+		//InfDS.meanb = meanb; 
+		//InfDS.useb = InfDS.meanb;
+		////Rprintf("Start of getXtildIC3 with meanb\n");
+		//InfDS_meanb = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
+		//InfDS.Xtild_meanb = InfDS_meanb.Xtild;
+		//InfDS.dXtildthetafAll_meanb = InfDS_meanb.dXtildthetafAll;
+		//InfDS.dXtildthetafAll2_meanb = InfDS_meanb.dXtildthetafAll2;
+		//TEMP DEBUG - END OF UNCOMMENT THIS WHOLE BLOCK LATER
+		//----------------------------------------------
 		
-		cor_b = cor(InfDS.meanb,InfDS0.trueb);
+		arma::mat cor_b = cor(InfDS.meanb,InfDS0.trueb);
 		cor_b.print("Correlation between meanb and trueb");
 		Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 		Rprintf("\nRange of meanb estimates: [%lf, %lf]\n", InfDS.meanb.min(), InfDS.meanb.max());
 		
-		
 		Covscore = mscore2 - mscore*mscore.t();
 		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore,k_stop);
-	
-    
 		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);
 		Rprintf("\nCurrent b acceptance rate = %6f\n",bAccept);
 		output.avebAccept += bAccept;

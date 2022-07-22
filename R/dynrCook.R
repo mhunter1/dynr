@@ -910,6 +910,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 			total_t = nrow(dynrModel@data$original.data[dynrModel@data$original.data[[data$idVar]] == 1, ]),
             num_lambda=length(lambda.names),
             num_mu=length(mu.names),
+			      num_sigmae = length(noise.names),
             num_random=length(random.names),
             theta.formula=dynrModel@dynamics@theta.formula,
             random.names=random.names,
@@ -975,6 +976,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		model$observedFlag <- observedFlag 
         
 		#call Rcpp_saem_interface
+
 		output <- rcpp_saem_interface(model, data, weight_flag, debug_flag, optimization_flag, hessian_flag, verbose)
 		
 		#browser()
@@ -1298,6 +1300,7 @@ combineModelDataInformationSAEM <- function(model, data){
         
         temp <- r$fixed
         
+        if (nrow(r$fixed)> 0){
         for (i in c(1:nrow(r$fixed))){
             for (j in c(1:ncol(r$fixed))){
                 for (u in c(1:length(data$covariate.names))){
@@ -1307,6 +1310,7 @@ combineModelDataInformationSAEM <- function(model, data){
                 }
             }
         }
+  
 
         if(nrow(H) == 0 && ncol(H) == 0){
             H = t(apply(r$fixed, 1, as.numeric))
@@ -1314,12 +1318,12 @@ combineModelDataInformationSAEM <- function(model, data){
             H=rbind(H,t(apply(r$fixed, 1, as.numeric)))
         }
         r$fixed <- temp
-    }
+        }
+	  }
     model$H <- as.matrix(H)
     model$Z <- as.matrix(Z)
-	#print(H)
-    
-
+    print(H)
+    print(Z)
     return(model)
 }
 
