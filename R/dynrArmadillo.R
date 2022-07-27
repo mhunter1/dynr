@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Author: Michael D. Hunter
+# Authors: Hui-Ju Hung, Sy-Miin Chow, & Michael D. Hunter
 # Date: 2017-10-30 08:50:19
 # Filename: dynrArmadillo.R
 # Purpose: Replicate much of the dynrRecipe methods for writing C code but for
@@ -151,7 +151,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsMatrix",
 
 setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 	#function(object, covariates, param.names, dmudparMu, dmudparMu2, dLambdparLamb, dLambdparLamb2,dSigmaede, dSigmaede2, dSigmabdb, dSigmabdb2){
-	function(object, covariates, param.names, dSigmabdb, dSigmabdb2, Sigmab, known.vars){
+	function(object, covariates, param.names, dSigmabdb = NULL, dSigmabdb2 = NULL, Sigmab, known.vars){
 
 		formula <- object$formulaOriginal
 		formula2 <- object$formula2
@@ -327,7 +327,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		ret = paste0(ret, "\narma::mat rowProjection(arma::mat data, arma::mat index){\n\t//index is a row vector\n\tint i;\n\tarma::mat output;\n\toutput.reset();\n\tfor (i = 0; i < (int)index.n_cols; i++){\n\t\toutput.insert_rows(output.n_rows, data.row(index(i)-1));\n\t}\n\treturn output;\n}\n\n")
 		
 		#calculateTheta
-		ret = paste0(ret, '\narma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\t\n\t\n\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\tb = arma::zeros<arma::mat>(InfDS.Nb, 1);\n\n\tif (InfDS.Nbeta > 0 || InfDS.Nb > 0){\n\n\t\tif (InfDS.Nbeta > 0) {\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\tbetai = arma::zeros<arma::mat>(InfDS.Nbeta, 1);// beta\n\t}\n\t//printf("i.n_elem = %d", i.n_elem);\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\t//printf("ii = %d", ii);\n\t\tint current_i = int(i(ii));\n\t\tif (InfDS.Nbeta > 0){\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\tthetaf.col(ii) = Hi * betai;\n\t\t}//End of Nbeta check\n\t\tif (InfDS.Nb > 0){\n\t\t\tb = reshape(InfDS.useb.row(current_i-1),InfDS.Nb,1);\n\t\tthetaf.col(ii) = thetaf.col(ii) + InfDS.Z * b;\n\t\t}//End of Nb check\n\t\t}\n\t}\n\n\treturn thetaf;\n}\n\n')
+		ret = paste0(ret, '\narma::mat calculateTheta(const int is_meanb, const arma::mat &y, arma::vec &i, struct C_INFDS &InfDS){\n\t\n\t\n\n\tarma::mat b, betai, temp, Hi, thetaf, par;\n\t\n\tthetaf = arma::zeros<arma::mat>(InfDS.Ntheta, y.n_cols);\n\tpar = InfDS.par;\n\tb = arma::zeros<arma::mat>(InfDS.Nb, 1);\n\n\tif (InfDS.Nbeta > 0 || InfDS.Nb > 0){\n\n\t\tif (InfDS.Nbeta > 0) {\n\t\ttemp = span_vec(1, InfDS.Nbeta, 1).t();//Nbeta is the number of fixed effects parameters\n\t\tpar = rowProjection(par, temp);\n\tbetai = arma::zeros<arma::mat>(InfDS.Nbeta, 1);// beta\n\t}\n\t//printf("i.n_elem = %d", i.n_elem);\n\tfor (int ii = 0; ii < int(i.n_elem); ii++){\n\t\t//printf("ii = %d", ii);\n\t\tint current_i = int(i(ii));\n\t\tif (InfDS.Nbeta > 0){\n\t\tHi = InfDS.H.rows(1+(current_i-1)*InfDS.Ntheta-1, current_i*InfDS.Ntheta-1);\n\t\tbetai = reshape(par,InfDS.Nbeta, 1);\n\t\tthetaf.col(ii) = Hi * betai;\n\t\t}//End of Nbeta check\n\t\tif (InfDS.Nb > 0){\n\t\t\tb = reshape(InfDS.useb.row(current_i-1),InfDS.Nb,1);\n\t\tthetaf.col(ii) = thetaf.col(ii) + InfDS.Z * b;\n\t\t//thetaf.col(ii).print("In CalculateTheta thetaf = ");\n\t\t}//End of Nb check\n\t\t}\n\t}\n\n\treturn thetaf;\n}\n\n')
 		
 		#----------------------------------------------------------------------------------------------
 		# output code for function dynfun
@@ -588,6 +588,19 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		
 		#browser()
 		
+		 Sigmab = object@random.values.inicov
+		 sigmab.names <- unique(c(object$random.params.inicov))
+		 sigmab.names <- sigmab.names[!tolower(sigmab.names)%in% c("fixed", "0")]
+		 if (length(sigmab.names)==0){
+		   ret = paste0(ret, "\tInfDS.Sigmab = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
+		   for(i in 1: nrow(Sigmab)){
+		     for(j in 1: ncol(Sigmab)){
+		       expr.char = deparse(Sigmab[i,j][[1]], width.cutoff=500L)
+		         ret = paste0(ret, "\tInfDS.Sigmab(", i-1, ", ", j-1, ") = ", expr.char  , ";\n")
+		     }
+		   }
+		 }else{
+		 # ret = paste0(ret, "\tInfDS.Sigmab = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
 		ret = paste0(ret, "\tInfDS.Sigmab = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
 		for(i in 1: nrow(Sigmab)){
 			for(j in 1: ncol(Sigmab)){
@@ -658,7 +671,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			# }
 			
 		#}
-		
+		 }# End of length(sigmab.names) > 0
 		#browser()
 		
 		
@@ -681,12 +694,24 @@ setMethod("writeArmadilloCode", "dynrNoise",
 		ret <- ""
 		ret = paste(ret, "\n\tstartE = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;\n")
 		#Sigmae = object$params.observed[[1]]
-		if (length(object$params.observed) > 0){ 
-		  Sigmae <- object$params.observed[[1]]
+		if (length(object$values.observed) > 0){ 
+		  Sigmae <- object$values.observed[[1]]
 		} else { Sigmae <- matrix(0L, nrow=0, ncol=0) }
 		
-		startE = min(Sigmae[Sigmae>0]) + 1
 		ret = paste0(ret, "\tInfDS.Sigmae = arma::zeros<arma::mat>(", nrow(Sigmae), ", ", ncol(Sigmae), ");\n")
+		
+		noise.names <- unique(as.vector(object@params.observed[[1]]))
+		noise.names <- noise.names[!tolower(noise.names) %in% c('fixed', '0')]
+		
+		if (length(noise.names)==0){
+		  for(i in 1: nrow(Sigmae)){
+		    for(j in 1: ncol(Sigmae)){
+		      expr.char = deparse(Sigmae[i,j][[1]], width.cutoff=500L)
+		      ret = paste0(ret, "\tInfDS.Sigmae(", i-1, ", ", j-1, ") = ", expr.char  , ";\n")
+		    }
+		  }
+		}else{
+		  startE = min(Sigmae[Sigmae>0]) + 1
 		for(i in 1: nrow(Sigmae)){
 			for(j in 1: ncol(Sigmae)){
 				if(Sigmae[i, j] > 0){
@@ -733,6 +758,7 @@ setMethod("writeArmadilloCode", "dynrNoise",
 			}
 			
 		}
+		}#End length(noise.names) > 0
 		
 		ret=paste0(ret,"}\n//----------------\n")
 		

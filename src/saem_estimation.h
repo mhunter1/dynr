@@ -128,15 +128,17 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 	//InfDS.par.print("InfDS.par");
 	//Rprintf("checkpoint M92 entering the k loop\n");	
-	
+	int getdxFlag = 0;
+	if (InfDS.Nbeta > 0) getdxFlag=1;
 	InfDS.meanb = InfDS0.trueb; //TEMP For debugging - REMOVE LATER
-	//InfDS.b = InfDS0.trueb;  //TEMP For debugging
-	InfDS.useb = InfDS.b;
-	InfDS = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get Xtilde and dXtilddthetaf before saem
+	InfDS.b = InfDS0.trueb;  //TEMP For debugging
+	InfDS.useb = InfDS.meanb;
+	InfDS = getXtildIC3(0, getdxFlag ,freeIC, InfDS); //%Get Xtilde and dXtilddthetaf before saem
 	C_INFDS InfDS_meanb = InfDS;
 	InfDS.Xtild_meanb = InfDS.Xtild;
 	InfDS.dXtildthetafAll_meanb = InfDS.dXtildthetafAll;
 	InfDS.dXtildthetafAll2_meanb = InfDS.dXtildthetafAll2;
+	
 	while (k <= InfDS.MAXITER && stop == 0){
 
 		//disp 'iteration';
@@ -162,19 +164,24 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		else k_stop = gmm;
 		yesMean = 1;
 		//if (stage==1 && bAccept < .1){ //Not looking too good. Pump up no. of chains
-		if ((observedFlag == 0 || k <= 5) || bAccept < .001 || bAccept > .99){ //TEMP; CHANGE BACK TO FOLLOWING AFTER DEBUGGING
+		if (((observedFlag == 0 || k <= 5) || bAccept < .001 || bAccept > .99)){ //TEMP; CHANGE BACK TO FOLLOWING AFTER DEBUGGING
 //		if ((observedFlag == 0 && k <= 5) || bAccept < .001 || bAccept > .99){ 
             useMultN = 1; // Lu modified, 04-12-13,5;
-		        MAXGIB=5;
+		        MAXGIB=10;
 		}
 		//else if(stage==1 && k == 3){
 		//SMC commented out 7/5/22
 		//else if(observedFlag==0 && k > 5 && k <= InfDS.KKO){
     //        useMultN = 1; MAXGIB=20;
-		//}
+		//
 		else {
 			useMultN = 0; 
 			MAXGIB = InfDS.MAXGIB;
+		}
+		
+		if (InfDS.Nbpar ==0 && InfDS.Nbeta ==0){
+		  useMultN = 0;
+		  MAXGIB = 1;
 		}
 
 		mscore = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
@@ -187,7 +194,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//Since beta changes, get Xtild and InfDS.InfDS.dxstardthetafAll and InfDS.dxstardthetafAll2
 	
 		//InfDS.y0.print("y0 before setting useb"); //already odd
-		
+		if (InfDS.Nbpar > 0 || InfDS.Nbeta > 0){
 		Rprintf("Set useb to meanb in saem_estimation.h\n");
 		//Rprintf("End of getXtildIC3 with meanb\n");
 		//if(k == 1){
@@ -204,26 +211,31 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		//	//InfDS.d2Xtild.print("InfDS.d2Xtild");
 		//	
 		//}
-    //Rprintf("\nGet covariance of proposal distribution of b");
+    Rprintf("\nGet covariance of proposal distribution of b");
 		PropSigb(InfDS);  
-    //Rprintf("\nEvaluate likelihood function under old b");
+    Rprintf("\nEvaluate likelihood function under old b");
 		tpOld = ekfContinuous10(InfDS.Nsubj, InfDS.N, InfDS.Ny, InfDS.Nx, InfDS.Nb, InfDS.NxState, InfDS.Lambda, InfDS.totalT, InfDS.Sigmae, InfDS.Sigmab, InfDS.mu, InfDS.b, InfDS.allT, InfDS.Xtild, InfDS.Y); //%get density of full conditional distribution of b 
 		
 		InfDS.bacc = arma::zeros<arma::mat>(InfDS.Nsubj,1);	
 		meanb = arma::zeros<arma::mat>(InfDS.Nsubj, InfDS.Nb); //Holds running MCMC means for b
+		}
 		
 		Rprintf("[DEBUG] MAXGIB = %d \n", MAXGIB);
  
 		for(GIB = 1; GIB <= MAXGIB; GIB++){
 			  //Rprintf("GIB = %d\n", GIB);
 				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
+				if (InfDS.Nbpar > 0 || InfDS.Nbeta > 0){
 				drawbGeneral6_opt3(is_meanb, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
 				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
-				
 				arma::mat cor_b = cor(InfDS.b,InfDS0.trueb);
 				cor_b.print("Correlation between b and trueb");
 				Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 				Rprintf("\nRange of b estimates: [%lf, %lf]\n", InfDS.b.min(), InfDS.b.max());
+				}else{
+				  InfDS.useb = InfDS.b;
+				  InfDS = getXtildIC3(0, getdxFlag ,freeIC, InfDS); //%Get Xtilde and dXtilddthetaf before saem
+				}
 				
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
@@ -239,31 +251,29 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			minfoMat = minfoMat + (1.0/MAXGIB)*infoMat;
 		} //end of Gibbs sampler loop
 		
-		//TEMP DEBUG - UNCOMMENT THIS WHOLE BLOCK LATER
-		//----------------------------------------------
-		//InfDS.meanb = meanb; 
-		//InfDS.useb = InfDS.meanb;
-		////Rprintf("Start of getXtildIC3 with meanb\n");
-		//InfDS_meanb = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
-		//InfDS.Xtild_meanb = InfDS_meanb.Xtild;
-		//InfDS.dXtildthetafAll_meanb = InfDS_meanb.dXtildthetafAll;
-		//InfDS.dXtildthetafAll2_meanb = InfDS_meanb.dXtildthetafAll2;
-		//TEMP DEBUG - END OF UNCOMMENT THIS WHOLE BLOCK LATER
-		//----------------------------------------------
-		
+		if (InfDS.Nbpar > 0 || InfDS.Nbeta > 0){
+		  //TEMP DEBUG - UNCOMMENT THIS WHOLE BLOCK LATER
+		  //----------------------------------------------
+		  //InfDS.meanb = meanb; 
+		  //InfDS.useb = InfDS.meanb;
+		  ////Rprintf("Start of getXtildIC3 with meanb\n");
+		  //InfDS_meanb = getXtildIC3(0, 1 ,freeIC, InfDS); //%Get updated Xtilde and dXtilddthetaf
+		  //InfDS.Xtild_meanb = InfDS_meanb.Xtild;
+		  //InfDS.dXtildthetafAll_meanb = InfDS_meanb.dXtildthetafAll;
+		  //InfDS.dXtildthetafAll2_meanb = InfDS_meanb.dXtildthetafAll2;
+		  //TEMP DEBUG - END OF UNCOMMENT THIS WHOLE BLOCK LATER
+		  //----------------------------------------------
 		arma::mat cor_b = cor(InfDS.meanb,InfDS0.trueb);
 		cor_b.print("Correlation between meanb and trueb");
 		Rprintf("\nRange of true b estimates: [%lf, %lf]\n", InfDS0.trueb.min(), InfDS0.trueb.max());
 		Rprintf("\nRange of meanb estimates: [%lf, %lf]\n", InfDS.meanb.min(), InfDS.meanb.max());
+		Rprintf("\nCurrent b acceptance rate = %6f\n",bAccept);
+		output.avebAccept += bAccept;
+		}
 		
 		Covscore = mscore2 - mscore*mscore.t();
 		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore,k_stop);
 		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);
-		Rprintf("\nCurrent b acceptance rate = %6f\n",bAccept);
-		output.avebAccept += bAccept;
-		//Rprintf("\nRange of InfDS0.trueb = %6f, %6f",min(InfDS0.trueb),max(InfDS0.trueb));
-		//Rprintf("\nRange of bhat = %6f, %6f\n",(double)min(InfDS.b),(double)max(InfDS.b));
-		//corr(InfDS.b(:,1:size(InfDS0.trueb,2)),InfDS0.trueb)
 
 		//temporarily printing out messages
 		if(1 || prev_stage != stage){

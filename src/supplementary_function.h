@@ -371,8 +371,9 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
     //Rprintf("enter dynfunICM\n");
     k1 = InfDS.fp.dynfunICM(0, XtildPrev, empty_vec, tindex(t), 0, InfDS_new);
     //Rprintf("leave dynfunICM\n");
+    //k1.print("k1 in 374");
     k21= XtildPrev+dt(t)*k1;
-    //Rprintf("k21\n");
+    //k21.print("k21 in 376");
     //[to be checked] case 1 goes for is_meanb = 1, case 2 goes for is_meanb = 0
     /*
      if (freeIC == 0)
@@ -712,7 +713,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
   //Rprintf("Checking checking 1.0");
   
   
-  if (InfDS.Nb > 0){
+  if (InfDS.Nbpar > 0){
     dlikdbAll = arma::zeros<arma::mat>(InfDS.Nbpar, 1);
     dlikdbAll2 = arma::zeros<arma::mat>(InfDS.Nbpar, InfDS.Nbpar);
     ivSigmab = inv(InfDS.Sigmab);
@@ -724,9 +725,11 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
 //  }
 //  else {
     Lambda = InfDS.Lambda;
+    Lambda.print("Lambda in line 728.");
+    InfDS.mu.print("Mu in line 729");
 //  }
   
-// Not needed as already done earlier in drawb
+// Not needed as already done earlier in drawb or in saem main loop
  // if (InfDS.Nbeta > 0){
 //    InfDS.useb = InfDS.b;
 //    InfDS = getXtildIC3(0, 1 ,freeIC, InfDS);
@@ -870,6 +873,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
         }
         //Rprintf("checkpoint 807\n");
         
+        if (InfDS.Nsigmae > 0){
         a = reshape(colProjection(rowProjection(SIndex, indexY),indexY), 1, InfDS.Ny*InfDS.Ny);
         
         InfDS_dSigmaede_ = colProjection(rowProjection(InfDS.dSigmaede,indexY),a);
@@ -889,7 +893,6 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
         //dlikdEpsilonAll.print("dlikdEpsilonAll");
         //dlikdEpsilonAll2.print("dlikdEpsilonAll2");
         
-        if (InfDS.Nsigmae > 0){
         for (ii = 0; ii < (int)indexY.n_cols; ii++){
           //printf("ii = %d\n",ii);
           dlikdEpsilonAll(indexY(ii)-1) = dlikdEpsilonAll(indexY(ii)-1)+ dlik(indexY(ii)-1)/mulp;
@@ -944,7 +947,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
     //Rprintf("checkpoint 945\n");
     
     
-    if (InfDS.Nb > 0){
+    if (InfDS.Nbpar > 0){
       b = reshape(InfDS.useb.row(i),InfDS.Nb,1);
       dlik = .5 * InfDS.dSigmabdb * (kron(ivSigmab, ivSigmab)*reshape(b*b.t()-InfDS.Sigmab, InfDS.Nb*InfDS.Nb, 1));
       
@@ -961,6 +964,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
   curpos2 = 0;
   curpos1 = 0;
   if (InfDS.Nbeta > 0){
+    Rprintf("beta in getScore");
     //dlikdBetaAll.print("dlikdBetaAll");
      curpos2 = curpos1 + InfDS.Nbeta;
     startBeta = curpos1; 
@@ -972,6 +976,7 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
   //Rprintf("beta\n");
   
   if (InfDS.Nmu > 0){
+    Rprintf("mu in getScore");
     //dlikdmuAll.print("dlikdmuAll");
     curpos2 = curpos1 + InfDS.Nmu;
     startMu = curpos1; 
@@ -987,9 +992,12 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
     curpos2 = curpos1 + InfDS.NLambda;
     startLamb = curpos1; 
     endLamb = curpos2-1;  
+    //Rprintf("Lambda in getScore, startLamb = %d, endLamb = %d",startLamb, endLamb);
     score(span(startLamb,endLamb),span::all) = dlikdLambdaAll;
     infoMat(span(startLamb,endLamb), span(startLamb,endLamb)) = dlikdLambdaAll2;
     curpos1 = curpos2;
+    score.print("Score after Lambda");
+    infoMat.print("Info mat after Lambda");
   }
   
   //Measurement error variances
@@ -1001,10 +1009,13 @@ void getScoreInfoY_tobs_opt(struct C_INFDS &InfDS, int stage, int iter, int free
     score(span(startSigmae,endSigmae),span::all) =  dlikdEpsilonAll;
     infoMat(span(startSigmae,endSigmae), span(startSigmae,endSigmae)) = dlikdEpsilonAll2;
     curpos1 = curpos2;
+    //score.print("Score after Sigmae");
+    //infoMat.print("Info mat after Sigmae");
   }
   
   if (InfDS.Nbpar > 0){
     //dlikdbAll.print("dlikdbAll");
+    Rprintf("Sigmab in getScore");
     curpos2 = curpos1 + InfDS.Nbpar;
     startb= curpos1; 
     endb = curpos2-1;  
@@ -1161,7 +1172,7 @@ void saem(struct C_INFDS &InfDS, int &gmm, int &k, int &stage, int &redFlag, int
      */
     //Rprintf("checkpoint 986\n");
     for(i = 0; i < dc2.n_elem; i++){
-      if(abs(dc2(i)) < .0001)
+      if(abs(dc2(i)) < .000001)
         dc2(i) = 0;
     }
     if (stage==1){
@@ -1361,7 +1372,7 @@ void drawbGeneral6_opt3(const int is_meanb, struct C_INFDS &InfDS, int yesMean, 
   bool r;
   struct C_INFDS InfDS1;
   int i, j, jj;
-  unsigned int ui, uj;
+  unsigned int ui, uj, getdxFlag = 0;
   
   arma::field<arma::mat> dXtildthetafAll, dXtildthetafAll2;
   //arma::field<arma::mat> dXtilddthetafAll_new, dXtilddthetafAll2_new;
@@ -1370,6 +1381,9 @@ void drawbGeneral6_opt3(const int is_meanb, struct C_INFDS &InfDS, int yesMean, 
 
   iSigmae = inv(InfDS.Sigmae);
   //iSigmae.print("iSigmae");
+  
+  
+  if (InfDS.Nbeta > 0){getdxFlag = 1;}
   
   if (useMultN==1)
     InfDS.N = 4;
@@ -1527,7 +1541,7 @@ void drawbGeneral6_opt3(const int is_meanb, struct C_INFDS &InfDS, int yesMean, 
     InfDS1.b(span::all, span(0,Nb-1)) = reshape(newb1.slice(q)(span::all,span(0, Nb-1)),InfDS.Nsubj, Nb);
     InfDS1.useb = InfDS1.b;
 	//Rprintf("Enter 1625 getXtildIC3\n");
-    InfDS1 = getXtildIC3(0, 1 ,freeIC,InfDS1);//For calculation of tpNew only new Xtild is needed
+    InfDS1 = getXtildIC3(0, getdxFlag ,freeIC,InfDS1);//For calculation of tpNew only new Xtild is needed
 	//Rprintf("Leave 1625 getXtildIC3\n");
     //mexPrintf("execution point 3.2\n");
     //arma::vec ekfContinuous10(int Nsubj, const int N, const int Ny, const int Nx, const int Nb, const int NxState,const arma::mat Lambda, int totalT, const arma::mat Sigmae, const arma::mat Sigmab, const arma::mat mu, const arma::mat b, const arma::mat allT, const arma::cube Xtild, arma::cube Y)
@@ -1565,7 +1579,7 @@ void drawbGeneral6_opt3(const int is_meanb, struct C_INFDS &InfDS, int yesMean, 
   //Replace b and corresponding components with new b
   InfDS.b(span::all,span(0,Nb-1)) = bTemp;
   InfDS.useb = InfDS.b; 
-  InfDS = getXtildIC3(0, 1 ,freeIC, InfDS);//Now contains dx stuff evaluated at new b
+  InfDS = getXtildIC3(0, getdxFlag ,freeIC, InfDS);//Now contains dx stuff evaluated at new b
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   //Proposal for oldb
   //Rprintf("execution point 5\n");

@@ -56,7 +56,6 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//InfDS.Nbetax = InfDS.Nbeta;
 	InfDS.Nsubj = as<int>(model_sexp["num_sbj"]);
 	InfDS.totalT = as<int>(model_sexp["total_t"]);
-	InfDS.KKO = as<int>(model_sexp["KKO"]);
 	InfDS.MAXGIB = as<int>(model_sexp["MAXGIB"]);
 	InfDS.MAXITER = as<int>(model_sexp["MAXITER"]);
 	InfDS.maxIterStage1 = as<int>(model_sexp["maxIterStage1"]);
@@ -103,10 +102,10 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	//Rprintf("isfreeIC = %d\n", isfreeIC);
 	//Rprintf("InfDS.NxState = %d\n", InfDS.NxState);
 	//Rprintf("InfDS.Ny = %d\n", InfDS.Ny);
-	//Rprintf("InfDS.Nb = %d\n", InfDS.Nb);
-	//Rprintf("InfDS.Nmu = %d\n", InfDS.Nmu);
-	//Rprintf("InfDS.NLambda = %d\n", InfDS.NLambda);
-	//Rprintf("InfDS.Nbpar = %d\n", InfDS.Nbpar);
+	Rprintf("InfDS.Nb = %d\n", InfDS.Nb);
+	Rprintf("InfDS.Nmu = %d\n", InfDS.Nmu);
+	Rprintf("InfDS.NLambda = %d\n", InfDS.NLambda);
+	Rprintf("InfDS.Nbpar = %d\n", InfDS.Nbpar);
 	//Rprintf("InfDS.Nu = %d\n", InfDS.Nu);
 	Rprintf("InfDS.Nbeta = %d\n", InfDS.Nbeta);
 	Rprintf("InfDS.Nsigmae = %d\n", InfDS.Nsigmae);
@@ -131,25 +130,26 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		InfDS.Sigmab = as<mat>(model_sexp["sigmab"]);
 		InfDS.Sigmab.print("InfDS.Sigmab at gateway");
 	
-	
+	if(InfDS.Nbpar>0){
 		InfDS.dSigmabdb = as<mat>(model_sexp["dSigmabdb"]);
 		InfDS.dSigmabdb.print("InfDS.dSigmabdb");
 		
 		InfDS.dSigmabdb2 = as<mat>(model_sexp["dSigmabdb2"]);
 		InfDS.dSigmabdb2.print("InfDS.dSigmabdb2");
 	}
+	}
 	
-  // SMC: TODO: Sigmae could have all fixed parameters even though
-  // Ny > 0. Fixed later
 	if(InfDS.Ny > 0){
 		InfDS.Sigmae = as<mat>(model_sexp["sigmae"]);
 		InfDS.Sigmae.print("InfDS.Sigmae at gateway");
 		
+		if (InfDS.Nsigmae > 0){
 		InfDS.dSigmaede = as<mat>(model_sexp["dSigmaede"]);
 		InfDS.dSigmaede.print("InfDS.dSigmaede");
 		
 		InfDS.dSigmaede2 = as<mat>(model_sexp["dSigmaede2"]);
 		InfDS.dSigmaede2.print("InfDS.dSigmaede2");
+		}
 	}
 	
 
