@@ -266,7 +266,7 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
 		gsl_libs   <- sprintf( "-L\"%s/lib/%s\" -lgsl -lgslcblas", LIB_GSL, .Platform$r_arch)
 		
 		
-		arma_libs <- paste(Sys.getenv("SHLIB_OPENMP_CXXFLAGS"), Sys.getenv("LAPACK_LIBS"), Sys.getenv("BLAS_LIBS"), Sys.getenv("FLIBS"))
+		arma_libs <- paste(Sys.getenv("SHLIB_OPENMP_CXXFLAGS"), Sys.getenv("LAPACK_LIBS"), Sys.getenv("BLAS_LIBS"), Sys.getenv("FLIBS"), '-L"$(R_HOME)/library/lib_win64"')
 	}else {
 		## UNIX-alike build
 		
@@ -283,7 +283,7 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
 	
 	#Sys.setenv(PKG_LIBS=paste(gsl_libs, arma_libs, "-fopenmp"))
 	#Sys.setenv(PKG_LIBS = paste(gsl_libs, arma_libs, "-fopenmp", paste0("-L",Sys.getenv("LIB_ARMADILLO"), "/lib_win64 -lblas -llapack")))
-	Sys.setenv(PKG_LIBS = paste(gsl_libs, arma_libs, "-fopenmp", paste0('-L"$(R_HOME)/library/lib_win64" -lblas -llapack')))
+	Sys.setenv(PKG_LIBS = paste(gsl_libs, arma_libs, "-fopenmp", paste0('-lblas -llapack')))
 
   #libCFile  <- paste(outfile, ".EXT", sep="")
   libCFile <-sub(.Platform$dynlib.ext,".EXT",libLFile)
