@@ -34,6 +34,7 @@ setClass(Class =  "dynrModel",
            param.names="character",
            random.params.inicov = "matrix",
            random.values.inicov = "matrix",
+		   random.names = "vector",
 		   dLambdparLamb2="matrix",
 		   dLambdparLamb="matrix",
 		   dmudparMu="matrix",
@@ -933,12 +934,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	# }
 	
 	nb = length((inputs$dynamics)@random.names)
-	random.params.inicov = matrix(0L, 
-  							nrow = nb, 
-							ncol = nb)
-	random.values.inicov = matrix(0L, 
-							nrow = nb, 
-							ncol = nb)
+	# random.params.inicov will be set later so this part seems redundant
+	# random.params.inicov = matrix(0L, 
+  							# nrow = nb, 
+							# ncol = nb)
+	# random.values.inicov = matrix(0L, 
+							# nrow = nb, 
+							# ncol = nb)
 
 
 	# setup InfDS.Sigmab
@@ -1141,10 +1143,19 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name)), inputs))
     obj.dynrModel@dim_latent_var <- dim(inputs$measurement$values.load[[1]])[2] #numbber of columns of the factor loadings
     obj.dynrModel@num_regime <- numRegimes
+	#browser()
+	if (!is.null(inputs$dynamics$random.params.inicov)){
+	  obj.dynrModel@random.params.inicov <- inputs$dynamics$random.params.inicov
+	  obj.dynrModel@random.values.inicov <- inputs$dynamics$random.params.inicov
+	}
+	
+	if (!is.null(inputs$dynamics$random.names)){
+	  obj.dynrModel@random.names <- inputs$dynamics$random.names
+	}
   }
   else if(saem==TRUE){
   #browser()
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, LDL=ret$ldl, L.expr=L.expr, D.expr=D.expr, L.value = L.value, D.value=D.value), inputs))
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, LDL=ret$ldl, L.expr=L.expr, D.expr=D.expr, L.value = L.value, D.value=D.value, random.names=random.names), inputs))
   }
   
   
@@ -1185,6 +1196,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   if (.hasSlot(obj.dynrModel$dynamics, 'theta.formula') && length(obj.dynrModel$dynamics@theta.formula) > 0 && obj.dynrModel$dynamics$saem==FALSE){
     #get the extended model and return it (don't keep the original model)
+	#browser()
 	extended_model <- ExpandRandomAsLVModel(obj.dynrModel) # estimate all random variables at a time
 	return(extended_model)
 	
