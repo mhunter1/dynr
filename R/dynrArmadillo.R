@@ -695,7 +695,8 @@ setMethod("writeArmadilloCode", "dynrNoise",
 		ret = paste(ret, "\n\tstartE = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + 1;\n")
 		#Sigmae = object$params.observed[[1]]
 		if (length(object$values.observed) > 0){ 
-		  Sigmae <- object$values.observed[[1]]
+		  Sigmae = object$params.observed[[1]]
+		  Sigmae.values <- object$values.observed[[1]]
 		} else { Sigmae <- matrix(0L, nrow=0, ncol=0) }
 		
 		ret = paste0(ret, "\tInfDS.Sigmae = arma::zeros<arma::mat>(", nrow(Sigmae), ", ", ncol(Sigmae), ");\n")
@@ -704,9 +705,9 @@ setMethod("writeArmadilloCode", "dynrNoise",
 		noise.names <- noise.names[!tolower(noise.names) %in% c('fixed', '0')]
 		
 		if (length(noise.names)==0){
-		  for(i in 1: nrow(Sigmae)){
-		    for(j in 1: ncol(Sigmae)){
-		      expr.char = deparse(Sigmae[i,j][[1]], width.cutoff=500L)
+		  for(i in 1: nrow(Sigmae.values)){
+		    for(j in 1: ncol(Sigmae.values)){
+		      expr.char = deparse(Sigmae.values[i,j][[1]], width.cutoff=500L)
 		      ret = paste0(ret, "\tInfDS.Sigmae(", i-1, ", ", j-1, ") = ", expr.char  , ";\n")
 		    }
 		  }

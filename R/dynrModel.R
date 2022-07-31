@@ -891,6 +891,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     }
   }
   
+  #browser()
   if(saem==TRUE){
     # examine whether it is freeIC or fixed IC case
 	# inistate.names <- unique(as.vector(inputs$initial@params.inistate[[1]]))
@@ -1154,8 +1155,8 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	}
   }
   else if(saem==TRUE){
-  #browser()
-    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, LDL=ret$ldl, L.expr=L.expr, D.expr=D.expr, L.value = L.value, D.value=D.value, random.names=random.names), inputs))
+	#browser()
+    obj.dynrModel <- new("dynrModel", c(list(data=data, outfile=outfile, param.names=as.character(param.data$param.name), random.params.inicov=random.params.inicov, random.values.inicov=random.values.inicov, dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb,dLambdparLamb2=dLambdparLamb2, dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, freeIC=freeIC, Sigmab=ret$ldl, known.vars=known.vars, LDL=ret$ldl, L.expr=L.expr, D.expr=D.expr, L.value = L.value, D.value=D.value, random.names=inputs$dynamics$random.names), inputs))
   }
   
   
