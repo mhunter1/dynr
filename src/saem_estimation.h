@@ -226,7 +226,8 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			  //Rprintf("GIB = %d\n", GIB);
 				//Rprintf("checkpoint enter drowbGeneral6_opt3\n");	
 				if (InfDS.Nbpar > 0 || InfDS.Nbeta > 0){
-				drawbGeneral6_opt3(is_meanb, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
+				//temporarility commnet out drawbGeneral6_opt3 function
+				//drawbGeneral6_opt3(is_meanb, InfDS, yesMean, meanb, upperb, lowerb, useMultN, tpOld, freeIC, isBlock1Only, setScaleb, bAccept, MAXGIB);
 				//Rprintf("checkpoint leave drowbGeneral6_opt3\n");	
 				arma::mat cor_b = cor(InfDS.b,InfDS0.trueb);
 				cor_b.print("Correlation between b and trueb");

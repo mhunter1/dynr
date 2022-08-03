@@ -174,6 +174,9 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 		InfDS0.trueb = as<mat>(model_sexp["trueb"]);
 		//InfDS0.trueb.print("InfDS0.trueb");
 		
+		//temporarily set b to trueb
+		InfDS.b = as<mat>(model_sexp["trueb"]);
+		
 		mat cor_b = cor(InfDS.b, InfDS0.trueb);
 		cor_b.print("Correlation between b and trueb");
 		
