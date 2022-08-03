@@ -988,7 +988,8 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		
 		output$transformed.parameters <- output$fitted.parameters
 		output$hessian.matrix <- output$Iytild
-		output$inv.hessian <- solve(output$Iytild)
+		#HJ: get error in the following line. temporarily comment out 
+		#output$inv.hessian <- solve(output$Iytild)
 		#SMC Note: These are incorrect. tag HJ to get transformation function to fix
 		#output$transformed.parameters[noise.names] <- exp(output$fitted.parameters[noise.names])
 		#output$transformed.parameters[sigmab.names] <- exp(output$fitted.parameters[sigmab.names])
