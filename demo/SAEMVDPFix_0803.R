@@ -37,18 +37,17 @@ meas <- prep.measurement(
 
 
 initial <- prep.initial(
-  values.inistate=c(1, 1),
-  #params.inistate=c("mu_x1", "mu_x2"),
-  params.inistate=c("fixed", "fixed"),
-  #values.inicov=matrix(c( 0, -1.204,
-  #                        -1.204,0), ncol=2, byrow=TRUE), #enter values in unconstrainted scale(exp(0) = 1, exp(-1.204)=0.3)
-  values.inicov=matrix(c( 0, 0,
-                          0,0), ncol=2, byrow=TRUE), #enter values in constrainted scale(exp(0) = 1, exp(-1.204)=0.3)
+  values.inistate=c(1,1),
+  params.inistate=c("mu_x1", "mu_x2"),
+  #params.inistate=c("fixed", "fixed"),
+  values.inicov=matrix(c( 1, .3,
+                          .3, 1), ncol=2, byrow=TRUE), #enter values in unconstrainted scale(exp(0) = 1, exp(-1.204)=0.3)
+  #values.inicov=matrix(c( 0, 0,
+  #                        0,0), ncol=2, byrow=TRUE), #enter values in constrainted scale(exp(0) = 1, exp(-1.204)=0.3)
   #values.inicov=matrix(c(1.14, .26,
   #                        .26,1.15), ncol=2, byrow=TRUE), #original setting in SAEM
   #params.inicov=matrix(c('sigma2_bx1','sigma_bx1x2',
   #                       'sigma_bx1x2','sigma2_bx2'), ncol=2, byrow=TRUE)
-  
   params.inicov=matrix(c('fixed','fixed',
                          'fixed','fixed'), ncol=2, byrow=TRUE) 
 )
@@ -64,10 +63,10 @@ mdcov <- prep.noise(
 
 formula=
   list(x1 ~ x2,
-       x2 ~ -61.68503 * x1 + zeta_i * (1 - x1^2) * x2
+       x2 ~ -61.68503 * x1 + (1 * 3 + u1 * 0.5 + u2 * 0.5 + zeta_i) * (1 - x1^2) * x2
   )
 
-theta.formula  = list (zeta_i ~ 1 * 3 + u1 * 0.5 + u2 * 0.5 + 1 * b_zeta)
+theta.formula  = list (zeta_i ~  1 * b_zeta)
 
 
 
@@ -97,10 +96,10 @@ model <- dynr.model(dynamics=dynm, measurement=meas,
                     #ub =c(zeta0=10,zeta1=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10)
 )
 
-model@ub = c(zeta0=10,zeta1=10,zeta2=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10, sigma2_b_zeta=10)
-model@ub[10:12] = log(5)
-model@lb[1:9] = -5
-model@lb[10:12] = -log(5)
+#model@ub = c(zeta0=10,zeta1=10,zeta2=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10, sigma2_b_zeta=10)
+#model@ub[10:12] = log(5)
+#model@lb[1:9] = -5
+#model@lb[10:12] = -log(5)
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 #model@outfile = "vdp4.cpp"
 print(model@freeIC)
@@ -142,6 +141,8 @@ timeend<-Sys.time()
 
 print(timeend-timestart)
 
-save.image('ishtar.mat')
+save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test.Rdata')
+
+
 
 

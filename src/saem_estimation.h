@@ -138,6 +138,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.Xtild_meanb = InfDS.Xtild;
 	InfDS.dXtildthetafAll_meanb = InfDS.dXtildthetafAll;
 	InfDS.dXtildthetafAll2_meanb = InfDS.dXtildthetafAll2;
+	int Npar = InfDS.Nmu + InfDS.Ny + InfDS.NLambda + InfDS.Nbeta + InfDS.Nbpar;
 	
 	while (k <= InfDS.MAXITER && stop == 0){
 
@@ -273,9 +274,10 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 		}
 		
 		Covscore = mscore2 - mscore*mscore.t();
+		if (Npar > 0){
 		saem(InfDS, gmm, k, stage, redFlag, convFlag, noIncrease, stop, ssmin, ss, sgnTH, mscore, mscore2, minfoMat, Covscore,k_stop);
+		
 		Rprintf("\nStage = %5d, iteration = %5d\n",stage,k);
-
 		//temporarily printing out messages
 		if(1 || prev_stage != stage){
 			//Rprintf("length of InfDS.par: %d\n", InfDS.par.n_elem);
@@ -292,7 +294,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 			//QQ = L*D*L.t();
 			
 			Rprintf("ss = %lf, InfDS.errtrol = %lf, InfDS.errtrol1 = %lf\n", ss, InfDS.errtrol, InfDS.errtrol1);
-			
+		}
 		}
 
 		//%%%%%%%%%%
@@ -310,7 +312,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	else
 		Rprintf("\n\nThe estimation did not converge. There are totally %5d iterations in SAEM. Total running time is %5f seconds\n", k - 1, ttt);
 	
-	InfDS.par = InfDS.thetatild;	
+	if (Npar > 0) {InfDS.par = InfDS.thetatild;	}
 	
 
 	Rprintf("(4) Wrap up estimation and write out results\n");
