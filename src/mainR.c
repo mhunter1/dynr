@@ -78,7 +78,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	bool verbose_flag = *LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag = *LOGICAL(PROTECT(weight_flag_in));
 	bool perturb_flag = *LOGICAL(PROTECT(perturb_flag_in));
-	bool isAnalytic = true;//TEMP declare this here; later to take from R SEXP
+	bool isAnalytic = true;
 	long int seed = *INTEGER(PROTECT(seed_in));
 	gsl_rng * rng_seed = gsl_rng_alloc (gsl_rng_default); //default type of RNG
 	gsl_rng_set(rng_seed, seed);
@@ -146,6 +146,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	DYNRPRINT(verbose_flag, "isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
 	
 	if (data_model.pc.isContinuousTime){
+	  data_model.pc.isAnalytic= isAnalytic;/*true: Analytic gradient*/
 		SEXP f_dx_dt_sexp = PROTECT(getListElement(func_address_list, "f_dx_dt"));
 		SEXP f_dF_dx_sexp = PROTECT(getListElement(func_address_list, "f_dF_dx"));
 		SEXP f_dP_dt_sexp = PROTECT(getListElement(func_address_list, "f_dP_dt"));
