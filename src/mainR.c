@@ -78,6 +78,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	bool verbose_flag = *LOGICAL(PROTECT(verbose_flag_in));
 	bool weight_flag = *LOGICAL(PROTECT(weight_flag_in));
 	bool perturb_flag = *LOGICAL(PROTECT(perturb_flag_in));
+	bool isAnalytic = true;//TEMP declare this here; later to take from R SEXP
 	long int seed = *INTEGER(PROTECT(seed_in));
 	gsl_rng * rng_seed = gsl_rng_alloc (gsl_rng_default); //default type of RNG
 	gsl_rng_set(rng_seed, seed);
@@ -159,6 +160,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		}
 		data_model.pc.func_jacob_dynam=function_jacob_dynam_rk4;
 	} else {
+	  data_model.pc.isAnalytic= isAnalytic;/*true: Analytic gradient*/
 		data_model.pc.func_dx_dt = NULL;
 		data_model.pc.func_dF_dx = NULL;
 		data_model.pc.func_dP_dt = NULL;

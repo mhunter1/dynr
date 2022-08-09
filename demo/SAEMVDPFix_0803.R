@@ -8,11 +8,11 @@
 library('dynr')
 library('plyr')
 
-setwd("C:/Users/Cynthia/Documents/gits/dynr/")
+# setwd("C:/Users/Cynthia/Documents/gits/dynr/")
 
 nPeople = 200
 nTimes = 300
-vdpData <- read.csv("./data/YFile220803.txt", header=FALSE)
+vdpData <- read.csv("./data/NewTrueInit_Y1.txt", header=FALSE)
 colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
 vdpData$id <- rep(1:nPeople, each=nTimes)
 

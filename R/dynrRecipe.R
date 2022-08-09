@@ -126,7 +126,12 @@ setClass(Class = "dynrDynamicsMatrix",
            values.int = "list",
            params.int = "list",
            covariates = "character",
-           isContinuousTime = "logical"
+           isContinuousTime = "logical",
+           random.names = "character",
+           random.lb = "numeric",
+           random.ub = "numeric",
+           random.params.inicov="matrix",
+           random.values.inicov="matrix"
            ),
          contains = "dynrDynamics"
 )
@@ -2731,7 +2736,7 @@ autojacobTry <- function(formula, formula2, ...){
 ##'                     matrix(c('fixed', 'spring', 'fixed', 'fixed'), 2, 2)),
 ##'     isContinuousTime=TRUE) 
 prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, values.exo=NULL, params.int=NULL, values.int=NULL, 
-                                covariates, isContinuousTime){
+                                covariates, isContinuousTime, ...){
 	# Handle numerous cases of missing or non-list arguments
 	# General idea
 	# If they give us a non-list argument, make it a one-element list
@@ -2739,6 +2744,8 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	# If they don't give us values, assume they don't want that part of the model
 	
 	# Handle dyn
+  dots <- list(...)
+  
 	r <- coProcessValuesParams(values.dyn, params.dyn)
 	values.dyn <- r$values
 	params.dyn <- r$params
@@ -2805,6 +2812,31 @@ prep.matrixDynamics <- function(params.dyn=NULL, values.dyn, params.exo=NULL, va
 	pn <- extractParams(pn)
 	
 	x <- list(startval=sv, paramnames=pn, params.dyn=params.dyn, values.dyn=values.dyn, params.exo=params.exo, values.exo=values.exo, params.int=params.int, values.int=values.int, isContinuousTime=isContinuousTime,covariates=covariates)
+	# TEMP: Add in dots and additional arguments needed for saem
+	if(length(dots) > 0){
+	  if('random.names' %in% names(dots))
+	    x$random.names <- dots$random.names
+	  if('random.params.inicov' %in% names(dots))
+	    x$random.params.inicov <- dots$random.params.inicov
+	  if('random.values.inicov' %in% names(dots))
+	    x$random.values.inicov <- dots$random.values.inicov
+	  
+	  if('random.ub' %in% names(dots))
+	    x$random.ub <- dots$random.ub
+	  #else if ('random.values.inicov' %in% names(dots))
+	  #	x$random.ub <- diag(dots$random.values.inicov)[1] * 10
+	  else
+	    x$random.ub <- 10
+	  
+	  
+	  if('random.lb' %in% names(dots))
+	    x$random.lb <- dots$random.lb
+	  #else if ('random.values.inicov' %in% names(dots))
+	  #	x$random.lb <- diag(dots$random.values.inicov)[1] * -10
+	  else
+	    x$random.lb <- -10#dots$random.lb
+	}
+	# END OF TEMP
 	return(new("dynrDynamicsMatrix", x))
 }
 

@@ -21,6 +21,7 @@ typedef struct ParamConfig{
     bool second_order; /** whether second-order ekf is used **/
     bool adaodesolver; /** whether adaptive ode solver is used **/
     bool isnegloglikeweightedbyT;/** whether the negative loglikelihood is weighted by individual T**/
+    bool isAnalytic; //Whether to use analytic gradient
     size_t dim_co_variate;
     size_t num_sbj; /** number of subjects **/
     size_t *index_sbj;

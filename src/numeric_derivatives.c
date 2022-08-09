@@ -25,9 +25,18 @@ void forward_diff_grad(double *grad_approx, double ref_fit, const double *x, voi
 
 double neg_log_like_with_grad(unsigned n, const double *x, double *grad, void *my_func_data)
 {
+  //bool isAnalytic = true;
 	double fitval = function_neg_log_like(x, my_func_data);
 	if (grad) {
 		forward_diff_grad(grad, fitval, x, my_func_data, function_neg_log_like);
+	}
+	
+	Data_and_Model data_model=*((Data_and_Model *)my_func_data); /*dereference the void pointer*/
+		
+	if (data_model.pc.isAnalytic) {
+	  MYPRINT("Yes, analytic gradient is wanted, isAnalytic = %d\n",data_model.pc.isAnalytic);
+	} else{
+	  MYPRINT("No thank you, isAnalytic = %d\n",data_model.pc.isAnalytic);
 	}
 	return fitval;
 }
