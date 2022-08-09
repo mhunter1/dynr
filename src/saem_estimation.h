@@ -128,7 +128,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	
 	//InfDS.par.print("InfDS.par");
 	//Rprintf("checkpoint M92 entering the k loop\n");	
-	int getdxFlag = 0;
+	int getdxFlag = 1;
 	if (InfDS.Nbeta > 0) getdxFlag=1;
 	InfDS.meanb = InfDS0.trueb; //TEMP For debugging - REMOVE LATER
 	InfDS.b = InfDS0.trueb;  //TEMP For debugging
@@ -238,6 +238,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 				  InfDS.useb = InfDS.b;
 				  InfDS = getXtildIC3(0, getdxFlag ,freeIC, InfDS); //%Get Xtilde and dXtilddthetaf before saem
 				}
+				
 				
 			//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
