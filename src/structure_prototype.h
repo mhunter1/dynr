@@ -20,7 +20,8 @@ struct C_INFDS{
 	//arma::Mat<double> Tfilter, tidx, lens, ICb;
 	double omega, maxT, delt, gainpara, gainparb, errtrol, errtrol1, gainpara1, gainparb1, setAccept, scaleb;
 	int alp, maxIterStage1, MAXITER, KKO, IT, isInfo, setScaleb;
-	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, dXtildthetafAll_meanb, dXtildthetafAll2_meanb, tobs, Y;
+	arma::field<arma::mat> fulldt, timeDiscrete, Deltat, meanY, dXstarAll, dXstarAll2, dXtildthetafAll, dXtildthetafAll2, dXtildthetafAll_meanb, dXtildthetafAll2_meanb, tobs, Y; 
+	arma::field<arma::cube> dXtildAll, d2XtildAll; // note need to modify dynrArmadillo
 	arma::cube Xtild, dXtild, d2Xtild, Xtild_meanb;
 	arma::Mat<double> allT;
 	struct C_FUNC_POINTER fp;

@@ -72,7 +72,14 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.dfdx2 = @dfdx2FreeIC;
 	*/
 	
-
+	
+	//New set parameter: 
+	//dXtildAll contains dXtild for all time points, which is a field with totalT points. Each cell is a cube (dimension the same as dXtild).
+	//d2XtildAll contains d2Xtild for all time points, which is a field with totalT points. Each cell is a cube (dimension the same as d2Xtild).
+	//Rprintf("InfDS.tspan.n_cols = %d\n", InfDS.tspan.n_cols);
+	InfDS.dXtildAll.set_size(InfDS.tspan.n_cols);
+	InfDS.d2XtildAll.set_size(InfDS.tspan.n_cols);
+	
 	InfDS.sy = arma::zeros<arma::mat>(InfDS.par.n_elem, 1);
 	InfDS.ES = arma::zeros<arma::mat>(InfDS.par.n_elem, InfDS.par.n_elem);
 	InfDS.EI = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
@@ -83,6 +90,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	InfDS.EStild = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
 	InfDS.EItild = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
 	InfDS.Iytild = arma::zeros<arma::mat>(InfDS.par.n_elem,InfDS.par.n_elem);
+	
 
 	//Rprintf("InfDS.par.n_elem = %d \n", InfDS.par.n_elem);	
 

@@ -387,11 +387,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 							  Rcpp::Named("meanb") = InfDS.meanb, 
 							  Rcpp::Named("Xtild") = InfDS.Xtild, 
 							  Rcpp::Named("dXtild") = InfDS.dXtild,
-							  Rcpp::Named("d2Xtild") = InfDS.d2Xtild); 
-							  //Rcpp::Named("Xtild_p1") = InfDS.Xtild_p1, 
-							  //Rcpp::Named("dXtild_p1") = InfDS.dXtild_p1,
-							  //Rcpp::Named("d2Xtild_p1") = InfDS.d2Xtild_p1, 
-							  //Rcpp::Named("Xtild_12") = InfDS.Xtild_12, 
-							  //Rcpp::Named("dXtild_12") = InfDS.dXtild_12,
-							  //Rcpp::Named("d2Xtild_12") = InfDS.d2Xtild_12);
+							  Rcpp::Named("d2Xtild") = InfDS.d2Xtild,
+							  Rcpp::Named("dXtildAll") = InfDS.dXtildAll,
+							  Rcpp::Named("d2XtildAll") = InfDS.d2XtildAll);						  
+
 }

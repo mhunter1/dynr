@@ -355,6 +355,10 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
     }
   }
   
+  InfDS.dXtildAll(0) = dXtild;
+  InfDS.d2XtildAll(0) = d2Xtild;
+  
+  
   //InfDS.par.print("InfDS.par getXtildIC3 367");
   //Rprintf("execution 3\n");
   //Do interpolation at small, equal intervals, as opposed to at observed intervals to avoid numerical problems
@@ -529,6 +533,13 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
       d2Xtild = d2XtildPrev + d2Xstar_t;
       dXtildPrev = dXtild;
       d2XtildPrev = d2Xtild;
+	  
+	  //Rprintf("new start %d %d\n",t, InfDS.dXtildAll.n_elem);
+	  //InfDS.dXtildAll(t).copy_size(dXtild);
+	  InfDS.dXtildAll(t) = dXtild;
+	  //InfDS.d2XtildAll(t).copy_size(d2Xtild);
+	  InfDS.d2XtildAll(t) = d2Xtild;
+	  //Rprintf("new end\n");
       
       
       
@@ -598,6 +609,8 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
       InfDS.Xtild.slice(j).col(i) = fullX.slice(int(InfDS.tobs(i)(j) - 1)).col(i);
     }
   }
+  
+  	
 
   return InfDS;
 }
