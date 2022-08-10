@@ -254,6 +254,12 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
     InfDS.dXtildthetafAll2.set_size(InfDS.Nsubj);
   }  
   
+  //Subj 1: 0, 0.25, 0.5, 1, 3
+  //Subj 2: 0,0.1, 0.25, 1
+  //delt = min(delta_t)  = .25
+  //tspan: 0, 0.05, 0.1, 0.15, 0.20, 0.25,...., 3
+  //InfDS.allT{i}
+  
   tspan = InfDS.tspan;
   fullX = arma::zeros<arma::cube>(InfDS.Nx,InfDS.Nsubj,InfDS.tspan.n_cols);
   //Rprintf("execution 1.1\n");
@@ -284,7 +290,7 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
   }
  
   XtildPrev = trans(InfDS.y0);
-  dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); 
+  dXtildPrev0 = arma::zeros<arma::mat>(InfDS.Ntheta,InfDS.Nx); //SMC to check this - Is this correct to be zero
   d2XtildPrev0 = arma::zeros<arma::mat>(InfDS.Nx*InfDS.Ntheta, InfDS.Ntheta); 
   
   /*
@@ -331,9 +337,11 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
   //printf("Size of XtildPrev %d %d\n", (XtildPrev).n_rows, (XtildPrev).n_cols);
   //printf("Size of fullX.slice(0) %d %d\n", (fullX.slice(0)).n_rows, (fullX.slice(0)).n_cols);
   
+  //Nx x Nsubj - slice 0 means first time point
   InfDS.Xtild.slice(0) = XtildPrev;
   //Rprintf("execution 2.1\n");
   
+  //Nx x Nsubj - slice 0 means first time point
   fullX.slice(0) = XtildPrev;
   //Rprintf("execution 2.2\n");
   
@@ -344,13 +352,9 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
     //printf("Size of InfDS.dXtildthetafAll(0).cols %d %d\n", (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll(0).cols(0, InfDS.Nx - 1)).n_cols);
     //printf("Size of d2XtildPrev.slice(0) %d %d\n", d2XtildPrev.slice(0).n_rows, d2XtildPrev.slice(0).n_cols);
     //printf("Size of InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1) %d %d\n", (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_rows, (InfDS.dXtildthetafAll2(0).rows(0,InfDS.Ntheta*InfDS.Nx - 1)).n_cols);
-    
+  
     for( i = 0;i < InfDS.Nsubj; i++){
-      //SMC: 7/10/22 Why initialize again after already done in lines 286 and 287?
-      //InfDS.dXtildthetafAll(i) = arma::zeros<arma::mat>(InfDS.Ntheta, InfDS.Nx*InfDS.allT(i));
-      
       InfDS.dXtildthetafAll(i).cols(0, InfDS.Nx - 1) = dXtildPrev.slice(i);
-      //InfDS.dXtildthetafAll2(i) = arma::zeros<arma::mat>(InfDS.Ntheta*InfDS.Nx*InfDS.allT(i),InfDS.Ntheta);
       InfDS.dXtildthetafAll2(i).rows(0,InfDS.Ntheta*InfDS.Nx - 1) = d2XtildPrev.slice(i);
     }
   }
@@ -572,8 +576,17 @@ C_INFDS getXtildIC3(const int is_meanb, const int getDxFlag, const int freeIC, s
       
       fullX.slice(t).col(i) = Xtild_t.col(i);
       
+      // Subj: 0, 1.5, 2, 5
+      //currentt - look in tspan element 0, 10, 11,...
+      
       for(int j = 0;  j < int(currentt.n_elem);j++){
         if( int(currentt(j)) == 1){
+          //HJ: Can you check this part to make sure that j is putting Xtild and dXtild
+          //into the correct observed time points
+          
+          //InfDS.dXtildthetafAll(i) = arma::zeros<arma::mat>(InfDS.Ntheta, InfDS.Nx*InfDS.allT(i));
+          //InfDS.dXtildthetafAll2(i) = arma::zeros<arma::mat>(InfDS.Ntheta*InfDS.Nx*InfDS.allT(i),InfDS.Ntheta);
+          
           if (getDxFlag ==1){
             InfDS.dXtildthetafAll(i).cols((j)*InfDS.Nx, (j+1)*InfDS.Nx - 1) = dXtild.slice(i);
             InfDS.dXtildthetafAll2(i).rows((j)*InfDS.Ntheta*InfDS.Nx, (j+1)*InfDS.Ntheta*InfDS.Nx - 1) = d2Xtild.slice(i);
