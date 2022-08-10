@@ -144,8 +144,8 @@ print(timeend-timestart)
 #save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test.Rdata')
 
 
-vdpTrueX <- read.csv("C:\\Users\\Cynthia\\Dropbox\\Brekfis\\SAEM\\Armadillo\\SymiinTestExamples\\OutputforDebugging\\NewTrueInit_trueXG1.txt", header=FALSE)
-colnames(vdpTrueX) <- c('batch', 'kk', 'trueInit', 'time', 'id','truex','truedx')
-View(vdpTrueX)
+#vdpTrueX <- read.csv("C:\\Users\\Cynthia\\Dropbox\\Brekfis\\SAEM\\Armadillo\\SymiinTestExamples\\OutputforDebugging\\NewTrueInit_trueXG1.txt", header=FALSE)
+#colnames(vdpTrueX) <- c('batch', 'kk', 'trueInit', 'time', 'id','truex','truedx')
+#View(vdpTrueX)
 
 #fitted_model$dXtildAll[t][[1]][theta,nx, nsubj]
