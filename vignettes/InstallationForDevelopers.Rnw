@@ -9,7 +9,8 @@
 \usepackage{listings,textcomp} % for R code blocks
 
 \title{Installation Instructions Manual for \texttt{dynr} - Developer version}
-\author{Michael D. Hunter, Sy-Miin Chow,  Lu Ou, Sukruth N. Reddy,\\ Meng Chen, Linying Ji, \& Jungmin Lee}
+\author{Michael D. Hunter, Sy-Miin Chow,  Lu Ou, Sukruth N. Reddy,\\ 
+Meng Chen, Linying Ji, Jungmin Lee, Xiaoyue Xiong, \& Sharon Kim}
 \date{\today}
 
 \begin{document}
@@ -17,8 +18,6 @@
 
 \maketitle
 The \texttt{dynr} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameters estimates, standard errors, and latent variable estimates.
-
-
 
 \section{\Large Instructions for Installing and Using \texttt{dynr} on a Windows Computer}
 Because the \texttt{dynr} package compiles C code in response to user input, more setup is required for the \texttt{dynr} package than for many others. The general requirements are as follows:
@@ -46,19 +45,12 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \label{sec:Rtools}
 \begin{enumerate}
 \item If you already have R-tools on your machine, make sure the version of R-tools matches with your R version. R-tools versions newer than 3.0 should work fine with \texttt{dynr}.
-\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest version of Rtools.
-\item You may be asked if you want to save or run a file ``Rtools34.exe''. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
-\item You will be asked what language to install it in - choose English.
-\item The Rtools Setup Wizard will appear in a window. Click ``Next'' at the bottom of the R Setup wizard window.
-\item The next page says ``Information'' at the top. Click ``Next'' again.
-\item The next page says ``Select Destination Location'' at the top. By default, it will suggest to install R in ``C:\textbackslash Rtools'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Click ``Next'' at the bottom of the R tools Setup wizard window.
-\item The next page says ``Select components'' at the top. Make sure that the Cygwin Dlls box {\bf is checked}. Click ``Next'' again.
-\item The next page says ``Select additional tasks'' at the top. Check the box to edit the system PATH. Click ``Next'' again.
-\item Add the directory paths containing both R and Rtools (examples are shown below). Place these paths at the top of your list of {\em system path} variable or just move them all to way up to the top. The order of the directory paths should be the same as shown in the example below.\\
-\texttt{C:\textbackslash Rtools\textbackslash bin;\\
- C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;\\
- C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}\\
-You may want to first go to the directory where Rtools is installed and check that you know the correct pathway containing the gcc version you have installed (e.g., 4.6.3 in the example below). Also make sure that you enter the path containing R.exe (e.g., in C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin in the example above).
+\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest version of Rtools. 
+\item The following instructions are based on rtools40.
+\item Click RTools 4.0, then click ``rtools40-x86\_64.exe`` in the new webpage. You may be asked if you want to save or run a file ``rrtools40-x86\_64.exe``. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
+\item (If you are asked what language to install it in during installation - choose English.)
+\item The next page says ``Select Destination Location`` at the top. By default, it will suggest to install R in ``C:\textbackslash rtools40'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Click ``Next'' at the bottom of the R tools Setup wizard window.
+\item The next page says ``Select additional tasks`` at the top. Check the box to edit the system PATH. Click ``Next'' again.
 \item The next page says ``Ready to install'' at the top. Click ``install''.
 \item Rtools should now be installed. This will take about a minute. Click ``Finish''.
 \end{enumerate}
@@ -95,7 +87,12 @@ You may want to first go to the directory where Rtools is installed and check th
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
  \item Click on Advanced system settings
  \item Check to make sure that your path variable specified during Rtools installation is specified correctly. In Windows 10 do so by clicking on ``Environment Variables'' and then in the ``System variables'' panel click on ``Path'' and then ``Edit''. Check that the following paths have been specified at the front of your {\em system} path variable or just move them all to way up to the top in the following order.
- \texttt{C:\textbackslash Rtools\textbackslash bin;C:\textbackslash Rtools\textbackslash gcc-4.6.3\textbackslash bin;C:\textbackslash R\textbackslash R-3.2.3\textbackslash bin;}
+\\
+ C:\textbackslash R\textbackslash R-4.1.1\textbackslash bin\textbackslash x64\\
+\texttt{C:\textbackslash rtools40\textbackslash usr\textbackslash bin\\
+ C:\textbackslash rtools\textbackslash mingw64\textbackslash bin\\
+ C:\textbackslash cygwin\textbackslash bin (see section \ref{sec:cygwin})
+ }
  \item Repeat (1) and see if you can now run R from CMD. Make sure that you open a new CMD window after you have completed the steps above. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
 \end{enumerate}
 
