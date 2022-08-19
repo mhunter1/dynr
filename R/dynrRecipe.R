@@ -2065,59 +2065,126 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##'     params.observed=list(diag("e_y1", 1), diag("e_y2",1)))
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
-prep.noise <- function(values.latent, params.latent, values.observed, params.observed){
-	# Handle latent covariance
-	r <- coProcessValuesParams(values.latent, params.latent)
-	values.latent <- r$values
-	params.latent <- r$params
-	
-	# Handle observed covariance
-	r <- coProcessValuesParams(values.observed, params.observed)
-	values.observed <- r$values
-	params.observed <- r$params
-	
-	values.latent <- lapply(values.latent, preProcessValues)
-	params.latent <- lapply(params.latent, preProcessParams)
-	values.observed <- lapply(values.observed, preProcessValues)
-	params.observed <- lapply(params.observed, preProcessParams)
-	
-	lapply(values.latent, checkSymmetric, name="values.latent")
-	lapply(params.latent, checkSymmetric, name="params.latent")
-	lapply(values.observed, checkSymmetric, name="values.observed")
-	lapply(params.observed, checkSymmetric, name="params.observed")
-	
-	# Check that all 'values' imply 0, 1, or the same number of regimes.
-	# Note that the 'values' and 'params' have already been checked to imply this.
-	nregs <- sapply(list(values.latent=values.latent, values.observed=values.observed), length)
-	msg <- paste0("Different numbers of regimes implied:\n'latent' has ", nregs[1], " and 'observed' has ",  nregs[2], " regimes.\nCardi B don't like it like that!")
-	mr <- max(nregs)
-	if(!all(nregs %in% c(1, mr))){
-		stop(msg)
-	} else if(!all(nregs %in% mr)) {
-		if(nregs[1] == 1){
-			ae <- autoExtendSubRecipe(values.latent, params.latent, 'values.latent', 'latent covariances', mr)
-			values.latent <- ae[[1]]
-			params.latent <- ae[[2]]
-		}
-		if(nregs[2] == 1){
-			ae <- autoExtendSubRecipe(values.observed, params.observed, 'values.observed', 'observed covariances', mr)
-			values.observed <- ae[[1]]
-			params.observed <- ae[[2]]
-		}
-	}
-	
-	values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
-	values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
-	values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
-	values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
-	
-	sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
-	pn <- c(extractParams(params.latent), extractParams(params.observed))
-	sv <- extractValues(sv, pn)
-	pn <- extractParams(pn)
-	x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed, values.latent.inv.ldl=values.latent.inv.ldl, values.observed.inv.ldl=values.observed.inv.ldl)
-	return(new("dynrNoise", x))
+prep.noise <- function(values.latent, params.latent, values.observed, params.observed, ...){
+  
+  # ---- To incorporate covariates and formulas into covariance functions ----
+  dots <- list(...)
+  if ((missing(values.latent) || missing(params.latent) ||
+       missing(values.observed) || missing(params.observed)) & (length(dots==0)))
+    stop("You have to provide the noise structure as lists of matrices or formulas. Neither is available now.")
+  if(length(dots) > 0){
+    if(!all(names(dots) %in% c('covariates', 'var.formula'))){
+      stop("You passed some invalid names to the ... argument. Check the ?prep.noise help page for more information.")
+    }
+    
+    # if the argument formula is not a list 
+    if(!is.list(var.formula)){
+      msg <- paste0(ifelse(plyr::is.formula(var.formula), "'var.formula' argument is a formula but ", ""),
+                    "'formula'",
+                    ifelse(plyr::is.formula(var.formula), " ", " argument "),
+                    "should be a list of formulas.\nCan't nobody tell me nothin'")
+      stop(msg)
+    }
+    x <- processCovFormula(dots)  
+    # ---- End of Cov formula modifications ----  
+  } #Else process cov-related things the usual way
+  else{
+    x <- processCovConstant(values.latent, params.latent, values.observed, params.observed)
+  }
+  # Handle latent covariance
+  return(new("dynrNoise", x))
 }
+
+processCovConstant <- function(values.latent, params.latent, values.observed, params.observed){
+  r <- coProcessValuesParams(values.latent, params.latent)
+  values.latent <- r$values
+  params.latent <- r$params
+  
+  # Handle observed covariance
+  r <- coProcessValuesParams(values.observed, params.observed)
+  values.observed <- r$values
+  params.observed <- r$params
+  
+  values.latent <- lapply(values.latent, preProcessValues)
+  params.latent <- lapply(params.latent, preProcessParams)
+  values.observed <- lapply(values.observed, preProcessValues)
+  params.observed <- lapply(params.observed, preProcessParams)
+  
+  lapply(values.latent, checkSymmetric, name="values.latent")
+  lapply(params.latent, checkSymmetric, name="params.latent")
+  lapply(values.observed, checkSymmetric, name="values.observed")
+  lapply(params.observed, checkSymmetric, name="params.observed")
+  
+  # Check that all 'values' imply 0, 1, or the same number of regimes.
+  # Note that the 'values' and 'params' have already been checked to imply this.
+  nregs <- sapply(list(values.latent=values.latent, values.observed=values.observed), length)
+  msg <- paste0("Different numbers of regimes implied:\n'latent' has ", nregs[1], " and 'observed' has ",  nregs[2], " regimes.\nCardi B don't like it like that!")
+  mr <- max(nregs)
+  if(!all(nregs %in% c(1, mr))){
+    stop(msg)
+  } else if(!all(nregs %in% mr)) {
+    if(nregs[1] == 1){
+      ae <- autoExtendSubRecipe(values.latent, params.latent, 'values.latent', 'latent covariances', mr)
+      values.latent <- ae[[1]]
+      params.latent <- ae[[2]]
+    }
+    if(nregs[2] == 1){
+      ae <- autoExtendSubRecipe(values.observed, params.observed, 'values.observed', 'observed covariances', mr)
+      values.observed <- ae[[1]]
+      params.observed <- ae[[2]]
+    }
+  }
+  
+  values.latent.inv.ldl <- lapply(values.latent, replaceDiagZero)
+  values.latent.inv.ldl <- lapply(values.latent.inv.ldl, reverseldl)
+  values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
+  values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
+  
+  sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
+  pn <- c(extractParams(params.latent), extractParams(params.observed))
+  sv <- extractValues(sv, pn)
+  pn <- extractParams(pn)
+  x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed, values.latent.inv.ldl=values.latent.inv.ldl, values.observed.inv.ldl=values.observed.inv.ldl)
+  return(x)
+}
+
+processCovFormula <- function(dots){
+  if('var.formula' %in% names(dots))
+    var.formula <- dots$var.formula
+  covariates <- dots$covariates
+  
+  # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
+  if(is.list(var.formula) && plyr::is.formula(var.formula[[1]])){
+    var.formula <- list(var.formula)
+  }
+  var.names <- lapply(var.formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+  var.regimes <- paste(paste0('Regime ', 1:length(var.names), ': ', lapply(var.names, paste, collapse=', ')), collapse='\n')
+  if(any(sapply(lapply(var.names, duplicated), any))){
+    stop(paste0("Found duplicated var-cov names:\n", var.regimes))
+  }
+  if(length(unique(sapply(var.names, length))) != 1){
+    stop(paste0("Found different number of var-cov names for different regimes:\n", var.regimes))
+  }
+  if(!all(sapply(var.names, function(x, y){all(x==y)}, y=var.names[[1]]))){
+    stop(paste0("Found different var-cov names or different ordering of var-cov names across regimes:\n", state.regimes))
+  }
+  x <- list(var.formula=var.formula, var.startval=var.startval)
+  
+  x$paramnames <- names(x$var.startval)
+  
+  # Check for var-cov names with same name as free parameter
+  if(any(sapply(lapply(var.names, "%in%", x$paramnames), any))){
+    stop(paste0("See no evil, but var-cov parameters had the same names as other free parameters.",
+                "\nParameters that are both var-cov and other free parameter names: ",
+                paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
+  }
+  #TODO: functions I need to call later:
+  #processFormula -> parseFormula -> trans2CFunction
+  
+  return(x)
+  
+  
+}  
 
 
 replaceDiagZero <- function(x){
