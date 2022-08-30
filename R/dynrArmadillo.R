@@ -582,13 +582,51 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# }
 		
 		ret=paste0(ret,"\n//----------------\n")
+		ret=paste0(ret,"\narma::mat getCovarianceMatrix(C_INFDS &InfDS){\n\tint startB;\n\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1;\n")
+		
+		# enter code here
+		#browser()
+		#Sigmab = object@random.values.inicov
+		sigmab.names <- unique(c(object$random.params.inicov))
+		sigmab.names <- sigmab.names[!tolower(sigmab.names)%in% c("fixed", "0")]
+		if (length(sigmab.names)==0){
+		  ret = paste0(ret, "\tres= arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
+		  for(i in 1: nrow(Sigmab)){
+		    for(j in 1: ncol(Sigmab)){
+		      expr.char = deparse(Sigmab[i,j][[1]], width.cutoff=500L)
+		        ret = paste0(ret, "\tres(", i-1, ", ", j-1, ") = ", expr.char  , ";\n")
+		    }
+		  }
+		} else{
+		 # ret = paste0(ret, "\tInfDS.Sigmab = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
+		    ret = paste0(ret, "\tres = arma::zeros<arma::mat>(", nrow(Sigmab), ", ", ncol(Sigmab), ");\n")
+		    for(i in 1: nrow(Sigmab)){
+			  for(j in 1: ncol(Sigmab)){
+				expr.char = deparse(Sigmab[i,j][[1]], width.cutoff=500L)
+				if(length(expr.char) > 0 && expr.char[1] != "0"){
+					#print(param.names[Lambda[i, j]])
+					for(k in (1:length(known.vars))){
+					    if(k == 1)
+							expr.char = gsub(known.vars[k], paste0("InfDS.par(startB-", -(k-2),")"), expr.char )
+						else
+							expr.char = gsub(known.vars[k], paste0("InfDS.par(startB+", k-2,")"), expr.char )
+					}
+					ret = paste0(ret, "\tres(", i-1, ", ", j-1, ") = ", expr.char  , ";\n")
+				}
+			 }
+		    }
+		}
+		
+		ret=paste0(ret,"\n\treturn res;\n}\n")
+		ret=paste0(ret,"\n//----------------\n")
+		
 		ret=paste0(ret, "void setParsFreeICwb(C_INFDS &InfDS){\n\tint startM, startL, startE, startB;\n\tarma::mat D, L;\n\tInfDS.par = real(InfDS.par);\n\n\n")
 
 		ret = paste(ret, "\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1; \n")
 		
 		#browser()
 		
-		 Sigmab = object@random.values.inicov
+		 #Sigmab = object@random.values.inicov
 		 sigmab.names <- unique(c(object$random.params.inicov))
 		 sigmab.names <- sigmab.names[!tolower(sigmab.names)%in% c("fixed", "0")]
 		 if (length(sigmab.names)==0){
@@ -655,24 +693,9 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 			
 		}
 		
-		# ret = paste0(ret, "\tInfDS.dSigmabdb2 = arma::zeros<arma::mat>(", nrow(dSigmabdb2), ", ", ncol(dSigmabdb2), ");\n")
-		# for(i in 1: nrow(dSigmabdb2)){
-			# for(j in 1: ncol(dSigmabdb2)){
-				# if(dSigmabdb2[i, j] > 0){
-					# #print(param.names[Lambda[i, j]])
-					# for(k in (1:length(param.names))[ param.names %in% object@random.params.inicov] ){
-						# if(k - startB < 0)
-							# expr = gsub(param.names[k], paste0("InfDS.par(startB - ", -(k-startB),")"), expr)
-						# else
-							# expr = gsub(param.names[k], paste0("InfDS.par(startB + ", (k-startB),")"), expr)
-					# }
-					# ret = paste0(ret, "\tInfDS.dSigmabdb2(", i-1, ", ", j-1, ") = ", expr , ";\n")
-				# }
-			# }
-			
-		#}
-		 }# End of length(sigmab.names) > 0
-		#browser()
+		
+		}# End of length(sigmab.names) > 0
+		
 		
 		
 		#ret contains all the transferred code, currently uses ret_head for testing
