@@ -12,7 +12,7 @@ library('plyr')
 
 nPeople = 200
 nTimes = 300
-vdpData <- read.csv("./data/NewTrueInit_Y1.txt", header=FALSE)
+vdpData <- read.csv("./inst/extdata/NewTrueInit_Y1.txt", header=FALSE)
 colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
 vdpData$id <- rep(1:nPeople, each=nTimes)
 
@@ -22,7 +22,7 @@ data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y1', 'y2', 'y3'),
                   covariates=c("u1", "u2"))
 
-truebData <- read.csv("./data/truebFile220803.txt", header=FALSE)
+truebData <- read.csv("./inst/extdata/truebFile220803.txt", header=FALSE)
 trueb <- truebData[,4]
 
 meas <- prep.measurement(
