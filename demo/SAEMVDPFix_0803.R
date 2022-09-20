@@ -69,9 +69,6 @@ formula=
 theta.formula  = list (zeta_i ~  1 * b_zeta)
 
 
-
-
-
 dynm<-prep.formulaDynamics(formula=formula,
                            #startval=c(zeta0= 3,
                            #           zeta1=.5,
@@ -134,14 +131,18 @@ saemp <- prep.saemParameter(MAXGIB = 1,
 
 timestart<-Sys.time()
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
-fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = TRUE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
 #print(fitted_model)
 
 timeend<-Sys.time()
 
 print(timeend-timestart)
 
-#save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test.Rdata')
+#Estimates with the Expanded approach for y0 and b
+save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test_y0fromExpand.Rdata')
+
+#Estimates with the Expanded approach for b
+save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test_y0fromExpand.Rdata')
 
 
 #vdpTrueX <- read.csv("C:\\Users\\Cynthia\\Dropbox\\Brekfis\\SAEM\\Armadillo\\SymiinTestExamples\\OutputforDebugging\\NewTrueInit_trueXG1.txt", header=FALSE)

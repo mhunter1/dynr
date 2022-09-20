@@ -1,12 +1,11 @@
 // [[Rcpp::depends(RcppArmadillo)]]
-// The above lined is required for RcppArmadillo
 
 // required headers
 #include <RcppArmadillo.h>
+
 using namespace std;
 using namespace arma;
 using namespace Rcpp;
-
 
 
 #include "structure_prototype.h"

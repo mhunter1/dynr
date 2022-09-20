@@ -2179,8 +2179,21 @@ processCovFormula <- function(dots){
                 paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
   }
   #TODO: functions I need to call later:
-  #processFormula -> parseFormula -> trans2CFunction
+  #processFormula -> parseFormula -> #transldl, dynr.ldl, reverseldl -> trans2ArmadilloFunction (as opposed to trans2CFunction):
   
+  #sampleCovformula=
+  #  list(Sigma11 ~ par1*delta_t^3,
+  #       Sigma12 ~ par2*deltat, Sigma21 ~ par2*deltat,
+  #       Sigma22 ~ par3*delta_t^3)
+  
+  # SymbolicLDLDecomposition (dynrModel.R)-> L, D -> unique parameters in L & D -> InfDS.par
+  # a.params = sampleCovformula, which is a list of formulas
+  # a.values =  c(par1 = 3, par2 = .1, par3 = 1)
+  # covariate.names = c(delta_t)
+  # Call SymbolicLDLDecomposition and have it return L and D as matrices of expressions
+  # solveStartLDL = evaluate the whole formula and find starting values for the parameters in L and D
+  # Write out Armadillo code
+  # D = exp(par11*delta_t)
   return(x)
   
   

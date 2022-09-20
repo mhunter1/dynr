@@ -50,7 +50,5 @@ S3method(deviance, dynrCook)
 export(`coef<-`)
 S3method(`coef<-`, dynrModel)
 useDynLib(dynr, .registration=TRUE)
-import(Rcpp)
 import(RcppArmadillo)
-
 
