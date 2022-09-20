@@ -1280,7 +1280,7 @@ setMethod("writeCcode", "dynrNoise",
 		
 		nregime <- length(values.latent)
 		
-		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov){\n\n"
+		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
 		if(nregime > 1){
 			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
 			for(reg in 1:nregime){
@@ -3337,7 +3337,7 @@ formula2string <- function(formula.list){
 }
 
 
-matrix2formula <- function(x, multbyColnames=TRUE){
+matrix2formula <- function(x, multbyColnames=TRUE, convertWholeMatrix = FALSE){
 	if(!is.matrix(x)){
 		stop("Dude! You have to give me a matrix. If you do, I'll give you a formula. Seriously.")
 	}
@@ -3347,7 +3347,9 @@ matrix2formula <- function(x, multbyColnames=TRUE){
 	if(is.null(colnames(x))){
 		colnames(x) <- paste0('x', 1:ncol(x))
 	}
-	preds <- character(nrow(x))
+	
+	if (convertWholeMatrix == FALSE){
+	  preds <- character(nrow(x))
 	for(i in 1:nrow(x)){
 		if (multbyColnames==FALSE){
 			preds[i] <- paste(rownames(x)[i], paste(x[i,]), sep=' ~ ')
@@ -3355,7 +3357,13 @@ matrix2formula <- function(x, multbyColnames=TRUE){
 			preds[i] <- paste(rownames(x)[i], paste(x[i,],
 		                      colnames(x), sep='*', collapse=' + '), sep=' ~ ')
 			}
-	}
+	}}else{ #If wanting to convert the whole matrix into formula
+	  preds <- character(nrow(x)*ncol(x))
+	  for(i in 1:nrow(x)){
+	    for (j in 1:ncol(x)){
+	      preds[j+(i-1)*ncol(x)] <- paste(rownames(x)[i], paste(x[i,j]), sep=' ~ ')
+	    }}  
+	} 
 	if(is.numeric(x)){
 		preds <- gsub(' 1\\*', ' ', preds)
 		preds <- gsub(paste(" 0\\*(", paste(colnames(x), collapse = "|"), ") \\+", sep=""), '', preds)
@@ -4189,7 +4197,7 @@ symbolicLDLDecomposition <- function(a.params, a.values){
 	a = a.params
 	
 	
-	# repalce elements 'fixed' w/ the corresponding values in a.values
+	# relace elements 'fixed' w/ the corresponding values in a.values
 	a = matrix(mapply(function(a, v){if(a == 0) a = v else a = a}, as.list(a), as.list(a.values)), nrow = nrow(a))
 	
 	n <- nrow(a)

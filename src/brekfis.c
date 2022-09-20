@@ -170,7 +170,8 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				if(DEBUG_BREKFIS){
 					MYPRINT("About to call func_noise_cov\n");
 				}
-				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
+				//SMC added covariates
+				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
 				model_constraint_par(config, param);
 				
 				if(DEBUG_BREKFIS){
@@ -468,6 +469,8 @@ void model_constraint_par(const ParamConfig *pc, Param *par){
     L=gsl_matrix_calloc(pc->dim_latent_var, pc->dim_latent_var);
     D=gsl_matrix_calloc(pc->dim_latent_var, pc->dim_latent_var);
     gsl_matrix *temp_eta_noise=gsl_matrix_calloc(pc->dim_latent_var, pc->dim_latent_var);
+    
+    //SMC note: Looks like LDL manually coded in here
     gsl_matrix_set_zero(D);
     gsl_matrix_memcpy(L, par->eta_noise_cov);/*set the lower diagnoal*/
     for(ri=0; ri<pc->dim_latent_var; ri++){
@@ -485,7 +488,7 @@ void model_constraint_par(const ParamConfig *pc, Param *par){
     gsl_matrix_free(temp_eta_noise);
     gsl_matrix_free(L);
     gsl_matrix_free(D);
-
+    //End of SMC note
      /** covariance of measurement noise must be positive definite: LDL' decomposition applied **/
     L=gsl_matrix_calloc(pc->dim_obs_var, pc->dim_obs_var);
     D=gsl_matrix_calloc(pc->dim_obs_var, pc->dim_obs_var);
@@ -790,8 +793,8 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                     type=1;
                     config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
                 }
-
-                config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov);
+                //SMC ADDED COVARIATES HERE
+                config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
                 model_constraint_par(config, param);
 
                 /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
@@ -803,11 +806,11 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 print_array(param->func_param,config->num_func_param);
                 MYPRINT("\n");
                 MYPRINT("measurement error:\n");
-                print_matrix(param->y_noise_cov);
+                print_matrix(param->y_noise_cov);*/
                 MYPRINT("\n");
-                MYPRINT("process noise: \n");
+                MYPRINT("process noise at time %lu: \n",t);
                 print_matrix(param->eta_noise_cov);
-                MYPRINT("\n");*/
+                MYPRINT("\n");
 
 
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
