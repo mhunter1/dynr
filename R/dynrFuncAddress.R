@@ -364,7 +364,8 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
       f_dfdxdp= getNativeSymbolInfo("dfdxdpFreeIC", DLL)$address,
       f_dfdpdx= getNativeSymbolInfo("dfdpdxFreeIC", DLL)$address,
       f_dfdp2 = getNativeSymbolInfo("dfdpar2FreeIC", DLL)$address,
-      f_setpars = getNativeSymbolInfo("setParsFreeICwb", DLL)$address)
+      f_setpars = getNativeSymbolInfo("setParsFreeICwb", DLL)$address,
+	  f_setcov = getNativeSymbolInfo("getCovarianceMatrix", DLL)$address)
   }else{
     # todo: Implement the time point regularization and corresponding model modification to support isContinuousTime = FALSE
     warning('SAEM process only supports isContinuousTime = TRUE now.')

@@ -4,12 +4,14 @@ typedef arma::cube (*cubePtr)(arma::mat &xin, arma::vec &i, int t, int isStart, 
 typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
 typedef arma::mat (*_rcpparma_hello_worldPtr)(void);
 typedef void (*setParsFreeICwbPtr)(C_INFDS &InfDS);
+typedef arma::mat (*getCovarianceMatrixPtr)(C_INFDS &InfDS);
 
 struct C_FUNC_POINTER {
 	dynfunICMPtr dynfunICM;
 	dfdxFreeICMPtr dfdxFreeICM;
 	cubePtr dfdparFreeIC, dfdx2FreeIC, dfdxdpFreeIC, dfdpdxFreeIC, dfdpar2FreeIC;
 	setParsFreeICwbPtr setParsFreeICwb;
+	getCovarianceMatrixPtr getCovarianceMatrix;
 	_rcpparma_hello_worldPtr test;
 };
 

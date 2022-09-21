@@ -341,8 +341,11 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	*(void **) (&InfDS.fp.dfdpdxFreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdpdx"]);
 	*(void **) (&InfDS.fp.dfdpar2FreeIC) = R_ExternalPtrAddr(func_addr_sexp["f_dfdp2"]);
 	*(void **) (&InfDS.fp.setParsFreeICwb) = R_ExternalPtrAddr(func_addr_sexp["f_setpars"]);
+	*(void **) (&InfDS.fp.getCovarianceMatrix) = R_ExternalPtrAddr(func_addr_sexp["f_setcov"]);
 	*(void **) (&InfDS.fp.test) = R_ExternalPtrAddr(func_addr_sexp["f_test"]);
 	InfDS.fp.test();
+	InfDS.par.print("par");
+	InfDS.fp.getCovarianceMatrix(InfDS).print("getCovarianceMatrix");
 
 
 	//arma::mat x = InfDS.fp.test();

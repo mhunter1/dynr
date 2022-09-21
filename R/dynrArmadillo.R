@@ -582,7 +582,7 @@ setMethod("writeArmadilloCode", "dynrDynamicsFormula",
 		# }
 		
 		ret=paste0(ret,"\n//----------------\n")
-		ret=paste0(ret,"\narma::mat getCovarianceMatrix(C_INFDS &InfDS){\n\tint startB;\n\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1;\n")
+		ret=paste0(ret,"\narma::mat getCovarianceMatrix(C_INFDS &InfDS){\n\tint startB;\n\tarma::mat res;\n\n\tstartB = InfDS.Nbeta + InfDS.Nmu + InfDS.NLambda + InfDS.Ny + 1;\n")
 		
 		# enter code here
 		#browser()
