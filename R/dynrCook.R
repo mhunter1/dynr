@@ -799,7 +799,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		  model <- TwoPhaseExpandRandomAsLVModel(dynrModel) # estimate all random variables at a time
 		  ##overLap = names(model.random@xstart) %in% names(coef(fitted_model.fixed))
 		  ##model.random@xstart[overLap] <- coef(fitted_model.fixed)#@fitted.parameters
-		  fitted_model <- dynr.cook(model, optimization_flag=FALSE, 
+		  fitted_model <- dynr.cook(model, optimization_flag=TRUE, 
 		                            hessian_flag = FALSE, verbose=FALSE, weight_flag=weight_flag, 
 		                            debug_flag=TRUE) #Need debug_flag=TRUE to get eta_smooth_final
 		}
