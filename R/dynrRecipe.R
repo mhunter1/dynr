@@ -109,7 +109,9 @@ setClass(Class = "dynrDynamicsFormula",
            formula2 = "list",
            saem = "logical",
            random.params.inicov="matrix",
-           random.values.inicov="matrix"
+           random.values.inicov="matrix",
+		   covariate.formula = "list",
+		   covariate.names = "character"
            ),
          contains = "dynrDynamics"
 )
@@ -2548,7 +2550,7 @@ autojacob <- function(formula, n, diff.variables){
 ##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
 ##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
-	#browser()
+	browser()
 	dots <- list(...)
 	
 	# if the argument formula is not a list 
@@ -2567,7 +2569,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	
 	# parsing the parameters in ...
 	if(length(dots) > 0){
-		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
+		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb', 'covariate.formula', 'covariate.names'))){
 			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
 		}
 		if('theta.formula' %in% names(dots)){
@@ -2743,6 +2745,9 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	#x$theta.formula <- theta.formula
 	x$theta.names <- theta.names
 	x$state.names <- state.names
+	
+	x$covariate.names <- dots$covariate.names
+	x$covariate.formula <- dots$covariate.formula
 
 	
 	return(new("dynrDynamicsFormula", x))
