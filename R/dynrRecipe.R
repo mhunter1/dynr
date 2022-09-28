@@ -2120,7 +2120,11 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 #In SAEM: we generate starting values for L and D element-wise, following the symmetric indefinite factorization in:
 #https://en.wikipedia.org/wiki/Cholesky_decomposition
 #, which does not require taking the square root of A
+#See symbolicLDLDecomposition and solveStartLDL
 #These two are equivalent, as verified in the first chunk of code in Brekfis/CovarianceTesting/CompareLDL.R
+#The advantages of these functions are that symbolicLDLDecomposition outputs the symbolic expressions
+#of elements of L, D, and LDL', which are now being extended to allow more general covariance function
+#modeling involving covariates (needed e.g., for exact discrete-time models)
 processCovConstant <- function(values.latent, params.latent, values.observed, params.observed){
   r <- coProcessValuesParams(values.latent, params.latent)
   values.latent <- r$values
