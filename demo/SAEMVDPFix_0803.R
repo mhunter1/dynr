@@ -8,13 +8,14 @@
 library('dynr')
 library('plyr')
 
-# setwd("C:/Users/Cynthia/Documents/gits/dynr/")
+#setwd("C:/Users/Cynthia/Documents/gits/dynr/")
 
-nPeople = 200
-nTimes = 300
-vdpData <- read.csv("./inst/extdata/NewTrueInit_Y1.txt", header=FALSE)
-colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
-vdpData$id <- rep(1:nPeople, each=nTimes)
+#nPeople = 200
+#nTimes = 300
+#vdpData <- read.csv("./data/VDPFix.rda", header=FALSE)
+#colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
+#vdpData$id <- rep(1:nPeople, each=nTimes)
+data(VDPFix)
 
 
 #data(vdpData)
@@ -22,8 +23,8 @@ data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y1', 'y2', 'y3'),
                   covariates=c("u1", "u2"))
 
-truebData <- read.csv("./inst/extdata/truebFile220803.txt", header=FALSE)
-trueb <- truebData[,4]
+#truebData <- read.csv("./data/truebFile220803.txt", header=FALSE)
+#trueb <- truebData[,4]
 
 meas <- prep.measurement(
   #values.load=matrix(c(1, -0.0087, -0.0126, 0, 0, 0), 3, 2), #original setting
@@ -52,14 +53,28 @@ initial <- prep.initial(
                          'fixed','fixed'), ncol=2, byrow=TRUE) 
 )
 
+
+sampleCovformula=
+  list(Sigma11 ~ par1*delta_t^3,
+       Sigma12 ~ par2*delta_t, 
+       Sigma21 ~ par2*delta_t,
+       Sigma22 ~ par3*delta_t^3)
+
+
 mdcov <- prep.noise(
   values.latent=diag(0, 2), 
   params.latent=diag(c("fixed","fixed"), 2),
   #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   values.observed=diag(c(0.5, 0.5, 0.5)),
-  params.observed=diag(c("fixed","fixed","fixed"),3)
+  params.observed=diag(c("fixed","fixed","fixed"),3),
+  var.formula = sampleCovformula,
+  covariates = c("delta_t"),
+  var.startval = c(par1=.1, par2=.2),
+  state.names = c("par3")
 )
+
+
 
 formula=
   list(x1 ~ x2,
@@ -67,6 +82,9 @@ formula=
   )
 
 theta.formula  = list (zeta_i ~  1 * b_zeta)
+
+
+
 
 
 dynm<-prep.formulaDynamics(formula=formula,
@@ -81,6 +99,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
                            #random.lb = -10, 
                            #random.ub = 10,
+                           covariate.formula = sampleCovformula,
+                           covariate.names = c('delta_t'),
                            saem=TRUE
 )
 
@@ -138,11 +158,7 @@ timeend<-Sys.time()
 
 print(timeend-timestart)
 
-#Estimates with the Expanded approach for y0 and b
-save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test_y0fromExpand.Rdata')
-
-#Estimates with the Expanded approach for b
-save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test_y0fromExpand.Rdata')
+#save.image('~/Dropbox/Brekfis/SAEM/Armadillo/SymiinTestExamples/VDP_test.Rdata')
 
 
 #vdpTrueX <- read.csv("C:\\Users\\Cynthia\\Dropbox\\Brekfis\\SAEM\\Armadillo\\SymiinTestExamples\\OutputforDebugging\\NewTrueInit_trueXG1.txt", header=FALSE)

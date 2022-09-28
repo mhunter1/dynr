@@ -196,7 +196,11 @@ setClass(Class = "dynrNoise",
            values.observed = "list",
            params.observed = "list",
            values.latent.inv.ldl = "list",
-           values.observed.inv.ldl = "list"),
+           values.observed.inv.ldl = "list",
+		   covariates = "character",
+		   var.formula = "list",
+		   state.names = "character",
+		   var.startval = "numeric"),
          contains = "dynrRecipe"
 )
 #TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
@@ -2068,22 +2072,22 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed, ...){
-  
+  #browser()
   # ---- To incorporate covariates and formulas into covariance functions ----
   dots <- list(...)
-  if ((missing(values.latent) || missing(params.latent) ||
-       missing(values.observed) || missing(params.observed)) & (length(dots==0)))
+  if ((missing(values.latent) || missing(params.latent) || missing(values.observed) || missing(params.observed)) && 
+      (length(dots==0)))
     stop("You have to provide the noise structure as lists of matrices or formulas. Neither is available now.")
   if(length(dots) > 0){
-    if(!all(names(dots) %in% c('covariates', 'var.formula'))){
+    if(!all(names(dots) %in% c('covariates', 'var.formula', 'state.names', 'var.startval'))){
       stop("You passed some invalid names to the ... argument. Check the ?prep.noise help page for more information.")
     }
     
     # if the argument formula is not a list 
-    if(!is.list(var.formula)){
-      msg <- paste0(ifelse(plyr::is.formula(var.formula), "'var.formula' argument is a formula but ", ""),
+    if(!is.list(dots$var.formula)){
+      msg <- paste0(ifelse(plyr::is.formula(dots$var.formula), "'var.formula' argument is a formula but ", ""),
                     "'formula'",
-                    ifelse(plyr::is.formula(var.formula), " ", " argument "),
+                    ifelse(plyr::is.formula(dots$var.formula), " ", " argument "),
                     "should be a list of formulas.\nCan't nobody tell me nothin'")
       stop(msg)
     }
@@ -2179,9 +2183,16 @@ processCovConstant <- function(values.latent, params.latent, values.observed, pa
 }
 
 processCovFormula <- function(dots){
+  
   if('var.formula' %in% names(dots))
     var.formula <- dots$var.formula
-  covariates <- dots$covariates
+  if('covariates' %in% names(dots))
+    covariates <- dots$covariates
+  if('state.names' %in% names(dots)){
+    state.names <- dots$state.names
+  } else {
+    state.names <- c()
+  }
   
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
   if(is.list(var.formula) && plyr::is.formula(var.formula[[1]])){
@@ -2198,7 +2209,7 @@ processCovFormula <- function(dots){
   if(!all(sapply(var.names, function(x, y){all(x==y)}, y=var.names[[1]]))){
     stop(paste0("Found different var-cov names or different ordering of var-cov names across regimes:\n", state.regimes))
   }
-  x <- list(var.formula=var.formula, var.startval=var.startval)
+  x <- list(var.formula=var.formula, var.startval=dots$var.startval)
   
   x$paramnames <- names(x$var.startval)
   
@@ -2208,12 +2219,48 @@ processCovFormula <- function(dots){
                 "\nParameters that are both var-cov and other free parameter names: ",
                 paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
   }
+  
+  #browser()
+  fml=lapply(var.formula[[1]],as.character)
+  lhs=lapply(fml,function(x){x[[2]]})
+  rhs=lapply(fml,function(x){x[[3]]})
+
+  #replace covariates with cov_i
+  if(length(covariates)>0){
+    ind_order <- order(nchar(covariates), covariates, decreasing= TRUE)
+    var_order <- covariates[ind_order]
+    for (i in 1:length(covariates)){
+      pattern <- var_order[i]
+	  ind <- ind_order[i]
+      for (e in 1:length(unlist(var.formula))){
+         rhs[[e]]<- gsub(pattern, paste0('cov_',ind), rhs[[e]], fixed = TRUE)
+	  }
+    }
+  }
+  
+  #replace state.names with state_i
+  if(length(state.names)>0){
+    ind_order <- order(nchar(state.names), state.names, decreasing= TRUE)
+    var_order <- state.names[ind_order]
+    for (i in 1:length(state.names)){
+      pattern <- var_order[i]
+	  ind <- ind_order[i]
+      for (e in 1:length(unlist(var.formula))){
+         rhs[[e]]<- gsub(pattern, paste0('state_',ind), rhs[[e]], fixed = TRUE)
+	  }
+    }
+  }
+
+  for (e in 1:length(unlist(var.formula))){
+    x$var.formula[[1]][[e]] <- as.formula(paste(lhs[[e]], '~', rhs[[e]]))
+  }
   #TODO: functions I need to call later:
   #processFormula -> parseFormula -> # reverseldl (which calls dynr.ldl) -> trans2ArmadilloFunction (as opposed to trans2CFunction):
   
   #sampleCovformula=
   #  list(Sigma11 ~ par1*delta_t^3,
-  #       Sigma12 ~ par2*deltat, Sigma21 ~ par2*deltat,
+  #       Sigma12 ~ par2*deltat, 
+  #       Sigma21 ~ par2*deltat,
   #       Sigma22 ~ par3*delta_t^3)
   
   # SymbolicLDLDecomposition (dynrModel.R)-> L, D -> unique parameters in L & D -> InfDS.par
