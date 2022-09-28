@@ -170,9 +170,9 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				if(DEBUG_BREKFIS){
 					MYPRINT("About to call func_noise_cov\n");
 				}
-				//SMC added covariates
+				//SMC added covariates here (2)
 				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
-				model_constraint_par(config, param);
+        model_constraint_par(config, param);
 				
 				if(DEBUG_BREKFIS){
 					MYPRINT("Done with func_noise_cov\n");
@@ -793,7 +793,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                     type=1;
                     config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
                 }
-                //SMC ADDED COVARIATES HERE
+                //SMC ADDED COVARIATES HERE (1)
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
                 model_constraint_par(config, param);
 

@@ -1500,7 +1500,7 @@ mat2vec<-function(mat,n.vec){
   } 
   return(vec)   
 }
-#transldl function for caluaclating the LDL values
+#transldl function for calculating the LDL values
 transldl <- function(mat){
   L <- mat
   diag(L) <- 1
@@ -2097,6 +2097,30 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
   return(new("dynrNoise", x))
 }
 
+
+#SMC 9/28/22
+#Generally for a symmetric cov matrix, A (e.g., process noise covariance matrix), A = LDL'
+#we want to do optimization of parameters in the L and D. Capitalizing on
+#https://handwiki.org/wiki/Cholesky_decomposition#:~:text=LDL%20decomposition%20A%20closely%20related%20variant%20of%20the,an%20additional%20diagonal%20matrix%20D%20in%20the%20decomposition.
+#L = CS^{-1}, where C = the cholesky of A, and S S is a diagonal matrix that contains the main diagonal of C
+#D = S^2
+#This operation is implemented in dynr.ldl so it returns the values of L and D.
+#In classical dynr, here is the flow of actions:
+#Before cooking the model:
+#(1a) checkSymmetric
+#(1b) autoExtendSubRecipe to all regimes
+#(1c) replaceDiagZero - replace diagonal values that are = 0 with a small constant
+#(2) reverseldl - calls dynr.ldl, which provides values for elements in L and D given A,
+#                 and then apply log transformation to elements in D so the optimization
+#                 algorithm can optimize these elements on the unconstrained scale.
+#(3) writeCcode - makeldlchar does something to ensure uniqueness of parameter names (YET TO GO THROUGH)
+#After cooking: take unconstrained parameters returned by optimization algorithm and:
+#(1)transformation - calls transldl, which retrieves A = LDL'
+#
+#In SAEM: we generate starting values for L and D element-wise, following the symmetric indefinite factorization in:
+#https://en.wikipedia.org/wiki/Cholesky_decomposition
+#, which does not require taking the square root of A
+#These two are equivalent, as verified in the first chunk of code in Brekfis/CovarianceTesting/CompareLDL.R
 processCovConstant <- function(values.latent, params.latent, values.observed, params.observed){
   r <- coProcessValuesParams(values.latent, params.latent)
   values.latent <- r$values
@@ -2181,7 +2205,7 @@ processCovFormula <- function(dots){
                 paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
   }
   #TODO: functions I need to call later:
-  #processFormula -> parseFormula -> #transldl, dynr.ldl, reverseldl -> trans2ArmadilloFunction (as opposed to trans2CFunction):
+  #processFormula -> parseFormula -> # reverseldl (which calls dynr.ldl) -> trans2ArmadilloFunction (as opposed to trans2CFunction):
   
   #sampleCovformula=
   #  list(Sigma11 ~ par1*delta_t^3,
