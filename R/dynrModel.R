@@ -917,7 +917,7 @@ checkSSMConformable <- function(mat, rows, cols, matname, modname){
 ##' 
 ##' @examples
 ##' # model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov,
-##'    initial=initial, data=data, outfile="osc.cpp")
+##' #  initial=initial, data=data, outfile="osc.cpp")
 ##' # extended_model <- ExpandRandomAsLVModel(model)
 ##'
 ##' 
