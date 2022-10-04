@@ -226,7 +226,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 
   #Dynamic model
   if (printDyn) {  
-    if (class(dynrModel$dynamics) == "dynrDynamicsMatrix"){
+    if ("dynrDynamicsMatrix" %in% class(dynrModel$dynamics)){
       state.names <- (dynrModel$measurement)$state.names
       exo.names <- (dynrModel$dynamics)$covariates
       dynrModel@dynamics@values.dyn <- lapply((dynrModel$dynamics)$values.dyn, preProcessNames,state.names,state.names)

@@ -939,7 +939,7 @@ PopBackFormula <- function(formula, paramnames, param.names, trans.parameters){
 }
 
 PopBackModel <- function(dynrModel, trans.parameters){
-	if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
+	if ('dynrDynamicsFormula' %in% class(dynrModel$dynamics)){
 		if (length(dynrModel@dynamics@paramnames) > 0){
 			dynrModel@dynamics@formula <- PopBackFormula(dynrModel@dynamics@formula, dynrModel@dynamics@paramnames, dynrModel@param.names, trans.parameters)
 		}
