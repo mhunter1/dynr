@@ -1,12 +1,12 @@
 # set by configure
-GSL_CFLAGS = -I$(LIB_GSL)/include
-
-ifeq "$(WIN)" "64"
-GSL_LIBS = -L$(LIB_GSL)/lib -lgsl -lgslcblas
-else
-GSL_LIBS = -L$(LIB_GSL)/../mingw32/lib -lgsl -lgslcblas
-endif
+# GSL_CFLAGS = $(shell ${R_HOME}/bin/Rscript -e "RcppGSL:::CFlags()")
+# 
+#ifeq "$(WIN)" "64"
+#GSL_LIBS = -L$(shell ${R_HOME}/bin/Rscript -e "RcppGSL:::LdFlags()")
+#else
+#GSL_LIBS = -L$(shell ${R_HOME}/bin/Rscript -e "RcppGSL:::LdFlags()")
+#endif
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS)
-PKG_LIBS = $(GSL_LIBS)
+PKG_CPPFLAGS = -I$(LIB_GSL)/include
+PKG_LIBS = -L$(LIB_GSL)/lib -lgsl -lgslcblas
