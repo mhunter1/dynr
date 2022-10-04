@@ -18,8 +18,8 @@ Maintainer: Michael D. Hunter <mike.dynr@gmail.com>
 URL: https://dynrr.github.io/, https://github.com/mhunter1/dynr
 Contact: <dynr@googlegroups.com>
 Depends: R (>= 3.0.0), ggplot2
-Imports: MASS, Matrix (>= 1.5-0), numDeriv, xtable, latex2exp, grid, reshape2, plyr, mice, magrittr, methods, fda, car, stringi, tibble, deSolve
-Suggests: testthat, roxygen2 (>= 3.1), knitr, rmarkdown, Rdpack, RcppGSL
+Imports: MASS, Matrix (>= 1.5-0), numDeriv, xtable, latex2exp, grid, reshape2, plyr, mice, magrittr, methods, fda, car, stringi, tibble, deSolve, Rdpack
+Suggests: testthat, roxygen2 (>= 3.1), knitr, rmarkdown, RcppGSL
 VignetteBuilder: knitr
 Description: Intensive longitudinal data have become increasingly prevalent in various scientific disciplines. Many such data sets are noisy, multivariate, and multi-subject in nature. The change functions may also be continuous, or continuous but interspersed with periods of discontinuities (i.e., showing regime switches). The package 'dynr' (Dynamic Modeling in R) is an R package that implements a set of computationally efficient algorithms for handling a broad class of linear and nonlinear discrete- and continuous-time models with regime-switching properties under the constraint of linear Gaussian measurement functions. The discrete-time models can generally take on the form of a state-space or difference equation model. The continuous-time models are generally expressed as a set of ordinary or stochastic differential equations. All estimation and computations are performed in C, but users are provided with the option to specify the model of interest via a set of simple and easy-to-learn model specification functions in R. Model fitting can be performed using single-subject time series data or multiple-subject longitudinal data.  Ou, Hunter, & Chow (2019) <doi:10.32614/RJ-2019-012> provided a detailed introduction to the interface and more information on the algorithms.
 SystemRequirements: GNU make
