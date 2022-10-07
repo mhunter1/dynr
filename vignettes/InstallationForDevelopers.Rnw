@@ -162,4 +162,35 @@ Note that this specific demo requires the packages \textit{Matrix} and \textit{m
 \end{enumerate}
 
 
+\section{\Large Advanced Operations When Developing Dynr}
+\label{sec:Advope}
+
+\subsection{\Large Import Functions in \texttt{dynr}}
+\label{sec:exportfuns}
+\begin{enumerate}
+  \item Make sure that you have a local \texttt{dynr} repository in your computer.
+  \item Change the \texttt{NAMESPACE} file.
+  \begin{itemize}
+      \item Find the \texttt{NAMESPACE} file in the \texttt{dynr} directory. Open it by any code editor (e.g., TextEdit on Mac or Wordpad on Windows).
+     \item Add one line to import the package with \texttt{importFrom} function or \texttt{import} function at the end of the file, so that you can use corresponding datasets and functions from that package when using \texttt{dynr} package. For example, add \texttt{import(Rcpp)} to use \texttt{Rcpp} package. 
+     \item More details can be found in <Managing imports and exports> (\url{https://cran.r-project.org/web/packages/roxygen2/vignettes/namespace.html}) and more examples can be found in the \texttt{NAMESPACE} file.
+     \item Save and quit the file.
+    \end{itemize}
+  \item Change the \texttt{description.in} file.
+  \begin{itemize}
+      \item Find the \texttt{description.in} file in the \texttt{dynr} directory. Open it by any code editor (e.g., TextEdit on Mac or Wordpad on Windows).
+     \item Locate the line that begins with \texttt{Imports:}, and add the name of the package which you want to import at the end of the line.
+      \item Save and quit the file.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{\Large Export Functions from Other R Packages}
+\label{sec:exportfuns}
+\begin{enumerate}
+\item Make sure that you have a local \texttt{dynr} repository in your computer.
+\item Find the \texttt{NAMESPACE} file in the \texttt{dynr} directory. Open it by any code editor (e.g., TextEdit on Mac or Wordpad on Windows).
+\item Add one line to export the package with \texttt{export, exportS3Method, exportClass, exportMethod} or \texttt{exportPattern} function at the end of the file. More details can be found in <Managing imports and exports> (\url{https://cran.r-project.org/web/packages/roxygen2/vignettes/namespace.html}) and more examples can be found in the \texttt{NAMESPACE} file.
+\item Save and quit the file.
+\end{enumerate}
+
 \end{document}
