@@ -194,9 +194,9 @@ void function_F(double t, size_t regime, const gsl_vector *x, double *gparameter
 	gsl_vector_set(F, 1, gparameters[0]*(1-pow(gsl_vector_get(x,0),2))*gsl_vector_get(x,1)-gsl_vector_get(x,0));
 }
 
-void debug_adaptive_ode(){
-	size_t np=2;
-	size_t regime=1;
+void debug_adaptive_ode(size_t np, size_t regime){
+	//np=2;
+	//regime=1;
 	gsl_vector *xstart=gsl_vector_alloc(np);
 	gsl_vector *t=gsl_vector_alloc(n_alloc);
 	gsl_vector *tau=gsl_vector_alloc(n_alloc);
@@ -404,9 +404,9 @@ void function_F_debug(double t, size_t regime, const gsl_vector *x, double *gpar
 }
 
 
-void debug_adaptive_ode_kf(){
-	size_t np=2;
-	size_t regime=1;
+void debug_adaptive_ode_kf(size_t np, size_t regime){
+	//np=2;
+	//regime=1;
 	gsl_vector *xstart=gsl_vector_alloc(np);
 	gsl_vector *x_tend=gsl_vector_alloc(np);
 	double gparameters[]={3.0};
