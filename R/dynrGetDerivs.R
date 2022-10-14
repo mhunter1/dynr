@@ -89,11 +89,29 @@ plotGCV = function(theTimes,norder,roughPenaltyMax,dataMatrix,lowLambda,upLambda
 ##' Chow, S-M., *Bendezu, J. J., Cole, P. M., & Ram, N. (2016). A Comparison of Two-
 ##' Stage Approaches for Fitting Nonlinear Ordinary Differential Equation (ODE) 
 ##' Models with Mixed Effects. Multivariate Behavioral Research, 51, 154-184. Doi: 10.1080/00273171.2015.1123138.
-getdx <- function(theTimes,norder,roughPenaltyMax,lambda,dataMatrix,derivOrder){
+##' 
 ##' @examples
-##' #x = getdx(theTimes,norder,roughPenaltyMax,sp,out2,0)[[1]] #Smoothed level
-##' #dx = getdx(theTimes,norder,roughPenaltyMax,sp,out2,1)[[1]] #Smoothed 1st derivs
-##' #d2x = getdx(theTimes,norder,roughPenaltyMax,sp,out2,2)[[1]] #Smoothed 2nd derivs
+##' data("LinearOsc")
+##' # Number of subjects is 10
+##' numP <- length(unique(LinearOsc$ID))
+##' # Number of time points is 100
+##' numT <- max(table(LinearOsc$ID))
+##' out2 <- matrix(LinearOsc$x, ncol=numP, byrow=FALSE)
+##' theTimes <- LinearOsc$theTimes[1:numT]
+##' # Order of Bsplines - usually 2 higher than roughPenaltyMax
+##' norder <- 6
+##' # Penalization order
+##' roughPenaltyMax <- 4 
+##' # Pick lambda value that gives the low GCV
+##' # Could/should use plotGCV instead
+##' sp <- 1/2
+##' # Smoothed level
+##' x <- getdx(theTimes, norder, roughPenaltyMax, sp, out2, 0)[[1]]
+##' # Smoothed 1st derivs
+##' dx <- getdx(theTimes, norder, roughPenaltyMax, sp, out2, 1)[[1]]
+##' # Smoothed 2nd derivs
+##' d2x = getdx(theTimes, norder, roughPenaltyMax, sp, out2, 2)[[1]]
+getdx <- function(theTimes,norder,roughPenaltyMax,lambda,dataMatrix,derivOrder){
   rng =  range(theTimes)
   nt   =  length(theTimes)
   nbasis =  nt + norder - 2
