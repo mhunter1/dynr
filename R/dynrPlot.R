@@ -409,7 +409,7 @@ plotFormula <- function(dynrModel, ParameterAs, printDyn=TRUE, printMeas=TRUE,
 ##'
 ##' @examples
 ##' # The following code is part of a demo example in dynr
-##' \donttest{
+##' \dontrun{
 ##' demo(RSLinearDiscreteYang, package='dynr')
 ##' p <- dynr.ggplot(yum, dynrModel = rsmod, style = 1,
 ##'  	names.regime = c("Deactivated", "Activated"),
