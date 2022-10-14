@@ -23,9 +23,9 @@
 ##' Stage Approaches for Fitting Nonlinear Ordinary Differential Equation (ODE) 
 ##' Models with Mixed Effects. Multivariate Behavioral Research, 51, 154-184. Doi: 10.1080/00273171.2015.1123138.
 plotGCV = function(theTimes,norder,roughPenaltyMax,dataMatrix,lowLambda,upLambda,lambdaInt,isPlot){
-##' @examples
-##' #outMatrix = plotGCV(theTimes,norder,roughPenaltyMax,out2,lambdaLow, 
-##' #lambdaHi,lambdaBy,isPlot)
+  # Pseudo-example from vignette
+  # outMatrix = plotGCV(theTimes,norder,roughPenaltyMax,out2,lambdaLow, 
+  # lambdaHi,lambdaBy,isPlot)
   rng =  range(theTimes)
   nt   =  length(theTimes)
   nbasis =  nt + norder - 2
@@ -179,11 +179,12 @@ jnt <- function(.lm, predictor, moderator, alpha=.05) {
 theta_plot <- function(.lm, predictor, moderator, 
                        alpha=.05, jn=F,title0,
                        predictorLab, moderatorLab) {
-##' @examples
-##' # g = lm(y~x1:x2,data=data) 
-##' # theta_plot(g, predictor = "x1", moderator = "x2", 
-##' #           alpha = .05, jn = T, title0=" ",
-##' #           predictorLab = "x1", moderatorLab = "x2")
+  # Here is one pseudo-example taken from the vignette
+  # Not to be confused with a real example ##' @examples
+  # g = lm(y~x1:x2,data=data) 
+  # theta_plot(g, predictor = "x1", moderator = "x2", 
+  #           alpha = .05, jn = T, title0=" ",
+  #           predictorLab = "x1", moderatorLab = "x2")
   theme_set(theme_minimal())
   b1 = NULL; b3 = NULL; Z = NULL; theta = NULL; se_b1 = NULL; COV_b1b3 = NULL
   se_b3 = NULL; se_theta = NULL; ci.lo_theta=NULL; ci.hi_theta = NULL
@@ -279,31 +280,29 @@ theta_plot <- function(.lm, predictor, moderator,
 ##' Grayling, Michael J. (2014). phaseR: An R Package for Phase Plane Analysis of Autonomous
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
 ##' https://doi.org/10.32614/RJ-2014-023
-##' 
 dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.dim", 
           points = 21, col = "gray", arrow.type = "equal", arrow.head = 0.05, 
           frac = 1, add = TRUE, xlab = "x", ylab = "y", state.names = c("x", 
-                                                                        "y"), ...) 
-{
-##' @examples
-##' #Osc <- function(t, y, parameters) {
-##' #  dy <- numeric(2)
-##' #  dy[1] <- y[2]
-##' #  dy[2] <- parameters[1]*y[1]+parameters[2]*dy[1]   
-##' #  return(list(dy))
-##' #}
-##' #
-##' #param <- coef(g)
-##' #dynr.flowField(Osc, xlim = c(-3, 3), 
-##' #                  ylim = c(-3, 3),
-##' #                  xlab="x", ylab="dx/dt",
-##' #                  main=paste0("Oscillator model"),
-##' #                  cex.main=2,
-##' #                  parameters = param, 
-##' #                  points = 15, add = FALSE,
-##' # col="blue",
-##' # arrow.type="proportional",
-##' # arrow.head=.05)  
+                                                                        "y"), ...) {
+  # Pseudo-example from vignette
+  #Osc <- function(t, y, parameters) {
+  #  dy <- numeric(2)
+  #  dy[1] <- y[2]
+  #  dy[2] <- parameters[1]*y[1]+parameters[2]*dy[1]   
+  #  return(list(dy))
+  #}
+  #
+  #param <- coef(g)
+  #dynr.flowField(Osc, xlim = c(-3, 3), 
+  #                  ylim = c(-3, 3),
+  #                  xlab="x", ylab="dx/dt",
+  #                  main=paste0("Oscillator model"),
+  #                  cex.main=2,
+  #                  parameters = param, 
+  #                  points = 15, add = FALSE,
+  # col="blue",
+  # arrow.type="proportional",
+  # arrow.head=.05)  
   if ((!is.vector(xlim)) | (length(xlim) != 2)) {
     stop("xlim is not a vector of length 2 as required")
   }
@@ -529,32 +528,30 @@ dynr.flowField <- function (deriv, xlim, ylim, parameters = NULL, system = "two.
 ##' Grayling, Michael J. (2014). phaseR: An R Package for Phase Plane Analysis of Autonomous
 ##' ODE Systems. The R Journal, 6(2), 43-51. DOI: 10.32614/RJ-2014-023. Available at
 ##' https://doi.org/10.32614/RJ-2014-023
-##' 
 dynr.trajectory <- function (deriv, y0 = NULL, n = NULL, tlim, tstep = 0.01, parameters = NULL, 
           system = "two.dim", col = "black", add = TRUE, state.names = c("x", 
-                                                                         "y"), ...) 
-{
-##' @examples
-##' #Osc <- function(t, y, parameters) {
-##' #  dy <- numeric(2)
-##' #  dy[1] <- y[2]
-##' #  dy[2] <- parameters[1]*y[1]+parameters[2]*dy[1]   
-##' #  return(list(dy))
-##' #}
-##' #
-##' #param <- coef(g)
-##' #dynr.flowField(Osc, xlim = c(-3, 3), 
-##' #                  ylim = c(-3, 3),
-##' #                  xlab="x", ylab="dx/dt",
-##' #                  main=paste0("Oscillator model"),
-##' #                  cex.main=2,
-##' #                  parameters = param, 
-##' #                  points = 15, add = FALSE,
-##' # col="blue",
-##' # arrow.type="proportional",
-##' # arrow.head=.05)  
-##' #IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
-##' # phaseR::trajectory(Osc, y0 = IC, parameters = param,tlim=c(0,10))
+                                                                         "y"), ...) {
+  # Pseudo-example from vignette
+  #Osc <- function(t, y, parameters) {
+  #  dy <- numeric(2)
+  #  dy[1] <- y[2]
+  #  dy[2] <- parameters[1]*y[1]+parameters[2]*dy[1]   
+  #  return(list(dy))
+  #}
+  #
+  #param <- coef(g)
+  #dynr.flowField(Osc, xlim = c(-3, 3), 
+  #                  ylim = c(-3, 3),
+  #                  xlab="x", ylab="dx/dt",
+  #                  main=paste0("Oscillator model"),
+  #                  cex.main=2,
+  #                  parameters = param,
+  #                  points = 15, add = FALSE,
+  # col="blue",
+  # arrow.type="proportional",
+  # arrow.head=.05)  
+  #IC <- matrix(c(-2, -2), ncol = 2, byrow = TRUE)  #Initial conditions
+  # phaseR::trajectory(Osc, y0 = IC, parameters = param,tlim=c(0,10))
   if (tstep == 0) {
     stop("tstep is equal to 0")
   }
