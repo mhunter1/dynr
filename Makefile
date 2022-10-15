@@ -2,7 +2,7 @@ REXEC = R
 export REXEC
 
 # Uncomment the next line to build fat binaries (32 and 64) for Windows
-BUILDARGS = --dsym
+BUILDARGS = --force-biarch --dsym
 #BUILDARGS = --dsym
 
 TESTFILE = tools/testModels.R

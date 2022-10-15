@@ -14,5 +14,6 @@ GSL_LIBS = -L$(LIB_GSL)/lib/i386 -lgsl -lgslcblas
 endif
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS)
-PKG_LIBS = $(GSL_LIBS)
+# combine with standard arguments for R
+PKG_CPPFLAGS = -I$(LIB_GSL)/include
+PKG_LIBS = -L$(LIB_GSL)/lib -lgsl -lgslcblas

@@ -43,4 +43,4 @@ Collate:
     'dynrPredict.R'
 RdMacros: Rdpack
 Version: @VERSION@
-
+Biarch: TRUE
