@@ -129,10 +129,10 @@ Optimization Step and Results
 ---------------
 
 Now the model is specified and we are ready to cook dynr! The <span style="color:blue">_summary_</span> command gives the model fitting results.
-```{r cook, results="hide"}
+```{r cook, results="hide", eval=FALSE}
 res <- dynr.cook(model, verbose=FALSE)
 ```
 
-```{r serve}
+```{r serve, eval=FALSE}
 summary(res)
 ```
