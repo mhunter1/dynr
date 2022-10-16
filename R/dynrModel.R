@@ -135,7 +135,8 @@ setReplaceMethod("$", "dynrModel",
 ##' A single number. The total number of observations across all IDs.
 ##' 
 ##' @examples
-##' # Create a minimal cooked model called 'model'
+##' # Create a minimal uncooked model called 'model'
+##' # That is, without esimating parameters
 ##' require(dynr)
 ##' 
 ##' meas <- prep.measurement(
@@ -567,7 +568,8 @@ setMethod("printex", "dynrModel",
 ##' @return Object of class 'dynrModel'
 ##' 
 ##' @examples
-##' # Create a minimal cooked model called 'model'
+##' # Create a minimal model called 'model'
+##' # without 'cooking' (i.e., estimating parameters)
 ##' require(dynr)
 ##' 
 ##' meas <- prep.measurement(

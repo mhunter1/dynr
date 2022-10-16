@@ -257,11 +257,13 @@ setMethod("show", "dynrCook", function(object) {
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now grab the coef!
 ##' coef(cook)
+##' }
 coef.dynrCook <- function(object, ...){
 	object@transformed.parameters
 }
@@ -320,11 +322,13 @@ coef.dynrCook <- function(object, ...){
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the log likelihood!
 ##' logLik(cook)
+##' }
 logLik.dynrCook <- function(object, ...){
 	ans <- -object@neg.log.likelihood
 	attr(ans, "df") <- length(object@fitted.parameters)
@@ -385,11 +389,13 @@ deviance.dynrCook <- function(object, ...){
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the total number of observations
 ##' nobs(cook)
+##' }
 nobs.dynrCook <- function(object, ...){
 	dim(object@eta_smooth_final)[2]
 }
@@ -507,12 +513,14 @@ setMethod("$", "dynrCook",
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the confidence intervals
 ##' # But note that they are nonsense because we set hessian_flag=FALSE !!!!
 ##' confint(cook)
+##' }
 confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
 	type <- match.arg(type)
 	tlev <- (1-level)/2
@@ -636,9 +644,11 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' # Now cook the model!
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' }
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE) {
 	frontendStart <- Sys.time()
 	transformation=dynrModel@transform@tfun
