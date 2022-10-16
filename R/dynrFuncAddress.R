@@ -75,6 +75,10 @@ CompileCode <- function(code, language, verbose, libLFile) {
 		## Unix gsl flags
 		gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
 		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+		# Perhaps change above to use similar to configure.win syntax
+		# GSL_CFLAGS=`${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe -e "RcppGSL:::CFlags()"`
+		# GSL_LIBS=`${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe -e "RcppGSL:::LdFlags()"`
+
 	}
 	if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
 	Sys.setenv(PKG_CPPFLAGS=gsl_cflags)
