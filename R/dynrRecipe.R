@@ -1364,6 +1364,7 @@ setMethod("createRfun", "dynrTrans",
               }
             }
             f.string2 <- f.string
+			#browser()
             #observed
             if (sum(param.data$ldl.observed)>0){
             f.string2 <- paste(f.string2, makeldlchar(param.data, lapply(values.observed.orig, replaceDiagZero), params.observed, reverse=TRUE),sep="\n\t")
@@ -1404,6 +1405,7 @@ setMethod("createRfun", "dynrTrans",
               }
             
             #observed
+			#browser()
             if (sum(param.data$ldl.observed)>0){
               f.string<-paste(f.string, makeldlchar(param.data, values.observed, params.observed),sep="\n\t")
             }
@@ -1438,6 +1440,7 @@ makeldlchar<-function(param.data, values, params, reverse=FALSE){
   #   [,1]     [,2]
   #   [1,] 1.0986123 0.000000
   #   [2,] 0.6666667 1.299283
+  #browser()
   params.numbers <- lapply(params, .exchangeNamesAndNumbers, param.data$param.name)
   values <- PopBackMatrix(values, params.numbers, paste0("vec[",param.data$param.number,"]"))
   char <- character(0)
@@ -2625,7 +2628,7 @@ autojacob <- function(formula, n, diff.variables){
 ##'                            random.params.inicov=matrix(c('sigma2_b_eta'), ncol=1,byrow=TRUE),
 ##'                            random.values.inicov=matrix(c(0.1), ncol=1,byrow=TRUE))
 prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTime=FALSE, jacobian, saem=FALSE, ...){
-	browser()
+	#browser()
 	dots <- list(...)
 	
 	# if the argument formula is not a list 

@@ -10,7 +10,7 @@ library('plyr')
 
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/")
 
-#nPeople = 200
+nPeople = 200
 #nTimes = 300
 #vdpData <- read.csv("./data/VDPFix.rda", header=FALSE)
 #colnames(vdpData) <- c('batch', 'kk', 'trueInit', 'time', 'y1','y2','y3', 'u1', 'u2')
@@ -22,6 +22,8 @@ data(VDPFix)
 data <- dynr.data(vdpData, id="id", time="time",
                   observed=c('y1', 'y2', 'y3'),
                   covariates=c("u1", "u2"))
+
+trueb <- data$trueb[data$tstart[1:nPeople+1], ]
 
 #truebData <- read.csv("./data/truebFile220803.txt", header=FALSE)
 #trueb <- truebData[,4]
@@ -67,11 +69,10 @@ mdcov <- prep.noise(
   #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   values.observed=diag(c(0.5, 0.5, 0.5)),
-  params.observed=diag(c("fixed","fixed","fixed"),3),
-  var.formula = sampleCovformula,
-  covariates = c("delta_t"),
-  var.startval = c(par1=.1, par2=.2),
-  state.names = c("par3")
+  params.observed=diag(c("var1","var2","var3"),3)#,
+  #var.formula = sampleCovformula,
+  #covariates = c("delta_t"),
+  #var.startval = c(par1=.1, par2=.2)
 )
 
 
