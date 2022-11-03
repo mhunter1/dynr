@@ -260,11 +260,13 @@ setMethod("show", "dynrCook", function(object) {
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now grab the coef!
 ##' coef(cook)
+##' }
 coef.dynrCook <- function(object, ...){
 	object@transformed.parameters
 }
@@ -323,11 +325,13 @@ coef.dynrCook <- function(object, ...){
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the log likelihood!
 ##' logLik(cook)
+##' }
 logLik.dynrCook <- function(object, ...){
 	ans <- -object@neg.log.likelihood
 	attr(ans, "df") <- length(object@fitted.parameters)
@@ -388,11 +392,13 @@ deviance.dynrCook <- function(object, ...){
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the total number of observations
 ##' nobs(cook)
+##' }
 nobs.dynrCook <- function(object, ...){
 	dim(object@eta_smooth_final)[2]
 }
@@ -510,12 +516,14 @@ setMethod("$", "dynrCook",
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
 ##' 
 ##' # Now get the confidence intervals
 ##' # But note that they are nonsense because we set hessian_flag=FALSE !!!!
 ##' confint(cook)
+##' }
 confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method", "endpoint.transformation"), transformation =  NULL, ...){
 	type <- match.arg(type)
 	tlev <- (1-level)/2
@@ -561,6 +569,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' @param debug_flag a flag (TRUE/FALSE) indicating whether users want additional dynr output that can 
 ##' be used for diagnostic purposes
 ##' @param perturb_flag a flag (TRUE/FLASE) indicating whether to perturb the latent states during estimation. Only useful for ensemble forecasting.
+##' @param ... Further named arguments passed to \code{dynr.cook}
 ##' 
 ##' @details
 ##' Free parameter estimation uses the SLSQP routine from NLOPT.
@@ -639,6 +648,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 ##' 
+##' \dontrun{
 ##' # Now cook the model!
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
@@ -1389,7 +1399,7 @@ PopBackFormula <- function(formula, paramnames, param.names, trans.parameters){
 }
 
 PopBackModel <- function(dynrModel, trans.parameters){
-	if (class(dynrModel$dynamics) == 'dynrDynamicsFormula'){
+	if ('dynrDynamicsFormula' %in% class(dynrModel$dynamics)){
 		if (length(dynrModel@dynamics@paramnames) > 0){
 			dynrModel@dynamics@formula <- PopBackFormula(dynrModel@dynamics@formula, dynrModel@dynamics@paramnames, dynrModel@param.names, trans.parameters)
 		}

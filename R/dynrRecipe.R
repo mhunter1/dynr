@@ -2043,6 +2043,7 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' @param params.latent a matrix or list of matrices of the parameter names that appear in the process noise covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.  See Details.
 ##' @param values.observed a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the measurement error covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching measurement model, the measurement noise covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. 
 ##' @param params.observed a matrix or list of matrices of the parameter names that appear in the measurement error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.  See Details.
+##' @param ... Further named arguments.  Currently we only accept 'covariates' and 'var.formula'.
 ##' 
 ##' @details
 ##' The arguments of this function should generally be either matrices or lists of matrices.  Lists of matrices are used for regime-switching models with each list element corresponding to a regime.  Thus, a list of three matrices implies a three-regime model.  Single matrices are for non-regime-switching models.  Some checking is done to ensure that the number of regimes implied by one part of the model matches that implied by the others.  For example, the noise model (\code{prep.noise}) cannot suggest three regimes when the measurement model (\code{\link{prep.measurement}}) suggests two regimes. An exception to this rule is single-regime (i.e. non-regime-switching) components.  For instance, the noise model can have three regimes even though the measurement model implies one regime.  The single-regime components are simply assumed to be invariant across regimes.
@@ -2094,10 +2095,10 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
                     "should be a list of formulas.\nCan't nobody tell me nothin'")
       stop(msg)
     }
-    x <- processCovFormula(dots)  
+    x <- processCovFormula(dots)
     # ---- End of Cov formula modifications ----  
-  } #Else process cov-related things the usual way
-  else{
+  } else{
+    # Else process cov-related things the usual way
     x <- processCovConstant(values.latent, params.latent, values.observed, params.observed)
   }
   # Handle latent covariance
@@ -2185,8 +2186,14 @@ processCovConstant <- function(values.latent, params.latent, values.observed, pa
   return(x)
 }
 
+# Who wrote this?
+# It's filled with undefined global variables.
+# You can't define a variable inside a conditional, not define it if the condition is not met, and then use it regardless throughout the function.
+
 processCovFormula <- function(dots){
-  
+  var.formula <- NULL
+  state.regimes <- NULL
+  var.startval <- NULL
   if('var.formula' %in% names(dots))
     var.formula <- dots$var.formula
   if('covariates' %in% names(dots))
@@ -2210,10 +2217,10 @@ processCovFormula <- function(dots){
     stop(paste0("Found different number of var-cov names for different regimes:\n", var.regimes))
   }
   if(!all(sapply(var.names, function(x, y){all(x==y)}, y=var.names[[1]]))){
-    stop(paste0("Found different var-cov names or different ordering of var-cov names across regimes:\n", state.regimes))
+    stop(paste0("Found different var-cov names or different ordering of var-cov names across regimes:\n", var.regimes))
   }
   x <- list(var.formula=var.formula, var.startval=dots$var.startval)
-  
+
   x$paramnames <- names(x$var.startval)
   
   # Check for var-cov names with same name as free parameter
@@ -2275,8 +2282,6 @@ processCovFormula <- function(dots){
   # Write out Armadillo code
   # D = exp(par11*delta_t)
   return(x)
-  
-  
 }  
 
 
@@ -2707,7 +2712,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	#jacobian <- autojacob(formula)
 	if (missing(jacobian)){
 		autojcb=try(lapply(formula,autojacob,length(formula[[1]])))
-		if (class(autojcb) == "try-error") {
+		if ("try-error" %in% class(autojcb)) {
 			stop("Automatic differentiation is not supported by part of the dynamic functions.\n 
 					 Please provide the analytic jacobian functions.")
 		}else{

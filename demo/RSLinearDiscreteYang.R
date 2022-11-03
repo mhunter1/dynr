@@ -70,8 +70,8 @@ rsmod <- dynr.model(
   noise = recNoise,
   initial = recIni,
   regimes = recReg,
-  data = EMGdata,
-  outfile = "RSLinearDiscrete.c")
+  data = EMGdata)
+#  outfile = "RSLinearDiscrete.c")
 
 rsmod$ub[c('phi_1', 'phi_2')] <- 1.1
 
@@ -79,8 +79,8 @@ rsmod$ub[c('phi_1', 'phi_2')] <- 1.1
 
 printex(rsmod,
         ParameterAs = rsmod$param.names,
-        printInit = TRUE, printRS = TRUE,
-        outFile = "RSLinearDiscreteYang.tex")
+        printInit = TRUE, printRS = TRUE)
+#        outFile = "RSLinearDiscreteYang.tex")
 #tools::texi2pdf("RSLinearDiscreteYang.tex")
 #system(paste(getOption("pdfviewer"), "RSLinearDiscreteYang.pdf"))
 

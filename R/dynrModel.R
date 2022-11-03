@@ -155,7 +155,8 @@ setReplaceMethod("$", "dynrModel",
 ##' A single number. The total number of observations across all IDs.
 ##' 
 ##' @examples
-##' # Create a minimal cooked model called 'model'
+##' # Create a minimal uncooked model called 'model'
+##' # That is, without esimating parameters
 ##' require(dynr)
 ##' 
 ##' meas <- prep.measurement(
@@ -272,7 +273,7 @@ vecRegime <- function(object){
 
 LaTeXnames<-function(names, decimal = 2, latex = TRUE){
   if (latex == TRUE){
-    if (class(names)=="character"){
+    if ("character" %in% class(names)){
       names<-gsub("([[:alnum:]]+[\\]*)_([[:alnum:]]+)","\\1_{\\2}",names)
       
       greek <- c("alpha", "nu", "beta", "xi", "Xi", "gamma", "Gamma", "delta", 
@@ -287,7 +288,7 @@ LaTeXnames<-function(names, decimal = 2, latex = TRUE){
     }
   }
   
-  if (class(names)=="numeric"){
+  if ("numeric" %in% class(names)){
     names<-sprintf(paste0("%.",decimal,"f"), names)
   }
   
@@ -346,7 +347,7 @@ setMethod("printex", "dynrModel",
               }#End discrete-time dynamic model
               
               dynequ="\\begin{align*}\n"
-              if (class(model2$dynamics) == 'dynrDynamicsFormula'){
+              if ('dynrDynamicsFormula' %in% class(model2$dynamics)){
                 exp1 <- printex(model2$dynamics)
                 for (j in 1:length((model2$dynamics)$formula)){
                   #Determine whether model in regime is deterministic or stochastic
@@ -587,7 +588,8 @@ setMethod("printex", "dynrModel",
 ##' @return Object of class 'dynrModel'
 ##' 
 ##' @examples
-##' # Create a minimal cooked model called 'model'
+##' # Create a minimal model called 'model'
+##' # without 'cooking' (i.e., estimating parameters)
 ##' require(dynr)
 ##' 
 ##' meas <- prep.measurement(
@@ -657,9 +659,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	
 	
 	# Dynamics check
-	# check the order of the names 
-	if (class(dynamics) == "dynrDynamicsFormula"){
-        saem <- dynamics$saem
+	# check the order of the names
+	if ("dynrDynamicsFormula" %in% class(dynamics)){
+    saem <- dynamics$saem
 
 		states.dyn <- lapply(dynamics@formula, function(list){sapply(list, function(fml){as.character(as.list(fml)[[2]])})})
 		if(any(sapply(states.dyn, length) != numLatentVars)){
@@ -673,8 +675,9 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 			stop("The 'state.names' slot of the 'dynrMeasurement' object should match the order \nof the dynamic formulas specified. \nSame order should hold even if you have multiple regimes.")
 		}
 		#Discrepancies in number of regimes in dynamic formula caught below via impliedRegimes function.
-	} else if(class(dynamics) == "dynrDynamicsMatrix"){
-        saem <- FALSE #SAEM only supports dynrDynamicsFormula for now
+	} else if("dynrDynamicsMatrix" %in% class(dynamics)){
+    saem <- FALSE #SAEM only supports dynrDynamicsFormula for now
+
 		# if class == "dynrDynamicsMatrix" then check that the matrix dynamics is numLatentVars*numLatentVars
 		# since prep.matrixDynamics already checks for 1. whether list elements of values.dyn or params.dyn are of the same dimension
 		# 2. whether values.dyn and params.dyn are of the same matrix dimension
@@ -759,7 +762,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     if(!all(initial$covariates %in% data$covariate.names)){
       stop("The 'covariates' slot of the 'dynrInitial' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
     }
-    if(class(dynamics) == "dynrDynamicsMatrix" && !all(dynamics$covariates %in% data$covariate.names)){
+    if(("dynrDynamicsMatrix" %in% class(dynamics)) && !all(dynamics$covariates %in% data$covariate.names)){
       stop("The 'covariates' slot of the 'dynrDynamicsMatrix' object should match the 'covariates' argument passed to the dynr.data() function.\nA pox on your house if fair Romeo had not found this.")
     }
     # Note: formula dynamics covariates are inferred from the formula and swapped in based on the data covariates
@@ -1235,7 +1238,7 @@ addVariableToThetaFormula  <- function(formula, variable.names){
 impliedRegimes <- function(recipe){
 	if(inherits(recipe, 'dynrRecipe')){
 		sn <- slotNames(recipe)
-		if (class(recipe) == "dynrDynamicsFormula"){
+		if ("dynrDynamicsFormula" %in% class(recipe)){
 			vs <- c("formula", "jacobian")
 		} else{
 			vs <- grep('^values\\.', sn, value=TRUE)
@@ -1283,13 +1286,14 @@ checkSSMConformable <- function(mat, rows, cols, matname, modname){
 ##' 
 ##' 
 ##' @examples
-##' #model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov, initial=initial, data=data, outfile="osc.cpp")
-##' #extended_model <- ExpandRandomAsLVModel(model)
+##' # model <- dynr.model(dynamics=dynm, measurement=meas, noise=mdcov,
+##' #  initial=initial, data=data, outfile="osc.cpp")
+##' # extended_model <- ExpandRandomAsLVModel(model)
 ##'
 ##' 
-##' #For full demo examples, see:
-##' #demo(OscWithRand, package="dynr")
-##' #demo(VDPwithRand, package="dynr")
+##' # For full demo examples, see:
+##' # demo(OscWithRand, package="dynr")
+##' # demo(VDPwithRand, package="dynr")
 ##' @export
 ExpandRandomAsLVModel<- function(dynrModel){  
     # Restructure mixed effects structured via theta.formula into an expanded model with 

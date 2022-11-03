@@ -270,8 +270,8 @@ By default the reference row is set to the automatically detected reference colu
 
 \subsection{Create and cook the model}
 
-After the recipes for all parts of the model are defined, the \code{dynr.model()} function creates the model and stores it in the \code{dynrModel} object. Each recipe (i.e., objects of class \code{dynrRecipe} created by \code{prep.*()}) and the data prepared by \code{dynr.data()} are given to this function. The function requires \code{dynamics}, \code{measurement}, \code{noise}, \code{initial}, and \code{data} as mandatory inputs for all models. When there are multiple regimes in the model, the \code{regimes} argument should be provided as shown below. When parameters are subject to transformation functions, a \code{transform} argument can be added, which will be discussed in the second example. The \code{dynr.model()} function takes the recipes and the data and combines information from both. In doing so, this function uses the information from each recipe to write the text for a \proglang{C} function. Optionally, the \proglang{C} functions can be written to a file named by the \code{outfile} argument (i.e., ``RSLinearDsicrete.c'' in this specific example) so that the user can inspect the automatically generated \proglang{C} code. Ideally of course, there is no need to ever examine this file; however, it is sometimes useful for debugging purposes and may be helpful for specifying models that extend those supported by the \proglang{R} interface functions. More frequently, inspecting the \code{dynrModel} object and ``serving it'' will provide the needed information.
-<<include = TRUE, cache = FALSE, echo = TRUE,eval=FALSE,size='footnotesize'>>=
+After the recipes for all parts of the model are defined, the \code{dynr.model()} function creates the model and stores it in the \code{dynrModel} object. Each recipe (i.e., objects of class \code{dynrRecipe} created by \code{prep.*()}) and the data prepared by \code{dynr.data()} are given to this function. The function requires \code{dynamics}, \code{measurement}, \code{noise}, \code{initial}, and \code{data} as mandatory inputs for all models. When there are multiple regimes in the model, the \code{regimes} argument should be provided as shown below. When parameters are subject to transformation functions, a \code{transform} argument can be added, which will be discussed in the second example. The \code{dynr.model()} function takes the recipes and the data and combines information from both. In doing so, this function uses the information from each recipe to write the text for a \proglang{C} function. Optionally, the \proglang{C} functions can be written to a file named by the \code{outfile} argument so that the user can inspect the automatically generated \proglang{C} code. Ideally of course, there is no need to ever examine this file; however, it is sometimes useful for debugging purposes and may be helpful for specifying models that extend those supported by the \proglang{R} interface functions. More frequently, inspecting the \code{dynrModel} object and ``serving it'' will provide the needed information.
+<<include = TRUE, cache = FALSE, echo = TRUE, eval=FALSE, size='footnotesize'>>=
 #---- Create model  ----
 
 rsmod <- dynr.model(
@@ -280,8 +280,7 @@ rsmod <- dynr.model(
   noise = recNoise,
   initial = recIni,
   regimes = recReg,
-  data = EMGdata,
-  outfile = "RSLinearDiscrete.c")
+  data = EMGdata)
 
 #---- Create model and cook it all up  ----
 

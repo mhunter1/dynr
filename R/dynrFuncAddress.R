@@ -36,10 +36,8 @@
 			f_dP_dt=getNativeSymbolInfo("function_dP_dt", DLL)$address,
 			f_initial_condition=getNativeSymbolInfo("function_initial_condition", DLL)$address,
 			f_regime_switch=getNativeSymbolInfo("function_regime_switch", DLL)$address,
-			f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,f_transform=getNativeSymbolInfo("function_transform", DLL)$address,
-			f_transform=getNativeSymbolInfo("function_transform", DLL)$address#,
-			#f_test=getNativeSymbolInfo("function_arma_hello_world", DLL)$addresses
-			)
+			f_noise_cov=getNativeSymbolInfo("function_noise_cov", DLL)$address,
+			f_transform=getNativeSymbolInfo("function_transform", DLL)$address)
 	}else{
 		res <- list(f_measure=getNativeSymbolInfo("function_measurement", DLL)$address,
 			f_dynamic=getNativeSymbolInfo("function_dynam", DLL)$address,
@@ -77,6 +75,10 @@ CompileCode <- function(code, language, verbose, libLFile) {
 		## Unix gsl flags
 		gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
 		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
+		# Perhaps change above to use similar to configure.win syntax
+		# GSL_CFLAGS=`${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe -e "RcppGSL:::CFlags()"`
+		# GSL_LIBS=`${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe -e "RcppGSL:::LdFlags()"`
+
 	}
 	if (verbose) cat("Setting PKG_CPPFLAGS to", gsl_cflags, "\n")
 	Sys.setenv(PKG_CPPFLAGS=gsl_cflags)
@@ -116,6 +118,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	}
   #return( libLFile )
 }
+
 
 #--------------------------------------------------
 # .C2funcaddressSAEM 
@@ -383,6 +386,7 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
   #browser()
   return(list(address=res, libname=libLFile))
 }
+
 
 
 #------------------------------------------------------------------------------
