@@ -622,6 +622,7 @@ setMethod("printex", "dynrModel",
 ##' model <- dynr.model(dynamics=dynamics, measurement=meas,
 ##' 	noise=ecov, initial=initial, data=data)
 dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile = tempfile()){
+	#browser()
 	# Type check all arguments
 	if(!class(dynamics) %in% c("dynrDynamicsFormula", "dynrDynamicsMatrix")){
 		stop("Check that the 'dynamics' argument is of the correct class.\nHint: it should be either a 'dynrDynamicsFormula' or 'dynrDynamicsMatrix'.\nCreate it with prep.formulaDynamics() or prep.matrixDynamics().")
@@ -698,7 +699,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
 	# 1. whether values.latent, params.latent, values.observed and params.observed are symmetric
 	# 2. whether values.latent and params.latent are of the same matrix dimension
 	# 3. whether values.observed and params.observed are of the same matrix dimension
-	observed.dimension <- dim(noise@values.observed[[1]]) 
+	observed.dimension <- dim(noise@values.observed[[1]]) # potentially get an error
 	latent.dimension <- dim(noise@values.latent[[1]])
 	if(observed.dimension[1] != numObsVars){
 		stop("The dimension of the measurement noise convariance matrix in prep.noise should match the number of observed variables in 'dynrMeasurement'.")
@@ -1117,10 +1118,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
     inputs <- sapply(inputs, writeArmadilloCode, data$covariate.names, as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2, dLambdparLamb=dLambdparLamb, dLambdparLamb2=dLambdparLamb2,dSigmaede=dSigmaede, dSigmaede2=dSigmaede2, dSigmabdb=dSigmabdb, dSigmabdb2=dSigmabdb2, Sigmab=ret$ldl, known.vars=ret$pars)
 	#inputs <- sapply(inputs, writeArmadilloCode, covariates=data$covariate.names, param.names=as.character(param.data$param.name), dmudparMu=dmudparMu, dmudparMu2=dmudparMu2)
   } else {stop("Invalid value passed to 'saem' argument. It should be TRUE or FALSE.")}
-  all.values <- unlist(sapply(inputs, slot, name='startval'))
-  unique.values <- extractValues(all.values, all.params)
   
   #browser()  
+  all.values <- unlist(sapply(inputs, slot, name='startval'))
+  #all.values <- c(all.values, slot(noise, 'var.startval'))
+  unique.values <- extractValues(all.values, all.params)
+  
+ 
   if( .hasSlot(dynamics, 'random.params.inicov') && length(dynamics$random.params.inicov) > 0){
       sbp <- extractParams(list(dynamics$random.params.inicov))
 	  
@@ -1138,6 +1142,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   if(length(inputs$transform$formula.inv) > 0){
     unique.values <- inputs$transform$inv.tfun(unique.values)
   }
+  #browser()
   param.data$param.value <- unique.values
   
   

@@ -57,24 +57,26 @@ initial <- prep.initial(
 
 
 sampleCovformula=
-  list(Sigma11 ~ par1*delta_t^3,
-       Sigma12 ~ par2*delta_t, 
-       Sigma21 ~ par2*delta_t,
-       Sigma22 ~ par3*delta_t^3)
+  list(Sigma11 ~ par1*u1^3,
+       Sigma12 ~ par2*u1, 
+       Sigma21 ~ par2*u1,
+       Sigma22 ~ par3*u1^3)
 
-
+# Todo: mdcov of startval needs to transformed to unconstrained scale
 mdcov <- prep.noise(
   values.latent=diag(0, 2), 
-  params.latent=diag(c("fixed","fixed"), 2),
+  params.latent=matrix(c('Sigma11', 'Sigma12', 'Sigma12', 'Sigma22'), nrow = 2, byrow = TRUE),
   #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   values.observed=diag(c(0.5, 0.5, 0.5)),
-  params.observed=diag(c("var1","var2","var3"),3)#,
-  #var.formula = sampleCovformula,
-  #covariates = c("delta_t"),
-  #var.startval = c(par1=.1, par2=.2)
+  params.observed=diag(c("var1","var2","var3"),3),
+  var.formula = sampleCovformula,
+  covariates = c("u1"),
+  var.startval = c(par1=.1, par2=.2, par3 = .3)
 )
-
+#UI problem
+#1. Without specifying params.latent=matrix(c('Sigma11', 'Sigma12', 'Sigma12', 'Sigma22'), nrow = 2, byrow = TRUE),
+#   is it okay to assume that a user will know that it would be a matrix form in column/row major?
 
 
 formula=
@@ -102,15 +104,15 @@ dynm<-prep.formulaDynamics(formula=formula,
                            #random.ub = 10,
                            covariate.formula = sampleCovformula,
                            covariate.names = c('delta_t'),
-                           saem=TRUE
+                           saem=FALSE
 )
 
 
 
 model <- dynr.model(dynamics=dynm, measurement=meas,
-                    noise=mdcov, initial=initial, data=data#, #saem=TRUE, 
+                    noise=mdcov, initial=initial, data=data, #saem=TRUE, 
                     #outfile=paste0(tempfile(),'.cpp'))
-                    #outfile="vdp7.cpp"#,
+                    outfile="vdp7.cpp"
                     #ub =c(zeta0=10,zeta1=10,lambda_21 =10, lambda_31=10, mu1=10, mu2=10, mu3=10, var_1=10, var_2=10, var_3=10)
 )
 

@@ -200,7 +200,8 @@ setClass(Class = "dynrNoise",
 		   covariates = "character",
 		   var.formula = "list",
 		   state.names = "character",
-		   var.startval = "numeric"),
+		   var.startval = "numeric",
+		   ldl.transformed = "matrix"),
          contains = "dynrRecipe"
 )
 #TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
@@ -1286,24 +1287,75 @@ setMethod("writeCcode", "dynrNoise",
 		
 		nregime <- length(values.latent)
 		
-		ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
-		if(nregime > 1){
-			ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
-			for(reg in 1:nregime){
-				ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
-				ret <- paste(ret, setGslMatrixElements(values.latent[[reg]], params.latent[[reg]], "eta_noise_cov", depth=3), sep="\n")
-				ret <- paste(ret, setGslMatrixElements(values.observed[[reg]], params.observed[[reg]], "y_noise_cov", depth=3), sep="\n")
-				ret <- paste0(ret, "\t\t", "break;", "\n")
-			} # close for loop
-			ret <- paste0(ret, "\t", "}\n\n") # close case switch
-		} else {
-			ret <- paste(ret, setGslMatrixElements(values.latent[[1]], params.latent[[1]], "eta_noise_cov"), sep="\n")
-			ret <- paste(ret, setGslMatrixElements(values.observed[[1]], params.observed[[1]], "y_noise_cov"), sep="\n")
+		#browser()
+		# not formula --------------
+		if (length(object@var.formula) == 0){
+			ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
+			if(nregime > 1){
+				ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+				for(reg in 1:nregime){
+					ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+					ret <- paste(ret, setGslMatrixElements(values.latent[[reg]], params.latent[[reg]], "eta_noise_cov", depth=3), sep="\n")
+					ret <- paste(ret, setGslMatrixElements(values.observed[[reg]], params.observed[[reg]], "y_noise_cov", depth=3), sep="\n")
+					ret <- paste0(ret, "\t\t", "break;", "\n")
+				} # close for loop
+				ret <- paste0(ret, "\t", "}\n\n") # close case switch
+			} else {
+				ret <- paste(ret, setGslMatrixElements(values.latent[[1]], params.latent[[1]], "eta_noise_cov"), sep="\n")
+				ret <- paste(ret, setGslMatrixElements(values.observed[[1]], params.observed[[1]], "y_noise_cov"), sep="\n")
+			}
+			ret <- paste(ret, "\n}\n\n") # close C function
 		}
-		ret <- paste(ret, "\n}\n\n") # close C function
+		# formula --------------
+		else{
+		    # this chunk may not work for multi-regime
+		    ldl_list <- list(vectorizeMatrix(object$ldl.transformed, byrow= FALSE))
+			ldl_list <- lapply(ldl_list[[1]], function(x){deparse(x, width.cutoff =300)})
+			for (i in 1:length(object$paramnames)){
+			  pattern <- object$paramnames[i]
+			  ldl_list  <- lapply(ldl_list, function(x){gsub(pattern, paste0('param[', i-1, ']'),x, fixed = TRUE)})
+			}
+			
+			for (i in 1:length(covariates)){
+			  pattern <- covariates[i]
+			  ldl_list  <- lapply(ldl_list, function(x){gsub(pattern, paste0('gsl_vector_get(co_variate,', i-1, ')'),x, fixed = TRUE)})
+			}
+
+			# writeC code here
+			ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
+			ret <- paste0(ret, "\tdouble noise_formula [", nrow(object$ldl.transformed), ",", ncol(object$ldl.transformed) ,"];\n\n")
+			for(i in 1:nrow(object$ldl.transformed)){
+			  for(j in 1:ncol(object$ldl.transformed)){
+			    ret <- paste0(ret, "\tnoise_formula[", i-1,',', j-1, ']=', ldl_list[(j-1)*2+i] ,";\n")
+			  }
+			}
+			
+			
+			if(nregime > 1){
+				ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
+				for(reg in 1:nregime){
+					ret <- paste0(ret, paste0("\t\tcase ", reg-1, ":"), "\n")
+					ret <- paste(ret, setGslMatrixElements(values.latent[[reg]], params.latent[[reg]], "eta_noise_cov", depth=3), sep="\n")
+					ret <- paste(ret, setGslMatrixElements(values.observed[[reg]], params.observed[[reg]], "y_noise_cov", depth=3), sep="\n")
+					ret <- paste0(ret, "\t\t", "break;", "\n")
+				} # close for loop
+				ret <- paste0(ret, "\t", "}\n\n") # close case switch
+			} else {
+			    ret<- paste(ret, "\n")
+				for(i in 1:nrow(object$ldl.transformed)){
+				  for(j in 1:ncol(object$ldl.transformed)){
+					#gsl_matrix_set(eta_noise_cov, 0, 0, param[0]);
+					ret <- paste0(ret, "\tgsl_matrix_set(eta_noise_cov,", i-1, ",",  j-1, ", noise_formula[", i-1, ",",  j-1,"]);\n")
+				  }
+				}
+				ret <- paste(ret, setGslMatrixElements(values.observed[[1]], params.observed[[1]], "y_noise_cov"), sep="\n")
+			}
+			
 		
+		}
 		object@c.string <- ret
 		
+		#browser()
 		return(object)
 	}
 )
@@ -2076,7 +2128,6 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed, ...){
-  #browser()
   # ---- To incorporate covariates and formulas into covariance functions ----
   dots <- list(...)
   if ((missing(values.latent) || missing(params.latent) || missing(values.observed) || missing(params.observed)) && 
@@ -2095,7 +2146,13 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
                     "should be a list of formulas.\nCan't nobody tell me nothin'")
       stop(msg)
     }
-    x <- processCovFormula(dots)
+	#browser()
+	x_constant <- processCovConstant(values.latent, params.latent, values.observed, params.observed, exclulde_latent = TRUE)
+	x_formula <- processCovFormula(dots, values.latent, params.latent)
+    x <- c(x_constant, x_formula)
+	x$paramnames <- c(x_constant$paramnames, x_formula$paramnames)
+	x$startval <- c(x_constant$startval, x_formula$startval)
+
     # ---- End of Cov formula modifications ----  
   } else{
     # Else process cov-related things the usual way
@@ -2133,7 +2190,7 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
 #The advantages of these functions are that symbolicLDLDecomposition outputs the symbolic expressions
 #of elements of L, D, and LDL', which are now being extended to allow more general covariance function
 #modeling involving covariates (needed e.g., for exact discrete-time models)
-processCovConstant <- function(values.latent, params.latent, values.observed, params.observed){
+processCovConstant <- function(values.latent, params.latent, values.observed, params.observed, exclulde_latent = FALSE){
   r <- coProcessValuesParams(values.latent, params.latent)
   values.latent <- r$values
   params.latent <- r$params
@@ -2178,8 +2235,15 @@ processCovConstant <- function(values.latent, params.latent, values.observed, pa
   values.observed.inv.ldl <- lapply(values.observed, replaceDiagZero)
   values.observed.inv.ldl <- lapply(values.observed.inv.ldl, reverseldl)
   
-  sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
-  pn <- c(extractParams(params.latent), extractParams(params.observed))
+  
+  if(exclulde_latent == FALSE){
+    sv <- c(extractValues(values.latent.inv.ldl, params.latent, symmetric=TRUE), extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
+	pn <- c(extractParams(params.latent), extractParams(params.observed))
+  }
+  else{
+    sv <- c(extractValues(values.observed.inv.ldl, params.observed, symmetric=TRUE))
+	pn <- c(extractParams(params.observed))
+  }
   sv <- extractValues(sv, pn)
   pn <- extractParams(pn)
   x <- list(startval=sv, paramnames=pn, values.latent=values.latent, values.observed=values.observed, params.latent=params.latent, params.observed=params.observed, values.latent.inv.ldl=values.latent.inv.ldl, values.observed.inv.ldl=values.observed.inv.ldl)
@@ -2190,7 +2254,7 @@ processCovConstant <- function(values.latent, params.latent, values.observed, pa
 # It's filled with undefined global variables.
 # You can't define a variable inside a conditional, not define it if the condition is not met, and then use it regardless throughout the function.
 
-processCovFormula <- function(dots){
+processCovFormula <- function(dots, values.latent, params.latent){
   var.formula <- NULL
   state.regimes <- NULL
   var.startval <- NULL
@@ -2221,7 +2285,11 @@ processCovFormula <- function(dots){
   }
   x <- list(var.formula=var.formula, var.startval=dots$var.startval)
 
-  x$paramnames <- names(x$var.startval)
+  #browser() 	  
+  sv <- c(extractValues(x$var.startval, names(x$var.startval)))
+  pn <- c(extractParams(names(x$var.startval)))
+  sv <- extractValues(sv, pn)
+  pn <- extractParams(pn)
   
   # Check for var-cov names with same name as free parameter
   if(any(sapply(lapply(var.names, "%in%", x$paramnames), any))){
@@ -2230,43 +2298,52 @@ processCovFormula <- function(dots){
                 paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
   }
   
-  #browser()
   fml=lapply(var.formula[[1]],as.character)
   lhs=lapply(fml,function(x){x[[2]]})
   rhs=lapply(fml,function(x){x[[3]]})
 
   #replace covariates with cov_i
-  if(length(covariates)>0){
-    ind_order <- order(nchar(covariates), covariates, decreasing= TRUE)
-    var_order <- covariates[ind_order]
-    for (i in 1:length(covariates)){
-      pattern <- var_order[i]
-	  ind <- ind_order[i]
-      for (e in 1:length(unlist(var.formula))){
-         rhs[[e]]<- gsub(pattern, paste0('cov_',ind), rhs[[e]], fixed = TRUE)
-	  }
-    }
-  }
+  # if(length(covariates)>0){
+    # ind_order <- order(nchar(covariates), covariates, decreasing= TRUE)
+    # var_order <- covariates[ind_order]
+    # for (i in 1:length(covariates)){
+      # pattern <- var_order[i]
+	  # ind <- ind_order[i]
+      # for (e in 1:length(unlist(var.formula))){
+         # rhs[[e]]<- gsub(pattern, paste0('cov_',ind), rhs[[e]], fixed = TRUE)
+	  # }
+    # }
+  # }
   
   #replace state.names with state_i
-  if(length(state.names)>0){
-    ind_order <- order(nchar(state.names), state.names, decreasing= TRUE)
-    var_order <- state.names[ind_order]
-    for (i in 1:length(state.names)){
-      pattern <- var_order[i]
-	  ind <- ind_order[i]
-      for (e in 1:length(unlist(var.formula))){
-         rhs[[e]]<- gsub(pattern, paste0('state_',ind), rhs[[e]], fixed = TRUE)
-	  }
-    }
-  }
+  # if(length(state.names)>0){
+    # ind_order <- order(nchar(state.names), state.names, decreasing= TRUE)
+    # var_order <- state.names[ind_order]
+    # for (i in 1:length(state.names)){
+      # pattern <- var_order[i]
+	  # ind <- ind_order[i]
+      # for (e in 1:length(unlist(var.formula))){
+         # rhs[[e]]<- gsub(pattern, paste0('state_',ind), rhs[[e]], fixed = TRUE)
+	  # }
+    # }
+  # }
 
-  for (e in 1:length(unlist(var.formula))){
-    x$var.formula[[1]][[e]] <- as.formula(paste(lhs[[e]], '~', rhs[[e]]))
-  }
+  # for (e in 1:length(unlist(var.formula))){
+    # x$var.formula[[1]][[e]] <- as.formula(paste(lhs[[e]], '~', rhs[[e]]))
+  # }
   #TODO: functions I need to call later:
   #processFormula -> parseFormula -> # reverseldl (which calls dynr.ldl) -> trans2ArmadilloFunction (as opposed to trans2CFunction):
   
+  #browser()
+  for (i in 1:nrow(params.latent)){
+	for (j in 1:ncol(params.latent)){
+	  for (e in 1:length(unlist(var.formula))){
+	    params.latent[i,j] <- gsub(lhs[[e]], params.latent[i,j], rhs[[e]], fixed = TRUE)
+	  }
+	}
+  }
+  out <- symbolicLDLDecomposition2(params.latent, values.latent, list())
+  x$ldl.transformed <- out$ldl
   #sampleCovformula=
   #  list(Sigma11 ~ par1*delta_t^3,
   #       Sigma12 ~ par2*deltat, 
@@ -2281,6 +2358,8 @@ processCovFormula <- function(dots){
   # solveStartLDL = evaluate the whole formula and find starting values for the parameters in L and D
   # Write out Armadillo code
   # D = exp(par11*delta_t)
+  
+  x <- list(startval=sv, paramnames=pn, ldl.transformed=out$ldl, var.formula=var.formula, var.startval=dots$var.startval)
   return(x)
 }  
 
@@ -4651,4 +4730,233 @@ vectorizeMatrix <- function(matrix, byrow= FALSE){
         return(c(matrix))
     else
         return(c(t(matrix)))
+}
+
+
+symbolicLDLDecomposition2 <- function(a.params, a.values, other.values){
+  #browser()
+  if(!is.matrix(a.params) || nrow(a.params) != ncol(a.params))
+    stop("The variable 'a.params' must be a square matrix")
+  
+  if(!isSymmetric(a.params))
+    stop("The variable 'a.params' must be a symmetric matrix")
+  
+  
+  
+  # repalce elements equal to NA or 'NA' as 0
+  a.params[ is.na(a.params) ] = 0
+  a.params[ a.params == 'NA'] = 0
+  a.params[ a.params == 'fixed'] = 0
+  a.params[ a.params == '0'] = 0
+  # a.params stores the input (with severl inputs processing as above)
+  a = a.params
+  
+  
+  # repalce elements 'fixed' w/ the corresponding values in a.values
+  a = matrix(mapply(function(a, v){if(a == 0) a = v else a = a}, as.list(a), as.list(a.values)), nrow = nrow(a))
+  
+  n <- nrow(a)
+  L <- rep(list(0), n*n)
+  D <- rep(list(1), n)
+  ret <- rep(list(0), n*n)
+  temp <- rep(list(0), n*n)
+  
+  if(is.character(a[1,1])){
+    # the input variable, in the type of "character" 
+    a = matrix(sapply(a, function(x){list(x)}), nrow=nrow(a), ncol=ncol(a))
+  } else {
+    # the input is expression, in the type of "call"
+    a = matrix(sapply(a, function(x){return(deparse(unlist(x)))}), nrow=nrow(a), ncol=ncol(a))
+  }
+  # the element in a should be a list with a element, which contains the expression in the form of character
+  
+  for(i in 1:n){
+    #D[i,i]
+    #if(!is.character(a[i,i][[1]]))
+    term <- a[i,i][[1]]
+    if(i > 1){
+      for(k in 1:(i-1)){
+        #term <- paste(term, '-', as.character(eval(L[i,k][[1]]*L[i,k][[1]]*D[k,k][[1]])))
+        e_l <- evaluateExpression(L[i+(k-1)*n][[1]])
+        e_d <- evaluateExpression(D[k][[1]])
+        if(!is.na(e_l)){
+          if(e_l == 0)
+            term <- term
+          else
+            term <- as.character(paste0(term, '-(((', e_l, ')^2)*(', D[k][[1]], '))'))
+        }
+        else if(!is.na(e_d)){
+          if(e_d == 0)
+            term <- term
+          else
+            term <- as.character(paste0(term, '-(((', L[i+(k-1)*n][[1]], ')^2)*(', e_d, '))'))
+        }
+        else{
+          term <- as.character(paste0(term, '-(((', L[i+(k-1)*n][[1]], ')^2)*(', D[k][[1]], '))'))
+        }
+      }
+    }
+    #D[i][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
+    D[i][[1]] <- term
+    if(i < n){
+      for(j in (i+1):n){
+        term <- a[j,i][[1]]
+        
+        if(i > 1){
+          for(k in 1:(i-1)){
+            e_l <- evaluateExpression(L[i+(k-1)*n][[1]])
+            e_d <- evaluateExpression(D[k][[1]])
+            if(!is.na(e_l)){
+              if(e_l == 0)
+                term <- term
+              else
+                term <- as.character(paste0(term, '-(((', L[j+(k-1)*n][[1]], ')*(', e_l, '))*(', D[k][[1]], '))'))
+            }
+            else if(!is.na(e_d) && e_d == 0){
+              if(e_d == 0)
+                term <- term
+              else
+                term <- as.character(paste0(term, '-(((', L[j+(k-1)*n][[1]], ')*(', L[i+(k-1)*n][[1]], '))*(', e_d, '))'))
+            }
+            else{
+              term <- as.character(paste0(term, '-(((', L[j+(k-1)*n][[1]], ')*(', L[i+(k-1)*n][[1]], '))*(', D[k][[1]], '))'))
+            }
+          }
+        }
+        #L[j+(i-1)*n][[1]] <- as.list(as.formula(paste0('x ~ ',term)))[[3]]
+        e_t <- evaluateExpression(term)
+        if(is.na(e_t) || e_t != 0){
+          term <- paste0('(', term, ')/(', D[i][[1]],')')
+        }
+        L[j+(i-1)*n][[1]] <- term
+      }
+    }
+    L[i+(i-1)*n][[1]] <- "1"
+    
+  }
+  
+  
+  # examine whether we need to have a pari to estimate i
+  # par_list <- list()
+  # solved_a <- list() # for each solved element, we assign an arbitrary value (here is its value) for it temporarily
+  # for(i in 1:n){
+  #   
+  #   e_t <- evaluateExpression(D[i][[1]], solved_a) 
+  #   
+  #   if(is.na(e_t) && a.params[i,i] != 0){
+  #     new_par <- paste0('par', length(par_list), '_star')
+  #     D[i][[1]] <- new_par
+  #     #par_list <- c(par_list, new_par)
+  #     par_list[new_par] <- a.params[i,i]
+  #     solved_a[a.params[i,i]] = a.values[i,i]
+  #   }
+  #   else if(!is.na(e_t)){
+  #     D[i][[1]] <- as.character(e_t)
+  #   }
+  #   else{ #this paramter needs to be rewritten in the form of pars
+  #     for(par_ in names(par_list)){
+  #       D[i][[1]] <- gsub(par_list[par_], par_, D[i][[1]])
+  #     }
+  #   }
+  #   
+  #   if(i > 1){
+  #     for(j in 1:(i-1)){
+  #       e_t <- evaluateExpression(L[i+(j-1)*n][[1]], solved_a) 
+  #       
+  #       if(is.na(e_t) && a.params[i,j] != 0){
+  #         new_par <- paste0('par', length(par_list), '_star')
+  #         L[i+(j-1)*n][[1]] <- new_par
+  #         #par_list <- c(par_list, new_par)
+  #         par_list[new_par] <- a.params[i,j]
+  #         solved_a[a.params[i,j]] = a.values[i,j]
+  #       }
+  #       else if(!is.na(e_t)){
+  #         L[i+(j-1)*n][[1]] <- as.character(e_t)
+  #       }
+  #       else{ #this paramter needs to be rewritten in the form of pars
+  #         for(par_ in names(par_list)){
+  #           L[i+(j-1)*n][[1]] <- gsub(par_list[par_], par_, L[i+(j-1)*n][[1]])
+  #         }
+  #       }
+  #     }
+  #   }
+  # }
+  
+  #browser()
+  #browser()
+  # exponential tranformation of D
+  D <- sapply(D, function(term){ if(is.na(evaluateExpression(term[[1]]))){term[[1]]<- paste0('exp(', term[[1]], ')')} else{ term[[1]]<- paste0('(', term[[1]], ')')}})
+  
+  #L*D
+  for(i in 1:n){
+    for(j in 1:n){
+      e_l <- evaluateExpression(L[i+(j-1)*n][[1]])
+      e_d <- evaluateExpression(D[j][[1]])
+      if(!is.na(e_l) && e_l == 0){
+        term <- term
+      }
+      else if(!is.na(e_d) && e_d == 0){
+        term <- term
+      }
+      else{
+        temp[i+(j-1)*n][[1]] <- paste0('(', L[i+(j-1)*n][[1]], ')*(', D[j][[1]],')')
+      }
+    }
+  }
+  
+  #D*t(L)
+  for(i in 1:n){
+    for(j in 1:n){
+      term <- paste0('(', temp[i][[1]],')*(', L[j][[1]],')')
+      if(n>1){
+        for(k in 2:n){
+          e_l <- evaluateExpression(temp[i+(k-1)*n][[1]])
+          e_d <- evaluateExpression(L[j+(k-1)*n][[1]])
+          if(!is.na(e_l) && e_l == 0){
+            term <- term
+          }
+          else if(!is.na(e_d) && e_d == 0){
+            term <- term
+          }
+          else{
+            term <- paste0('(', term, ')+((', temp[i+(k-1)*n][[1]],')*(', L[j+(k-1)*n][[1]],'))')
+          }
+        }
+      }
+      ret[i+(j-1)*n][[1]]<- term
+    }
+  }
+  
+  
+  L = matrix(sapply(L, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+  D = matrix(sapply(D, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+  for(i in 1:nrow(D)){
+    for(j in 1:ncol(D)){
+      if(i != j)
+        D[i,j] = expression(0)
+    }
+  }
+  
+  # examine if there is any discrepancy between a.values and expressions in the multiplication of LDL' 
+  #if(any(mapply(function(x, value){
+  #					e_l <- evaluateExpression(x)
+  #					return(!is.na(e_l) && e_l != value)}, ret, as.list(a.values)))){
+  #	stop('unreasonable setting of dynrModel@random.values.inicov')
+  #}
+  
+  #
+  ret = matrix(mapply(function(term, ret, value){
+    if(term == 0)
+      as.list(as.formula(paste0('x ~ ',value)))[[3]]
+    else
+      as.list(as.formula(paste0('x ~ ',ret)))[[3]]}, as.list(a.params), ret, as.list(a.values)), nrow=nrow(a), ncol=ncol(a))
+  
+  #ret = matrix(sapply(ret, function(x){as.list(as.formula(paste0('x ~ ',x)))[[3]]}), nrow=nrow(a), ncol=ncol(a))
+  
+  
+  
+  return(list(L=L, D=D, ldl=ret))
+  
+  #return(list(ldl=ret, pars=names(par_list), L=L, D=D))
+  
 }
