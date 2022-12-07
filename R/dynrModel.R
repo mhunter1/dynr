@@ -1121,7 +1121,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   
   #browser()  
   all.values <- unlist(sapply(inputs, slot, name='startval'))
-  #all.values <- c(all.values, slot(noise, 'var.startval'))
+  #all.values <- c(all.values, slot(noise, 'latent.startval'))
   unique.values <- extractValues(all.values, all.params)
   
  
@@ -1340,9 +1340,9 @@ ExpandRandomAsLVModel<- function(dynrModel){
         #params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
         values.observed=dynrModel@noise@values.observed[[1]],
         params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]])),
-		var.formula = dynrModel@noise@var.formula,
+		latent.formula = dynrModel@noise@latent.formula,
 		covariates = dynrModel@noise@covariates,
-		var.startval = dynrModel@noise@var.startval
+		latent.startval = dynrModel@noise@latent.startval
         #params.observed=dynrModel@noise@params.observed[[1]]
     )
     

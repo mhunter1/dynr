@@ -198,9 +198,9 @@ setClass(Class = "dynrNoise",
            values.latent.inv.ldl = "list",
            values.observed.inv.ldl = "list",
 		   covariates = "character",
-		   var.formula = "list",
+		   latent.formula = "list",
 		   state.names = "character",
-		   var.startval = "numeric",
+		   latent.startval = "numeric",
 		   ldl.transformed = "matrix"),
          contains = "dynrRecipe"
 )
@@ -1289,7 +1289,7 @@ setMethod("writeCcode", "dynrNoise",
 		
 		#browser()
 		# not formula --------------
-		if (length(object@var.formula) == 0){
+		if (length(object@latent.formula) == 0){
 			ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
 			if(nregime > 1){
 				ret <- paste(ret, "\tswitch (regime) {\n", sep="\n")
@@ -2095,7 +2095,7 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' @param params.latent a matrix or list of matrices of the parameter names that appear in the process noise covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.  See Details.
 ##' @param values.observed a positive definite matrix or a list of positive definite matrices of the starting or fixed values of the measurement error covariance structure(s) in one or more regimes. If only one matrix is specified for a regime-switching measurement model, the measurement noise covariance structure stays the same across regimes. To ensure the matrix is positive definite in estimation, we apply LDL transformation to the matrix. Values are hence automatically adjusted for this purpose. 
 ##' @param params.observed a matrix or list of matrices of the parameter names that appear in the measurement error covariance(s) in one or more regimes. If an element is 0 or "fixed", the corresponding element is fixed at the value specified in the values matrix; Otherwise, the corresponding element is to be estimated with the starting value specified in the values matrix. If only one matrix is specified for a regime-switching dynamic model, the process noise structure stays the same across regimes. If a list is specified, any two sets of the parameter names as in two matrices should be either the same or totally different to ensure proper parameter estimation.  See Details.
-##' @param ... Further named arguments.  Currently we only accept 'covariates' and 'var.formula'.
+##' @param ... Further named arguments.  Currently we only accept 'covariates' and 'latent.formula'.
 ##' 
 ##' @details
 ##' The arguments of this function should generally be either matrices or lists of matrices.  Lists of matrices are used for regime-switching models with each list element corresponding to a regime.  Thus, a list of three matrices implies a three-regime model.  Single matrices are for non-regime-switching models.  Some checking is done to ensure that the number of regimes implied by one part of the model matches that implied by the others.  For example, the noise model (\code{prep.noise}) cannot suggest three regimes when the measurement model (\code{\link{prep.measurement}}) suggests two regimes. An exception to this rule is single-regime (i.e. non-regime-switching) components.  For instance, the noise model can have three regimes even though the measurement model implies one regime.  The single-regime components are simply assumed to be invariant across regimes.
@@ -2134,15 +2134,15 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
       (length(dots==0)))
     stop("You have to provide the noise structure as lists of matrices or formulas. Neither is available now.")
   if(length(dots) > 0){
-    if(!all(names(dots) %in% c('covariates', 'var.formula', 'state.names', 'var.startval'))){
+    if(!all(names(dots) %in% c('covariates', 'latent.formula', 'state.names', 'latent.startval'))){
       stop("You passed some invalid names to the ... argument. Check the ?prep.noise help page for more information.")
     }
     
     # if the argument formula is not a list 
-    if(!is.list(dots$var.formula)){
-      msg <- paste0(ifelse(plyr::is.formula(dots$var.formula), "'var.formula' argument is a formula but ", ""),
+    if(!is.list(dots$latent.formula)){
+      msg <- paste0(ifelse(plyr::is.formula(dots$latent.formula), "'latent.formula' argument is a formula but ", ""),
                     "'formula'",
-                    ifelse(plyr::is.formula(dots$var.formula), " ", " argument "),
+                    ifelse(plyr::is.formula(dots$latent.formula), " ", " argument "),
                     "should be a list of formulas.\nCan't nobody tell me nothin'")
       stop(msg)
     }
@@ -2255,11 +2255,11 @@ processCovConstant <- function(values.latent, params.latent, values.observed, pa
 # You can't define a variable inside a conditional, not define it if the condition is not met, and then use it regardless throughout the function.
 
 processCovFormula <- function(dots, values.latent, params.latent){
-  var.formula <- NULL
+  latent.formula <- NULL
   state.regimes <- NULL
-  var.startval <- NULL
-  if('var.formula' %in% names(dots))
-    var.formula <- dots$var.formula
+  latent.startval <- NULL
+  if('latent.formula' %in% names(dots))
+    latent.formula <- dots$latent.formula
   if('covariates' %in% names(dots))
     covariates <- dots$covariates
   if('state.names' %in% names(dots)){
@@ -2269,36 +2269,36 @@ processCovFormula <- function(dots, values.latent, params.latent){
   }
   
   # e.g. for the one-regime case, if we get a list of formula, make a list of lists of formula
-  if(is.list(var.formula) && plyr::is.formula(var.formula[[1]])){
-    var.formula <- list(var.formula)
+  if(is.list(latent.formula) && plyr::is.formula(latent.formula[[1]])){
+    latent.formula <- list(latent.formula)
   }
-  var.names <- lapply(var.formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
-  var.regimes <- paste(paste0('Regime ', 1:length(var.names), ': ', lapply(var.names, paste, collapse=', ')), collapse='\n')
-  if(any(sapply(lapply(var.names, duplicated), any))){
-    stop(paste0("Found duplicated var-cov names:\n", var.regimes))
+  latent.names <- lapply(latent.formula, function(fml){sapply(fml, function(x){as.character(x[[2]])})})
+  latent.regimes <- paste(paste0('Regime ', 1:length(latent.names), ': ', lapply(latent.names, paste, collapse=', ')), collapse='\n')
+  if(any(sapply(lapply(latent.names, duplicated), any))){
+    stop(paste0("Found duplicated var-cov names:\n", latent.regimes))
   }
-  if(length(unique(sapply(var.names, length))) != 1){
+  if(length(unique(sapply(latent.names, length))) != 1){
     stop(paste0("Found different number of var-cov names for different regimes:\n", var.regimes))
   }
-  if(!all(sapply(var.names, function(x, y){all(x==y)}, y=var.names[[1]]))){
+  if(!all(sapply(latent.names, function(x, y){all(x==y)}, y=latent.names[[1]]))){
     stop(paste0("Found different var-cov names or different ordering of var-cov names across regimes:\n", var.regimes))
   }
-  x <- list(var.formula=var.formula, var.startval=dots$var.startval)
+  x <- list(latent.formula=latent.formula, latent.startval=dots$latent.startval)
 
   #browser() 	  
-  sv <- c(extractValues(x$var.startval, names(x$var.startval)))
-  pn <- c(extractParams(names(x$var.startval)))
+  sv <- c(extractValues(x$latent.startval, names(x$latent.startval)))
+  pn <- c(extractParams(names(x$latent.startval)))
   sv <- extractValues(sv, pn)
   pn <- extractParams(pn)
   
   # Check for var-cov names with same name as free parameter
-  if(any(sapply(lapply(var.names, "%in%", x$paramnames), any))){
+  if(any(sapply(lapply(latent.names, "%in%", x$paramnames), any))){
     stop(paste0("See no evil, but var-cov parameters had the same names as other free parameters.",
                 "\nParameters that are both var-cov and other free parameter names: ",
-                paste(unique(c(sapply(var.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
+                paste(unique(c(sapply(latent.names, function(nam){x$paramnames[x$paramnames %in% nam]}))), collapse=', ')))
   }
   
-  fml=lapply(var.formula[[1]],as.character)
+  fml=lapply(latent.formula[[1]],as.character)
   lhs=lapply(fml,function(x){x[[2]]})
   rhs=lapply(fml,function(x){x[[3]]})
 
@@ -2337,7 +2337,7 @@ processCovFormula <- function(dots, values.latent, params.latent){
   #browser()
   for (i in 1:nrow(params.latent)){
 	for (j in 1:ncol(params.latent)){
-	  for (e in 1:length(unlist(var.formula))){
+	  for (e in 1:length(unlist(latent.formula))){
 	    params.latent[i,j] <- gsub(lhs[[e]], params.latent[i,j], rhs[[e]], fixed = TRUE)
 	  }
 	}
@@ -2359,7 +2359,7 @@ processCovFormula <- function(dots, values.latent, params.latent){
   # Write out Armadillo code
   # D = exp(par11*delta_t)
   
-  x <- list(startval=sv, paramnames=pn, ldl.transformed=out$ldl, var.formula=var.formula, var.startval=dots$var.startval)
+  x <- list(startval=sv, paramnames=pn, ldl.transformed=out$ldl, latent.formula=latent.formula, latent.startval=dots$latent.startval)
   return(x)
 }  
 

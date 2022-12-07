@@ -59,7 +59,6 @@ initial <- prep.initial(
 sampleCovformula=
   list(Sigma11 ~ par1*u1^3,
        Sigma12 ~ par2*u1, 
-       Sigma21 ~ par2*u1,
        Sigma22 ~ par3*u1^3)
 
 # Todo: mdcov of startval needs to transformed to unconstrained scale
@@ -70,9 +69,9 @@ mdcov <- prep.noise(
   #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   values.observed=diag(c(0.5, 0.5, 0.5)),
   params.observed=diag(c("var1","var2","var3"),3),
-  var.formula = sampleCovformula,
+  latent.formula = sampleCovformula,
   covariates = c("u1"),
-  var.startval = c(par1=.1, par2=.2, par3 = .3)
+  latent.startval = c(par1=.1, par2=.2, par3 = .3)
 )
 #UI problem
 #1. Without specifying params.latent=matrix(c('Sigma11', 'Sigma12', 'Sigma12', 'Sigma22'), nrow = 2, byrow = TRUE),
