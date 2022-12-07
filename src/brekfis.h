@@ -26,7 +26,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
  */
 
 
-void model_constraint_par(const ParamConfig *pc, Param *par);
+void model_constraint_par(const ParamConfig *pc, Param *par, bool is_cov_formula);
 void model_constraint_init(const ParamConfig *pc, ParamInit *pi);
 
 

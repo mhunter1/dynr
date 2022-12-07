@@ -39,7 +39,7 @@
  * @return log-likelihood
  */
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config, ParamInit *init, Param *param){
-	int DEBUG_BREKFIS = 0; /*0=false/no; 1=true/yes*/
+	int DEBUG_BREKFIS = 1; /*0=false/no; 1=true/yes*/
 	if(DEBUG_BREKFIS){
 		MYPRINT("Called brekfis\n");
 	}
@@ -115,6 +115,13 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	if(DEBUG_BREKFIS){
 		MYPRINT("Finished initializing brekfis\nStarting subject brekfis loop\n");
 	}
+	
+	if(config->is_cov_formula){
+		MYPRINT("Within brekfis, the is_cov_formula is True.\n");
+	}
+	else{
+		MYPRINT("Within brekfis, the is_cov_formula is False.\n");
+	}
 
 
     /********************************************************************************/
@@ -172,7 +179,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				}
 				//SMC added covariates here (2)
 				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
-        model_constraint_par(config, param);
+				if(sbj == 0){
+					MYPRINT("print eta_noise_cov in Line 182 of brekfis\n");
+					print_matrix(param->eta_noise_cov);
+				}
+				model_constraint_par(config, param, config->is_cov_formula);
 				
 				if(DEBUG_BREKFIS){
 					MYPRINT("Done with func_noise_cov\n");
@@ -219,6 +230,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 						residual_cov[regime_j][regime_k], /*inverse*/
 						innov_garbage, // innov_cov
 						isFirstTime, false, false, 0);
+					
+					if(sbj == 0){
+						MYPRINT("print eta_noise_cov in Line 233 of brekfis\n");
+						print_matrix(param->eta_noise_cov);
+					}
 					gsl_vector_free(eta_garbage);
 					gsl_matrix_free(error_garbage);
 					gsl_matrix_free(innov_garbage);
@@ -434,11 +450,19 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 /**
  * This function modifies some of the parameters so that it satisfies the model constraint.
  */
-void model_constraint_par(const ParamConfig *pc, Param *par){
+void model_constraint_par(const ParamConfig *pc, Param *par, bool is_cov_formula){
     /*double min_p=1e-4;*/
     double v=0;
     size_t ri, ci;
 
+	/*
+    if(is_cov_formula){
+		printf("Within model_constraint_par, the is_cov_formula is True.\n");
+	}
+	else{
+		printf("Within model_constraint_par, the is_cov_formula is False.\n");
+	}
+	*/
     /*gsl_vector *temp=gsl_vector_alloc(pc->num_regime);*/
     /** each element of regime switch matrix must be non-negative and the row sum is equal to 1 **/
     /*for(ri=0; ri<pc->num_regime; ri++){
@@ -471,23 +495,25 @@ void model_constraint_par(const ParamConfig *pc, Param *par){
     gsl_matrix *temp_eta_noise=gsl_matrix_calloc(pc->dim_latent_var, pc->dim_latent_var);
     
     //SMC note: Looks like LDL manually coded in here
-    gsl_matrix_set_zero(D);
-    gsl_matrix_memcpy(L, par->eta_noise_cov);/*set the lower diagnoal*/
-    for(ri=0; ri<pc->dim_latent_var; ri++){
-        gsl_matrix_set(L,ri,ri,1);/*set diagonals to 1*/
-        v=gsl_matrix_get(par->eta_noise_cov, ri, ri);
-        v=exp(v);
-        gsl_matrix_set(D, ri, ri, v);/*D = diag(exp(V11)~exp(Vnn))*/
-        for(ci=ri+1; ci<pc->dim_latent_var; ci++){
-            gsl_matrix_set(L, ri, ci, 0);/*set upper diagonal to zero*/
-        }
-    }
-    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, L, D, 0.0, temp_eta_noise);/*temp_eta_noise=LD*/
-    gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, temp_eta_noise, L, 0.0, par->eta_noise_cov);/*eta_noise_cov=LDL'*/
+	if(!is_cov_formula){
+		gsl_matrix_set_zero(D);
+		gsl_matrix_memcpy(L, par->eta_noise_cov);/*set the lower diagnoal*/
+		for(ri=0; ri<pc->dim_latent_var; ri++){
+			gsl_matrix_set(L,ri,ri,1);/*set diagonals to 1*/
+			v=gsl_matrix_get(par->eta_noise_cov, ri, ri);
+			v=exp(v);
+			gsl_matrix_set(D, ri, ri, v);/*D = diag(exp(V11)~exp(Vnn))*/
+			for(ci=ri+1; ci<pc->dim_latent_var; ci++){
+				gsl_matrix_set(L, ri, ci, 0);/*set upper diagonal to zero*/
+			}
+		}
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, L, D, 0.0, temp_eta_noise);/*temp_eta_noise=LD*/
+		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, temp_eta_noise, L, 0.0, par->eta_noise_cov);/*eta_noise_cov=LDL'*/
 
-    gsl_matrix_free(temp_eta_noise);
-    gsl_matrix_free(L);
-    gsl_matrix_free(D);
+		gsl_matrix_free(temp_eta_noise);
+		gsl_matrix_free(L);
+		gsl_matrix_free(D);
+	}
     //End of SMC note
      /** covariance of measurement noise must be positive definite: LDL' decomposition applied **/
     L=gsl_matrix_calloc(pc->dim_obs_var, pc->dim_obs_var);
@@ -795,7 +821,11 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 }
                 //SMC ADDED COVARIATES HERE (1)
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
-                model_constraint_par(config, param);
+				if(sbj == 0){
+					MYPRINT("print eta_noise_cov in Line 822 of brekfis\n");
+					print_matrix(param->eta_noise_cov);
+				}
+                model_constraint_par(config, param, config->is_cov_formula);
 
                 /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
                 MYPRINT("\n");
@@ -807,10 +837,13 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 MYPRINT("\n");
                 MYPRINT("measurement error:\n");
                 print_matrix(param->y_noise_cov);*/
-                MYPRINT("\n");
-                MYPRINT("process noise at time %lu: \n",t);
-                print_matrix(param->eta_noise_cov);
-                MYPRINT("\n");
+                
+				if(sbj == 0 && t < 3){
+					MYPRINT("\n");
+					MYPRINT("process noise of sbj %d at time %lu: \n",sbj, t);
+					print_matrix(param->eta_noise_cov);
+					MYPRINT("\n");
+				}
 
 
                 for(regime_k=0; regime_k<config->num_regime; regime_k++){/*to regime k*/
@@ -851,6 +884,10 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
 						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime, true, perturb, seed); /*inverse*/
+					if(sbj == 0){	
+						printf("print eta_noise_cov here in Line 884 of brekfis\n");
+						print_matrix(param->eta_noise_cov);
+					}
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");

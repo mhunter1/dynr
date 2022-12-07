@@ -201,7 +201,8 @@ setClass(Class = "dynrNoise",
 		   latent.formula = "list",
 		   state.names = "character",
 		   latent.startval = "numeric",
-		   ldl.transformed = "matrix"),
+		   ldl.transformed = "matrix",
+		   is_cov_formula = "logical"),
          contains = "dynrRecipe"
 )
 #TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
@@ -1279,6 +1280,7 @@ setMethod("writeCcode", "dynrInitial",
 
 setMethod("writeCcode", "dynrNoise",
 	function(object, covariates){
+	    #browser()
 		params.latent <- object$params.latent
 		params.observed <- object$params.observed
 		#Note: use mutated values, instead of raw values
@@ -1307,26 +1309,28 @@ setMethod("writeCcode", "dynrNoise",
 			ret <- paste(ret, "\n}\n\n") # close C function
 		}
 		# formula --------------
-		else{
+		else{	
 		    # this chunk may not work for multi-regime
-		    ldl_list <- list(vectorizeMatrix(object$ldl.transformed, byrow= FALSE))
-			ldl_list <- lapply(ldl_list[[1]], function(x){deparse(x, width.cutoff =300)})
+		    ldl_list <- vectorizeMatrix(object$ldl.transformed, byrow= FALSE)
+			fml=processFormula(ldl_list)
+			lhs=lapply(fml,function(x){x[1]})
+            rhs=lapply(fml,function(x){x[2]})
 			for (i in 1:length(object$paramnames)){
 			  pattern <- object$paramnames[i]
-			  ldl_list  <- lapply(ldl_list, function(x){gsub(pattern, paste0('param[', i-1, ']'),x, fixed = TRUE)})
+			  rhs  <- lapply(rhs, function(x){gsub(pattern, paste0('param[', i-1, ']'),x, fixed = TRUE)})
 			}
 			
 			for (i in 1:length(covariates)){
 			  pattern <- covariates[i]
-			  ldl_list  <- lapply(ldl_list, function(x){gsub(pattern, paste0('gsl_vector_get(co_variate,', i-1, ')'),x, fixed = TRUE)})
+			  rhs  <- lapply(rhs, function(x){gsub(pattern, paste0('gsl_vector_get(co_variate,', i-1, ')'),x, fixed = TRUE)})
 			}
 
 			# writeC code here
 			ret <- "void function_noise_cov(size_t t, size_t regime, double *param, gsl_matrix *y_noise_cov, gsl_matrix *eta_noise_cov, const gsl_vector *co_variate){\n\n"
-			ret <- paste0(ret, "\tdouble noise_formula [", nrow(object$ldl.transformed), ",", ncol(object$ldl.transformed) ,"];\n\n")
+			ret <- paste0(ret, "\tdouble noise_formula [", nrow(object$ldl.transformed), "][", ncol(object$ldl.transformed) ,"];\n\n")
 			for(i in 1:nrow(object$ldl.transformed)){
 			  for(j in 1:ncol(object$ldl.transformed)){
-			    ret <- paste0(ret, "\tnoise_formula[", i-1,',', j-1, ']=', ldl_list[(j-1)*2+i] ,";\n")
+			    ret <- paste0(ret, "\tnoise_formula[", i-1,'][', j-1, ']=', rhs[(j-1)*2+i] ,";\n")
 			  }
 			}
 			
@@ -1345,14 +1349,15 @@ setMethod("writeCcode", "dynrNoise",
 				for(i in 1:nrow(object$ldl.transformed)){
 				  for(j in 1:ncol(object$ldl.transformed)){
 					#gsl_matrix_set(eta_noise_cov, 0, 0, param[0]);
-					ret <- paste0(ret, "\tgsl_matrix_set(eta_noise_cov,", i-1, ",",  j-1, ", noise_formula[", i-1, ",",  j-1,"]);\n")
+					ret <- paste0(ret, "\tgsl_matrix_set(eta_noise_cov,", i-1, ",",  j-1, ", noise_formula[", i-1, "][",  j-1,"]);\n")
 				  }
 				}
 				ret <- paste(ret, setGslMatrixElements(values.observed[[1]], params.observed[[1]], "y_noise_cov"), sep="\n")
 			}
-			
+			ret <- paste(ret, "\n}\n\n") # close C function
 		
 		}
+		
 		object@c.string <- ret
 		
 		#browser()
@@ -2152,11 +2157,13 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
     x <- c(x_constant, x_formula)
 	x$paramnames <- c(x_constant$paramnames, x_formula$paramnames)
 	x$startval <- c(x_constant$startval, x_formula$startval)
+	x$is_cov_formula <- TRUE
 
     # ---- End of Cov formula modifications ----  
   } else{
     # Else process cov-related things the usual way
     x <- processCovConstant(values.latent, params.latent, values.observed, params.observed)
+	x$is_cov_formula <- FALSE
   }
   # Handle latent covariance
   return(new("dynrNoise", x))
@@ -2338,12 +2345,19 @@ processCovFormula <- function(dots, values.latent, params.latent){
   for (i in 1:nrow(params.latent)){
 	for (j in 1:ncol(params.latent)){
 	  for (e in 1:length(unlist(latent.formula))){
-	    params.latent[i,j] <- gsub(lhs[[e]], params.latent[i,j], rhs[[e]], fixed = TRUE)
+	    params.latent[i,j] <- gsub(lhs[[e]], rhs[[e]], params.latent[i,j], fixed = TRUE)
 	  }
 	}
   }
+  
   out <- symbolicLDLDecomposition2(params.latent, values.latent, list())
-  x$ldl.transformed <- out$ldl
+  
+  ldl.transformed <- out$ldl
+  for (i in 1:nrow(params.latent)){
+	for (j in 1:ncol(params.latent)){
+	  ldl.transformed[i, j][[1]] <- as.formula(paste0( 'x ~', out$ldl[i, j]))
+	}
+  }
   #sampleCovformula=
   #  list(Sigma11 ~ par1*delta_t^3,
   #       Sigma12 ~ par2*deltat, 
@@ -2359,7 +2373,7 @@ processCovFormula <- function(dots, values.latent, params.latent){
   # Write out Armadillo code
   # D = exp(par11*delta_t)
   
-  x <- list(startval=sv, paramnames=pn, ldl.transformed=out$ldl, latent.formula=latent.formula, latent.startval=dots$latent.startval)
+  x <- list(startval=sv, paramnames=pn, ldl.transformed=ldl.transformed, latent.formula=latent.formula, latent.startval=dots$latent.startval)
   return(x)
 }  
 

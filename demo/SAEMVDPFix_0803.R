@@ -71,8 +71,19 @@ mdcov <- prep.noise(
   params.observed=diag(c("var1","var2","var3"),3),
   latent.formula = sampleCovformula,
   covariates = c("u1"),
-  latent.startval = c(par1=.1, par2=.2, par3 = .3)
+  latent.startval = c(par1=-.6, par2=-.7, par3 = -.3)
 )
+
+#ldl.transformed = matrix(c(0.3726659, 0.3119856, 0.3119856,1.480466),2,2)
+#ldl.transformed (subj 1)
+#          [,1]      [,2]
+#[1,] 0.3726659 0.3119856
+#[2,] 0.3119856 1.4804660
+#ldl.transformed (subj 50)
+#          [,1]      [,2]
+#[1,] 0.0523459 0.0211216
+#[2,] 0.0211216 0.3783712
+
 #UI problem
 #1. Without specifying params.latent=matrix(c('Sigma11', 'Sigma12', 'Sigma12', 'Sigma22'), nrow = 2, byrow = TRUE),
 #   is it okay to assume that a user will know that it would be a matrix form in column/row major?
@@ -80,7 +91,7 @@ mdcov <- prep.noise(
 
 formula=
   list(x1 ~ x2,
-       x2 ~ -61.68503 * x1 + (1 * 3 + u1 * 0.5 + u2 * 0.5 + zeta_i) * (1 - x1^2) * x2
+       x2 ~ -61.68503 * x1 + (1 * 3 + u1 * 0.5 + u2 * 0.5 + 0.2) * (1 - x1^2) * x2
   )
 
 theta.formula  = list (zeta_i ~  1 * b_zeta)
@@ -94,10 +105,10 @@ dynm<-prep.formulaDynamics(formula=formula,
                            #           zeta1=.5,
                            #           zeta2=.5),
                            isContinuousTime=TRUE,
-                           theta.formula=theta.formula,
-                           random.names=c('b_zeta'),
-                           random.params.inicov = matrix(c('fixed'), ncol=1,byrow=TRUE),
-                           random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
+                           #theta.formula=theta.formula,
+                           #random.names=c('b_zeta'),
+                           #random.params.inicov = matrix(c('fixed'), ncol=1,byrow=TRUE),
+                           #random.values.inicov = matrix(c(0.5), ncol=1,byrow=TRUE),
                            #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
                            #random.lb = -10, 
                            #random.ub = 10,
@@ -153,7 +164,8 @@ saemp <- prep.saemParameter(MAXGIB = 1,
 
 timestart<-Sys.time()
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
-fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+#fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
+fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, maxeval = 1)
 #print(fitted_model)
 
 timeend<-Sys.time()

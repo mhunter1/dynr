@@ -87,6 +87,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	
 	static Data_and_Model data_model;
 	data_model.pc.verbose_flag = (bool) verbose_flag;
+
 	
 	/* From the SEXP called model_list, get the list element named "num_sbj" */
 	/*number of subjects*/
@@ -144,6 +145,13 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	SEXP isContinuousTime_sexp = PROTECT(getListElement(model_list, "isContinuousTime"));
 	data_model.pc.isContinuousTime = *LOGICAL(isContinuousTime_sexp);
 	DYNRPRINT(verbose_flag, "isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
+	
+	/*whether the covariance matrix in prep.noise is formula form or not */
+	SEXP is_cov_formula_sexp = PROTECT(getListElement(model_list, "is_cov_formula"));
+	data_model.pc.is_cov_formula = *LOGICAL(is_cov_formula_sexp);
+	UNPROTECT(1);
+	DYNRPRINT(verbose_flag, "is_cov_formula: %s\n", data_model.pc.is_cov_formula? "true" : "false");
+	
 	
 	if (data_model.pc.isContinuousTime){
 	  data_model.pc.isAnalytic= isAnalytic;/*true: Analytic gradient*/
@@ -482,6 +490,7 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 		
 		data_model.pc.func_initial_condition(par.func_param, data_model.co_variate, pi.pr_0, pi.eta_0, pi.error_cov_0, data_model.pc.index_sbj);
 		
+		printf("data_model.pc.dim_latent_var = %d\n", data_model.pc.dim_latent_var);
 		par.eta_noise_cov=gsl_matrix_calloc(data_model.pc.dim_latent_var, data_model.pc.dim_latent_var);
 	    par.y_noise_cov=gsl_matrix_calloc(data_model.pc.dim_obs_var, data_model.pc.dim_obs_var);
 	    par.regime_switch_mat=gsl_matrix_calloc(data_model.pc.num_regime, data_model.pc.num_regime);

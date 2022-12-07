@@ -1023,6 +1023,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		isContinuousTime=dynrModel@dynamics@isContinuousTime,
 		infile=dynrModel@outfile,
 		outfile=gsub(".c\\>","",dynrModel@outfile),
+		is_cov_formula = dynrModel@noise@is_cov_formula,
 		compileLib=dynrModel@compileLib,
 		verbose=dynrModel@verbose
 	)
