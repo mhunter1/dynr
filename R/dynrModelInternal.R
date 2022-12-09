@@ -55,7 +55,7 @@ default.model.options <- list(xtol_rel=1e-7, stopval=-9999, ftol_rel=1e-10,
 #' @param compileLib Whether to compile the libary anew
 #' @param verbose Logical flag for verbose output
 #' @return A list of model statements to be passed to dynr.cook().
-internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, is_cov_formula, verbose){
+internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, options=default.model.options, isContinuousTime, infile, outfile, compileLib, is_eta_cov_formula, verbose){
 	if(!is.list(options)){
 		stop("'options' argument to internalModelPrep function must be a list.")
 	}
@@ -75,7 +75,7 @@ internalModelPrep <- function(num_regime, dim_latent_var, xstart, ub, lb, option
 	
 	#returns a list of addresses of the compiled model functions
 	func_address=.C2funcaddress(isContinuousTime=isContinuousTime, infile=infile, outfile=outfile, verbose=verbose, compileLib=compileLib)
-	return(list(num_regime=as.integer(num_regime), dim_latent_var=as.integer(dim_latent_var), xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.integer(length(xstart)), func_address=func_address[[1]], options=options, libname=func_address[[2]], is_cov_formula=is_cov_formula))
+	return(list(num_regime=as.integer(num_regime), dim_latent_var=as.integer(dim_latent_var), xstart=xstart, ub=ub, lb=lb, isContinuousTime=isContinuousTime, num_func_param=as.integer(length(xstart)), func_address=func_address[[1]], options=options, libname=func_address[[2]], is_eta_cov_formula=is_eta_cov_formula))
 }
 
 processModelOptionsArgument <- function(opt){

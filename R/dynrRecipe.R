@@ -202,7 +202,7 @@ setClass(Class = "dynrNoise",
 		   state.names = "character",
 		   latent.startval = "numeric",
 		   ldl.transformed = "matrix",
-		   is_cov_formula = "logical"),
+		   is_eta_cov_formula = "logical"),
          contains = "dynrRecipe"
 )
 #TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
@@ -2157,13 +2157,13 @@ prep.noise <- function(values.latent, params.latent, values.observed, params.obs
     x <- c(x_constant, x_formula)
 	x$paramnames <- c(x_constant$paramnames, x_formula$paramnames)
 	x$startval <- c(x_constant$startval, x_formula$startval)
-	x$is_cov_formula <- TRUE
+	x$is_eta_cov_formula <- TRUE
 
     # ---- End of Cov formula modifications ----  
   } else{
     # Else process cov-related things the usual way
     x <- processCovConstant(values.latent, params.latent, values.observed, params.observed)
-	x$is_cov_formula <- FALSE
+	x$is_eta_cov_formula <- FALSE
   }
   # Handle latent covariance
   return(new("dynrNoise", x))

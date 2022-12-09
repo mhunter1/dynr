@@ -116,11 +116,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 		MYPRINT("Finished initializing brekfis\nStarting subject brekfis loop\n");
 	}
 	
-	if(config->is_cov_formula){
-		MYPRINT("Within brekfis, the is_cov_formula is True.\n");
+	if(config->is_eta_cov_formula){
+		MYPRINT("Within brekfis, the is_eta_cov_formula is True.\n");
 	}
 	else{
-		MYPRINT("Within brekfis, the is_cov_formula is False.\n");
+		MYPRINT("Within brekfis, the is_eta_cov_formula is False.\n");
 	}
 
 
@@ -183,7 +183,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					MYPRINT("print eta_noise_cov in Line 182 of brekfis\n");
 					print_matrix(param->eta_noise_cov);
 				}
-				model_constraint_par(config, param, config->is_cov_formula);
+				model_constraint_par(config, param, config->is_eta_cov_formula);
 				
 				if(DEBUG_BREKFIS){
 					MYPRINT("Done with func_noise_cov\n");
@@ -450,17 +450,17 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 /**
  * This function modifies some of the parameters so that it satisfies the model constraint.
  */
-void model_constraint_par(const ParamConfig *pc, Param *par, bool is_cov_formula){
+void model_constraint_par(const ParamConfig *pc, Param *par, bool is_eta_cov_formula){
     /*double min_p=1e-4;*/
     double v=0;
     size_t ri, ci;
 
 	/*
-    if(is_cov_formula){
-		printf("Within model_constraint_par, the is_cov_formula is True.\n");
+    if(is_eta_cov_formula){
+		printf("Within model_constraint_par, the is_eta_cov_formula is True.\n");
 	}
 	else{
-		printf("Within model_constraint_par, the is_cov_formula is False.\n");
+		printf("Within model_constraint_par, the is_eta_cov_formula is False.\n");
 	}
 	*/
     /*gsl_vector *temp=gsl_vector_alloc(pc->num_regime);*/
@@ -495,7 +495,7 @@ void model_constraint_par(const ParamConfig *pc, Param *par, bool is_cov_formula
     gsl_matrix *temp_eta_noise=gsl_matrix_calloc(pc->dim_latent_var, pc->dim_latent_var);
     
     //SMC note: Looks like LDL manually coded in here
-	if(!is_cov_formula){
+	if(!is_eta_cov_formula){
 		gsl_matrix_set_zero(D);
 		gsl_matrix_memcpy(L, par->eta_noise_cov);/*set the lower diagnoal*/
 		for(ri=0; ri<pc->dim_latent_var; ri++){
@@ -825,7 +825,7 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
 					MYPRINT("print eta_noise_cov in Line 822 of brekfis\n");
 					print_matrix(param->eta_noise_cov);
 				}
-                model_constraint_par(config, param, config->is_cov_formula);
+                model_constraint_par(config, param, config->is_eta_cov_formula);
 
                 /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
                 MYPRINT("\n");

@@ -39,10 +39,10 @@ double neg_log_like_with_grad(unsigned n, const double *x, double *grad, void *m
 	  MYPRINT("No thank you, isAnalytic = %d\n",data_model.pc.isAnalytic);
 	}
 	
-	if (data_model.pc.is_cov_formula){
-		MYPRINT("Yes, the covariance matrix in prep.nosie is formula.  is_cov_formula = %d\n",data_model.pc.is_cov_formula);
+	if (data_model.pc.is_eta_cov_formula){
+		MYPRINT("Yes, the covariance matrix in prep.nosie is formula.  is_eta_cov_formula = %d\n",data_model.pc.is_eta_cov_formula);
 	} else {
-		MYPRINT("No thank you, is_cov_formula = %d\n",data_model.pc.is_cov_formula);
+		MYPRINT("No thank you, is_eta_cov_formula = %d\n",data_model.pc.is_eta_cov_formula);
 	}
 	return fitval;
 }

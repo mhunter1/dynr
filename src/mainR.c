@@ -147,10 +147,10 @@ SEXP main_R(SEXP model_list, SEXP data_list, SEXP weight_flag_in, SEXP debug_fla
 	DYNRPRINT(verbose_flag, "isContinuousTime: %s\n", data_model.pc.isContinuousTime? "true" : "false");
 	
 	/*whether the covariance matrix in prep.noise is formula form or not */
-	SEXP is_cov_formula_sexp = PROTECT(getListElement(model_list, "is_cov_formula"));
-	data_model.pc.is_cov_formula = *LOGICAL(is_cov_formula_sexp);
+	SEXP is_eta_cov_formula_sexp = PROTECT(getListElement(model_list, "is_eta_cov_formula"));
+	data_model.pc.is_eta_cov_formula = *LOGICAL(is_eta_cov_formula_sexp);
 	UNPROTECT(1);
-	DYNRPRINT(verbose_flag, "is_cov_formula: %s\n", data_model.pc.is_cov_formula? "true" : "false");
+	DYNRPRINT(verbose_flag, "is_eta_cov_formula: %s\n", data_model.pc.is_eta_cov_formula? "true" : "false");
 	
 	
 	if (data_model.pc.isContinuousTime){
