@@ -652,6 +652,7 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' # Now cook the model!
 ##' cook <- dynr.cook(model,
 ##' 	verbose=FALSE, optimization_flag=FALSE, hessian_flag=FALSE)
+##' }
 dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE, hessian_flag = TRUE, verbose=TRUE, weight_flag=FALSE, debug_flag=FALSE, perturb_flag=FALSE, ...) {
     frontendStart <- Sys.time()
     transformation=dynrModel@transform@tfun
