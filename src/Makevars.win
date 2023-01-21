@@ -1,5 +1,5 @@
 # set by configure
-GSL_CFLAGS = -I$(LIB_GSL)/include 
+GSL_CFLAGS = -I"$(LIB_GSL)/include"
 ARMA_CFLAGS = -I"${R_HOME}/library/RcppArmadillo/include"
 RCPP_CFLAGS = -I"${R_HOME}/library/Rcpp/include"
 
