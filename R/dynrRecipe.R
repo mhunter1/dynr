@@ -2745,7 +2745,7 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	
 	# parsing the parameters in ...
 	if(length(dots) > 0){
-		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb', 'covariate.formula', 'covariate.names'))){
+		if(!all(names(dots) %in% c('theta.formula', 'random.names',  'random.params.inicov', 'random.values.inicov', 'random.ub', 'random.lb'))){
 			stop("You passed some invalid names to the ... argument. Check with US Customs or the ?prep.formulaDynamics help page.")
 		}
 		if('theta.formula' %in% names(dots)){
@@ -2922,8 +2922,8 @@ prep.formulaDynamics <- function(formula, startval = numeric(0), isContinuousTim
 	x$theta.names <- theta.names
 	x$state.names <- state.names
 	
-	x$covariate.names <- dots$covariate.names
-	x$covariate.formula <- dots$covariate.formula
+	#x$covariate.names <- dots$covariate.names
+	#x$covariate.formula <- dots$covariate.formula
 
 	
 	return(new("dynrDynamicsFormula", x))

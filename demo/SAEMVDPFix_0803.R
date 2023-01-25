@@ -112,8 +112,8 @@ dynm<-prep.formulaDynamics(formula=formula,
                            #random.values.inicov = matrix(c(1.0227), ncol=1,byrow=TRUE), original setting
                            #random.lb = -10, 
                            #random.ub = 10,
-                           covariate.formula = sampleCovformula,
-                           covariate.names = c('delta_t'),
+                           #covariate.formula = sampleCovformula,
+                           #covariate.names = c('delta_t'),
                            saem=FALSE
 )
 
