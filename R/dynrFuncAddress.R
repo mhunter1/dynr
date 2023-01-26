@@ -161,7 +161,9 @@ dynr.config <- function(verbose=FALSE){
 		path <- gsub("\\\\", "/", path)
 		findR <- grep(R.home(component="bin"), path)
 		if(length(findR) < 1 || findR != 1){
-			stop(paste0(noRmsg, genmsg))
+			# Only warning
+			# R does NOT need to be on the path for windows unless you're a developer
+			warning(paste0(noRmsg, '\nThis is only needed for developers.\nIf that is not you, then happily ignore this warning.\n'))
 		}
 		if(grep('rtools', path, ignore.case=TRUE) != 1){
 			stop(paste0(noRtoolsmsg, genmsg))
@@ -185,11 +187,17 @@ dynr.config <- function(verbose=FALSE){
 		}
 		
 		## Unix gsl flags
-		gsl_cflags <- system( "gsl-config --cflags" , intern = TRUE )
-		gsl_libs   <- system( "gsl-config --libs"   , intern = TRUE )
-		if(0){ # TODO fill with something!
-			stop(paste0(noGSLmsg, genmsg))
+		# Wrap system command in try
+		# If try error, say can't find gsl
+		gsl_cflags <- try(system( "gsl-config --cflags", intern=TRUE), silent=TRUE)
+		if(inherits(gsl_cflags, 'try-error')){
+			stop("'gsl-config --cflags' failed.  You probably need to install GSL and/or add it to your path.")
 		}
+		gsl_libs   <- try(system( "gsl-config --libs", intern=TRUE), silent=TRUE)
+		if(inherits(gsl_cflags, 'try-error')){
+			stop("'gsl-config --libs' failed.  You probably need to install GSL  and/or add it to your path.")
+		}
+		# Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))
 	}
 	if(verbose){
 		message("Configuration check complete.  Ready to rock and roll.")
