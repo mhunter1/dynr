@@ -140,7 +140,7 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \subsection{\Large Checking the Installation for Mac}
 \label{sec:maccheck}
 \begin{enumerate}
-\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config --cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
+\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{system("gsl-config -{}-cflags", intern=TRUE)}\\ When the command can not be found, and you know where it is stored (e.g., "/opt/local/bin"), we could then set the PATH variable by typing: \\
 \texttt{Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))}\\ and then check again.
 \item If the above failed, then something went wrong with one or several of the steps in Section \ref{sec:macpre}. Please go back and try repeating or checking that section.
 \item Follow the steps in section \ref{sec:GitHub} to finish the installation process in R.
