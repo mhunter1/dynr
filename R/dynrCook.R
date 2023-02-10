@@ -687,6 +687,7 @@ dynr.cook <- function(dynrModel, conf.level=.95, infile, optimization_flag=TRUE,
 		compileLib=dynrModel@compileLib,
 		verbose=dynrModel@verbose
 	)
+
 	libname <- model$libname
 	model$libname <- NULL
 	

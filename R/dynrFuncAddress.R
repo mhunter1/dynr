@@ -16,7 +16,7 @@
 		#-------Check the input arguments----------------------------
 		code <- readLines(infile)
 		# ---- Write and compile the code ----
-		
+		print("Get ready!!!!")
 		#filename<- basename(tempfile())
 		CompileCode(code, language, verbose, libLFile)
 		#---- SET A FINALIZER TO PERFORM CLEANUP: register an R function to be called upon garbage collection of object or at the end of an R session---  
@@ -101,7 +101,9 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	errfile <- paste( basename(libCFile), ".err.txt", sep = "" )
 	cmd <- paste(R.home(component="bin"), "/R CMD SHLIB ", basename(libCFile), " ", gsl_libs, " ", " 2> ", errfile, sep="")
 	if (verbose) cat("Compilation argument:\n", cmd, "\n")
-	compiled <- system2(paste0(R.home(component="bin"), "/R"), args=c("CMD", "SHLIB", basename(libCFile)), stderr=errfile, stdout=verbose)
+	compiled <- system2(paste0(R.home(component="bin"), "/R"), 
+	                    args=c("CMD", "SHLIB", basename(libCFile)), 
+	                    stderr=errfile, stdout=verbose)
 	errmsg <- readLines(errfile)
 	unlink(errfile)
 	if(length(errmsg) > 0){cat("May I present to you your error messages?\n")}
@@ -109,7 +111,9 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	setwd(wd)
 	
 	#### Error Messages
-	if ( !file.exists(libLFile) | length(errmsg > 0) ) {
+	#cat("I got here!!!")
+	errmsg = errmsg[!grep("warning",errmsg)]
+	if ( !file.exists(libLFile) | length(errmsg) > 0 ) {
 		cat("\nERROR(s) during compilation: source code errors or compiler configuration errors!\n")
 		cat("\nProgram source:\n")
 		codeWithLineNums <- paste(sprintf(fmt="%3d: ", 1:length(code)), code, sep="")
