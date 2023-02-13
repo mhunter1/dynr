@@ -1329,7 +1329,7 @@ ExpandRandomAsLVModel<- function(dynrModel){
         }
         return(icol)
     }
-    #browser()
+    
     # If there is random effect to be estimated, set up a new model
     params.latent = diag(c(diag(dynrModel@noise@params.latent[[1]]), rep(0, length(user.random.names))))
     mdcov2 <- prep.noise(
@@ -1339,11 +1339,11 @@ ExpandRandomAsLVModel<- function(dynrModel){
         #params.latent=diag(state.names2, length(state.names2)),
         #params.latent=diag(c(diag(dynrModel@noise@params.latent[[1]]), rep('fixed',length(user.random.names)))),
         values.observed=dynrModel@noise@values.observed[[1]],
-        params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]])),
-		latent.formula = dynrModel@noise@latent.formula,
-		covariates = dynrModel@noise@covariates,
-		latent.startval = dynrModel@noise@latent.startval
-        #params.observed=dynrModel@noise@params.observed[[1]]
+        params.observed=matrix(mapply(function(x) {if(x > 0){return(dynrModel@param.names[x])} else{return("fixed")}}, dynrModel@noise@params.observed[[1]]), nrow=nrow(dynrModel@noise@params.observed[[1]]))#,
+		#params.observed=dynrModel@noise@params.observed[[1]]
+		#latent.formula = dynrModel@noise@latent.formula,
+		#covariates = dynrModel@noise@covariates,
+		#latent.startval = dynrModel@noise@latent.startval
     )
     
 

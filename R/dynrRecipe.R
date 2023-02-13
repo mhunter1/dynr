@@ -2133,12 +2133,16 @@ autoExtendSubRecipe <- function(values, params, formalName, informalName, maxReg
 ##' # If the error and noise structures are assumed to be the same across regimes,
 ##' #  it is okay to use matrices instead of lists.
 prep.noise <- function(values.latent, params.latent, values.observed, params.observed, ...){
+  #browser()
   # ---- To incorporate covariates and formulas into covariance functions ----
-  dots <- list(...)
+  if (!missing(...)){
+     dots <- list(...)
+  }
   if ((missing(values.latent) || missing(params.latent) || missing(values.observed) || missing(params.observed)) && 
       (length(dots==0)))
     stop("You have to provide the noise structure as lists of matrices or formulas. Neither is available now.")
-  if(length(dots) > 0){
+  #if(length(dots) > 0 && is.list(dots$latent.formula) && length(dots$latent.formula) > 0){
+  if (!missing(...)){
     if(!all(names(dots) %in% c('covariates', 'latent.formula', 'state.names', 'latent.startval'))){
       stop("You passed some invalid names to the ... argument. Check the ?prep.noise help page for more information.")
     }
