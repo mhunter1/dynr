@@ -36,14 +36,19 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \label{sec:Rtools}
 \begin{enumerate}
 \item If you already have R-tools on your machine, make sure the version of R-tools matches with your R version. R-tools versions newer than 3.0 should work fine with \texttt{dynr}.
-\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest version of Rtools. 
-\item The following instructions are based on rtools40.
-\item Click RTools 4.0, then click ``rtools40-x86\_64.exe`` in the new webpage. You may be asked if you want to save or run a file ``rrtools40-x86\_64.exe``. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
-\item (If you are asked what language to install it in during installation - choose English.)
-\item The next page says ``Select Destination Location`` at the top. By default, it will suggest to install R in ``C:\textbackslash rtools40'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Click ``Next'' at the bottom of the R tools Setup wizard window.
+\item Install R-tools through \url{https://cran.r-project.org/bin/windows/Rtools/}. Install the latest {\em release} version of Rtools, not the {\em devel} version. 
+\item The following instructions are based on rtools42.
+\item Click ``Rtools42 installer'', then click ``rtools42-5355-5357.exe`` in the new webpage. You may be asked if you want to save or run a file ``rtools42-5355-5357.exe``. Choose ``Save'' and save the file on the Desktop. Then double-click on the icon for the file to run it.
+\item If you are asked what language to install, choose English.
+\item The next page says ``Select Destination Location`` at the top. By default, it will suggest to install R in ``C:\textbackslash rtools42'' on your computer. You may also install R-tools in  {\em any other directory where there are {\bf no spaces} in the words describing the directory}. Click ``Next'' at the bottom of the R tools Setup wizard window.
 \item The next page says ``Select additional tasks`` at the top. Check the box to edit the system PATH. Click ``Next'' again.
+\item Add the directories for R and Rtools to your {\em system} PATH.  Examples are shown below.  Place these directories at or near the top of your list for the {\em system} PATH variable. The order of the directories should be the same as shown in the example below.\\
+\texttt{C:\textbackslash rtools42\textbackslash usr\textbackslash bin\\
+ C:\textbackslash R\textbackslash R-4.2.1\textbackslash bin\textbackslash x64;}\\ % TODO check if x64 is needed
+You may want to first go to the directory where Rtools and R are installed and check that you know the correct pathway.  
 \item The next page says ``Ready to install'' at the top. Click ``install''.
 \item Rtools should now be installed. This will take about a minute. Click ``Finish''.
+
 \end{enumerate}
 
 
@@ -51,10 +56,13 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \label{sec:gsl}
 \begin{enumerate}
 \item If you already have GSL libraries installed on your machine, you may skip this step and go to Section \ref{sec:libgsl}.  
-\item To install GSL libraries, go to \href{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}{http://www.stats.ox.ac.uk/pub/Rtools/libs.html}.
-\item Download ``local323.zip'' (or the latest version) by clicking it.  The 323 refers to R 3.2.3.
-\item Extract it into a new folder and copy and paste the extracted new folder into the same directory as R (``C:\textbackslash'') so that there would be two folders in that directory. One containing R-3.2.3 (or whatever version of R you have installed) and another local323.
-\end{enumerate}
+\item To install GSL libraries, we advocate using Rtools.  The new way to get GSL is through Rtools.
+\item  Go to the directory on your computer for Rtools (usually \texttt{C:/rtools42} or something similar).  There’s a file called \texttt{msys2.exe}.  Run it.  It should open a shell command prompt.  Type\\
+\\
+\texttt{pacman -Sy mingw-w64-x86_64-gsl}\\
+\\
+in that command prompt.  This installs GSL.  Check by going to \texttt{C:/rtools42/mingw64/lib}, and find a file called \texttt{libgsl.a}.  If it’s there, then it installed GSL.
+\item If it's not there, then \texttt{pacman} probably did not install GSL correctly.  Search online for ``msys2'' and ``GSL'' to find updated commands for installing GSL with msys2.\end{enumerate}
 
 
 \subsection{\Large Setting up the GSL Environment Variable}
@@ -64,7 +72,8 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
  \item Click on Advanced system settings and then click on ``Environment Variables''
  \item Add a new {\em system} variable by clicking on New.  Note that this should be a {\em System} environment variable, not a {\em User} environment variable.
  \item Name the new variable as LIB\_GSL and set the variable value to the 
- directory containing the local323 files downloaded in Section \ref{sec:gsl} or the directory where your GSL libraries are installed. Example {C:/R/local323} but please note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.
+ directory one back from \texttt{libgsl.a}.  This file is usually in \texttt{C:/rtools42/mingw64/lib}, so you'll set \texttt{LIB_GSL} to \texttt{C:/rtools42/mingw64}.
+ \item Note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.  The \texttt{LIB_GSL} path should be \texttt{C:/rtools42/mingw64} and not \texttt{C:\textbackslash rtools42\textbackslash mingw64}.
 \end{enumerate}
 
 
@@ -72,17 +81,18 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \subsection{\Large Setting up R and Rtools Environment Variable}
 \label{sec:rpath}
 \begin{enumerate}
- \item Check if R can be run through CMD as follows. Put a simple R script (e.g., save a simple R command: print (``hello'') to a .r document as ``Hello.r'') to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.r'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.r''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
+ \item Check if R can be run through CMD as follows. Put a simple R script (e.g., save a simple R command: print (``hello'') to a .R document as ``Hello.R'') to a known directory. Open the command prompt window. If you can't find it just do a search from the Start Menu for ``cmd'' and open ``Command Prompt.exe''. Then change directory to the location containing ``Hello.R'' (e.g., cd C:\textbackslash myfiles). Run the script by typing ``Rscript Hello.R''. If the file runs correctly, it should print out ``hello'' in the command prompt console.
  \item Close your command prompt window.
  \item If the file did not run correctly, follow the next 4 steps.
  \item Open - Control Panel\textbackslash System and Security\textbackslash System
  \item Click on Advanced system settings
  \item Check to make sure that your path variable specified during Rtools installation is specified correctly. In Windows 10 do so by clicking on ``Environment Variables'' and then in the ``System variables'' panel click on ``Path'' and then ``Edit''. Check that the following paths have been specified at the front of your {\em system} path variable or just move them all to way up to the top in the following order.
 \\
- C:\textbackslash R\textbackslash R-4.1.1\textbackslash bin\textbackslash x64\\
-\texttt{C:\textbackslash rtools40\textbackslash usr\textbackslash bin\\
- C:\textbackslash rtools\textbackslash mingw64\textbackslash bin\\
+\texttt{C:\textbackslash rtools42\textbackslash usr\textbackslash bin\\
+ C:\textbackslash R\textbackslash R-4.2.1\textbackslash bin\textbackslash x64\\
+ C:\textbackslash cygwin\textbackslash bin (see section \ref{sec:cygwin})
  }
+ \item The order of the directories on the PATH variable is important.  CMD looks for programs starting at the top of the directories in PATH.  Make sure you have Rtoos, then R, then cygwin.
  \item Repeat (1) and see if you can now run R from CMD. Make sure that you open a new CMD window after you have completed the steps above. Try typing in ``PATH'' in CMD to make sure that the newly added paths are indeed shown in the output.
 \end{enumerate}
 
@@ -102,7 +112,7 @@ Each of these steps is detailed below.  We acknowledge that this additional setu
 \subsection{\Large Instructions for Installing Prerequisites on Mac}
 \label{sec:macpre}
 \begin{enumerate}
-\item Install Xcode with the command line tools from your Apple store. For this and all the subsequent steps, please read the installation instructions on the individual websites carefully to pick the correct software versions for your operating system.
+\item Open your terminal window and type in \texttt{xcode-select -{}-install} and follow the instructions for all the subsequent steps. Please pick the correct software version for your operating system.
 \begin{itemize}
 \item \textbf{NOTE:} If you have Big Sur as your Operating System, you do not need to install the command line tools. In fact, you need to remove it by navigating to /Library/Developer and remove Command Line Tools. 
 \item Then, edit /Library/Frameworks/R.framework/Resources/etc/Makeconf and remove all compilers’ explicit link to a particular OS; e.g., change "CC=clang -mmacosx-version-min=10.16" to just "CC=clang." Please see the FAQ section on the \href{https://dynrr.github.io/FAQ.html}{dynr Github webpage} for further updates.
