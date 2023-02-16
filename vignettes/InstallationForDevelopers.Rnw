@@ -17,7 +17,7 @@ Meng Chen, Linying Ji, Jungmin Lee, Xiaoyue Xiong, \& Sharon Kim}
 \SweaveOpts{concordance=TRUE}
 
 \maketitle
-The \texttt{dynr} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameters estimates, standard errors, and latent variable estimates.
+The \texttt{dynr} software is a package for R written in R and C.  It has utilities which allow users to create C code for linear and nonlinear dynamic models, including regime-switching models, without ever having to actually write C code.  Various functions in R are called by the user to specify the model desired.  These functions in turn write code in C based on the user's input.  These functions are then compiled and shared with the rest of the \texttt{dynr} C code to estimate the model, obtaining free parameter estimates, standard errors, and latent variable estimates.
 
 \section{\Large Instructions for Installing and Using \texttt{dynr} on a Windows Computer}
 Because the \texttt{dynr} package compiles C code in response to user input, more setup is required for the \texttt{dynr} package than for many others. The general requirements are as follows:
