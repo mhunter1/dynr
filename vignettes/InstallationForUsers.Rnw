@@ -59,7 +59,7 @@ You may want to first go to the directory where Rtools and R are installed and c
 \item To install GSL libraries, we advocate using Rtools.  The new way to get GSL is through Rtools.
 \item  Go to the directory on your computer for Rtools (usually \texttt{C:/rtools42} or something similar).  There’s a file called \texttt{msys2.exe}.  Run it.  It should open a shell command prompt.  Type\\
 \\
-\texttt{pacman -Sy mingw-w64-x86_64-gsl}\\
+\texttt{pacman -Sy mingw-w64-x86\_64-gsl}\\
 \\
 in that command prompt.  This installs GSL.  Check by going to \texttt{C:/rtools42/mingw64/lib}, and find a file called \texttt{libgsl.a}.  If it’s there, then it installed GSL.
 \item If it's not there, then \texttt{pacman} probably did not install GSL correctly.  Search online for ``msys2'' and ``GSL'' to find updated commands for installing GSL with msys2.\end{enumerate}
@@ -72,8 +72,8 @@ in that command prompt.  This installs GSL.  Check by going to \texttt{C:/rtools
  \item Click on Advanced system settings and then click on ``Environment Variables''
  \item Add a new {\em system} variable by clicking on New.  Note that this should be a {\em System} environment variable, not a {\em User} environment variable.
  \item Name the new variable as LIB\_GSL and set the variable value to the 
- directory one back from \texttt{libgsl.a}.  This file is usually in \texttt{C:/rtools42/mingw64/lib}, so you'll set \texttt{LIB_GSL} to \texttt{C:/rtools42/mingw64}.
- \item Note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.  The \texttt{LIB_GSL} path should be \texttt{C:/rtools42/mingw64} and not \texttt{C:\textbackslash rtools42\textbackslash mingw64}.
+ directory one back from \texttt{libgsl.a}.  This file is usually in \texttt{C:/rtools42/mingw64/lib}, so you'll set \texttt{LIB\_GSL} to \texttt{C:/rtools42/mingw64}.
+ \item Note that the direction of these slashes is important. This slash / will work but {\em not} this one \textbackslash.  The \texttt{LIB\_GSL} path should be \texttt{C:/rtools42/mingw64} and not \texttt{C:\textbackslash rtools42\textbackslash mingw64}.
 \end{enumerate}
 
 
@@ -101,7 +101,7 @@ in that command prompt.  This installs GSL.  Check by going to \texttt{C:/rtools
 \subsection{\Large Wrapping up the Installation Procedure for Windows}
 \label{wrapup}
 \begin{enumerate}
-\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{shell("echo \%LIB\_GSL\%")}\\ If this returns something like ``C:/R/local323'', then everything worked fine.
+\item Open RGui, Rstudio or whatever editor you use to run R. Please type the following code to check whether the gsl commands can be found correctly:\\ \texttt{shell("echo \%LIB\_GSL\%")}\\ If this returns something like \texttt{C:/rtools42/mingw64}, then everything worked fine.
  \item If that command returns something like ``\%LIB\_GSL\%'', then something might be wrong with the GSL installation (Return to Section \ref{sec:gsl}) or GSL path (Return to Section \ref{sec:libgsl}).
  \item If the command worked fine, follow the steps in section \ref{sec:cran} to finish the installation process in R.
 \end{enumerate}
