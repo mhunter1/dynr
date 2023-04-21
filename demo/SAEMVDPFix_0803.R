@@ -63,7 +63,8 @@ sampleCovformula=
 
 # Todo: mdcov of startval needs to transformed to unconstrained scale
 mdcov <- prep.noise(
-  values.latent=diag(0, 2), 
+  values.latent=matrix(c( 8, .2,
+                          .2, 0.8), ncol=2, byrow=TRUE), 
   params.latent=matrix(c('Sigma11', 'Sigma12', 'Sigma12', 'Sigma22'), nrow = 2, byrow = TRUE),
   #values.observed=diag(rep(-0.693,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
   #values.observed=diag(rep(0.5,3)), # enter values in unconstrained scale (exp(-0.693) = 0.5)
@@ -71,7 +72,8 @@ mdcov <- prep.noise(
   params.observed=diag(c("var1","var2","var3"),3),
   latent.formula = sampleCovformula,
   covariates = c("u1"),
-  latent.startval = c(par1=-.6, par2=-.7, par3 = -.3)
+  #latent.startval = c(par1=16.6355, par2=0.1039, par3 = -1.8249)
+  latent.startval = c(par1=2.8, par2=-2.6, par3 = -1.8249)
 )
 
 #ldl.transformed = matrix(c(0.3726659, 0.3119856, 0.3119856,1.480466),2,2)
@@ -165,7 +167,7 @@ saemp <- prep.saemParameter(MAXGIB = 1,
 timestart<-Sys.time()
 #setwd("C:/Users/Cynthia/Documents/gits/dynr/temp")
 #fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, saemp = saemp)
-fitted_model <- dynr.cook(model, optimization_flag = FALSE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, maxeval = 1)
+fitted_model <- dynr.cook(model, optimization_flag = TRUE, hessian_flag = FALSE, verbose=TRUE, debug_flag=TRUE, maxeval = 1)
 #print(fitted_model)
 
 timeend<-Sys.time()

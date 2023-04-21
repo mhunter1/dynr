@@ -859,6 +859,7 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
   inputs <- sapply(inputs, paramName2Number, names=param.data$param.name)
   
 
+
   #  ------- The following lines obtain the necessary components of SAEM processs ----------------------------
   # Examine variables in formula: if there exist variables that are not in all.params and state.names, issue an error
   if (class(dynamics) == "dynrDynamicsFormula"){

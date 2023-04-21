@@ -52,4 +52,4 @@ export(`coef<-`)
 S3method(`coef<-`, dynrModel)
 useDynLib(dynr, .registration=TRUE)
 import(RcppArmadillo)
-
+import(Ryacas)

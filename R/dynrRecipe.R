@@ -202,7 +202,8 @@ setClass(Class = "dynrNoise",
 		   state.names = "character",
 		   latent.startval = "numeric",
 		   ldl.transformed = "matrix",
-		   is_eta_cov_formula = "logical"),
+		   is_eta_cov_formula = "logical",
+		   known.vars = "list"),
          contains = "dynrRecipe"
 )
 #TODO we should emphasize that either the full noise covariance structures should be freed or the diagonals because we are to apply the ldl trans  
@@ -1315,14 +1316,32 @@ setMethod("writeCcode", "dynrNoise",
 			fml=processFormula(ldl_list)
 			lhs=lapply(fml,function(x){x[1]})
             rhs=lapply(fml,function(x){x[2]})
+			
+			fkv = processFormula(object$known.vars)
+			rhskv = lapply(fkv,function(x){x[2]})
+			lhskv = names(object$known.vars)
+			
+			
 			for (i in 1:length(object$paramnames)){
 			  pattern <- object$paramnames[i]
 			  rhs  <- lapply(rhs, function(x){gsub(pattern, paste0('param[', i-1, ']'),x, fixed = TRUE)})
+			  rhskv <- lapply(rhskv, function(x){gsub(pattern, paste0('param[', i-1, ']'),x, fixed = TRUE)})
+			  lhskv <- gsub(pattern, paste0('param[', i-1, ']'), lhskv , fixed = TRUE)
 			}
 			
 			for (i in 1:length(covariates)){
 			  pattern <- covariates[i]
 			  rhs  <- lapply(rhs, function(x){gsub(pattern, paste0('gsl_vector_get(co_variate,', i-1, ')'),x, fixed = TRUE)})
+			  rhskv  <- lapply(rhskv, function(x){gsub(pattern, paste0('gsl_vector_get(co_variate,', i-1, ')'),x, fixed = TRUE)})
+			}
+			
+			#browser()
+			for(i in 1:nrow(params.latent[[1]])){
+			  for(j in 1:ncol(params.latent[[1]])){
+			    pattern <- lhs[(i-1)*nrow(params.latent[[1]])+j][[1]]
+			    rhs  <- lapply(rhs, function(x){gsub(pattern, paste0('noise_formula[', i-1,'][', j-1, ']'),x, fixed = TRUE)})
+			    rhskv  <- lapply(rhskv, function(x){gsub(pattern, paste0('noise_formula[', i-1,'][', j-1, ']'),x, fixed = TRUE)})
+			  }
 			}
 
 			# writeC code here
@@ -1333,6 +1352,11 @@ setMethod("writeCcode", "dynrNoise",
 			    ret <- paste0(ret, "\tnoise_formula[", i-1,'][', j-1, ']=', rhs[(j-1)*2+i] ,";\n")
 			  }
 			}
+			ret <- paste0(ret, '\n')
+			for(i in 1:length(lhskv)){
+			  ret <- paste0(ret, "\t", lhskv[i], '=', rhskv[i] ,";\n")
+			}
+			
 			
 			
 			if(nregime > 1){
@@ -2346,20 +2370,24 @@ processCovFormula <- function(dots, values.latent, params.latent){
   #processFormula -> parseFormula -> # reverseldl (which calls dynr.ldl) -> trans2ArmadilloFunction (as opposed to trans2CFunction):
   
   #browser()
+  formula.latent <- params.latent
   for (i in 1:nrow(params.latent)){
 	for (j in 1:ncol(params.latent)){
 	  for (e in 1:length(unlist(latent.formula))){
-	    params.latent[i,j] <- gsub(lhs[[e]], rhs[[e]], params.latent[i,j], fixed = TRUE)
+	    formula.latent[i,j] <- gsub(lhs[[e]], rhs[[e]], formula.latent[i,j], fixed = TRUE)
 	  }
 	}
   }
   
-  out <- symbolicLDLDecomposition2(params.latent, values.latent, list())
+  out <- symbolicLDLDecomposition2(formula.latent, values.latent)
+  #browser()
   
+  known.vars <- solveStartLDLSymbolically(out$ldl, params.latent)
+    
   ldl.transformed <- out$ldl
   for (i in 1:nrow(params.latent)){
 	for (j in 1:ncol(params.latent)){
-	  ldl.transformed[i, j][[1]] <- as.formula(paste0( 'x ~', out$ldl[i, j]))
+	  ldl.transformed[i, j][[1]] <- as.formula(paste0( params.latent[i, j], '~', out$ldl[i, j]))
 	}
   }
   #sampleCovformula=
@@ -2377,7 +2405,7 @@ processCovFormula <- function(dots, values.latent, params.latent){
   # Write out Armadillo code
   # D = exp(par11*delta_t)
   
-  x <- list(startval=sv, paramnames=pn, ldl.transformed=ldl.transformed, latent.formula=latent.formula, latent.startval=dots$latent.startval)
+  x <- list(startval=sv, paramnames=pn, ldl.transformed=ldl.transformed, latent.formula=latent.formula, latent.startval=dots$latent.startval, known.vars=known.vars)
   return(x)
 }  
 
@@ -4751,7 +4779,7 @@ vectorizeMatrix <- function(matrix, byrow= FALSE){
 }
 
 
-symbolicLDLDecomposition2 <- function(a.params, a.values, other.values){
+symbolicLDLDecomposition2 <- function(a.params, a.values){
   #browser()
   if(!is.matrix(a.params) || nrow(a.params) != ncol(a.params))
     stop("The variable 'a.params' must be a square matrix")
@@ -4999,6 +5027,7 @@ symbolicLDLDecomposition2 <- function(a.params, a.values, other.values){
   #}
   
   #
+  
   ret = matrix(mapply(function(term, ret, value){
     if(term == 0)
       as.list(as.formula(paste0('x ~ ',value)))[[3]]
@@ -5013,4 +5042,44 @@ symbolicLDLDecomposition2 <- function(a.params, a.values, other.values){
   
   #return(list(ldl=ret, pars=names(par_list), L=L, D=D))
   
+}
+
+solveStartLDLSymbolically <- function(ldl, params.ldl){
+  known.vars <- list()
+  #browser()
+  
+  # if (min(diag(MASS::ginv(values.ldl)))<0){
+    # stop("Starting values for entries in random.values.inicov
+        # and values.inicov generate a non-positive 
+         # definite covariance matrix. Please check
+         # the starting values for these entries.")
+  # }
+  
+  for(i in 1:nrow(ldl)){
+    for(j in 1:nrow(ldl)){
+	   #equ <- paste(deparse(ldl[i,j][[1]], width.cutoff = 256L), '-', values.ldl[i,j], '== 0')
+	   equ <- paste(deparse(ldl[i,j][[1]], width.cutoff = 256L), '-', params.ldl[i,j], '== 0')
+	   equ <- gsub('exp', 'Exp', equ)
+	   equ <- gsub('log', 'Ln', equ)
+	   equ <- gsub(' _', '_', equ)
+	   if(i == 1 && j == 1)
+         cmd <- equ %>% y_fn("Solve", "par1")
+	   else if(i == 1 && j == 2)
+         cmd <- equ %>% y_fn("Solve", "par2")
+	   else if(i == 2 && j == 2)
+         cmd <- equ %>% y_fn("Solve", "par3")
+	   else
+	     next
+	   sol <- yac_str(cmd)
+	   sol<- substr(sol, 2, nchar(sol)-1)
+	   sol <- gsub('Exp', 'exp', sol)
+	   sol <- gsub('Ln', 'log', sol)
+	   sol <- gsub(' _', '_', sol)
+	   lhs_sol <- strsplit(sol, "==")[[1]][1]
+	   rhs_sol <- strsplit(sol, "==")[[1]][2]
+	   #browser()
+	   known.vars[lhs_sol] <- list(as.formula(paste0('x ~ ',rhs_sol))) 
+    }
+  }
+  return(known.vars)
 }
