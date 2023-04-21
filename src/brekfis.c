@@ -39,10 +39,12 @@
  * @return log-likelihood
  */
 double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, double *y_time, const ParamConfig *config, ParamInit *init, Param *param){
-	int DEBUG_BREKFIS = 1; /*0=false/no; 1=true/yes*/
+	int DEBUG_BREKFIS = 0; /*0=false/no; 1=true/yes*/
+	/*
 	if(DEBUG_BREKFIS){
 		MYPRINT("Called brekfis\n");
 	}
+	*/
     size_t t, regime_j, regime_k, sbj;
     double neg_log_p, p, log_like=0;
 
@@ -112,16 +114,19 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
     gsl_matrix *diff_eta=gsl_matrix_alloc(config->dim_latent_var, 1);
     gsl_matrix *modif_p=gsl_matrix_alloc(config->dim_latent_var, config->dim_latent_var);
 
+	/*
 	if(DEBUG_BREKFIS){
 		MYPRINT("Finished initializing brekfis\nStarting subject brekfis loop\n");
-	}
+	}*/
 	
+	/*
 	if(config->is_eta_cov_formula){
 		MYPRINT("Within brekfis, the is_eta_cov_formula is True.\n");
 	}
 	else{
 		MYPRINT("Within brekfis, the is_eta_cov_formula is False.\n");
 	}
+	*/
 
 
     /********************************************************************************/
@@ -147,16 +152,19 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				if (t==(config->index_sbj)[sbj]){
 					gsl_matrix_set_identity(param->regime_switch_mat);
 					gsl_vector_memcpy(pr_t, init->pr_0[sbj]);
+					/*
 					if(DEBUG_BREKFIS){
 						MYPRINT("initial regime probabilities:\n");
 						print_vector(pr_t);
 						MYPRINT("\n");
 					}
+					*/
 				}else{
 					type=1;
 					config->func_regime_switch(t, type, param->func_param, co_variate[t], param->regime_switch_mat);
 				}
 				
+				/*
 				if(DEBUG_BREKFIS){
 					MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
 					MYPRINT("\n");
@@ -173,16 +181,21 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					print_matrix(param->eta_noise_cov);
 					MYPRINT("\n");
 				}
+				*/
 				
+				/*
 				if(DEBUG_BREKFIS){
 					MYPRINT("About to call func_noise_cov\n");
 				}
+				*/
 				//SMC added covariates here (2)
 				config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
+				/*
 				if(sbj == 0){
 					MYPRINT("print eta_noise_cov in Line 182 of brekfis\n");
 					print_matrix(param->eta_noise_cov);
 				}
+				*/
 				model_constraint_par(config, param, config->is_eta_cov_formula);
 				
 				if(DEBUG_BREKFIS){
@@ -231,10 +244,11 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 						innov_garbage, // innov_cov
 						isFirstTime, false, false, 0);
 					
+					/*
 					if(sbj == 0){
 						MYPRINT("print eta_noise_cov in Line 233 of brekfis\n");
 						print_matrix(param->eta_noise_cov);
-					}
+					}*/
 					gsl_vector_free(eta_garbage);
 					gsl_matrix_free(error_garbage);
 					gsl_matrix_free(innov_garbage);
@@ -281,12 +295,14 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 					double tryP = exp(-neg_log_p);
 					p = ( isfinite(tryP) && (tryP > tooSmallNumber) ) ? tryP:tooSmallNumber;
 					
+					/*
 					if(DEBUG_BREKFIS){
 						MYPRINT("likelihood f(y_it|S_it=k,S_i,t-1=j,Y_i,t-1):\n");
 						MYPRINT("before exponential %lf\n",neg_log_p);
 						MYPRINT("original %lf\n",exp(-neg_log_p));
 						MYPRINT("adjusted %lf\n",p);
 					}
+					*/
 					
 					/*p=exp(-neg_log_p)*tran_prob_jk;*/
 					gsl_matrix_set(like_jk, regime_j, regime_k, p*tran_prob_jk);
@@ -304,6 +320,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
             /*like_jk scaled, Pr(S_{t-1} = j,S_{t} = k|Y_{t}, like=sum*/
             /*individual ÐLL is now divided by each individualÕs number of occasions. This helps speed convergence and ensure that each individualÕs data get weighted equally regardless of T_i.*/
 
+			/*
 			if(DEBUG_BREKFIS){
 	            MYPRINT("Pr(S_{t-1} = j,S_{t} = k|Y_{t}):\n");
 	            print_matrix(like_jk);
@@ -315,6 +332,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	
 	            MYPRINT("Pr(S_it=k|Y_it) original and adjusted:\n");
 			}
+			*/
 
             for(regime_k=0; regime_k<config->num_regime; regime_k++){
                     sum_overj=0;
