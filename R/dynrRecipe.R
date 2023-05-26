@@ -1353,9 +1353,10 @@ setMethod("writeCcode", "dynrNoise",
 			  }
 			}
 			ret <- paste0(ret, '\n')
-			for(i in 1:length(lhskv)){
-			  ret <- paste0(ret, "\t", lhskv[i], '=', rhskv[i] ,";\n")
-			}
+			ret <- paste0(ret, 'printf("noise_formula\\n%.4lf %.4lf\\n%.4lf %.4lf\\n", noise_formula[0][0], noise_formula[0][1], noise_formula[1][0], noise_formula[1][1]);\nprintf("param3-5 %lf %lf %lf\\n", param[3], param[4], param[5]);')
+			#for(i in 1:length(lhskv)){
+			#  ret <- paste0(ret, "\t", lhskv[i], '=', rhskv[i] ,";\n")
+			#}
 			
 			
 			
@@ -2379,17 +2380,19 @@ processCovFormula <- function(dots, values.latent, params.latent){
 	}
   }
   
-  out <- symbolicLDLDecomposition2(formula.latent, values.latent)
   #browser()
-  
-  known.vars <- solveStartLDLSymbolically(out$ldl, params.latent)
-    
+  out <- symbolicLDLDecomposition2(formula.latent, values.latent)
+  #known.vars <- solveStartLDLSymbolically(out$ldl, params.latent)  
   ldl.transformed <- out$ldl
   for (i in 1:nrow(params.latent)){
 	for (j in 1:ncol(params.latent)){
 	  ldl.transformed[i, j][[1]] <- as.formula(paste0( params.latent[i, j], '~', out$ldl[i, j]))
+	  ldl.transformed[i, j][[1]] <- as.formula(paste0( params.latent[i, j], '~', formula.latent[i,j]))
 	}
   }
+  known.vars = list(x~0)
+  
+  
   #sampleCovformula=
   #  list(Sigma11 ~ par1*delta_t^3,
   #       Sigma12 ~ par2*deltat, 
@@ -5063,11 +5066,11 @@ solveStartLDLSymbolically <- function(ldl, params.ldl){
 	   equ <- gsub('log', 'Ln', equ)
 	   equ <- gsub(' _', '_', equ)
 	   if(i == 1 && j == 1)
-         cmd <- equ %>% y_fn("Solve", "par1")
+         cmd <- equ %>% y_fn("Solve", "sigma2beta")
 	   else if(i == 1 && j == 2)
-         cmd <- equ %>% y_fn("Solve", "par2")
+         cmd <- equ %>% y_fn("Solve", "sigma2beta")
 	   else if(i == 2 && j == 2)
-         cmd <- equ %>% y_fn("Solve", "par3")
+         cmd <- equ %>% y_fn("Solve", "sigma2beta")
 	   else
 	     next
 	   sol <- yac_str(cmd)

@@ -839,10 +839,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                 }
                 //SMC ADDED COVARIATES HERE (1)
                 config->func_noise_cov(t, regime_j, param->func_param, param->y_noise_cov, param->eta_noise_cov, co_variate[t]);
+				/*
 				if(sbj == 0){
 					MYPRINT("print eta_noise_cov in Line 822 of brekfis\n");
 					print_matrix(param->eta_noise_cov);
 				}
+				*/
                 model_constraint_par(config, param, config->is_eta_cov_formula);
 
                 /*MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
@@ -902,10 +904,12 @@ double EKimFilter(gsl_vector ** y, gsl_vector **co_variate, double *y_time, cons
                         eta_regime_jk_pred[t][regime_j][regime_k], error_cov_regime_jk_pred[t][regime_j][regime_k],
                         eta_regime_jk_t_plus_1[t][regime_j][regime_k], error_cov_regime_jk_t_plus_1[t][regime_j][regime_k], 
 						innov_v[t][regime_j][regime_k], inv_residual_cov[t][regime_j][regime_k], residual_cov[t][regime_j][regime_k], isFirstTime, true, perturb, seed); /*inverse*/
+						
+					/*
 					if(sbj == 0){	
 						printf("print eta_noise_cov here in Line 884 of brekfis\n");
 						print_matrix(param->eta_noise_cov);
-					}
+					}*/
 
                         /*MYPRINT("From regime %lu to regime %lu:\n",regime_j,regime_k);
                         MYPRINT("\n");
