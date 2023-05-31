@@ -189,7 +189,8 @@ Rcpp::List rcpp_saem_interface(Rcpp::List model_sexp, Rcpp::List data_sexp, bool
 	/*-----*/
 	if (InfDS.Nb > 0 && InfDS.Ntheta > 0){
 		InfDS.Z = as<mat>(model_sexp["Z"]);
-		//InfDS.Z.print("InfDS.Z");
+		InfDS.Z = InfDS.Z.rows(0, InfDS.Ntheta - 1);
+		InfDS.Z.print("InfDS.Z");
 	}
 	
 	
