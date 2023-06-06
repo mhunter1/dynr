@@ -162,10 +162,10 @@ dynr.config <- function(verbose=FALSE){
 	noGSLmsg <- "LIB_GSL variable not found."
 	if ( .Platform$OS.type == "windows" ) {
 		path <- Sys.getenv("PATH")
-		path <- shortPathName(strsplit(path, split=';', fixed=TRUE)[[1]])
+		path <- normalizePath(strsplit(path, split=';', fixed=TRUE)[[1]])
 		path <- gsub("\\\\", "/", path)
 		path <- paste(path, sep='', collapse=';')
-		rpath <- shortPathName(R.home(component="bin"))
+		rpath <- normalizePath(R.home(component="bin"))
 		rpath <- gsub("\\\\", "/", rpath)
 		findR <- grep(rpath, path)
 		if(length(findR) < 1 || findR != 1){
