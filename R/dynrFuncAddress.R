@@ -106,7 +106,7 @@ CompileCode <- function(code, language, verbose, libLFile) {
 	                    stderr=errfile, stdout=verbose)
 	errmsg <- readLines(errfile)
 	unlink(errfile)
-	if(length(errmsg) > 0){cat("May I present to you your error messages?\n")}
+	#if(length(errmsg) > 0){cat("May I present to you your error messages?\n")}
 	writeLines(errmsg)
 	setwd(wd)
 	
