@@ -37,7 +37,7 @@
 ##' the measurement occasions for a subject are a subset of an arithmetic sequence but are not
 ##' consecutive, NAs will be inserted automatically to create an equally spaced data set before
 ##' estimation.
-##' If the data are fit to a continuous-time model, the TIME varibles can contain subject-specific increasing sequences 
+##' If the data are fit to a continuous-time model, the TIME variables can contain subject-specific increasing sequences 
 ##' of irregularly spaced real numbers.  
 ##' Missing values in the observed variables shoud be indicated by NA. Missing values in covariates are not allowed. 
 ##' That is, missing values in the covariates, if there are any, should be imputed first. 
