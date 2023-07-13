@@ -5,8 +5,7 @@
 # returns a list of addresses of the compiled model functions and maybe R functions for debug purposes
 #------------------------------------------------
 # Changed DLL name and directory to be user-specified and permanent
-.C2funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){
-  
+.C2funcaddress<-function(verbose,isContinuousTime, infile, outfile,compileLib){  
   #-------Set some variables: This function may later be extended----------
   language <- "C"
   #-------Get the full name of the library----------
@@ -48,6 +47,7 @@
                 f_transform=getNativeSymbolInfo("function_transform", DLL)$address)
   }
   return(list(address=res, libname=libLFile))
+
 }
 
 #--------------------------------------------------
@@ -288,67 +288,70 @@ CompileCodeSAEMRCpp <- function(code, language, verbose, libLFile) {
 ##' @examples
 ##' \dontrun{dynr.config()}
 dynr.config <- function(verbose=FALSE){
-  genmsg <- paste0(
-    "\nPlease read the 'Installation for Users' vignette at\n",
-    "https://cran.r-project.org/web/packages/dynr/",
-    "vignettes/InstallationForUsers.pdf",
-    "\nor\n",
-    "vignette(package='dynr', 'InstallationForUsers')\n")
-  # Check that R is on the path
-  noRmsg <- "R did not appear to be on the 'PATH' environment variable."
-  # Check that Rtools exists and is on the path
-  noRtoolsmsg <- "No Rtools found in 'PATH' environment variable."
-  # Check for a C compiler
-  noCmsg <- "No C compiler found."
-  # Check for GSL
-  noGSLmsg <- "LIB_GSL variable not found."
-  if ( .Platform$OS.type == "windows" ) {
-    path <- Sys.getenv("PATH")
-    path <- gsub("\\\\", "/", path)
-    findR <- grep(R.home(component="bin"), path)
-    if(length(findR) < 1 || findR != 1){
-      # Only warning
-      # R does NOT need to be on the path for windows unless you're a developer
-      warning(paste0(noRmsg, '\nThis is only needed for developers.\nIf that is not you, then happily ignore this warning.\n'))
-    }
-    
-    if(grep('rtools', path, ignore.case=TRUE) != 1){
-      stop(paste0(noRtoolsmsg, genmsg))
-    }
-    if(!checkForCompiler() ){
-      stop(paste0(noCmsg, genmsg))
-    }
-    
-    ## windows gsl flags
-    LIB_GSL <- Sys.getenv("LIB_GSL")
-    LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
-    LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
-    if(nchar(LIB_GSL) < 1){
-      stop(paste0(noGSLmsg, genmsg))
-    }
-  }else {
-    ## UNIX-alike build
-    
-    if(!checkForCompiler() ){
-      stop(paste0(noCmsg, genmsg))
-    }
-    
-    ## Unix gsl flags
-    # Wrap system command in try
-    # If try error, say can't find gsl
-    gsl_cflags <- try(system( "gsl-config --cflags", intern=TRUE), silent=TRUE)
-    if(inherits(gsl_cflags, 'try-error')){
-      stop("'gsl-config --cflags' failed.  You probably need to install GSL and/or add it to your path.")
-    }
-    gsl_libs   <- try(system( "gsl-config --libs", intern=TRUE), silent=TRUE)
-    if(inherits(gsl_cflags, 'try-error')){
-      stop("'gsl-config --libs' failed.  You probably need to install GSL  and/or add it to your path.")
-    }
-    # Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))
-  }
-  if(verbose){
-    message("Configuration check complete.  Ready to rock and roll.")
-  }
+	genmsg <- paste0(
+		"\nPlease read the 'Installation for Users' vignette at\n",
+		"https://cran.r-project.org/web/packages/dynr/",
+		"vignettes/InstallationForUsers.pdf",
+		"\nor\n",
+		"vignette(package='dynr', 'InstallationForUsers')\n")
+	# Check that R is on the path
+	noRmsg <- "R did not appear to be on the 'PATH' environment variable."
+	# Check that Rtools exists and is on the path
+	noRtoolsmsg <- "No Rtools found in 'PATH' environment variable."
+	# Check for a C compiler
+	noCmsg <- "No C compiler found."
+	# Check for GSL
+	noGSLmsg <- "LIB_GSL variable not found."
+	if ( .Platform$OS.type == "windows" ) {
+		path <- Sys.getenv("PATH")
+		path <- normalizePath(strsplit(path, split=';', fixed=TRUE)[[1]])
+		path <- gsub("\\\\", "/", path)
+		path <- paste(path, sep='', collapse=';')
+		rpath <- normalizePath(R.home(component="bin"))
+		rpath <- gsub("\\\\", "/", rpath)
+		findR <- grep(rpath, path)
+		if(length(findR) < 1 || findR != 1){
+			# Only warning
+			# R does NOT need to be on the path for windows unless you're a developer
+			warning(paste0(noRmsg, '\nThis is only needed for developers.\nIf that is not you, then happily ignore this warning.\n'))
+		}
+		if(grep('rtools', path, ignore.case=TRUE) != 1){
+			stop(paste0(noRtoolsmsg, genmsg))
+		}
+		if(!checkForCompiler() ){
+			stop(paste0(noCmsg, genmsg))
+		}
+		
+		## windows gsl flags
+		LIB_GSL <- Sys.getenv("LIB_GSL")
+		LIB_GSL <- gsub("\\\\", "/", LIB_GSL) # replace "\" with "/"
+		LIB_GSL <- gsub("\"", "", LIB_GSL) # remove "
+		if(nchar(LIB_GSL) < 1){
+			stop(paste0(noGSLmsg, genmsg))
+		}
+	}else {
+		## UNIX-alike build
+		
+		if(!checkForCompiler() ){
+			stop(paste0(noCmsg, genmsg))
+		}
+		
+		## Unix gsl flags
+		# Wrap system command in try
+		# If try error, say can't find gsl
+		gsl_cflags <- try(system( "gsl-config --cflags", intern=TRUE), silent=TRUE)
+		if(inherits(gsl_cflags, 'try-error')){
+			stop("'gsl-config --cflags' failed.  You probably need to install GSL and/or add it to your path.")
+		}
+		gsl_libs   <- try(system( "gsl-config --libs", intern=TRUE), silent=TRUE)
+		if(inherits(gsl_cflags, 'try-error')){
+			stop("'gsl-config --libs' failed.  You probably need to install GSL  and/or add it to your path.")
+		}
+		# Sys.setenv(PATH=paste0(Sys.getenv("PATH"),":","/opt/local/bin"))
+	}
+	if(verbose){
+		message("Configuration check complete.  Ready to rock and roll.")
+	}
 }
 
 
