@@ -1,18 +1,18 @@
 #include <time.h>
 //#include <stdlib.h>
-  //#include<math.h>
+//#include<math.h>
   
-  //#include <armadillo>
+//#include <armadillo>
   
-  //using namespace arma;
+//using namespace arma;
 
 //#include "structure_prototype.h"
-  //#include "supplementary_function.h"
-  //#include "converted_function.h"
+//#include "supplementary_function.h"
+//#include "converted_function.h"
   
   
   
-  // Step 3 in the MainUseThins.m
+// Step 3 in the MainUseThins.m
 void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::mat lowerb, arma::mat x1, char *filenamePar, char *filenameSE, char *filenameconv, char *filenamebhat, char *filenamebhat2, int kk, int trueInit, int batch, int seed, int freeIC, struct C_OUTPUT &output, int observedFlag){
   //Rprintf("in MainUseThis\n");
   
@@ -123,6 +123,7 @@ void saem_estimation(C_INFDS &InfDS, C_INFDS0 &InfDS0, arma::mat upperb, arma::m
 	k = 1; 
 	stage = 1; 
 	gmm = 1;
+	bAccept = 0; // to avoid uninitialized warning
 	
 	setScaleb = InfDS.setScaleb;
 	//InfDS.bAdaptParams = ".5, 2.5, .5";

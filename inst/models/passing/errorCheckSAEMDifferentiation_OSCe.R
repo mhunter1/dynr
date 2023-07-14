@@ -65,7 +65,7 @@ dynm<-prep.formulaDynamics(formula=formula,
                                       0,'sigma2_b_k1',0,'c24',0,
                                       'c13',0,'sigma2_b_k2',0,0,
                                       0,'c24',0,'sigma2_b_base1','c45',
-                                      0,0,0,'c45','sigma2_b_base1'),ncol=5,byrow=TRUE),
+                                      0,0,0,'c45','sigma2_b_base2'),ncol=5,byrow=TRUE),
                            random.values.inicov = 
                               matrix(c(2,0,.5,0,0,
                                         0,.8,0,.001,0,
@@ -121,8 +121,8 @@ testthat::expect_true(all(dim(model@dmudparMu) - c(1,2)==0))
 testthat::expect_true(all(dim(model@dmudparMu2) - c(2,1)==0))
 testthat::expect_true(all(dim(model@dSigmaede) - c(2,4)==0))
 testthat::expect_true(all(dim(model@dSigmaede2) - c(8,2)==0))
-testthat::expect_true(all(dim(model@dSigmabdb) - c(8,81)==0))
-testthat::expect_true(all(dim(model@dSigmabdb2) - c(648,8)==0))
+testthat::expect_true(all(dim(model@dSigmabdb) - c(8,25)==0))
+testthat::expect_true(all(dim(model@dSigmabdb2) - c(200,8)==0))
 
 
 #------------------------------------------------------------------------------
