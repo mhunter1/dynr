@@ -2652,25 +2652,27 @@ autojacob <- function(formula, n, diff.variables){
 ##' containing the analytic differentiation function of the dynamic functions with respect to
 ##' the latent variables. If this is not provided, dynr will invoke an automatic differentiation
 ##' procedure to compute the jacobian functions.
-##' @param ... further named arguments. Some of these arguments may include:
-##' 
-##' \code{theta.formula} specifies a list consisting of formula(s) of the form 
-##' \code{list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
-##'  + 1 * rand_par)}, where \code{par} is a parameter is a unit- (e.g., person-) 
-##'  specific that appears in a dynamic formula and is assumed to follow
-##'  a linear mixed effects structure. Here, \code{b_p} are fixed effects 
-##'  parameters; \code{covariate_1}, ..., \code{covariate_p} are known covariates as predeclared in
-##'  \code{dynr.data}, and \code{rand_par} is a random effect component representing unit i's random deviation
-##'  in \code{par} value from that predicted by \code{b_0 + covariate_1*b_1 + ... + covariate_p*b_p}. 
-##'
-##' \code{random.names} specifies names of random effect components in the \code{theta.formula}
-##'
-##' \code{random.params.inicov} specifies names of elements in the covariance matrix of the random effect components
-##'
-##' \code{random.values.inicov} specifies starting values of elements in the covariance matrix of the random effect components
-##' 
-##' \code{random.lb}  and \code{random.ub} specify the lower and upper bound of the random effect estimates
-##' 
+##' @param saem a flag to indicate whether the SAEM function is enabled. (SAEM is still under testing -- always set this flag to \code{FALSE})
+##' @param ... further named arguments. 
+# The following roxygen documents are commented out before merge to master and will be recovered after testing SAEM functions properly
+# ##' Arguments in development (still under testing -- do not use) for models with random effects may include:
+# ##' \code{theta.formula} specifies a list consisting of formula(s) of the form 
+# ##' \code{list (par ~ 1 * b_0  + covariate_1 * b_1 + ... + covariate_p * b_p 
+# ##' + 1 * rand_par)}, where \code{par} is a parameter is a unit- (e.g., person-) 
+# ##' specific that appears in a dynamic formula and is assumed to follow
+# ##' a linear mixed effects structure. Here, \code{b_p} are fixed effects 
+# ##' parameters; \code{covariate_1}, ..., \code{covariate_p} are known covariates as predeclared in
+# ##' \code{dynr.data}, and \code{rand_par} is a random effect component representing unit i's random deviation
+# ##' in \code{par} value from that predicted by \code{b_0 + covariate_1*b_1 + ... + covariate_p*b_p}. 
+# ##'
+# ##' \code{random.names} specifies names of random effect components in the \code{theta.formula}
+# ##'
+# ##' \code{random.params.inicov} specifies names of elements in the covariance matrix of the random effect components
+# ##'
+# ##' \code{random.values.inicov} specifies starting values of elements in the covariance matrix of the random effect components
+# ##' 
+# ##' \code{random.lb}  and \code{random.ub} specify the lower and upper bound of the random effect estimates
+# ##'
 ##' 
 ##' @details
 ##' This function defines the dynamic functions of the model either in discrete time or in continuous time.
@@ -4108,36 +4110,36 @@ prep.thetaFormula <- function(formula, intercept.names, random.names){
 # }
 
 
-
-##' Recipe function for specifying the control parameters used in the SAEM estimation
-##' 
-##' @param MAXGIB A positive integer indicates the number of iterations to be run in the Gibbs sampler (Default: 200). 
-##' @param MAXITER A positive integer indicates the maximum number of iterations of SAEM (Default: 200).
-##' @param maxIterStage1 A positive integer indicates the maximum number of iterations of SAEM Stage 1 (Default: 100).
-##' @param gainpara A floating number; SAEM control parameter (Default: 0.6).
-##' @param gainparb A floating number; SAEM control parameter (Default: 3).
-##' @param gainpara1 A floating number; SAEM control parameter (Default: 0.9).
-##' @param gainparb1 A floating number; SAEM control parameter (Default: 1).
-##' @param bAdaptParams A vector of two floating number \code{[min, max]} to specify the control parameters in the MCMC sampler of b (Default: c(0.5, 2.5)).
-##' @param KKO A integer. The SAEM process only starts to evaluate whether to transit to stage 2 after \code{KKO} iterations (Default: 20).
-##' @param scaleb A floating number indicating the initial value of \code{scaleb}, which is a weighting parameter to control the b acceptance rate (Default: 1). 
-##' @param setScaleb A booling value. If \code{setScaleb} is set to 0, \code{scaleb} will remain in its initial value. If \code{setScaleb} is set to 1, \code{scaleb} will be updated in the MCMC sampler of b (Default: 1).
-##' @param setAccept A floating number, which is a control parameter of the b acceptance rate (Default: 0.8).
-##' @param seed An integer, the random seed. If \code{seed} is not specified, a random number will be given as seed (Default: NA).
-##' 
-##' @details
-##' Use @ to show specific arguments from a dynrSaemParameter object, see the example.
-##' 
-##' @return Object of class 'dynrSaemParameter'
-##' 
-##'  
-##' @examples 
-##' saemp <- prep.saemParameter(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100)
-##' print(saemp@MAXGIB)
-##' ## 200
-##' print(saemp@setAccept)
-##' ## 0.8
-##'
+# The following roxygen documents are commented out before merge to master and will be recovered after testing SAEM functions properly
+# ##' Recipe function for specifying the control parameters used in the SAEM estimation
+# ##' 
+# ##' @param MAXGIB A positive integer indicates the number of iterations to be run in the Gibbs sampler (Default: 200). 
+# ##' @param MAXITER A positive integer indicates the maximum number of iterations of SAEM (Default: 200).
+# ##' @param maxIterStage1 A positive integer indicates the maximum number of iterations of SAEM Stage 1 (Default: 100).
+# ##' @param gainpara A floating number; SAEM control parameter (Default: 0.6).
+# ##' @param gainparb A floating number; SAEM control parameter (Default: 3).
+# ##' @param gainpara1 A floating number; SAEM control parameter (Default: 0.9).
+# ##' @param gainparb1 A floating number; SAEM control parameter (Default: 1).
+# ##' @param bAdaptParams A vector of two floating number \code{[min, max]} to specify the control parameters in the MCMC sampler of b (Default: c(0.5, 2.5)).
+# ##' @param KKO A integer. The SAEM process only starts to evaluate whether to transit to stage 2 after \code{KKO} iterations (Default: 20).
+# ##' @param scaleb A floating number indicating the initial value of \code{scaleb}, which is a weighting parameter to control the b acceptance rate (Default: 1). 
+# ##' @param setScaleb A booling value. If \code{setScaleb} is set to 0, \code{scaleb} will remain in its initial value. If \code{setScaleb} is set to 1, \code{scaleb} will be updated in the MCMC sampler of b (Default: 1).
+# ##' @param setAccept A floating number, which is a control parameter of the b acceptance rate (Default: 0.8).
+# ##' @param seed An integer, the random seed. If \code{seed} is not specified, a random number will be given as seed (Default: NA).
+# ##' 
+# ##' @details
+# ##' Use @ to show specific arguments from a dynrSaemParameter object, see the example.
+# ##' 
+# ##' @return Object of class 'dynrSaemParameter'
+# ##' 
+# ##'  
+# ##' @examples 
+# ##' saemp <- prep.saemParameter(MAXGIB = 200, MAXITER = 200, maxIterStage1 = 100)
+# ##' print(saemp@MAXGIB)
+# ##' ## 200
+# ##' print(saemp@setAccept)
+# ##' ## 0.8
+# ##'
 prep.saemParameter<- function(MAXGIB = 50, MAXITER = 200, 
                               maxIterStage1 = 100, 
                               gainpara = 0.600000, 

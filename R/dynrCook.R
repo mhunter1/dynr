@@ -560,6 +560,8 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' the final parameter estimates (default is .95)
 ##' @param infile (not required for models specified through the recipe functions) the name of a file 
 ##' that has the C codes for all dynr submodels for those interested in specifying a model directly in C
+# The following roxygen documents are commented out before merge to master and will be recovered after testing SAEM functions properly
+# ##' @param saemp an object to specify parameters for running SAEM. See \code{\link{prep.saemParameter}}. 
 ##' @param optimization_flag a flag (TRUE/FALSE) indicating whether optimization is to be done.
 ##' @param hessian_flag a flag (TRUE/FALSE) indicating whether the Hessian matrix is to be calculated.
 ##' @param verbose a flag (TRUE/FALSE) indicating whether more detailed intermediate output during the 
