@@ -151,7 +151,7 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 				}
 				
 				if(DEBUG_BREKFIS){
-					MYPRINT("sbj %lu at time %lu in regime %lu:\n",sbj,t,regime_j);
+					MYPRINT("sbj %d at time %d in regime %d:\n", (int) sbj, (int) t, (int) regime_j);
 					MYPRINT("\n");
 					MYPRINT("regime_switch_matrix:\n");
 					print_matrix(param->regime_switch_mat);
@@ -292,8 +292,8 @@ double brekfis(gsl_vector ** y, gsl_vector **co_variate, size_t total_time, doub
 	            print_matrix(like_jk);
 	            MYPRINT("\n");
 	
-	            MYPRINT("negative log likelihood at time %lu:\n",t);
-	            MYPRINT("%lf",-log_like);
+	            MYPRINT("negative log likelihood at time %d:\n", (int) t);
+	            MYPRINT("%lf", -log_like);
 	            MYPRINT("\n");
 	
 	            MYPRINT("Pr(S_it=k|Y_it) original and adjusted:\n");

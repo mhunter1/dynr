@@ -137,7 +137,7 @@ double ext_kalmanfilter(size_t t,
 		MYPRINT("%f ",y_time[t-1]);
 		MYPRINT("%f",y_time[t]);
 		MYPRINT("\n");
-		MYPRINT("regime: %lu\n",regime);
+		MYPRINT("regime: %d\n", (int) regime);
 		MYPRINT("eta_previous:\n");
 		print_vector(eta_t);
 		MYPRINT("\n");
@@ -229,7 +229,7 @@ double ext_kalmanfilter(size_t t,
 			MYPRINT("%f ",y_time[t-1]);
 			MYPRINT("%f",y_time[t]);
 			MYPRINT("\n");
-			MYPRINT("regime: %lu\n",regime);
+			MYPRINT("regime: %d\n", (int) regime);
 			MYPRINT("error_cov_previous:\n");
 			print_vector(error_cov_t_vec);
 			MYPRINT("\n");
@@ -292,7 +292,7 @@ double ext_kalmanfilter(size_t t,
 	
 	
 	if(DEBUG_EKF){
-		MYPRINT("eta(%d):", t);
+		MYPRINT("eta(%d):", (int) t);
 		print_vector(eta_t_plus_1);
 		MYPRINT("\n");
 	}
@@ -303,7 +303,7 @@ double ext_kalmanfilter(size_t t,
 	}
 	func_measure(t, regime, params, eta_t_plus_1, co_variate, H_t_plus_1, innov_v);
 	if(DEBUG_EKF){
-		MYPRINT("y_hat(%d):", t);
+		MYPRINT("y_hat(%d):", (int) t);
 		print_vector(innov_v);
 		MYPRINT("\n");
 	}
@@ -335,17 +335,17 @@ double ext_kalmanfilter(size_t t,
 		gsl_matrix_add(innov_cov_small, y_noise_cov_small); 
 		
 		if(DEBUG_EKF){
-			MYPRINT("H*P(%d)*H':\n", t);
+			MYPRINT("H*P(%d)*H':\n", (int) t);
 			print_matrix(innov_cov_small);
-			MYPRINT("R(%d):\n", t);
+			MYPRINT("R(%d):\n", (int) t);
 			print_matrix(y_noise_cov);
 			MYPRINT("\n");
-			MYPRINT("Filtered R(%d):\n", t);
+			MYPRINT("Filtered R(%d):\n", (int) t);
 			print_matrix(y_noise_cov_small);
 			MYPRINT("\n");
 		}
 		if(DEBUG_EKF){
-			MYPRINT("y_cov(%d):\n", t);
+			MYPRINT("y_cov(%d):\n", (int) t);
 			print_matrix(innov_cov_small);
 			MYPRINT("\n");
 		}
