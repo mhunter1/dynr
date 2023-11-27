@@ -10,7 +10,7 @@
 #	"dynr was developed with support from NIH/NIDA grants:\n\n",
 #	"R37-DA018673, R25-DA026119, R21-DA024304\n\n"))
 
-citEntry(entry="article",
+bibentry(bibtype="article",
 	title = paste("What's for {dynr}: A package for linear and nonlinear dynamic modeling in {R}"),
 	author = c(
 		person("Lu", "Ou"),
