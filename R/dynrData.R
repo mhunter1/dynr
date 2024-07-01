@@ -104,4 +104,12 @@ dynr.data <- function(dataframe, id = 'id', time = 'time', observed, covariates)
 }
 
 
-
+dfMergeFun <- function(df){
+          minTime <- min(df$time, na.rm=TRUE)
+		  maxTime <- max(df$time, na.rm=TRUE)
+		  diffTime <- min(diff(df$time), na.rm=TRUE)
+          new <- data.frame(id = unique(df$id), time = seq(minTime, maxTime, by = diffTime))
+          out <- merge(new, df, all.x = TRUE)
+		  out <- out[order(out$id, out$time),] # use numeric instead of lexicographic sort
+		  return(out)
+        }

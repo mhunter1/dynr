@@ -761,19 +761,13 @@ dynr.model <- function(dynamics, measurement, noise, initial, data, ..., outfile
         names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed, data$covariates)
         
-        data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
-          new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
-          out = merge(new, df, all.x = TRUE)
-        })
+        data.new.dataframe <- plyr::ddply(data.dataframe, "id", dfMergeFun)
         data <- dynr.data(data.new.dataframe, observed = data$observed.names, covariates = data$covariate.names)
       }else{
         names(data$observed) <- data$observed.names
         data.dataframe <- data.frame(id = data$id, time = data$time, data$observed)
         
-        data.new.dataframe <- plyr::ddply(data.dataframe, "id", function(df){
-          new = data.frame(id = unique(df$id), time = seq(df$time[1], df$time[length(df$time)], by = min(diff(df$time))))
-          out = merge(new, df, by="time", all.x = TRUE)
-        })
+        data.new.dataframe <- plyr::ddply(data.dataframe, "id", dfMergeFun)
         
         data <- dynr.data(data.new.dataframe, observed = data$observed.names)
       }
