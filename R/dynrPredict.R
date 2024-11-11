@@ -47,9 +47,16 @@ predict.dynrModel <- function(object,
 	# Process ... arg
 	dots <- list(...)
 	size <- dots[['size']]
+	# Handle regimes
+	regimes <- if(is.null(object$regimes) || dim(object$regimes$values)[1] == 0) NULL else object$regimes
 	# Create model
-	model0 <- dynr.model(dynamics=object$dynamics, measurement=object$measurement,
-		noise=object$noise, initial=object$initial, data=ddat, outfile='forecast.c')
+	if(is.null(regimes)){
+		model0 <- dynr.model(dynamics=object$dynamics, measurement=object$measurement,
+			noise=object$noise, initial=object$initial, data=ddat, outfile='forecast.c')
+	} else {
+		model0 <- dynr.model(dynamics=object$dynamics, measurement=object$measurement, regimes=regimes,
+			noise=object$noise, initial=object$initial, data=ddat, outfile='forecast.c')
+	}
 	# Run model to get filtered estimates
 	cook0 <- dynr.cook(model0, debug_flag=TRUE, verbose=FALSE,
 		optimization_flag=FALSE, hessian_flag=FALSE)
