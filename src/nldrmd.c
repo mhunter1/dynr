@@ -202,7 +202,7 @@ nlopt_result nldrmd_minimize_(int n, nlopt_func f, void *f_data,
 	  for (i = 0; i < n; ++i) c[i] *= ninv;
 
 	  /* x convergence check: find xcur = max radius from centroid */
-	  if(n > 0.0) { memset(xcur, 0, sizeof(double)*n); } else { goto done; }
+	  if(n > 0) { memset(xcur, 0, sizeof(double)*n); } else { goto done; }
 	  for (i = 0; i < n + 1; ++i) {
                double *xi = pts + i*(n+1) + 1;
 	       for (j = 0; j < n; ++j) {
