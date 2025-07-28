@@ -605,11 +605,11 @@ confint.dynrCook <- function(object, parm, level = 0.95, type = c("delta.method"
 ##' 
 ##' @return Object of class dynrCook.
 ##' 
-##' @seealso 
-##' \code{\link{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
+##' @seealso
+##' \code{\link[ggplot2]{autoplot}}, \code{\link{coef}}, \code{\link{confint}},
 ##' \code{\link{deviance}}, \code{\link{initialize}}, \code{\link{logLik}},
 ##' \code{\link{names}}, \code{\link{nobs}}, \code{\link{plot}}, \code{\link{print}},
-##' \code{\link{show}}, \code{\link{summary}}, \code{\link{vcov}}.          
+##' \code{\link{show}}, \code{\link{summary}}, \code{\link{vcov}}.
 ##' 
 ##' @examples
 ##' # Minimal model
